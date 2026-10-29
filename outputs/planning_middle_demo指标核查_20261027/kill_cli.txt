@@ -1,0 +1,37 @@
+== 任务规划中间层 · 规划能力版（middle-demo/v2） ==
+目标：makespan   H=20   在途语义：瞬移（规划快进）   仿真推进到 t=59
+
+作业：共 6，完成 5，失败 0，未结束 1
+规划：共 13 次；重试 0 次；超时 0 次
+重规划触发源（各自独立，同一轮可多条）：{'init': 1, 'member_change': 1, 'periodic': 11}
+成绩单：总能耗 187.4，每作业能耗 37.48，完成时刻 50，分散度 28.19
+（比总能耗会被"干得少"骗到；完成数不一致时先看完成数）
+派不出去的原因分布：{'续航不足': 63, '载荷不足': 40, '目标高度不可达': 27, '超出规划视野': 8, '平台失联': 35, '超出时间窗': 9}
+需上报上层（本层穷尽手段仍无解）：['J1']
+crew=1 指派求解（12 轮，内置JV）：最优合计 673.00，贪心合计 673.00
+
+作业 类型 工作量 进度 窗口 crew 尝试 状态
+J1     巡逻警戒       12.0      0.0/12.0    [0,60]      1         0         pending  
+J2     区域封控       18.0      18.0/18.0   [0,80]      3         1         succeeded
+J3     协同侦察       10.0      10.0/10.0   [0,50]      2         1         succeeded
+J4     要点坚守       15.0      15.0/15.0   [0,70]      2         1         succeeded
+J5     巡逻警戒       12.0      12.0/12.0   [0,60]      1         1         succeeded
+J6     机动突击       20.0      20.0/20.0   [0,90]      4         1         succeeded
+
+平台（能力参数为我方暂定，非下游实测）：
+  rover_01 UGV 号01  pos(10.0,10.0) 电量100.0 失联 话题 /rover_01/cmd_vel
+  rover_02 UGV 号02  pos(40.0,20.0) 电量74.2 存活 话题 /rover_02/cmd_vel
+  rover_03 UGV 号03  pos(60.0,20.0) 电量88.2 存活 话题 /rover_03/cmd_vel
+  rover_04 UGV 号04  pos(40.0,20.0) 电量74.2 存活 话题 /rover_04/cmd_vel
+  rover_21 TANK 号21  pos(40.0,20.0) 电量67.8 存活 话题 /rover_21/cmd_vel
+  rover_22 TANK 号22  pos(40.0,20.0) 电量86.7 存活 话题 /rover_22/cmd_vel
+  rover_31 PLANE 号31  pos(40.0,70.0) 电量40.8 存活 话题 /rover_31/cmd_vel
+  rover_32 PLANE 号32  pos(40.0,70.0) 电量40.8 存活 话题 /rover_32/cmd_vel
+  rover_41 WING 号41  pos(30.0,80.0) 电量80.0 存活 话题 /rover_41/cmd_vel
+  rover_42 WING 号42  pos(50.0,80.0) 电量80.0 存活 话题 /rover_42/cmd_vel
+
+边界：规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较
+产物：C:\Users\ammo\Desktop\MARL项目\outputs\planning_middle_demo指标核查_20261027\runs\kill
+可视报告：C:\Users\ammo\Desktop\MARL项目\outputs\planning_middle_demo指标核查_20261027\runs\kill\report.html
+动态运动回放：C:\Users\ammo\Desktop\MARL项目\outputs\planning_middle_demo指标核查_20261027\runs\kill\trajectory.html
+

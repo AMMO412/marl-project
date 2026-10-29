@@ -1,0 +1,114 @@
+{
+  "results": [
+    {
+      "mode": "normal",
+      "motion": "teleport",
+      "done": 6,
+      "settled": true,
+      "retries": 0,
+      "timeouts": 0,
+      "triggers": {
+        "init": 1,
+        "member_change": 0,
+        "exec_fail": 0,
+        "timeout": 0,
+        "deviation": 0,
+        "periodic": 9
+      },
+      "simulated_until_s": 50,
+      "id": "workbench_20261028_122050_750769",
+      "road_count": 0,
+      "obstacle_count": 0
+    },
+    {
+      "mode": "timeout",
+      "motion": "teleport",
+      "done": 6,
+      "settled": true,
+      "retries": 1,
+      "timeouts": 1,
+      "triggers": {
+        "init": 1,
+        "member_change": 0,
+        "exec_fail": 0,
+        "timeout": 1,
+        "deviation": 7,
+        "periodic": 7
+      },
+      "simulated_until_s": 46,
+      "id": "workbench_20261028_122051_592147",
+      "road_count": 0,
+      "obstacle_count": 0
+    },
+    {
+      "mode": "kill",
+      "motion": "teleport",
+      "done": 5,
+      "settled": false,
+      "retries": 0,
+      "timeouts": 0,
+      "triggers": {
+        "init": 1,
+        "member_change": 1,
+        "exec_fail": 0,
+        "timeout": 0,
+        "deviation": 0,
+        "periodic": 11
+      },
+      "simulated_until_s": 59,
+      "id": "workbench_20261028_122052_426684",
+      "road_count": 0,
+      "obstacle_count": 0
+    },
+    {
+      "mode": "deviation",
+      "motion": "teleport",
+      "done": 6,
+      "settled": true,
+      "retries": 0,
+      "timeouts": 0,
+      "triggers": {
+        "init": 1,
+        "member_change": 0,
+        "exec_fail": 0,
+        "timeout": 0,
+        "deviation": 2,
+        "periodic": 8
+      },
+      "simulated_until_s": 47,
+      "id": "workbench_20261028_122053_240767",
+      "road_count": 0,
+      "obstacle_count": 0
+    },
+    {
+      "mode": "normal",
+      "motion": "real",
+      "done": 6,
+      "settled": true,
+      "retries": 0,
+      "timeouts": 0,
+      "triggers": {
+        "init": 1,
+        "member_change": 0,
+        "exec_fail": 0,
+        "timeout": 0,
+        "deviation": 0,
+        "periodic": 7
+      },
+      "simulated_until_s": 56,
+      "id": "workbench_20261028_122054_087703",
+      "road_count": 11,
+      "obstacle_count": 7
+    }
+  ],
+  "original_hashes": {
+    "manifest.json": "ccf3b517bd166bbd3bc48bfcd193611d44c0ce3c15aceec33629fdcc6d9ac0a8",
+    "report.html": "e7082f353de40683c0e2c10e212565f42acfb0dc4550d0109d1fcd8a99aea2df",
+    "report.json": "8f1b879487426f8b95fcb8fa50980b1adfc33c72eb863d3457b60a4b73522622",
+    "scenario.json": "a05719e839654bbf72a362670c5a72cf7379d204ed8d335cd7a7d43c7f1be190",
+    "summary.txt": "6af426ab9b1b621a2dfa08d2ffe09422e86c26934e37dad9a0627d496a0ed3b2",
+    "trace.jsonl": "8da304ce8959cadd63fe28d11dce694cf8d2779f429dc5e73bc1c106c34bae56",
+    "trajectory.html": "56fdef3c0e55672c4a5df4e2ba72c78a67d7e090cd93199c99a49c3a613fff16"
+  },
+  "original_unchanged": true
+}

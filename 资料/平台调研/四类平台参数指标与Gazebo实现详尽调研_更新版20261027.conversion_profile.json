@@ -1,0 +1,28 @@
+{
+  "schema": "ppt-master.source_to_md.profile.v1",
+  "converter": "doc_to_md.py",
+  "conversion_type": "docx",
+  "source": {
+    "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.docx",
+    "name": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.docx",
+    "suffix": ".docx",
+    "kind": "file",
+    "exists": true,
+    "size_bytes": 513647
+  },
+  "outputs": {
+    "markdown": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.md",
+    "asset_dir": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files",
+    "image_manifest": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files/image_manifest.json",
+    "image_count": 1
+  },
+  "markdown": {
+    "line_count": 467,
+    "char_count": 23000,
+    "heading_count": 37,
+    "table_count": 16,
+    "image_ref_count": 1,
+    "link_count": 0
+  },
+  "warnings": []
+}

@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五类任务到位行为 · 带避障演示</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#2563eb; --warn:#dc2626; --ok:#15803d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+  header{padding:18px 24px 10px}
+  h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px}
+  .sub{color:var(--muted);margin-top:4px;font-size:12.5px}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;padding:0 24px}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);
+         border-radius:12px;overflow:hidden;min-height:520px}
+  canvas{display:block;width:100%;height:64vh;min-height:480px}
+  .hud{position:absolute;left:14px;top:12px;display:flex;gap:8px;align-items:center;
+       background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:999px;
+       padding:5px 12px;font-size:12.5px;backdrop-filter:blur(4px)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .clock{position:absolute;right:14px;top:12px;background:rgba(255,255,255,.9);
+         border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px}
+  aside{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .card h3{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:12.5px}
+  .kv span:first-child{color:var(--muted)}
+  .badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;
+         border:1px solid currentColor}
+  #events .ev{font-size:12px;color:#374151;padding:2px 0;border-bottom:1px dashed #f0f1f3}
+  #events .ev:last-child{border-bottom:0}
+  .t{color:#9ca3af;font-variant-numeric:tabular-nums;margin-right:6px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  footer{padding:12px 24px 20px}
+  #tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:#fff;color:#374151;border-radius:999px;
+       padding:5px 12px;font-size:12.5px;cursor:pointer}
+  .tab.active{border-color:#c7d2fe;background:#eef2ff;color:#3730a3}
+  .controls{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);
+            border-radius:10px;padding:8px 12px}
+  #seek{flex:1;accent-color:var(--accent)}
+  button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;
+         padding:4px 12px;cursor:pointer}
+  select{font:inherit;border:1px solid var(--line);border-radius:8px;padding:3px 6px;background:#fff}
+  #timeline{position:relative;margin-top:10px;height:34px;border-radius:8px;overflow:hidden;
+            background:#fff;border:1px solid var(--line);display:flex}
+  .seg{position:relative;height:100%;border-right:1px solid #fff;cursor:pointer;
+       display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#fff;
+       white-space:nowrap;overflow:hidden;min-width:6px}
+  .playhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:#111827;pointer-events:none}
+  .notes{font-size:11.5px;color:var(--muted);line-height:1.55}
+  @media (max-width:1100px){ main{grid-template-columns:1fr} aside{flex-direction:row;flex-wrap:wrap}
+    aside .card{flex:1 1 240px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>五类任务到位行为 · 带避障演示</h1>
+  <div class="sub">规划器下发指派 → A* 绕开真实建筑轮廓机动 → 到位后按任务类型执行行为；轨迹与事件均为代码运行结果</div>
+</header>
+
+<main>
+  <section class="stage">
+    <canvas id="map"></canvas>
+    <div class="hud"><span class="dot" id="hudDot"></span><span id="hudJob">—</span>
+      <span id="hudPhase" style="color:#6b7280"></span></div>
+    <div class="clock" id="clock">0.0 s</div>
+  </section>
+  <aside>
+    <div class="card">
+      <h3>当前作业</h3>
+      <div id="jobinfo"></div>
+      <div class="legend">
+        <span><i style="background:#cbd5e1"></i>建筑（SDF 盒体）</span>
+        <span><i style="background:#2563eb"></i>A* 路径</span>
+        <span><i style="background:#9ca3af"></i>直线（被挡）</span>
+      </div>
+    </div>
+    <div class="card"><h3>行为指标（本作业全程）</h3><div id="metrics"></div></div>
+    <div class="card"><h3>事件</h3><div id="events"></div></div>
+    <div class="card"><h3>口径与局限</h3><div class="notes" id="notes"></div></div>
+  </aside>
+</main>
+
+<footer>
+  <div id="tabs"></div>
+  <div class="controls">
+    <button id="play">暂停</button>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="4" selected>4×</option>
+      <option value="10">10×</option>
+    </select>
+    <input id="seek" type="range" min="0" max="1" step="0.01" value="0">
+    <label style="font-size:12.5px;color:#6b7280"><input type="checkbox" id="showStraight" checked> 直线对比</label>
+  </div>
+  <div id="timeline"></div>
+</footer>
+
+<script>
+const DATA = __DATA__;
+const TYPE_NAME = {patrol:'巡逻警戒',blockade:'区域封控',recon:'协同侦察',assault:'机动突击',hold:'要点坚守'};
+const EVENT_NAME = {
+  dispatched:'下发作业', phase:'阶段切换', arrived_area:'进入作业区',
+  checkpoint_visited:'检查点复查', cycle_completed:'完成一圈', on_post:'在位',
+  posts_occupied:'封控就位', intrusion_detected:'发现入侵', interceptor_assigned:'指定拦截',
+  intercepted:'拦截到位', breach:'被突破', handover_start:'开始接替',
+  handover_complete:'接替完成', relief:'换班', all_staged:'全员到位',
+  assault_started:'突击开始', effect_started:'开始处置', effect_applied:'处置结束',
+  confirmed:'结果确认完成', map_initialised:'共享地图初始化', frontier_mapped:'前沿已探测',
+  map_shared:'地图更新', coverage_reached:'覆盖达标', report_sent:'侦察成果回传',
+  behavior_complete:'行为结束', route_failed:'路径失败'
+};
+const AGENT_COLORS = ['#2563eb','#db2777','#0d9488','#d97706','#7c3aed','#0891b2','#be123c','#4d7c0f'];
+
+const canvas = document.getElementById('map');
+const ctx = canvas.getContext('2d');
+const seek = document.getElementById('seek');
+const clockEl = document.getElementById('clock');
+const playBtn = document.getElementById('play');
+const speedSel = document.getElementById('speed');
+const straightToggle = document.getElementById('showStraight');
+const tabsEl = document.getElementById('tabs');
+const timelineEl = document.getElementById('timeline');
+const hudDot = document.getElementById('hudDot');
+const hudJob = document.getElementById('hudJob');
+const hudPhase = document.getElementById('hudPhase');
+
+let T = 0, playing = true, last = 0, view = {scale:1, ox:0, oy:0, pad:26};
+
+function money(v, k=2){ return Number(v).toFixed(k); }
+function project(p){
+  return [view.ox + (p[0]-DATA.bounds[0])*view.scale,
+          view.oy + (DATA.bounds[3]-p[1])*view.scale];
+}
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const pad = 26;
+  const sx = (w-2*pad)/Math.max(1e-6, DATA.bounds[2]-DATA.bounds[0]);
+  const sy = (h-2*pad)/Math.max(1e-6, DATA.bounds[3]-DATA.bounds[1]);
+  const s = Math.min(sx, sy);
+  view = {scale:s, pad,
+          ox:(w-(DATA.bounds[2]-DATA.bounds[0])*s)/2,
+          oy:(h-(DATA.bounds[3]-DATA.bounds[1])*s)/2};
+  draw();
+}
+
+function currentJob(){
+  for (const j of DATA.jobs) if (T >= j.t0 && T <= j.t1) return j;
+  return T < DATA.jobs[0].t0 ? DATA.jobs[0] : DATA.jobs[DATA.jobs.length-1];
+}
+function frameOf(job){
+  let best = null;
+  for (const s of job.samples){
+    if (s.t <= T + 1e-6) best = s; else break;
+  }
+  return best || job.samples[0];
+}
+function jobProgress(job){ return (T-job.t0)/Math.max(1e-6, job.t1-job.t0); }
+
+function drawGrid(){
+  const b = DATA.bounds;
+  ctx.save();
+  ctx.fillStyle = '#fbfcfd';
+  const p0 = project([b[0], b[3]]), p1 = project([b[2], b[1]]);
+  ctx.fillRect(p0[0], p0[1], p1[0]-p0[0], p1[1]-p0[1]);
+  ctx.strokeStyle = '#eef0f3'; ctx.lineWidth = 1;
+  for (let x=Math.ceil(b[0]/5)*5; x<=b[2]; x+=5){
+    const a=project([x,b[1]]), c=project([x,b[3]]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(c[0],c[1]); ctx.stroke();
+  }
+  for (let y=Math.ceil(b[1]/5)*5; y<=b[3]; y+=5){
+    const a=project([b[0],y]), c=project([b[2],y]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(c[0],c[1]); ctx.stroke();
+  }
+  ctx.strokeStyle='#dfe3e8'; ctx.strokeRect(p0[0],p0[1],p1[0]-p0[0],p1[1]-p0[1]);
+  ctx.restore();
+}
+
+function drawBuildings(){
+  ctx.save();
+  for (const o of DATA.obstacles){
+    ctx.beginPath();
+    o.polygon.forEach((p,i)=>{ const q=project(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(203,213,225,.85)';
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+    ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSite(job){
+  const s = project(job.site);
+  ctx.save();
+  ctx.setLineDash([4,4]); ctx.strokeStyle = job.color; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(s[0], s[1], 16, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = job.color; ctx.font = '600 11px system-ui';
+  ctx.fillText(job.job_id + ' ' + job.label, s[0]+20, s[1]-10);
+  ctx.restore();
+}
+
+function drawPatrol(job, frame){
+  const loop = job.metrics.loop || [];
+  if (!loop.length) return;
+  ctx.save();
+  ctx.strokeStyle = job.color + 'aa'; ctx.lineWidth = 1.4; ctx.setLineDash([5,4]);
+  ctx.beginPath();
+  loop.forEach((p,i)=>{ const q=project(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+  ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+  loop.forEach((p,i)=>{
+    const q=project(p);
+    const visited = job.events.some(e=>e.kind==='checkpoint_visited' && e.index===i && e.t<=T);
+    ctx.beginPath(); ctx.arc(q[0],q[1], visited?4.5:3, 0, Math.PI*2);
+    ctx.fillStyle = visited ? '#f59e0b' : '#ffffff';
+    ctx.strokeStyle = job.color; ctx.lineWidth=1.4; ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawBlockade(job, frame){
+  const m = job.metrics, s = project(job.site), R = m.ring_radius*view.scale, O = m.outer_radius*view.scale;
+  ctx.save();
+  ctx.strokeStyle = job.color + '66'; ctx.setLineDash([3,4]); ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(s[0],s[1],R,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = '#9ca3af'; ctx.setLineDash([2,5]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],O,0,Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  (m.posts||[]).forEach((p,i)=>{
+    const q=project(p); ctx.fillStyle='#fff'; ctx.strokeStyle=job.color;
+    ctx.beginPath(); ctx.rect(q[0]-3.5,q[1]-3.5,7,7); ctx.fill(); ctx.stroke();
+  });
+  const st = project(m.intruder_start);
+  ctx.setLineDash([6,5]); ctx.strokeStyle='#f97316'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(st[0],st[1]); ctx.lineTo(s[0],s[1]); ctx.stroke();
+  ctx.setLineDash([]);
+  const intr = frame && frame.debug && frame.debug.intruder;
+  if (intr){
+    const q=project(intr);
+    ctx.save(); ctx.translate(q[0],q[1]); ctx.rotate(Math.PI/4);
+    ctx.fillStyle='#f59e0b'; ctx.fillRect(-5,-5,10,10); ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawRecon(job, frame){
+  const m = job.metrics, site = project(job.site);
+  const R = (m.sensor_radius||2.6)*view.scale;
+  ctx.save();
+  const area = m.area_radius*view.scale;
+  ctx.strokeStyle = job.color+'33'; ctx.setLineDash([2,5]);
+  ctx.beginPath(); ctx.arc(site[0],site[1],area,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  for (const e of job.events){
+    if (e.kind !== 'frontier_mapped' || e.t > T || !e.pos) continue;
+    const q = project(e.pos);
+    const g = ctx.createRadialGradient(q[0],q[1],1,q[0],q[1],R);
+    g.addColorStop(0,'rgba(124,58,237,.10)'); g.addColorStop(1,'rgba(124,58,237,.01)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q[0],q[1],R,0,Math.PI*2); ctx.fill();
+  }
+  if (frame && frame.debug && frame.debug.targets){
+    for (const pid in frame.debug.targets){
+      const q = project(frame.debug.targets[pid]);
+      ctx.strokeStyle = job.color; ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.arc(q[0],q[1],5,0,Math.PI*2); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawAssault(job, frame){
+  const m = job.metrics, s = project(job.site);
+  ctx.save();
+  const objR = 1.4*view.scale;
+  ctx.strokeStyle = job.color+'55'; ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],objR,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  (m.staging||[]).forEach(p=>{
+    const q=project(p); ctx.strokeStyle='#94a3b8';
+    ctx.beginPath(); ctx.arc(q[0],q[1],4,0,Math.PI*2); ctx.stroke();
+  });
+  (m.objective||[]).forEach(p=>{
+    const q=project(p); ctx.fillStyle=job.color+'22'; ctx.strokeStyle=job.color;
+    ctx.beginPath(); ctx.arc(q[0],q[1],4,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+  const conf = m.confirm_radius*view.scale;
+  ctx.strokeStyle='#16a34a88'; ctx.setLineDash([2,4]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],conf,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawHold(job, frame){
+  const m = job.metrics, s = project(job.site);
+  ctx.save();
+  const R = 2.2*view.scale;
+  ctx.strokeStyle = job.color+'33'; ctx.setLineDash([2,4]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],R,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  (m.posts||[]).forEach((p,i)=>{
+    const q=project(p); ctx.strokeStyle=job.color; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(q[0],q[1],4.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#6b7280'; ctx.font='10px system-ui';
+    ctx.fillText('P'+(i+1), q[0]+6, q[1]-6);
+  });
+  ctx.restore();
+}
+
+function drawRoutes(job){
+  const showStraight = straightToggle.checked;
+  // 只画每台平台"当前这一段"的路径：全部历史路径会形成一团乱线
+  const latest = {};
+  for (const r of job.routes){ if (r.t === undefined || r.t <= T) latest[r.pid] = r; }
+  ctx.save();
+  for (const pid in latest){
+    const r = latest[pid];
+    if (showStraight && !r.straight_line_ok){
+      const a = project(r.from_pose), b = project(r.to);
+      ctx.strokeStyle='rgba(156,163,175,.75)'; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.strokeStyle = job.color + '55'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    r.path.forEach((p,i)=>{ const q=project(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTrails(job){
+  const frame = frameOf(job);
+  const byPid = {};
+  for (const s of job.samples){
+    if (s.t > T) break;
+    for (const pid in s.agents){
+      (byPid[pid] = byPid[pid] || []).push(s.agents[pid]);
+    }
+  }
+  ctx.save();
+  let i=0;
+  for (const pid in byPid){
+    ctx.strokeStyle = AGENT_COLORS[i % AGENT_COLORS.length] + '99';
+    ctx.lineWidth = 1.5; ctx.beginPath();
+    byPid[pid].forEach((p,k)=>{ const q=project(p); k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+    ctx.stroke(); i++;
+  }
+  ctx.restore();
+}
+
+function drawAgents(job, frame){
+  if (!frame) return;
+  let i = 0;
+  for (const pid in frame.agents){
+    const [x,y,yaw] = frame.agents[pid];
+    const q = project([x,y]);
+    ctx.save();
+    ctx.translate(q[0],q[1]); ctx.rotate(-yaw);
+    ctx.beginPath(); ctx.moveTo(9,0); ctx.lineTo(-5,5); ctx.lineTo(-5,-5); ctx.closePath();
+    ctx.fillStyle = AGENT_COLORS[i % AGENT_COLORS.length];
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.fill(); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#374151'; ctx.font = '10.5px system-ui';
+    ctx.fillText(pid.replace('rover_','r'), q[0]+8, q[1]+12);
+    i++;
+  }
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  drawGrid(); drawBuildings();
+  const job = currentJob();
+  drawSite(job);
+  if (job.type === 'patrol') drawPatrol(job, frameOf(job));
+  if (job.type === 'blockade') drawBlockade(job, frameOf(job));
+  if (job.type === 'recon') drawRecon(job, frameOf(job));
+  if (job.type === 'assault') drawAssault(job, frameOf(job));
+  if (job.type === 'hold') drawHold(job, frameOf(job));
+  drawRoutes(job); drawTrails(job); drawAgents(job, frameOf(job));
+  updatePanel(job);
+}
+
+const METRIC_KEYS = {
+  patrol: [['revisit_s','一圈重访','s'], ['checkpoints','检查点数','个'], ['radius','环路半径','单位']],
+  blockade: [['intercept_t','拦截耗时','s'], ['ring_radius','封控半径','单位']],
+  recon: [['coverage','地图覆盖率','%'], ['cells','栅格数','格']],
+  assault: [],
+  hold: [['handovers','完成接替','次'], ['presence_gap_s','零人在位','s'], ['min_present','最少在位','台']]
+};
+function metricText(kind, key, value){
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
+  const item = (METRIC_KEYS[kind]||[]).find(x=>x[0]===key);
+  if (!item) return null;
+  let v = Number(value);
+  if (item[2] === '%') v = v * 100;
+  const digits = (item[2] === '%' || item[2] === 's' || item[2] === '单位') ? 1 : 0;
+  return [item[1], money(v, digits) + ' ' + item[2]];
+}
+
+let lastJobId = null;
+function updatePanel(job){
+  const frame = frameOf(job);
+  const phase = frame ? frame.phase : job.phase;
+  hudDot.style.background = job.color;
+  hudJob.textContent = job.job_id + ' · ' + job.label;
+  hudPhase.textContent = '· ' + phase;
+  clockEl.textContent = money(T,1) + ' s';
+  if (lastJobId !== job.job_id){
+    lastJobId = job.job_id;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.job===job.job_id));
+    document.getElementById('jobinfo').innerHTML = `
+      <div class="kv"><span>类型</span><b>${job.label}</b></div>
+      <div class="kv"><span>成员</span><span>${job.pids.join(' / ')}</span></div>
+      <div class="kv"><span>计划窗口</span><span>${job.plan_start}s → ${job.plan_end}s</span></div>
+      <div class="kv"><span>重放时段</span><span>${money(job.t0,0)}s → ${money(job.t1,0)}s</span></div>
+      <div class="kv"><span>累计路径 / 直线</span><span>${money(job.distance,1)} / ${money(job.straight_distance,1)} 单位</span></div>
+      <div class="kv"><span>接近路径绕行</span><span>${job.approach_blocked} / ${job.approach.length} 条被挡</span></div>
+      <div class="kv"><span>直线被建筑阻挡</span><span>${job.routes_blocked} 条</span></div>`;
+    const rows = (METRIC_KEYS[job.type]||[]).map(([k])=>{
+      const t = metricText(job.type, k, job.metrics[k]);
+      return t ? `<div class="kv"><span>${t[0]}</span><span>${t[1]}</span></div>` : '';
+    }).join('');
+    const siteRows = `<div class="kv"><span>作业点</span><span>${job.site.join(', ')}</span></div>`
+      + `<div class="kv"><span>点位吸附</span><span>${job.metrics.site_snap_offset? money(job.metrics.site_snap_offset)+' 单位':'无'}</span></div>`;
+    const phaseRows = (job.metrics.phases||[]).map(p=>`<div class="kv"><span>${p.phase}</span><span>t=${money(p.t,1)} s</span></div>`).join('');
+    document.getElementById('metrics').innerHTML = siteRows + rows + phaseRows;
+    document.getElementById('notes').innerHTML = DATA.limitation.map(x=>'· '+x).join('<br>');
+  }
+  const evs = job.events.filter(e=>e.t<=T).slice(-7).reverse();
+  document.getElementById('events').innerHTML = evs.map(e=>{
+    const name = EVENT_NAME[e.kind] || e.kind;
+    const extra = e.pid ? ' ' + e.pid.replace('rover_','r') : '';
+    const val = e.coverage!=null ? ' ' + money(e.coverage*100,0) + '%' : (e.revisit_s!=null? ' ' + money(e.revisit_s,1)+'s':'');
+    return `<div class="ev"><span class="t">${money(e.t,1)}s</span>${name}${extra}${val}</div>`;
+  }).join('') || '<div class="ev" style="color:#9ca3af">尚无事件</div>';
+}
+
+function buildTabs(){
+  DATA.jobs.forEach(j=>{
+    const b = document.createElement('button');
+    b.className='tab'; b.dataset.job=j.job_id;
+    b.innerHTML = `<span class="dot" style="display:inline-block;background:${j.color};margin-right:6px"></span>${j.job_id} ${j.label}`;
+    b.onclick = ()=>{ T = j.t0 + 0.01; if (T > j.t1) T = j.t0; seek.value = T/DATA.total; draw(); };
+    tabsEl.appendChild(b);
+  });
+  const total = DATA.total || 1;
+  DATA.jobs.forEach(j=>{
+    const d = document.createElement('div');
+    d.className='seg';
+    d.style.flex = `${(j.t1-j.t0)/total} 0 0`;
+    d.style.background = j.color;
+    d.textContent = (j.t1-j.t0) > total*0.06 ? (j.job_id+' '+j.label) : j.job_id;
+    d.title = `${j.label} ${money(j.t0,0)}–${money(j.t1,0)}s`;
+    d.onclick = ()=>{ T=j.t0+0.01; seek.value=T/total; draw(); };
+    timelineEl.appendChild(d);
+  });
+  const head = document.createElement('div'); head.className='playhead'; head.id='playhead';
+  timelineEl.appendChild(head);
+}
+
+function tick(ts){
+  if (!last) last = ts;
+  const dt = Math.min(0.1, (ts-last)/1000);
+  last = ts;
+  if (playing){
+    T += dt * Number(speedSel.value);
+    if (T >= DATA.total){ T = DATA.total; playing = false; playBtn.textContent='播放'; }
+    seek.value = T / Math.max(1e-6, DATA.total);
+    const ph = document.getElementById('playhead');
+    if (ph) ph.style.left = (T/Math.max(1e-6,DATA.total)*100)+'%';
+    draw();
+  }
+  requestAnimationFrame(tick);
+}
+
+seek.max = 1;
+seek.oninput = ()=>{ T = Number(seek.value) * DATA.total; draw(); };
+playBtn.onclick = ()=>{ playing = !playing; playBtn.textContent = playing?'暂停':'播放'; last=0; };
+straightToggle.onchange = draw;
+window.addEventListener('resize', resize);
+
+const params = new URLSearchParams(location.search);
+if (params.get('t') !== null && !Number.isNaN(Number(params.get('t')))){
+  T = Math.max(0, Math.min(DATA.total, Number(params.get('t'))));
+  playing = false;
+}
+buildTabs();
+resize();
+seek.value = T / Math.max(1e-6, DATA.total);
+playBtn.textContent = playing ? '暂停' : '播放';
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

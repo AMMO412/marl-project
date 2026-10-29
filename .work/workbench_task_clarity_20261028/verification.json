@@ -1,0 +1,133 @@
+{
+  "errors": [],
+  "checks": {
+    "rows": [
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J1",
+        "view": "spatial",
+        "count": 74
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J2",
+        "view": "spatial",
+        "count": 42
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J3",
+        "view": "spatial",
+        "count": 101
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J4",
+        "view": "process",
+        "count": 85
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J4",
+        "view": "spatial",
+        "count": 85
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J5",
+        "view": "process",
+        "count": 34
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J5",
+        "view": "spatial",
+        "count": 34
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "jid": "J6",
+        "view": "spatial",
+        "count": 68
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J1",
+        "view": "spatial",
+        "count": 73
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J2",
+        "view": "spatial",
+        "count": 41
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J3",
+        "view": "spatial",
+        "count": 87
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J4",
+        "view": "process",
+        "count": 30
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J4",
+        "view": "spatial",
+        "count": 30
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J5",
+        "view": "process",
+        "count": 33
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J5",
+        "view": "spatial",
+        "count": 33
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "jid": "J6",
+        "view": "spatial",
+        "count": 54
+      }
+    ],
+    "failures": []
+  },
+  "snapshots": [
+    {
+      "size": {
+        "width": 1366,
+        "height": 900
+      },
+      "canvas": {
+        "x": 34,
+        "y": 227.59375,
+        "width": 1005,
+        "height": 542.015625
+      }
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 304.59375,
+        "width": 900,
+        "height": 430
+      }
+    }
+  ],
+  "chapterClick": true,
+  "sourceSwitch": true,
+  "sameClock": true
+}

@@ -1,0 +1,20 @@
+{
+  "pass": true,
+  "framesChecked": 188,
+  "defaultRun": "workbench_behavior_20261028",
+  "singleReplay": true,
+  "checks": [
+    "巡逻圈数",
+    "接替时刻与事件跳转",
+    "探索覆盖与回传",
+    "结果确认阶段",
+    "到100%不提前完成",
+    "旧运行降级与返回动作",
+    "独立报告",
+    "平台跟踪",
+    "播放暂停",
+    "动作图层",
+    "窄屏"
+  ],
+  "errors": []
+}

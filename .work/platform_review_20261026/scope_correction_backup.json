@@ -1,0 +1,30 @@
+{
+  "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2",
+  "files": [
+    {
+      "original": "C:\\Users\\ammo\\Desktop\\MARL项目\\outputs\\planning_middle_demo审查_20261026\\planning_middle_demo责任分工与对接核查.docx",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2\\planning_middle_demo责任分工与对接核查.docx",
+      "sha256": "ffb7ff9322a14bf989c6aa77608be1f45c2ace7a9446fa29759e5c4c67162af1"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\00_项目入口.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2\\00_项目入口.md",
+      "sha256": "f6256cd65b1b3eed9bcee9a6b51447bc8478542b0875e5c402fb312b0446d490"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\需求与验收.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2\\需求与验收.md",
+      "sha256": "06b496af564d28a0924ab9b47a39f505a0fe334b0ea05ef0ff4a26084524a02d"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\方案_通用多机器人仿真系统工程设计.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2\\方案_通用多机器人仿真系统工程设计.md",
+      "sha256": "bd1844781d6e4e347103d8010cd58447a9dbdef5ed92358a8feb59f6e5461fa6"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\审查_planning_middle_demo指标与系统可用性_2026-10-26.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_scope_correction_657dbce2\\审查_planning_middle_demo指标与系统可用性_2026-10-26.md",
+      "sha256": "4cc64381889e5cb3ee3842904a6e9513f4ce4980ce2d0cd89d2f8278f2b1dae5"
+    }
+  ]
+}

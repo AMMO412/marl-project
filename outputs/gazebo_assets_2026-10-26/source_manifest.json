@@ -1,0 +1,436 @@
+{
+  "date": "2026-10-26",
+  "scope": "Source inspection subset, not a complete runnable offline asset bundle.",
+  "files": [
+    {
+      "id": "city",
+      "repo": "osrf/citysim",
+      "ref": "3928b08e2598f5ead2e9b24640fe1bde262a136d",
+      "path": "worlds/simple_city.world",
+      "local_path": "sources/city/worlds/simple_city.world",
+      "github_blob_sha": "fc234e4dc012c50f821de9f84315ee30f16d2045",
+      "source_url": "https://github.com/osrf/citysim/blob/3928b08e2598f5ead2e9b24640fe1bde262a136d/worlds/simple_city.world",
+      "raw_url": "https://raw.githubusercontent.com/osrf/citysim/3928b08e2598f5ead2e9b24640fe1bde262a136d/worlds/simple_city.world"
+    },
+    {
+      "id": "city",
+      "repo": "osrf/citysim",
+      "ref": "3928b08e2598f5ead2e9b24640fe1bde262a136d",
+      "path": "README.md",
+      "local_path": "sources/city/README.md",
+      "github_blob_sha": "369666fbe13a1a3867e9efebcdef97caeb0e420c",
+      "source_url": "https://github.com/osrf/citysim/blob/3928b08e2598f5ead2e9b24640fe1bde262a136d/README.md",
+      "raw_url": "https://raw.githubusercontent.com/osrf/citysim/3928b08e2598f5ead2e9b24640fe1bde262a136d/README.md"
+    },
+    {
+      "id": "city",
+      "repo": "osrf/citysim",
+      "ref": "3928b08e2598f5ead2e9b24640fe1bde262a136d",
+      "path": "LICENSE",
+      "local_path": "sources/city/LICENSE",
+      "github_blob_sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "source_url": "https://github.com/osrf/citysim/blob/3928b08e2598f5ead2e9b24640fe1bde262a136d/LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/osrf/citysim/3928b08e2598f5ead2e9b24640fe1bde262a136d/LICENSE"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "worlds/no_roof_small_warehouse.world",
+      "local_path": "sources/aws/worlds/no_roof_small_warehouse.world",
+      "github_blob_sha": "91fece4a80f5ee32e2ce81b57fb52468f1b70694",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/worlds/no_roof_small_warehouse.world",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/worlds/no_roof_small_warehouse.world"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "README.md",
+      "local_path": "sources/aws/README.md",
+      "github_blob_sha": "067252d6ac5961671a8bfddb86ef0a1f85590524",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/README.md",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/README.md"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "LICENSE",
+      "local_path": "sources/aws/LICENSE",
+      "github_blob_sha": "1bb4f21e5d8b5b21b6952c0b9bf2e6220d9a56be",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/LICENSE"
+    },
+    {
+      "id": "px4",
+      "repo": "PX4/PX4-gazebo-models",
+      "ref": "e5997f455e33ec071c7c677fc59a65781de496a4",
+      "path": "models/rc_cessna/model.sdf",
+      "local_path": "sources/px4/models/rc_cessna/model.sdf",
+      "github_blob_sha": "220af8c455c345c9f0e9e69f7aaa59d1db5eaf13",
+      "source_url": "https://github.com/PX4/PX4-gazebo-models/blob/e5997f455e33ec071c7c677fc59a65781de496a4/models/rc_cessna/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/PX4/PX4-gazebo-models/e5997f455e33ec071c7c677fc59a65781de496a4/models/rc_cessna/model.sdf"
+    },
+    {
+      "id": "px4",
+      "repo": "PX4/PX4-gazebo-models",
+      "ref": "e5997f455e33ec071c7c677fc59a65781de496a4",
+      "path": "models/rc_cessna/model.config",
+      "local_path": "sources/px4/models/rc_cessna/model.config",
+      "github_blob_sha": "d41b4c618063d6e419239de32bf7283c52e10eed",
+      "source_url": "https://github.com/PX4/PX4-gazebo-models/blob/e5997f455e33ec071c7c677fc59a65781de496a4/models/rc_cessna/model.config",
+      "raw_url": "https://raw.githubusercontent.com/PX4/PX4-gazebo-models/e5997f455e33ec071c7c677fc59a65781de496a4/models/rc_cessna/model.config"
+    },
+    {
+      "id": "px4",
+      "repo": "PX4/PX4-gazebo-models",
+      "ref": "e5997f455e33ec071c7c677fc59a65781de496a4",
+      "path": "LICENSE",
+      "local_path": "sources/px4/LICENSE",
+      "github_blob_sha": "31cdce6559fe0028ae86a703171f797bcf8d72ca",
+      "source_url": "https://github.com/PX4/PX4-gazebo-models/blob/e5997f455e33ec071c7c677fc59a65781de496a4/LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/PX4/PX4-gazebo-models/e5997f455e33ec071c7c677fc59a65781de496a4/LICENSE"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/zephyr/model.sdf",
+      "local_path": "sources/ap/models/zephyr/model.sdf",
+      "github_blob_sha": "11d0d1fc735b611a0b279e26a7d6de250c5817f3",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/model.sdf"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/zephyr_with_ardupilot/model.sdf",
+      "local_path": "sources/ap/models/zephyr_with_ardupilot/model.sdf",
+      "github_blob_sha": "5d03e80d457268dde90ec26a48bcc00b7bb01244",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr_with_ardupilot/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr_with_ardupilot/model.sdf"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "worlds/zephyr_runway.sdf",
+      "local_path": "sources/ap/worlds/zephyr_runway.sdf",
+      "github_blob_sha": "1157a598eeb49d6a4763a197deed11879bf009d8",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/worlds/zephyr_runway.sdf",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/worlds/zephyr_runway.sdf"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "README.md",
+      "local_path": "sources/ap/README.md",
+      "github_blob_sha": "698ff217d690a022146ed64dde873a7595d48a23",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/README.md",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/README.md"
+    },
+    {
+      "id": "gz",
+      "repo": "gazebosim/gz-sim",
+      "ref": "d540cfd3aa204bc2a75f164478f2f09e01bd3bbb",
+      "path": "examples/worlds/tracked_vehicle_simple.sdf",
+      "local_path": "sources/gz/examples/worlds/tracked_vehicle_simple.sdf",
+      "github_blob_sha": "e4754140353682aa0210306f294e5b68216a6098",
+      "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/tracked_vehicle_simple.sdf",
+      "raw_url": "https://raw.githubusercontent.com/gazebosim/gz-sim/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/tracked_vehicle_simple.sdf"
+    },
+    {
+      "id": "gz",
+      "repo": "gazebosim/gz-sim",
+      "ref": "d540cfd3aa204bc2a75f164478f2f09e01bd3bbb",
+      "path": "examples/worlds/heightmap.sdf",
+      "local_path": "sources/gz/examples/worlds/heightmap.sdf",
+      "github_blob_sha": "9725b539bc562487ca0fb81413922315d1e81cc9",
+      "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/heightmap.sdf",
+      "raw_url": "https://raw.githubusercontent.com/gazebosim/gz-sim/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/heightmap.sdf"
+    },
+    {
+      "id": "gz",
+      "repo": "gazebosim/gz-sim",
+      "ref": "d540cfd3aa204bc2a75f164478f2f09e01bd3bbb",
+      "path": "examples/worlds/linear_battery_demo.sdf",
+      "local_path": "sources/gz/examples/worlds/linear_battery_demo.sdf",
+      "github_blob_sha": "99128bf928e4b74b8f61f8e2c856de9ffa250b7d",
+      "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/linear_battery_demo.sdf",
+      "raw_url": "https://raw.githubusercontent.com/gazebosim/gz-sim/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/linear_battery_demo.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "worlds/small_warehouse.world",
+      "local_path": "sources/aws/worlds/small_warehouse.world",
+      "github_blob_sha": "cb845fdbc72caec702334f7d5ee09dcab20d7549",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/worlds/small_warehouse.world",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/worlds/small_warehouse.world"
+    },
+    {
+      "id": "gz",
+      "repo": "gazebosim/gz-sim",
+      "ref": "d540cfd3aa204bc2a75f164478f2f09e01bd3bbb",
+      "path": "examples/worlds/diff_drive.sdf",
+      "local_path": "sources/gz/examples/worlds/diff_drive.sdf",
+      "github_blob_sha": "0004a898c02bbeb8f766f720f54e31cf017c4570",
+      "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/diff_drive.sdf",
+      "raw_url": "https://raw.githubusercontent.com/gazebosim/gz-sim/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/diff_drive.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_Bucket_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_Bucket_01/model.sdf",
+      "github_blob_sha": "90b07d4a80c8636b52014439b884e76a28647396",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_Bucket_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_Bucket_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ClutteringA_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ClutteringA_01/model.sdf",
+      "github_blob_sha": "629f0fc4a4133a532da91853ffe3b84b00d25f3e",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringA_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringA_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ClutteringC_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ClutteringC_01/model.sdf",
+      "github_blob_sha": "334a416830e793afba9cb7c72433304c9baef9e6",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringC_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringC_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ClutteringD_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ClutteringD_01/model.sdf",
+      "github_blob_sha": "51ac2cd730ce89412ebb1223cac403ecf1899994",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringD_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ClutteringD_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_DeskC_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_DeskC_01/model.sdf",
+      "github_blob_sha": "0ae3ceea28740ac3d9d30aa9e591e4d41f4615e1",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_DeskC_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_DeskC_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_GroundB_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_GroundB_01/model.sdf",
+      "github_blob_sha": "9d7853950d391e225bff0744cd593c4798e587de",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_GroundB_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_GroundB_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_Lamp_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_Lamp_01/model.sdf",
+      "github_blob_sha": "9ef1c09683c93ea29f10d67038418d94106defc4",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_Lamp_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_Lamp_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_PalletJackB_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_PalletJackB_01/model.sdf",
+      "github_blob_sha": "72547b0aefaf0237e195342725e9ca1966e9ea29",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_PalletJackB_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_PalletJackB_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_RoofB_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_RoofB_01/model.sdf",
+      "github_blob_sha": "33e4e9cfeef5888ab5d4d208ee83c8e9d9567946",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_RoofB_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_RoofB_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ShelfD_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ShelfD_01/model.sdf",
+      "github_blob_sha": "17c326e315544568024ce6520e87bb6943467fe5",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfD_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfD_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ShelfE_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ShelfE_01/model.sdf",
+      "github_blob_sha": "d615c9e17c24a0152df1b0d58328ec0c15fce7a0",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfE_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfE_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_ShelfF_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_ShelfF_01/model.sdf",
+      "github_blob_sha": "bcc9aef18c4f467c3a44ccb38c1b67f69ac0bfc4",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfF_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_ShelfF_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_TrashCanC_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_TrashCanC_01/model.sdf",
+      "github_blob_sha": "483c0669545b13485365ae289b8d09c50560a553",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_TrashCanC_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_TrashCanC_01/model.sdf"
+    },
+    {
+      "id": "aws",
+      "repo": "aws-robotics/aws-robomaker-small-warehouse-world",
+      "ref": "3c23a698bf0b4e366ddf8b084af507c519bd3483",
+      "path": "models/aws_robomaker_warehouse_WallB_01/model.sdf",
+      "local_path": "sources/aws/models/aws_robomaker_warehouse_WallB_01/model.sdf",
+      "github_blob_sha": "66af32fc7fb9e7dd7c09b947ce734f3eedf7df6a",
+      "source_url": "https://github.com/aws-robotics/aws-robomaker-small-warehouse-world/blob/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_WallB_01/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/aws-robotics/aws-robomaker-small-warehouse-world/3c23a698bf0b4e366ddf8b084af507c519bd3483/models/aws_robomaker_warehouse_WallB_01/model.sdf"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/runway/meshes/airfield.dae",
+      "local_path": "sources/ap/models/runway/meshes/airfield.dae",
+      "github_blob_sha": "ab60d3421266a46680a9d847da088dddb3d6b426",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/meshes/airfield.dae",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/meshes/airfield.dae"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/runway/model.config",
+      "local_path": "sources/ap/models/runway/model.config",
+      "github_blob_sha": "b16d552d5bc010b65acc5400ee8691b92e9699be",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/model.config",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/model.config"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/zephyr/meshes/parachute_small.dae",
+      "local_path": "sources/ap/models/zephyr/meshes/parachute_small.dae",
+      "github_blob_sha": "8d3be3a0c99d656d568984eb31400ee4d40981ca",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/meshes/parachute_small.dae",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/meshes/parachute_small.dae"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/zephyr/meshes/wing.dae",
+      "local_path": "sources/ap/models/zephyr/meshes/wing.dae",
+      "github_blob_sha": "fc3f453377ed81ad1c6ba793615aa5ee4154d34b",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/meshes/wing.dae",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/meshes/wing.dae"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/zephyr/model.config",
+      "local_path": "sources/ap/models/zephyr/model.config",
+      "github_blob_sha": "531a7c38e3616510590eebe6b756684a8654bf18",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/model.config",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/model.config"
+    },
+    {
+      "id": "tb",
+      "repo": "ROBOTIS-GIT/turtlebot3_simulations",
+      "ref": "a35a56c8b04877dc89772b598084d8ce648a9023",
+      "path": "turtlebot3_gazebo/models/turtlebot3_burger/model.sdf",
+      "local_path": "sources/tb/turtlebot3_gazebo/models/turtlebot3_burger/model.sdf",
+      "github_blob_sha": "80fc60a2bc692791f1beedb0b21e1d7626af8815",
+      "source_url": "https://github.com/ROBOTIS-GIT/turtlebot3_simulations/blob/a35a56c8b04877dc89772b598084d8ce648a9023/turtlebot3_gazebo/models/turtlebot3_burger/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/ROBOTIS-GIT/turtlebot3_simulations/a35a56c8b04877dc89772b598084d8ce648a9023/turtlebot3_gazebo/models/turtlebot3_burger/model.sdf"
+    },
+    {
+      "id": "tb",
+      "repo": "ROBOTIS-GIT/turtlebot3_simulations",
+      "ref": "a35a56c8b04877dc89772b598084d8ce648a9023",
+      "path": "LICENSE",
+      "local_path": "sources/tb/LICENSE",
+      "github_blob_sha": "efddc8666f2a81868af7280cc66db530891b37ed",
+      "source_url": "https://github.com/ROBOTIS-GIT/turtlebot3_simulations/blob/a35a56c8b04877dc89772b598084d8ce648a9023/LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/ROBOTIS-GIT/turtlebot3_simulations/a35a56c8b04877dc89772b598084d8ce648a9023/LICENSE"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "models/runway/model.sdf",
+      "local_path": "sources/ap/models/runway/model.sdf",
+      "github_blob_sha": "3d844a9afe76567b0575c936d97429fbad01d385",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/runway/model.sdf"
+    },
+    {
+      "id": "ap",
+      "repo": "ArduPilot/ardupilot_gazebo",
+      "ref": "80dc9664dda7efd6c5d1a71a79198d1d6b708c0e",
+      "path": "LICENSE.md",
+      "local_path": "sources/ap/LICENSE.md",
+      "github_blob_sha": "5357f691836c0c7514440655e6f70da5cf27b2b6",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/LICENSE.md",
+      "raw_url": "https://raw.githubusercontent.com/ArduPilot/ardupilot_gazebo/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/LICENSE.md"
+    },
+    {
+      "id": "gz",
+      "repo": "gazebosim/gz-sim",
+      "ref": "d540cfd3aa204bc2a75f164478f2f09e01bd3bbb",
+      "path": "LICENSE",
+      "local_path": "sources/gz/LICENSE",
+      "github_blob_sha": "d9a10c0d8e868ebf8da0b3dc95bb0be634c34bfe",
+      "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/gazebosim/gz-sim/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/LICENSE"
+    },
+    {
+      "id": "city",
+      "repo": "osrf/citysim",
+      "ref": "3928b08e2598f5ead2e9b24640fe1bde262a136d",
+      "path": "models/city_terrain/model.sdf",
+      "local_path": "sources/city/models/city_terrain/model.sdf",
+      "github_blob_sha": "e427eb37faed81e73b0e48b1f355f3cc7cca47e5",
+      "source_url": "https://github.com/osrf/citysim/blob/3928b08e2598f5ead2e9b24640fe1bde262a136d/models/city_terrain/model.sdf",
+      "raw_url": "https://raw.githubusercontent.com/osrf/citysim/3928b08e2598f5ead2e9b24640fe1bde262a136d/models/city_terrain/model.sdf"
+    }
+  ]
+}

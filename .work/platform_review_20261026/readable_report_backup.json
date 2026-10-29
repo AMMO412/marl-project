@@ -1,0 +1,17 @@
+{
+  "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-27_readable_report_b2373dff",
+  "files": [
+    {
+      "path": "C:\\Users\\ammo\\Desktop\\MARL项目\\outputs\\planning_middle_demo指标核查_20261027\\planning_middle_demo指标逐项核查报告.docx",
+      "sha256": "a3e2ed27cdfa4d844778d109a2ed59179c790ee5c06df699b18e1e334bcc5339"
+    },
+    {
+      "path": "C:\\Users\\ammo\\Desktop\\MARL项目\\outputs\\planning_middle_demo指标核查_20261027\\report_content.json",
+      "sha256": "c8d941650d93bc0356d5edc053d7034f0ab6f8b5010b08b4a3b06798add04299"
+    },
+    {
+      "path": "C:\\Users\\ammo\\Desktop\\MARL项目\\outputs\\planning_middle_demo指标核查_20261027\\delivery_receipt.json",
+      "sha256": "b650101396681d15f69eb747935c666db5cfb014b56f688ef846fdb8a9321d5b"
+    }
+  ]
+}

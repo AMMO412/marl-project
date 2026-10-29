@@ -1,0 +1,35 @@
+{
+  "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311",
+  "files": [
+    {
+      "original": "C:\\Users\\ammo\\Desktop\\MARL项目\\outputs\\planning_middle_demo审查_20261026\\planning_middle_demo指标实现与系统可用性审查.docx",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\planning_middle_demo指标实现与系统可用性审查.docx",
+      "sha256": "df5cf617e4192174dfda1c10a17d5731d5c899879542a12dcae646885ad96935"
+    },
+    {
+      "original": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\platform_review_20261026\\report_content.json",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\report_content.json",
+      "sha256": "335b52fb2799bf9ff3ed0d35780bd6d9e61dd8fce9e98d7d06957fe50c2b3c32"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\00_项目入口.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\00_项目入口.md",
+      "sha256": "0b57f30cf5d39236f199ad01ae78b77217ea21c618518866ca1b25fd0b1f5a47"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\需求与验收.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\需求与验收.md",
+      "sha256": "141f3152f6db37a41640b612b617372b2c3e8ac6835fd286c6f37ac521e6ba4a"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\方案_通用多机器人仿真系统工程设计.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\方案_通用多机器人仿真系统工程设计.md",
+      "sha256": "bd848d56f394f6be4ae6c6f5fa09c20aa8d09ad462b1c0ecc864da9c5e87ec81"
+    },
+    {
+      "original": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\审查_planning_middle_demo指标与系统可用性_2026-10-26.md",
+      "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_responsibility_62213311\\审查_planning_middle_demo指标与系统可用性_2026-10-26.md",
+      "sha256": "6c9b3561ab8a2abacb40069b19a2f774c918fbdc3aa3a3f2fdcad69ce0305f98"
+    }
+  ]
+}

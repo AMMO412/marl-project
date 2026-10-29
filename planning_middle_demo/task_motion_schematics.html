@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五类任务 · 动态示意</title>
+<style>
+:root{color-scheme:light;--bg:#f1f5fa;--ink:#24364b;--muted:#728199;--line:#e0e7f0;--blue:#2874dd;--teal:#11969e;--purple:#8651cb;--orange:#f39127;--mode:#2874dd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:var(--ink)}
+main{max-width:1540px;margin:auto;padding:26px}header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:20px}h1{font-size:28px;letter-spacing:-.6px;margin:0}h2{font-size:18px;margin:0}p{margin:5px 0}.muted{color:var(--muted)}.small{font-size:12px}.mono{font-family:Consolas,monospace;font-variant-numeric:tabular-nums}
+.badge{font-size:12px;color:#55718d;border:1px solid #d4dfec;background:#f9fcff;border-radius:20px;padding:6px 13px;white-space:nowrap}.notice{padding:10px 15px;margin-bottom:16px;background:#fff9ec;border:1px solid #efdfb9;border-radius:10px;font-size:12px;color:#86662f}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}.tab{display:flex;gap:10px;align-items:center;text-align:left;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--muted);cursor:pointer;font:inherit}.tab .number{font:15px Consolas,monospace;border-radius:7px;padding:6px 8px;background:#f2f6fb;color:var(--muted)}.tab strong{display:block;font-size:14px;font-weight:650}.tab small{font-size:11px}.tab[aria-selected=true]{border-color:var(--mode);color:var(--ink);box-shadow:0 2px 9px #1d57a20c}.tab[aria-selected=true] .number{background:var(--mode);color:white}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 18px #263d5304}.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}.panel-top{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.options{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}.options label{cursor:pointer}.stage{background:linear-gradient(#fcfdff,#f8fbff)}#canvas{display:block;width:100%;height:auto;max-height:63vh;min-height:390px;font-family:inherit}svg text{fill:var(--ink);font-size:14px}svg .caption{fill:#7c8b9d;font-size:12px}svg .actor-label{font-size:13px;font-weight:700;paint-order:stroke;stroke:white;stroke-width:4px}svg .trail{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}svg .path-base{fill:none;stroke:#bfd4ed;stroke-width:3;stroke-linecap:round}svg .tag{font-size:12px}
+.status-strip{padding:12px 20px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);background:#fbfcfe;min-height:52px}.pulse{width:8px;height:8px;background:var(--mode);border-radius:50%;box-shadow:0 0 0 4px color-mix(in srgb,var(--mode) 12%,white)}.legend{padding:10px 20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:5px}
+.side{display:flex;flex-direction:column;gap:14px}.section{padding:16px 18px}.section h3{font-size:13px;margin:0 0 9px}.stage-list{list-style:none;padding:0;margin:0}.stage-list li{padding:9px 0 9px 30px;position:relative;border-bottom:1px solid #eef2f7;color:var(--muted);font-size:12px}.stage-list li:last-child{border:0}.stage-list li:before{content:attr(data-step);position:absolute;left:0;top:10px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#edf2f8;font:11px Consolas,monospace}.stage-list li.active{color:var(--mode);font-weight:650}.stage-list li.active:before,.stage-list li.done:before{color:white;background:var(--mode)}.stage-list li.done{color:#677b91}.callout{background:#f6f9fd;border-radius:8px;padding:10px 12px;font-size:12px;color:#64778e;margin-top:11px}.role{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:12px}.role b{font-weight:650;white-space:nowrap}.role span{color:var(--muted)}
+.controls{margin:0 0 16px;padding:16px 20px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}button,select{font:inherit;border:1px solid #cfdae7;border-radius:7px;background:white;color:var(--ink);padding:7px 12px;cursor:pointer}button:hover,select:hover{background:#f0f6fe;border-color:#a8bedc}.primary{background:var(--mode);color:white;border-color:var(--mode);min-width:96px}.primary:hover{background:var(--mode);filter:brightness(.96)}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #8ebcff;outline-offset:3px}.clock{margin-left:auto;font-size:22px;font-weight:700}.clock small{font-size:12px;font-weight:400;color:var(--muted)}.timeline-row{display:flex;gap:12px;align-items:center;margin:12px 0 5px}.timeline-row input{flex:1;min-width:80px;accent-color:var(--mode);cursor:pointer}.timeline-row span{font-size:12px;color:var(--muted)}.keyboard{font-size:11px;color:var(--muted)}kbd{font:11px Consolas,monospace;border:1px solid #d8e2ee;border-radius:3px;padding:1px 5px;background:white}
+.ref-button{width:100%;padding:0;border:0;border-radius:7px;overflow:hidden;background:#f5f8fc;display:block}.ref-button img{display:block;width:100%;height:auto;max-height:175px;object-fit:contain;background:white}.ref-button:hover{outline:2px solid #b3c8e1}.comparison{display:none;margin-top:16px;padding:18px 20px}.comparison.visible{display:block}.comparison img{display:block;width:100%;max-height:550px;object-fit:contain;margin-top:12px}.footer{margin:14px 2px 0;font-size:12px;color:var(--muted);line-height:1.8}a{color:#2874dd}.empty-ref{font-size:12px;color:var(--muted)}
+dialog{border:0;border-radius:12px;padding:12px;max-width:94vw;width:1300px;background:white}dialog::backdrop{background:#15263ccc}dialog img{width:100%;max-height:80vh;object-fit:contain}dialog .close-row{display:flex;justify-content:flex-end;margin-bottom:6px}
+@media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 270px}.tab{padding:10px;gap:7px}.tab small{display:none}main{padding:18px}#canvas{min-height:330px}}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .role-panel{display:none}.tabs{gap:6px}.tab{flex-direction:column;align-items:flex-start}.tab strong{font-size:12px}.tab .number{font-size:12px;padding:2px 6px}.badge{display:none}#canvas{max-height:none}.panel-top{flex-wrap:wrap}}
+@media(max-width:520px){main{padding:10px}h1{font-size:23px}header{margin-bottom:12px}.notice{font-size:11px}.side{grid-template-columns:1fr}.side .reference-panel{display:none}.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tab{flex-direction:row;align-items:center}.tab strong{font-size:11px}.panel-top{padding:12px}.options{font-size:11px}#canvas{min-height:0}.toolbar{gap:6px}button,select{font-size:12px;padding:7px 9px}.controls{padding:12px}.clock{font-size:19px}.legend{gap:9px;font-size:11px}.status-strip{padding:10px 12px;font-size:12px}}
+</style>
+</head>
+<body><main>
+<header><div><h1>五类任务 · 动态示意</h1><p class="muted small">对照参考图，看清不同运动形态与阶段变化。</p></div><span class="badge">离线打开 · 预设动画 · 参考图对照</span></header>
+<div class="notice">本页是固定时间轴的示意动画。位置、阶段与确认标记均为预设画面，不是规划、仿真、执行或验收结果。</div>
+<nav class="tabs" role="tablist" aria-label="选择任务示意"></nav>
+<section class="panel controls" aria-label="播放控制"><div class="toolbar"><button id="play" class="primary">Ⅱ 暂停</button><button id="restart">↺ 从头播放</button><button id="back" aria-label="后退一动画秒">−1 秒</button><button id="forward" aria-label="前进一动画秒">+1 秒</button><label class="small muted">速度 <select id="speed" aria-label="播放速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><label class="small muted"><input id="loop" type="checkbox" checked>循环播放</label><div class="clock mono"><span id="clock">0.0</span> <small>/ 36 动画秒</small></div></div><div class="timeline-row"><span>起点</span><input id="timeline" type="range" min="0" max="36" step="0.05" value="0" aria-label="示意动画时间"><span>终点</span></div><div class="keyboard"><kbd>空格</kbd> 播放/暂停　<kbd>←</kbd> <kbd>→</kbd> 逐秒查看　<kbd>1</kbd>—<kbd>5</kbd> 切换任务 · 拖动时间轴可查看任意阶段。</div></section>
+<div class="layout"><section class="panel" id="animation-panel" role="tabpanel" aria-labelledby="tab-patrol"><div class="panel-top"><div><h2 id="scene-title"></h2><p class="small muted" id="scene-subtitle"></p></div><div class="options"><label><input id="show-trails" type="checkbox" checked>运动尾迹</label><label><input id="show-labels" type="checkbox" checked>单元编号</label><label><input id="show-reference" type="checkbox">展开参考图</label></div></div>
+<div class="stage"><svg id="canvas" viewBox="0 0 1000 630" role="img" aria-label="任务运动示意动画"></svg></div>
+<div class="status-strip"><span class="pulse"></span><b id="phase-title"></b><span class="muted small" id="phase-detail"></span></div>
+<div class="legend"><span><i style="--c:#2874dd"></i>单元 A</span><span><i style="--c:#11969e"></i>单元 B</span><span><i style="--c:#8651cb"></i>单元 C</span><span>细线：预设路线 · 粗线：运动尾迹</span></div></section>
+<aside class="side"><section class="panel"><div class="section"><h3>画面阶段</h3><ol id="stage-list" class="stage-list"></ol><div class="callout" id="mode-note"></div></div></section><section class="panel role-panel"><div class="section"><h3>当前画面</h3><div id="role-list"></div></div></section><section class="panel reference-panel"><div class="section"><h3>对应参考图 <span class="muted small">点击放大</span></h3><button class="ref-button" id="reference-button" aria-label="放大对应参考图"><img id="reference-thumb" alt="当前任务的用户参考示意图"></button></div></section></aside></div>
+
+<section class="panel comparison" id="reference-comparison"><h2 id="reference-title">对应参考图</h2><img id="reference-large" alt="当前任务的完整参考图"></section>
+<details class="panel" style="margin-top:16px;padding:12px 18px"><summary class="small muted" style="cursor:pointer">原运行截图与本示意页的区别</summary><p class="small muted">原运行截图是已保存反馈的回放；这里是为解释五种图示而制作的预设动画。图中的经过、显现、执行和交接均不反写到原运行数据。</p><img id="original-screenshot" alt="用户提供的原运行回放截图" style="width:100%;max-height:430px;object-fit:contain"></details>
+<p class="footer">所有时间均为播放用的动画秒。参考图仅用于画面对照；本页不连接机器人、Gazebo 或任务规划器。室内显现与共享地图为绘制效果，确认标记不表示业务任务实际完成。</p>
+<dialog id="reference-dialog"><div class="close-row"><button id="close-reference">关闭 ×</button></div><img id="dialog-image" alt="放大的用户参考图"></dialog>
+</main>
+<script id="reference-images" type="application/json">__REFERENCE_IMAGES__</script>
+<script>
+// 本文件仅包含固定路径和关键帧绘制；无控制指令、寻路或任务决策。
+'use strict';
+const $=id=>document.getElementById(id), SVG='http://www.w3.org/2000/svg';
+const C={blue:'#2874dd',teal:'#11969e',purple:'#8651cb',orange:'#f39127',ink:'#35485c'};
+let references=[];try{references=JSON.parse($('reference-images').textContent);}catch{}
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)), mix=(a,b,u)=>a+(b-a)*u;
+const ease=u=>{u=clamp(u);return u*u*(3-2*u);}, range=(t,a,b)=>clamp((t-a)/(b-a));
+const duration=36;let mode='patrol',time=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,lastFrame=null;
+const pathCache=new Map();
+const META={
+patrol:{name:'巡逻警戒',short:'循环经过检查点',color:C.blue,ref:1,title:'闭合路线 · 反复经过',subtitle:'两个示意单元沿同一闭合路线循环，检查点随经过亮起。',steps:['沿闭合路线移动','重复经过检查点','时间轴标记多次经过'],note:'这里展示路线循环与重复经过的画面；没有计算或优化巡查策略。'},
+boundary:{name:'区域封控',short:'边界与预设支线',color:C.teal,ref:2,title:'区域边界 · 支线动画',subtitle:'沿不规则边界移动，单元 B 按预设时间展示支线与返回。',steps:['沿边界移动','显示预设事件点','展示支线并返回边界'],note:'橙色标记与蓝色支线均为预设关键帧，不执行目标识别、拦截或战术决策。'},
+stages:{name:'机动突击',short:'到位与阶段变化',color:'#cf792a',ref:3,title:'机动 → 到位 → 执行 → 确认',subtitle:'三个示意单元分别到位，再用图标展示阶段变化。',steps:['机动：沿三条预设曲线移动','到位：图标停留在示意点','执行：显示阶段动画','确认：出现图示确认标记'],note:'“执行”和“确认”只对应图形阶段，不模拟攻击、效果评估或真实任务完成条件。'},
+exploration:{name:'协同侦察',short:'室内显现与共享',color:C.purple,ref:4,title:'室内探索 · 区域逐步显现',subtitle:'三个单元从走廊进入不同房间，示意区域与共享图逐步点亮。',steps:['沿预设曲线进入房间','灰色区域逐步显现','显示共享图的汇合效果'],note:'房间路径与显现区域是手工绘制的动画，不运行自主探索、传感器仿真或建图算法。'},
+handover:{name:'要点坚守',short:'持续在位与交接',color:C.purple,ref:5,title:'持续在位 · 轮换交接',subtitle:'A 保持静止，C 进入，交接阶段重叠显示后 B 离开。',steps:['A 与 B 保持图示位置','C 进入并与 B 重叠交接','B 离开，A 与 C 保持位置'],note:'上下时间带展示预设角色交替，不计算人员排班、部署或作业保障策略。'}
+};
+function defs(){return `<defs><linearGradient id="region-fill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0f6fc"/><stop offset="1" stop-color="#e3edf7"/></linearGradient><marker id="small-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 1L9 5 0 9Z" fill="#9aa9b9"/></marker><pattern id="overlap-pattern" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M-2 2L2-2M0 8L8 0M6 10L10 6" stroke="#754bc4" stroke-width="2"/></pattern><g id="tick"><path d="M-10 0L-3 8 13-10" fill="none" stroke="#4aa556" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g><g id="document"><rect x="-22" y="-29" width="44" height="58" rx="4" fill="white" stroke="#52657b" stroke-width="2"/><path d="M-13-14H12M-13-3H7M-13 9H12" stroke="#718196" stroke-width="3" stroke-linecap="round"/></g></defs>`;}
+function actor(id,color,label){return `<g id="${id}" data-actor="${label}"><circle r="16" fill="white" fill-opacity=".9" stroke="${color}" stroke-opacity=".2"/><g class="rotator"><path d="M14 0L-10-10-7 0-10 10Z" fill="${color}" stroke="white" stroke-width="2"/></g><text class="actor-label" x="-4" y="-24" style="fill:${color}">${label}</text></g>`;}
+function trail(id,color){return `<polyline id="${id}" class="trail" stroke="${color}"/>`;}
+function pathPoint(id,u){let cached=pathCache.get(id);if(!cached){const node=$(id);cached={node,length:node.getTotalLength()};pathCache.set(id,cached);}return cached.node.getPointAtLength(clamp(u)*cached.length);}
+function place(id,path,u){const p=pathPoint(path,u),a=pathPoint(path,Math.max(0,u-.001)),b=pathPoint(path,Math.min(1,u+.001));const angle=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;placeAt(id,p.x,p.y,angle);return p;}
+function placeAt(id,x,y,angle=0){$(id).setAttribute('transform',`translate(${x.toFixed(2)},${y.toFixed(2)})`);$(id).querySelector('.rotator').setAttribute('transform',`rotate(${angle.toFixed(2)})`);}
+function lineTrail(id,path,a,b){if(!$('show-trails').checked){$(id).setAttribute('points','');return;}const arr=[];for(let i=0;i<=55;i++){const p=pathPoint(path,mix(a,b,i/55));arr.push(`${p.x.toFixed(2)},${p.y.toFixed(2)}`);}$(id).setAttribute('points',arr.join(' '));}
+function loopTrail(id,path,fraction,available){if(!$('show-trails').checked){$(id).setAttribute('points','');return;}const arr=[],span=Math.min(.16,available);for(let i=0;i<=45;i++){const f=(fraction-span+span*i/45+10)%1,p=pathPoint(path,f);arr.push(`${p.x.toFixed(2)},${p.y.toFixed(2)}`);}$(id).setAttribute('points',arr.join(' '));}
+function setText(id,text){$(id).textContent=text;}function opacity(id,value){$(id).setAttribute('opacity',clamp(value).toFixed(3));}
+function stage(index,title,detail,roles){setText('phase-title',title);setText('phase-detail',detail);document.querySelectorAll('#stage-list li').forEach((li,i)=>{li.className=i<index?'done':i===index?'active':'';});$('role-list').innerHTML=roles.map(([name,state])=>`<div class="role"><b>${name}</b><span>${state}</span></div>`).join('');}
+function patrolScene(){return `
+<path id="loop-path" d="M230 115H770Q870 115 870 205V320Q870 410 770 410H230Q130 410 130 320V205Q130 115 230 115Z" fill="url(#region-fill)" stroke="#c5d8ec" stroke-width="3"/>
+<text x="500" y="265" text-anchor="middle" style="font-size:32px;font-weight:650;fill:#526b84">反复经过</text><text x="500" y="297" text-anchor="middle" class="caption">预设闭合路线 · 同向循环</text>
+${[0,.15,.35,.5,.65,.85].map((u,i)=>`<circle id="checkpoint-${i}" r="8" fill="white" stroke="#8193a8" stroke-width="2"/>`).join('')}
+${trail('patrol-trail-a',C.blue)}${trail('patrol-trail-b',C.teal)}${actor('patrol-a',C.blue,'A')}${actor('patrol-b',C.teal,'B')}
+<g transform="translate(920 267)" fill="none" stroke="${C.orange}" stroke-width="3"><circle r="17"/><path d="M0-10V0L8 4"/></g>
+<text x="130" y="481" class="caption">同一检查点的预设经过时刻</text><line x1="130" y1="525" x2="880" y2="525" stroke="#b9c7d7" stroke-width="2" marker-end="url(#small-arrow)"/>
+${[0,12,24,36].map((t,i)=>`<g id="visit-${i}"><circle cx="${130+t/36*720}" cy="525" r="7" fill="white" stroke="${C.orange}" stroke-width="2"/><text x="${130+t/36*720}" y="557" text-anchor="middle" class="caption">第${i+1}次</text></g>`).join('')}
+<line id="patrol-cursor" x1="130" y1="504" x2="130" y2="539" stroke="${C.blue}" stroke-width="2"/><text id="lap-label" x="500" y="590" text-anchor="middle" class="caption"></text>`;}
+function drawPatrol(t){
+  const total=t/12,a=total%1,b=(total+.5)%1;
+  place('patrol-a','loop-path',a);place('patrol-b','loop-path',b);
+  loopTrail('patrol-trail-a','loop-path',a,total);loopTrail('patrol-trail-b','loop-path',b,total);
+  [0,.15,.35,.5,.65,.85].forEach((u,i)=>{const p=pathPoint('loop-path',u),el=$('checkpoint-'+i);el.setAttribute('cx',p.x);el.setAttribute('cy',p.y);const near=Math.min(Math.abs(a-u),1-Math.abs(a-u),Math.abs(b-u),1-Math.abs(b-u))<.035;el.setAttribute('fill',near?C.orange:'white');el.setAttribute('stroke',near?C.orange:'#8193a8');});
+  [0,12,24,36].forEach((v,i)=>$('visit-'+i).querySelector('circle').setAttribute('fill',t>=v?C.orange:'white'));
+  const x=130+t/36*720;$('patrol-cursor').setAttribute('x1',x);$('patrol-cursor').setAttribute('x2',x);
+  setText('lap-label',`动画第 ${Math.min(3,Math.floor(t/12)+1)} 圈 · 每圈固定 12 动画秒`);
+  stage(t<12?0:t<24?1:2,'沿闭合路线循环',`第 ${Math.min(3,Math.floor(t/12)+1)} 圈`,[['A','沿蓝色闭合路线移动'],['B','沿同一路线错位移动']]);
+}
+function boundaryScene(){return `
+<path d="M95 273C155 50 315 45 430 105S650 90 790 135S930 295 885 413S720 505 620 512S460 555 305 516S60 435 95 273Z" fill="none" stroke="#b9c4d2" stroke-width="2.5" stroke-dasharray="9 8"/>
+<path id="boundary-path" d="M175 245C215 105 335 105 425 163S610 155 728 205S840 340 778 413S640 434 541 454S374 475 272 424S127 360 175 245Z" fill="url(#region-fill)" stroke="#526c86" stroke-width="3"/>
+<text x="473" y="294" text-anchor="middle" style="font-size:27px;fill:#526b84">区域边界</text><text x="473" y="326" text-anchor="middle" class="caption">虚线外圈仅为参考轮廓</text>
+<path id="branch-path" class="path-base" stroke-dasharray="7 6" d="M0 0"/><g id="event-marker"><path d="M888 77L909 98 888 119 867 98Z" fill="${C.orange}"/><text x="887" y="58" text-anchor="middle" class="caption">预设事件点</text><circle cx="852" cy="151" r="24" fill="none" stroke="${C.orange}" stroke-width="3"/></g>
+${trail('boundary-trail-a',C.blue)}${trail('boundary-trail-b',C.teal)}${actor('boundary-a',C.blue,'A')}${actor('boundary-b',C.teal,'B')}
+<rect x="160" y="558" width="690" height="34" rx="9" fill="#eff4fa"/><text id="boundary-caption" x="505" y="581" text-anchor="middle" class="caption"></text>`;}
+function drawBoundary(t){
+  // 支线的出发点、控制点和返回点固定，不根据事件位置计算策略。
+  const start=pathPoint('boundary-path',.28),end=pathPoint('boundary-path',.5);
+  $('branch-path').setAttribute('d',`M${start.x} ${start.y}C790 180 808 155 850 151C875 169 810 248 800 304C796 367 795 412 ${end.x} ${end.y}`);
+  const a=(t/30+.07)%1;place('boundary-a','boundary-path',a);loopTrail('boundary-trail-a','boundary-path',a,t/30);
+  if(t<10){const u=mix(.12,.28,t/10);place('boundary-b','boundary-path',u);lineTrail('boundary-trail-b','boundary-path',Math.max(.12,u-.12),u);}
+  else if(t<=24){const u=ease(range(t,10,24));place('boundary-b','branch-path',u);lineTrail('boundary-trail-b','branch-path',Math.max(0,u-.27),u);}
+  else{const u=mix(.5,.75,range(t,24,36));place('boundary-b','boundary-path',u);lineTrail('boundary-trail-b','boundary-path',Math.max(.5,u-.12),u);}
+  opacity('event-marker',range(t,6,10));$('event-marker').querySelector('circle').setAttribute('r',24+Math.sin(t*3)*4);
+  const text=t<10?'两个单元沿边界移动':t<24?'单元 B 沿固定支线移动，随后返回':'单元 B 返回边界，继续预设路线';
+  setText('boundary-caption',text);stage(t<8?0:t<10?1:2,t<10?'边界运动':t<24?'预设支线动画':'返回边界',t<24?'事件与运动均按固定时间轴出现':'没有实时目标决策', [['A','持续沿边界移动'],['B',t<10?'沿边界移动':t<24?'展示固定支线':'已回到边界']]);
+}
+function stagesScene(){return `
+<path id="stage-path-a" class="path-base" d="M110 140C250 120 340 150 495 235"/>
+<path id="stage-path-b" class="path-base" d="M80 290C235 265 345 280 495 295"/>
+<path id="stage-path-c" class="path-base" d="M130 440C275 460 380 390 495 355"/>
+<circle cx="540" cy="295" r="112" fill="#edf4fb" stroke="#a3b5c9" stroke-width="2" stroke-dasharray="7 7"/>
+<text x="540" y="160" text-anchor="middle" class="caption">图示到位点</text>
+<path d="M655 295H690M763 295H810M869 295H900" stroke="#b0becd" stroke-width="2" marker-end="url(#small-arrow)"/>
+<g id="work-icon" transform="translate(729 295)"><rect x="-30" y="-30" width="60" height="60" rx="10" fill="white" stroke="#8ca2bb" stroke-width="2"/><g id="gear" stroke="#6b8198" stroke-width="7"><circle r="16" fill="none"/>${Array.from({length:8},(_,i)=>`<line x1="0" y1="-15" x2="0" y2="-25" transform="rotate(${i*45})"/>`).join('')}</g></g>
+<circle id="stage-result-ring" cx="840" cy="295" r="23" fill="white" stroke="${C.orange}" stroke-width="3"/>
+<g transform="translate(935 295)"><use href="#document"/><g id="stage-confirm" transform="translate(15 18)"><circle r="22" fill="#fff" stroke="#71af73" stroke-width="2"/><use href="#tick" transform="scale(.8)"/></g></g>
+${trail('stage-trail-a',C.blue)}${trail('stage-trail-b',C.teal)}${trail('stage-trail-c',C.purple)}${actor('stage-a',C.blue,'A')}${actor('stage-b',C.teal,'B')}${actor('stage-c',C.purple,'C')}
+${['机动','到位','执行展示','确认标记'].map((label,i)=>`<g id="stage-box-${i}"><rect x="${100+i*220}" y="520" width="175" height="52" rx="10" fill="white" stroke="#d4e0ed" stroke-width="2"/><text x="${187+i*220}" y="552" text-anchor="middle">${label}</text></g>`).join('')}`;}
+function drawStages(t){
+  const u=ease(range(t,0,12));for(const [key,c] of [['a',C.blue],['b',C.teal],['c',C.purple]]){place('stage-'+key,'stage-path-'+key,u);lineTrail('stage-trail-'+key,'stage-path-'+key,0,u);}
+  const index=t<12?0:t<16?1:t<27?2:3;
+  $('gear').setAttribute('transform',`rotate(${t<16?0:Math.min(t-16,11)*70})`);opacity('work-icon',index>=2?1:.3);opacity('stage-confirm',range(t,27,29));
+  $('stage-result-ring').setAttribute('fill',index>=3?'#fff3df':'white');
+  for(let i=0;i<4;i++){const box=$('stage-box-'+i);box.querySelector('rect').setAttribute('fill',i===index?'#e8f2ff':i<index?'#f1f7fd':'white');box.querySelector('rect').setAttribute('stroke',i===index?C.blue:'#d4e0ed');}
+  const titles=['沿三条曲线移动','到位后停留','执行图标动画','显示确认标记'];stage(index,titles[index],'图中确认是预设视觉标记', [['A',index===0?'沿上方曲线移动':'停留在到位点'],['B',index===0?'沿中间曲线移动':'停留在到位点'],['C',index===0?'沿下方曲线移动':'停留在到位点']]);
+}
+function explorationScene(){
+  const rooms=[{x:90,color:C.blue},{x:380,color:C.teal},{x:670,color:C.purple}];
+  return `<defs>${rooms.map((r,i)=>`<clipPath id="room-clip-${i}"><rect x="${r.x+6}" y="76" width="234" height="225"/></clipPath>`).join('')}</defs>
+  <rect x="90" y="310" width="820" height="135" fill="#e9f4fb"/>
+  ${rooms.map((r,i)=>`<rect x="${r.x}" y="70" width="246" height="237" fill="#dfe5eb"/><rect x="${r.x+6}" y="451" width="234" height="127" fill="#edf4fb"/><g clip-path="url(#room-clip-${i})"><rect id="room-reveal-${i}" x="${r.x+5}" y="300" width="236" height="0" fill="${r.color}" fill-opacity=".12"/><path id="room-frontier-${i}" d="M0 0" stroke="${r.color}" stroke-dasharray="5 5" fill="none"/></g>
+  <path d="M${r.x+91} 307H${r.x}V70H${r.x+246}V307H${r.x+155}" fill="none" stroke="#64788d" stroke-width="9" stroke-linecap="square"/>
+  <path d="M${r.x} 451V582H${r.x+246}V451" fill="none" stroke="#64788d" stroke-width="9"/>
+  <path d="M${r.x} 451H${r.x+91}M${r.x+155} 451H${r.x+246}" stroke="#64788d" stroke-width="9"/>
+  <rect x="${r.x+73}" y="66" width="95" height="8" fill="#eaf5fc" stroke="#8193a6"/>
+  <text id="room-label-${i}" x="${r.x+123}" y="110" text-anchor="middle" class="caption">待显现区域</text>`).join('')}
+  <path d="M90 307V451M916 307V451" stroke="#64788d" stroke-width="9"/>
+  <text x="500" y="391" text-anchor="middle" class="caption">走廊 · 已显现区域</text>
+  <path id="explore-path-a" class="path-base" d="M213 424C229 380 217 333 213 298C207 253 190 212 212 162"/>
+  <path id="explore-path-b" class="path-base" d="M503 424C501 380 495 332 503 300C519 246 494 211 503 170"/>
+  <path id="explore-path-c" class="path-base" d="M793 424C771 380 788 334 793 300C812 243 808 205 791 160"/>
+  <g id="sharing-lines" stroke-width="2" fill="none" stroke-dasharray="5 7"><path id="sharing-a" stroke="${C.blue}"/><path id="sharing-b" stroke="${C.teal}"/><path id="sharing-c" stroke="${C.purple}"/></g>
+  ${rooms.map((r,i)=>`<g id="fan-${i}" opacity=".4"><path d="M0 0L-48-60Q0-93 48-60Z" fill="${r.color}" fill-opacity=".24"/></g>`).join('')}
+  ${trail('explore-trail-a',C.blue)}${trail('explore-trail-b',C.teal)}${trail('explore-trail-c',C.purple)}${actor('explore-a',C.blue,'A')}${actor('explore-b',C.teal,'B')}${actor('explore-c',C.purple,'C')}
+  <g transform="translate(503 514)"><rect x="-31" y="-31" width="62" height="62" rx="5" fill="white" stroke="#657f99" stroke-width="2"/>${Array.from({length:9},(_,i)=>`<rect id="map-cell-${i}" x="${-23+(i%3)*16}" y="${-23+Math.floor(i/3)*16}" width="14" height="14" fill="#e1e8f1" rx="1"/>`).join('')}<text x="0" y="58" text-anchor="middle" class="caption">共享图（示意）</text></g>`;
+}
+function drawExploration(t){
+  const keys=['a','b','c'],colors=[C.blue,C.teal,C.purple];
+  keys.forEach((key,i)=>{
+    const u=ease(range(t,i*1.2,18+i*1.2)),p=place('explore-'+key,'explore-path-'+key,u);
+    lineTrail('explore-trail-'+key,'explore-path-'+key,0,u);
+    $('fan-'+i).setAttribute('transform',`translate(${p.x} ${p.y})`);
+    const reveal=range(t,5+i*1.2,22+i*1.2),height=reveal*225;
+    $('room-reveal-'+i).setAttribute('y',301-height);$('room-reveal-'+i).setAttribute('height',height);
+    const left=[96,386,676][i],y=301-height;
+    $('room-frontier-'+i).setAttribute('d',`M${left} ${y}Q${left+60} ${y+15} ${left+115} ${y-2}T${left+234} ${y}`);
+    setText('room-label-'+i,reveal>=.99?'已显现（示意）':'待显现区域');
+    $('sharing-'+key).setAttribute('d',`M${p.x} ${p.y+20}Q${p.x} 440 503 480`);
+    for(let row=0;row<3;row++)$('map-cell-'+(row*3+i)).setAttribute('fill',range(t,20+row*2+i,22+row*2+i)>.7?colors[i]:'#e1e8f1');
+  });
+  opacity('sharing-lines',range(t,20,23));$('sharing-lines').setAttribute('stroke-dashoffset',-t*8);
+  const index=t<9?0:t<23?1:2;stage(index,['进入房间','区域逐步显现','共享图逐步点亮'][index],'预设曲线与显现动画，不是自主建图结果',[['A',t<19?'沿左侧房间路径移动':'停留在左侧图示点'],['B',t<20?'沿中间房间路径移动':'停留在中间图示点'],['C',t<21?'沿右侧房间路径移动':'停留在右侧图示点']]);
+}
+function handoverScene(){return `
+<circle cx="500" cy="260" r="184" fill="url(#region-fill)" stroke="#b7c5d5" stroke-width="2.5" stroke-dasharray="8 7"/>
+<path d="M500 243L517 260 500 277 483 260Z" fill="#52677e"/><text x="500" y="307" text-anchor="middle" class="caption">固定图示点</text>
+<text id="handover-caption" x="500" y="56" text-anchor="middle" style="font-size:25px;font-weight:650"></text>
+<path id="incoming-path" class="path-base" stroke-dasharray="7 7" d="M215 437C270 400 302 354 367 311C433 269 521 243 597 235"/>
+<path id="outgoing-path" class="path-base" stroke-dasharray="7 7" d="M597 260C663 276 691 335 743 379C791 418 826 447 878 467"/>
+${trail('incoming-trail',C.purple)}${trail('outgoing-trail',C.teal)}
+${actor('hold-a',C.blue,'A')}${actor('hold-b',C.teal,'B')}${actor('hold-c',C.purple,'C')}
+<g id="handover-check" transform="translate(640 343)"><circle r="24" fill="white" stroke="#85b98a" stroke-width="2"/><use href="#tick"/></g>
+<text x="55" y="508" class="caption">持续在位</text><rect x="165" y="488" width="720" height="26" rx="4" fill="${C.blue}" fill-opacity=".8"/>
+<text x="55" y="558" class="caption">轮换交接</text><rect x="165" y="538" width="380" height="26" rx="4" fill="${C.teal}" fill-opacity=".8"/><rect x="445" y="538" width="440" height="26" rx="4" fill="${C.purple}" fill-opacity=".75"/><rect x="445" y="538" width="100" height="26" fill="url(#overlap-pattern)"/>
+<text x="350" y="583" class="caption">B</text><text x="475" y="600" text-anchor="middle" class="caption">交接重叠</text><text x="730" y="583" class="caption">C</text>
+<line id="hold-cursor" x1="165" y1="478" x2="165" y2="572" stroke="#637c96" stroke-width="2"/>`;
+}
+function drawHandover(t){
+  placeAt('hold-a',400,260,0);
+  const arriving=ease(range(t,3,14)),departing=ease(range(t,19,31));
+  place('hold-c','incoming-path',arriving);place('hold-b','outgoing-path',departing);
+  // 图示中的新旧成员分开放置，文字和形状都保持可辨。
+  if(t>=14)placeAt('hold-c',597,235,mix(-6,180,ease(range(t,14,16))));
+  $('hold-b').querySelector('.actor-label').setAttribute('y',35);
+  lineTrail('incoming-trail','incoming-path',0,arriving);lineTrail('outgoing-trail','outgoing-path',0,departing);
+  opacity('handover-check',range(t,19,21));const x=165+t/36*720;$('hold-cursor').setAttribute('x1',x);$('hold-cursor').setAttribute('x2',x);
+  const index=t<14?0:t<19?1:2;setText('handover-caption',['接替前','交接重叠阶段','接替后'][index]);
+  stage(index,['A 与 B 保持位置','C 到位，重叠展示交接','B 离开，A 与 C 保持位置'][index],'时间带为预设画面顺序',[['A','始终停留'],['B',t<19?'原图示位置停留':t<31?'沿预设离开曲线移动':'移出图示区域'],['C',t<3?'等待播放进入段':t<14?'沿预设进入曲线移动':'在图示位置停留']]);
+}
+const RENDER={patrol:patrolScene,boundary:boundaryScene,stages:stagesScene,exploration:explorationScene,handover:handoverScene};
+const DRAW={patrol:drawPatrol,boundary:drawBoundary,stages:drawStages,exploration:drawExploration,handover:drawHandover};
+function updateReference(){const info=META[mode],source=references[info.ref];for(const id of ['reference-thumb','reference-large','dialog-image']){if(source)$(id).src=source;else $(id).removeAttribute('src');}if(references[0])$('original-screenshot').src=references[0];setText('reference-title',info.name+' · 对应参考图');$('reference-comparison').classList.toggle('visible',$('show-reference').checked);}
+function selectMode(key,{updateHash=true}={}){
+  if(!META[key])return;mode=key;time=0;lastFrame=null;pathCache.clear();
+  const info=META[key];document.documentElement.style.setProperty('--mode',info.color);
+  setText('scene-title',info.title);setText('scene-subtitle',info.subtitle);setText('mode-note',info.note);
+  $('stage-list').innerHTML=info.steps.map((s,i)=>`<li data-step="${i+1}">${s}</li>`).join('');
+  $('canvas').innerHTML='<title>'+info.name+'动态示意</title><desc>'+info.subtitle+'</desc>'+defs()+RENDER[key]();
+  document.querySelectorAll('.tab').forEach(el=>{const current=el.dataset.mode===key;el.setAttribute('aria-selected',String(current));el.tabIndex=current?0:-1;});
+  $('animation-panel').setAttribute('aria-labelledby','tab-'+key);updateReference();
+  if(updateHash)history.replaceState(null,'','#'+key);draw();
+}
+function draw(){
+  DRAW[mode](time);setText('clock',time.toFixed(1));$('timeline').value=time;$('timeline').setAttribute('aria-valuetext',`${time.toFixed(1)} 动画秒`);
+  document.querySelectorAll('.actor-label').forEach(el=>el.setAttribute('visibility',$('show-labels').checked?'visible':'hidden'));
+  $('play').textContent=playing?'Ⅱ 暂停':'▶ 播放';
+}
+function seek(t){time=clamp(t,0,duration);lastFrame=null;draw();}
+function setPlaying(value){playing=value;lastFrame=null;draw();}
+const keys=Object.keys(META);
+keys.forEach((key,index)=>{const item=META[key],button=document.createElement('button');button.className='tab';button.id='tab-'+key;button.dataset.mode=key;button.setAttribute('role','tab');button.setAttribute('aria-controls','animation-panel');button.innerHTML=`<span class="number">0${index+1}</span><span><strong>${item.name}</strong><small>${item.short}</small></span>`;button.onclick=()=>selectMode(key);button.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const next=keys[(index+(e.key==='ArrowRight'?1:4))%5];selectMode(next);$('tab-'+next).focus();}};document.querySelector('.tabs').appendChild(button);});
+$('play').onclick=()=>{if(!playing&&time>=duration)time=0;setPlaying(!playing);};
+$('restart').onclick=()=>{seek(0);setPlaying(true);};$('back').onclick=()=>{playing=false;seek(Math.ceil(time)-1);};$('forward').onclick=()=>{playing=false;seek(Math.floor(time)+1);};
+$('timeline').oninput=e=>{playing=false;seek(Number(e.target.value));};
+for(const id of ['show-trails','show-labels'])$(id).onchange=draw;
+$('show-reference').onchange=updateReference;$('reference-button').onclick=()=>{$('reference-dialog').showModal();};$('close-reference').onclick=()=>{$('reference-dialog').close();};
+$('reference-dialog').onclick=e=>{if(e.target===$('reference-dialog'))$('reference-dialog').close();};
+document.addEventListener('keydown',e=>{if($('reference-dialog').open||['INPUT','SELECT','BUTTON'].includes(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();$('play').click();}else if(e.key==='ArrowLeft'){e.preventDefault();$('back').click();}else if(e.key==='ArrowRight'){e.preventDefault();$('forward').click();}else if(/^[1-5]$/.test(e.key))selectMode(keys[Number(e.key)-1]);});
+window.addEventListener('hashchange',()=>{const key=location.hash.slice(1);if(META[key]&&key!==mode)selectMode(key,{updateHash:false});});
+function frame(now){if(playing){if(lastFrame!==null){time+=Math.min((now-lastFrame)/1000,.15)*Number($('speed').value);if(time>=duration){if($('loop').checked)time%=duration;else{time=duration;playing=false;}}draw();}lastFrame=now;}requestAnimationFrame(frame);}
+selectMode(META[location.hash.slice(1)]?location.hash.slice(1):'patrol',{updateHash:false});requestAnimationFrame(frame);
+</script></body></html>

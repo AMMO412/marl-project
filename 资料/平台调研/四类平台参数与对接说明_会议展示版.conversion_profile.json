@@ -1,0 +1,28 @@
+{
+  "schema": "ppt-master.source_to_md.profile.v1",
+  "converter": "doc_to_md.py",
+  "conversion_type": "docx",
+  "source": {
+    "path": "四类平台参数与对接说明_会议展示版.docx",
+    "name": "四类平台参数与对接说明_会议展示版.docx",
+    "suffix": ".docx",
+    "kind": "file",
+    "exists": true,
+    "size_bytes": 40754
+  },
+  "outputs": {
+    "markdown": "四类平台参数与对接说明_会议展示版.md",
+    "asset_dir": "",
+    "image_manifest": "",
+    "image_count": 0
+  },
+  "markdown": {
+    "line_count": 149,
+    "char_count": 4182,
+    "heading_count": 16,
+    "table_count": 9,
+    "image_ref_count": 0,
+    "link_count": 1
+  },
+  "warnings": []
+}

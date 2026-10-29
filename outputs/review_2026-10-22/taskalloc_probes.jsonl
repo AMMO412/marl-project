@@ -1,0 +1,10 @@
+{"probe": "v2_actual_import", "result": "success"}
+{"probe": "v2_id_mapping", "diagnostic_import_bypass": false, "agent": "platform_0", "platform_id": "P00", "progress": 1.0, "completed": 1, "has_get_env_info": true}
+{"probe": "v2_marllib_interface", "num_agents": 1, "episode_limit": 2, "keys": ["episode_limit", "num_agents", "policy_mapping_info", "space_act", "space_obs"]}
+{"probe": "v2_teleport_and_early_work", "elapsed_steps": 1, "distance": 10, "speed": 1.0, "window": [10, 20], "status": "done", "battery_consumed": 1.0}
+{"probe": "v1_window_lower_bound", "now_fraction": 0.025, "earliest": 0.1, "progress": 1.0}
+{"probe": "v1_colift_unreachable", "required_payload": 4.0, "legal_for_each_type": [false, false, false, false]}
+{"probe": "v1_group_work_rate", "n": 1, "progress": 1.0, "energy": 0.02}
+{"probe": "v1_group_work_rate", "n": 2, "progress": 3.0, "energy": 0.08}
+{"probe": "v1_unarrived_member_counted", "progress": 1.5, "crew_tally": 2, "second_distance": 1.3442134857177734}
+{"probe": "evaluation_is_not_paired", "csv_seed_a": 1000, "csv_seed_b": 1000, "initial_positions_equal": false, "initial_tasks_equal": false}

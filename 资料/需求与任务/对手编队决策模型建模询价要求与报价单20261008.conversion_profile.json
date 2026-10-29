@@ -1,0 +1,30 @@
+{
+  "schema": "ppt-master.source_to_md.profile.v1",
+  "converter": "doc_to_md.py",
+  "conversion_type": "docx",
+  "source": {
+    "path": "对手编队决策模型建模询价要求与报价单20261008.docx",
+    "name": "对手编队决策模型建模询价要求与报价单20261008.docx",
+    "suffix": ".docx",
+    "kind": "file",
+    "exists": true,
+    "size_bytes": 25856
+  },
+  "outputs": {
+    "markdown": "对手编队决策模型建模询价要求与报价单20261008.md",
+    "asset_dir": "",
+    "image_manifest": "",
+    "image_count": 0
+  },
+  "markdown": {
+    "line_count": 126,
+    "char_count": 2450,
+    "heading_count": 6,
+    "table_count": 0,
+    "image_ref_count": 0,
+    "link_count": 0
+  },
+  "warnings": [
+    "Unrecognised paragraph style: 样式2 (Style ID: 2)"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "errors": [],
+  "checks": [
+    "initial source positions",
+    "play/pause",
+    "arrival barrier",
+    "checkpoint jump",
+    "reference image",
+    "full map",
+    "completion/rewind",
+    "seek",
+    "layers",
+    "390px no horizontal overflow"
+  ]
+}

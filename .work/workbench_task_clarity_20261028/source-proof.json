@@ -1,0 +1,15 @@
+{
+  "preserved_sources": {
+    "planning_middle_demo/outputs/behavior_20261028_verify/behavior_trace.json": true,
+    "planning_middle_demo/outputs/workbench_behavior_20261028/trace.jsonl": true,
+    "planning_middle_demo/behaviors.py": true,
+    "planning_middle_demo/behavior_runtime.py": true,
+    "planning_middle_demo/city_nav.py": true
+  },
+  "source_sha256": "64a4246943c82ca67f32a31e803bf702b8ae4757f56dfd2d34a53c0c04bbda88",
+  "recorded_samples": 2388,
+  "actor_poses_checked": 5190,
+  "routes": 99,
+  "events": 165,
+  "read_only": true
+}

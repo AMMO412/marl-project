@@ -1,0 +1,48 @@
+{
+  "backup": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\backups\\2026-10-26_platform_review_a2a3f28d",
+  "archive": "D:\\obsidianNOTE\\ammo\\10_项目\\MARL\\历史\\20261026_新材料前",
+  "notes": [
+    {
+      "name": "00_项目入口.md",
+      "before_bytes": 9318,
+      "after_bytes": 2724,
+      "sha256": "E9380952C87210DC76EE52A88DC311E705689775104ECE8C5DCD69BFD09D679D",
+      "readback": "exact"
+    },
+    {
+      "name": "需求与验收.md",
+      "before_bytes": 36293,
+      "after_bytes": 5075,
+      "sha256": "141F3152F6DB37A41640B612B617372B2C3E8AC6835FD286C6F37AC521E6BA4A",
+      "readback": "exact"
+    },
+    {
+      "name": "方案_通用多机器人仿真系统工程设计.md",
+      "before_bytes": 21203,
+      "after_bytes": 10224,
+      "sha256": "4E550FC27B589BF178D98BD324D491E34E610AA92BDEC323701510279AD41949",
+      "readback": "exact"
+    },
+    {
+      "name": "工具与工程核对.md",
+      "before_bytes": 27337,
+      "after_bytes": 6893,
+      "sha256": "C87974279CDA875DCFCD6089474C39572D157FB508C101E2155F4C038A2C34C0",
+      "readback": "exact"
+    },
+    {
+      "name": "计划_工程分解与里程碑.md",
+      "before_bytes": 12552,
+      "after_bytes": 2979,
+      "sha256": "21DAC6457CA748086A2DBC305E95A256D0313B0AC6F8A7AAF1CF9E9230DA9466",
+      "readback": "exact"
+    },
+    {
+      "name": "方案_任务规划中间层_优化版.md",
+      "before_bytes": 26300,
+      "after_bytes": 861,
+      "sha256": "674457802C5365335C1443F7F0FA85B25C10883C9D86BA1A0C9D7404419B5CC3",
+      "readback": "exact"
+    }
+  ]
+}

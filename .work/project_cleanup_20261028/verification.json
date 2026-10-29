@@ -1,0 +1,29 @@
+{
+  "unchanged_files_sha256_verified": 352,
+  "intentional_text_changes": [
+    "资料/平台调研/四类平台参数指标与Gazebo实现详尽调研_更新版20261027.md",
+    "资料/需求与任务/五类作战任务_10月26日修改.md",
+    "AGENTS.md",
+    "outputs/20261026-对比询价指标/pipeline-state.yaml",
+    "outputs/figures/三类任务_生图提示词.md",
+    "planning_middle_demo/docs/下层接口草案.md"
+  ],
+  "local_links_verified": 64,
+  "standalone_page_assets_verified": true,
+  "navigation_service": {
+    "http": 200,
+    "status": "finished",
+    "backend": "gazebo"
+  },
+  "visible_root": [
+    "AGENTS.md",
+    "learning",
+    "outputs",
+    "planning",
+    "planning_middle_demo",
+    "robot_navigation_lab",
+    "taskalloc",
+    "学习入口.md",
+    "资料"
+  ]
+}

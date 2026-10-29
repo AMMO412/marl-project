@@ -1,0 +1,41 @@
+const assert=require('assert/strict');
+const {chromium}=require('C:/Users/ammo/.codex/tmp/beijing-map-20261017-01a148de/node_modules/playwright');
+const {pathToFileURL}=require('url');
+(async()=>{
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+const page=await browser.newPage({viewport:{width:1440,height:1180}});
+const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
+const local=p=>pathToFileURL(process.cwd()+'/'+p).href;
+await page.goto(local('planning_middle_demo/outputs/run_20261026_214515_752916/report.html'));
+await page.getByRole('link',{name:'打开动态运动回放'}).click();
+assert.equal(await page.locator('#workers-table tr').count(),10);
+assert.equal(await page.locator('#row-8 td').nth(7).innerText(),'—');
+assert.equal(await page.locator('#row-0 td').nth(5).innerText(),'0.00');
+await page.locator('#play').click();await page.waitForFunction(()=>Number(document.getElementById('clock').textContent)>0.2);await page.locator('#play').click();
+let before=Number(await page.locator('#clock').innerText());await page.waitForTimeout(150);assert.equal(Number(await page.locator('#clock').innerText()),before);
+await page.locator('#timeline').evaluate(el=>{el.value='30';el.dispatchEvent(new Event('input',{bubbles:true}));});
+await page.locator('#row-3').click();assert.equal(await page.locator('#worker-select').inputValue(),'rover_04');assert.match(await page.locator('#focus-content').innerText(),/J2 → J4/);
+assert.equal(await page.locator('#targets-map line').count(),1);
+await page.locator('#show-trails').uncheck();assert.equal(await page.locator('#trails-map polyline').count(),0);await page.locator('#show-trails').check();
+await page.locator('#show-labels').uncheck();assert.equal(await page.locator('#workers-map text').count(),0);await page.locator('#show-labels').check();
+await page.locator('#show-starts').check();assert.equal(await page.locator('#starts-map circle').count(),10);
+await page.locator('#next').click();assert.equal(await page.locator('#clock').innerText(),'31.0');await page.locator('#prev').click();assert.equal(await page.locator('#clock').innerText(),'30.0');
+await page.locator('#event-list button').last().click();assert.equal(await page.locator('#clock').innerText(),'46.0');assert.equal(await page.locator('#count-done').innerText(),'6');
+assert.equal(await page.locator('#row-3 td').nth(5).innerText(),'27.56');assert.equal(await page.locator('#row-3 td').nth(6).innerText(),'24.44');
+await page.locator('#clear-focus').click();assert.equal(await page.locator('#worker-select').inputValue(),'');
+await page.locator('#workers-map [role=button][data-pid="rover_31"]').dispatchEvent('click');assert.equal(await page.locator('#worker-select').inputValue(),'rover_31');
+await page.locator('#restart').click();await page.waitForFunction(()=>Number(document.getElementById('clock').textContent)>.1&&Number(document.getElementById('clock').textContent)<5);await page.locator('#play').click();
+await page.locator('#timeline').evaluate(el=>{el.value='30';el.dispatchEvent(new Event('input',{bubbles:true}));});await page.locator('#worker-select').selectOption('rover_04');await page.locator('#show-starts').uncheck();
+await page.screenshot({path:'.work/trajectory_qa/selected.png',fullPage:true});
+await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+for(const motion of ['real','teleport']){
+await page.goto(local('.work/trajectory_qa/fixture_'+motion+'/trajectory.html'));
+const state=await page.evaluate(()=>stateAt(D.workers[0],.5));
+assert.equal(state.x,motion==='real'?1.5:0);assert.equal(state.distance,motion==='real'?2.5:0);
+const end=await page.evaluate(()=>stateAt(D.workers[0],1));assert.equal(end.x,3);assert.equal(end.distance,5);
+console.log(motion+': interpolation/jump assertions passed');
+}
+assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
+console.log('PASS: playback, pause, restart, step, seek, report link, map/table selection, toggles, final distances, mobile, no network/errors');
+await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

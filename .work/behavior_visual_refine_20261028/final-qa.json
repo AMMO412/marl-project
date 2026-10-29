@@ -1,0 +1,41 @@
+{
+  "run": "workbench_20261028_174224_708566",
+  "errors": [],
+  "sweep": {
+    "rows": [
+      {
+        "job": "J1",
+        "frames": 73
+      },
+      {
+        "job": "J2",
+        "frames": 41
+      },
+      {
+        "job": "J3",
+        "frames": 87
+      },
+      {
+        "job": "J4",
+        "frames": 30
+      },
+      {
+        "job": "J5",
+        "frames": 33
+      },
+      {
+        "job": "J6",
+        "frames": 54
+      }
+    ],
+    "failures": []
+  },
+  "smallCanvas": {
+    "x": 34,
+    "y": 339.96875,
+    "width": 1005,
+    "height": 396.640625
+  },
+  "oldRecordCompatible": true,
+  "chapterAndRouteSeekVerified": true
+}

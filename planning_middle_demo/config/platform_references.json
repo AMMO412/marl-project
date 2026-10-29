@@ -1,0 +1,96 @@
+{
+  "format": "platform-reference-catalog/v1",
+  "review_date": "2026-10-26",
+  "source_document": "outputs/平台参数调研/四类平台参数指标与Gazebo实现详尽调研.docx",
+  "gazebo_parsed_note": "2026-10-26 从公开 Gazebo 世界/模型静态解析补充（见 outputs/gazebo_assets_2026-10-26/README.md 与 source_manifest.json）。解析值是 SDF 显式声明的质量/碰撞盒/速度限幅/传感器频率，不是厂家整机实测，也未在 Gazebo 运行验证；只作接口讨论参考，不参与规划决策。",
+  "purpose": "资料登记及接口讨论，不是当前模型实测值，不参与工位演示的决策或控制",
+  "unknown_policy": "null 表示未知；不能当作 0、无限或已具备能力",
+  "profiles": {
+    "UGV": {
+      "reference": "Clearpath Husky A200 通用科研平台",
+      "source_url": "https://docs.clearpathrobotics.com/docs_robots/outdoor_robots/husky/a200/user_manual_husky/",
+      "parameters": {
+        "mass_kg": {"value": 50, "status": "manufacturer_reference", "scope": "整机标称重量"},
+        "speed_mps": {"value": 1.0, "status": "manufacturer_reference", "scope": "标称最大速度；不等于当前场景限值"},
+        "payload_kg": {"value": 75, "status": "manufacturer_reference", "scope": "标称最大载荷；全地形手册另列 20 kg"},
+        "endurance_s": {"value": 10800, "status": "manufacturer_reference", "scope": "平均运行约 3 小时；不是任意工况保证"}
+      },
+      "gazebo_parsed": {
+        "model": "gz-sim DiffDrive 示例 vehicle_blue（差速轮式）",
+        "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/diff_drive.sdf",
+        "mass_kg": {"value": 6.14395, "status": "sdf_declared", "scope": "显式 link 质量合计，非整机包络"},
+        "chassis_box_m": {"value": [2.01142, 1.0, 0.568726], "status": "sdf_collision_box", "scope": "底盘碰撞盒尺寸"},
+        "wheel_radius_m": {"value": 0.3, "status": "sdf_collision_sphere", "scope": "轮碰撞半径"},
+        "wheel_base_m": {"value": 1.25, "status": "sdf_declared", "scope": "左右轮距"},
+        "cmd_linear_limit_mps": {"value": 0.5, "status": "plugin_declared", "scope": "DiffDrive 线速度命令限幅 ±0.5 m/s"},
+        "cmd_angular_limit_radps": {"value": 1.0, "status": "plugin_declared", "scope": "DiffDrive 角速度命令限幅 ±1 rad/s"}
+      },
+      "current_scene_limits": {"speed_mps": null, "payload_kg": null, "endurance_s": null}
+    },
+    "TANK": {
+      "reference": "移动说明中的地面差速外观代理，未确定对应公开物理模型",
+      "source_url": null,
+      "parameters": {
+        "mass_kg": {"value": null, "status": "unknown", "scope": "不把厂家实车参数自动绑定到差速代理"},
+        "speed_mps": {"value": null, "status": "unknown", "scope": "0.2 m/s 仅为提供说明中的发令示例"},
+        "payload_kg": {"value": null, "status": "unknown", "scope": "未提供"},
+        "endurance_s": {"value": null, "status": "unknown", "scope": "未提供"}
+      },
+      "gazebo_parsed": {
+        "model": "gz-sim TrackedVehicle 示例 simple_tracked（履带）",
+        "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/tracked_vehicle_simple.sdf",
+        "mass_kg": {"value": 28.26, "status": "sdf_declared", "scope": "显式 link 质量合计，非整机包络"},
+        "chassis_box_m": {"value": [0.50017, 0.24093, 0.139], "status": "sdf_collision_box", "scope": "底盘碰撞盒尺寸"},
+        "track_center_distance_m": {"value": 0.4, "status": "sdf_declared", "scope": "左右履带中心距"},
+        "track_cmd_limit_mps": {"value": 1.0, "status": "plugin_declared", "scope": "TrackController 速度范围 ±1 m/s；不等于实测车速"},
+        "note": "履带速度上限≠实测车速；不能替代真实重型平台、土壤与悬挂性能"
+      },
+      "current_scene_limits": {"speed_mps": null, "payload_kg": null, "endurance_s": null}
+    },
+    "PLANE": {
+      "reference": "PX4 rc_cessna 公开仿真模型，未证明与当前场景同源",
+      "source_url": "https://github.com/PX4/PX4-gazebo-models/blob/main/models/rc_cessna/model.sdf",
+      "parameters": {
+        "base_link_mass_kg": {"value": 1.5, "status": "public_model_reference", "scope": "仅 base_link，不是整机质量"},
+        "speed_mps": {"value": null, "status": "unknown", "scope": "不能由质量或舵角推断巡航速度"},
+        "payload_kg": {"value": null, "status": "unknown", "scope": "未提供"},
+        "endurance_s": {"value": null, "status": "unknown", "scope": "未提供"}
+      },
+      "gazebo_parsed": {
+        "model": "PX4 rc_cessna 常规固定翼",
+        "source_url": "https://github.com/PX4/PX4-gazebo-models/blob/e5997f455e33ec071c7c677fc59a65781de496a4/models/rc_cessna/model.sdf",
+        "mass_kg": {"value": 1.67000006, "status": "sdf_declared", "scope": "12 个 link 显式质量合计"},
+        "fuselage_box_m": {"value": [0.65, 0.08, 0.10], "status": "sdf_collision_box", "scope": "机体碰撞盒；不是整机包络"},
+        "wing_box_m": {"value": [0.1, 1.0, 0.01], "status": "sdf_collision_box", "scope": "翼部碰撞盒"},
+        "sensors": {
+          "imu_hz": {"value": 250, "status": "sdf_declared"},
+          "navsat_hz": {"value": 30, "status": "sdf_declared"},
+          "barometer_hz": {"value": 50, "status": "sdf_declared"},
+          "magnetometer_hz": {"value": 100, "status": "sdf_declared"}
+        },
+        "note": "巡航/失速/最大速度、有效载荷与续航需另证；碰撞盒不是整机尺寸"
+      },
+      "current_scene_limits": {"speed_mps": null, "payload_kg": null, "endurance_s": null}
+    },
+    "WING": {
+      "reference": "ArduPilot Zephyr 公开仿真模型，未证明与当前场景同源",
+      "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/main/models/zephyr/model.sdf",
+      "parameters": {
+        "wing_link_mass_kg": {"value": 1.5, "status": "public_model_reference", "scope": "仅 wing link，不是整机质量"},
+        "speed_mps": {"value": null, "status": "unknown", "scope": "1.0 m/s 仅为提供说明中的发令示例"},
+        "payload_kg": {"value": null, "status": "unknown", "scope": "未提供"},
+        "endurance_s": {"value": null, "status": "unknown", "scope": "未提供"}
+      },
+      "gazebo_parsed": {
+        "model": "ArduPilot Zephyr 飞翼（含 zephyr_with_ardupilot 气动/飞控扩展）",
+        "source_url": "https://github.com/ArduPilot/ardupilot_gazebo/blob/80dc9664dda7efd6c5d1a71a79198d1d6b708c0e/models/zephyr/model.sdf",
+        "mass_kg": {"value": 1.9, "status": "sdf_declared", "scope": "包含被 include 的基础模型后显式质量合计"},
+        "imu_hz": {"value": 1000, "status": "sdf_declared", "scope": "基础模型 IMU 采样率"},
+        "aerodynamics": {"value": "多组 LiftDrag + ArduPilotPlugin", "status": "plugin_declared", "scope": "扩展模型含气动与飞控插件"},
+        "note": "扩展文件直接 link 数为零不表示质量为零；未取得可靠的最大速度/续航"
+      },
+      "current_scene_limits": {"speed_mps": null, "payload_kg": null, "endurance_s": null}
+    }
+  }
+}
+

@@ -1,0 +1,8 @@
+request_id: 20261026-对比询价指标
+entry_type: full_pipeline
+current_stage: stage3
+output_docx_path: C:/Users/ammo/Desktop/MARL项目/outputs/20261026-对比询价指标/stage3/项目实现与询价要求指标对照.docx
+output_docx_user_specified: false
+stage_1: {status: completed, output_path: stage1/final_draft.md, genre: work-report, expert_used: work-report-expert, route_tag: expert_work_report}
+stage_2: {status: completed, route: html, html_sub: template, output_path: stage2/formatted-对比询价指标.html, output_format: html, skills_invoked: [doc-typeset-template], fallback: false}
+stage_3: {status: completed, executor: doc-converter, skill_used: [html-to-doc], fallback_used: false, present_files_opened: true}

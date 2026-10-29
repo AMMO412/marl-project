@@ -1,0 +1,14 @@
+{
+  "rc_cessna.sdf": {
+    "sha256": "6efa4537c11515e0583f090638ea966adddb4ca1f561a92d3e3431f1a407137e",
+    "direct_link_mass_sum_kg": "1.67000006"
+  },
+  "zephyr.sdf": {
+    "sha256": "f78b71771890b208def6aa384dcb4cb2f6a6d5900f4fe0c94a6e0d375db2e7d6",
+    "direct_link_mass_sum_kg": "1.90"
+  },
+  "zephyr_with_ardupilot.sdf": {
+    "sha256": "a4ad400ee109bef8004a4197186eb7f1d41fd76b20649f447b4080ab5e1cf084",
+    "direct_link_mass_sum_kg": "0"
+  }
+}

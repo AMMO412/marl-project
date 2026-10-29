@@ -1,0 +1,32 @@
+{
+  "task_id": "ordinary_checkpoint_demo",
+  "status": "completed",
+  "backend": "kinematic",
+  "physical_execution_verified": false,
+  "geometry_complete": false,
+  "simulation_seconds": 1278.0,
+  "robot_ids": [
+    "robot_001",
+    "robot_002",
+    "robot_003"
+  ],
+  "checkpoint_count": 2,
+  "min_robot_center_distance_m": 3.2596374224164872,
+  "min_body_static_clearance_m": 0.36687799826431133,
+  "final_positions": {
+    "robot_001": [
+      94.0,
+      -100.0
+    ],
+    "robot_002": [
+      94.0,
+      -104.0
+    ],
+    "robot_003": [
+      94.0,
+      -108.0
+    ]
+  },
+  "traffic_policy": "one_robot_at_a_time",
+  "limitation": "Only inline known geometry; unresolved external geometry is excluded from navigation evidence."
+}

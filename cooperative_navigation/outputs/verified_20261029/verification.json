@@ -1,0 +1,33 @@
+{
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "tests_passed": 6,
+  "browser_verification": {
+    "passed": true,
+    "errors": [],
+    "checks": [
+      "initial source positions",
+      "play/pause",
+      "arrival barrier",
+      "checkpoint jump",
+      "reference image",
+      "full map",
+      "completion/rewind",
+      "seek",
+      "layers",
+      "390px no horizontal overflow"
+    ]
+  },
+  "frames": 1288,
+  "source_sha256": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf",
+  "files": {
+    "scene.json": "d3099641cfa6b12f6363ee739ad779252572c07ffff4950e12ab464aa05bcdc8",
+    "command.json": "bd04ae1c775468c7d7561f7a6b0c4ff66503884897243cf37b2388b4968c4d74",
+    "paths.json": "20a02cb7563bbe19d39a931108c28911f9358d5c9375cba1ff67e0f831f01b51",
+    "trace.jsonl": "b91f303fb689c41a65b0676413ace4380235ec695f2288f64a724ee2602d1c3e",
+    "events.json": "ddad8548bcea77427a7e2f36be24314c6c1132171d072d1c930ed77240c886ab",
+    "feedback.json": "ef859195e7ec9c8c253652a2ce8e3d2bff7add8a4c22c1569e495d9a04c93b12",
+    "source.sdf": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf",
+    "index.html": "a9a235870dcb3bc90891c591fc0165e537dbaa966f91c3559a830cbe7ca65df5",
+    "reference.png": "6c399f6777b7f6918b0378b6a4a001045cdfbe3cf19496a5088686213e4fa6db"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "globalFrames": 188,
+  "checks": [
+    "global uncluttered defaults",
+    "single-task structures",
+    "10 second tail window",
+    "remove approach after arrival",
+    "fixed camera",
+    "completed task collapse",
+    "optional full history",
+    "task member focus",
+    "nonoverlapping labels",
+    "stage/metrics from logs",
+    "milestone jump",
+    "play/pause",
+    "mobile layout and layer menu"
+  ],
+  "errors": [],
+  "originalArtifactsUnchanged": true
+}

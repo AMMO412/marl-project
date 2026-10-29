@@ -1,0 +1,8 @@
+{
+  "source": "D:\\Desktop\\MARL项目\\planning_middle_demo\\outputs\\behavior_20261028_verify\\behavior_trace.json",
+  "source_sha256": "64a4246943c82ca67f32a31e803bf702b8ae4757f56dfd2d34a53c0c04bbda88",
+  "template_sha256": "3edb85f5e7be934178c1fc691df663ddf9e22e88dc8c35251efb67943c2089f7",
+  "rendered_at": "2026-10-28T17:31:44.389348+08:00",
+  "scope": "visualization_only",
+  "simulation_rerun": false
+}

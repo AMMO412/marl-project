@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "taskFramesChecked": 318,
+  "tasks": 6,
+  "sizes": [
+    {
+      "jid": "J1",
+      "width": 1239,
+      "height": 621.234375
+    },
+    {
+      "jid": "J2",
+      "width": 1239,
+      "height": 621.234375
+    },
+    {
+      "jid": "J3",
+      "width": 1239,
+      "height": 621.234375
+    },
+    {
+      "jid": "J4",
+      "width": 1239,
+      "height": 621.234375
+    },
+    {
+      "jid": "J5",
+      "width": 1239,
+      "height": 621.234375
+    },
+    {
+      "jid": "J6",
+      "width": 1239,
+      "height": 621.234375
+    }
+  ],
+  "checks": [
+    "background removed",
+    "task chooser",
+    "direct autoplay",
+    "large task-only stage",
+    "task range and relative clock",
+    "no unrelated actors",
+    "final geometry retained",
+    "replay completed tasks",
+    "task/action start buttons",
+    "single canvas restoration",
+    "Escape",
+    "mobile layout"
+  ],
+  "errors": [],
+  "sourceArtifactsUnchanged": true
+}

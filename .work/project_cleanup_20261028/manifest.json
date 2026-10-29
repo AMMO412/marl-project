@@ -1,0 +1,2727 @@
+{
+  "date": "2026-10-28",
+  "project": "C:\\Users\\ammo\\Desktop\\MARL项目",
+  "backup": "C:\\Users\\ammo\\.codex\\backups\\MARL项目\\20261028_114721\\project_before_cleanup.zip",
+  "backup_exclusions": "robot_navigation_lab/outputs/live_* and console_* (running service; preserved in place)",
+  "moves": [
+    {
+      "source": "对手编队决策模型建模询价要求与报价单20261008.docx",
+      "destination": "资料\\需求与任务\\对手编队决策模型建模询价要求与报价单20261008.docx"
+    },
+    {
+      "source": "对手编队决策模型建模询价要求与报价单20261008.md",
+      "destination": "资料\\需求与任务\\对手编队决策模型建模询价要求与报价单20261008.md"
+    },
+    {
+      "source": "对手编队决策模型建模询价要求与报价单20261008.conversion_profile.json",
+      "destination": "资料\\需求与任务\\对手编队决策模型建模询价要求与报价单20261008.conversion_profile.json"
+    },
+    {
+      "source": "五类作战任务_10月26日修改.docx",
+      "destination": "资料\\需求与任务\\五类作战任务_10月26日修改.docx"
+    },
+    {
+      "source": "五类作战任务_10月26日修改.md",
+      "destination": "资料\\需求与任务\\五类作战任务_10月26日修改.md"
+    },
+    {
+      "source": "五类作战任务_10月26日修改.conversion_profile.json",
+      "destination": "资料\\需求与任务\\五类作战任务_10月26日修改.conversion_profile.json"
+    },
+    {
+      "source": "五类作战任务_10月26日修改_files",
+      "destination": "资料\\需求与任务\\五类作战任务_10月26日修改_files"
+    },
+    {
+      "source": "四类平台参数与对接说明_会议展示版.docx",
+      "destination": "资料\\平台调研\\四类平台参数与对接说明_会议展示版.docx"
+    },
+    {
+      "source": "四类平台参数与对接说明_会议展示版.md",
+      "destination": "资料\\平台调研\\四类平台参数与对接说明_会议展示版.md"
+    },
+    {
+      "source": "四类平台参数与对接说明_会议展示版.conversion_profile.json",
+      "destination": "资料\\平台调研\\四类平台参数与对接说明_会议展示版.conversion_profile.json"
+    },
+    {
+      "source": "四类平台参数指标与对接要点_简明展示版.docx",
+      "destination": "资料\\平台调研\\四类平台参数指标与对接要点_简明展示版.docx"
+    },
+    {
+      "source": "四类平台参数指标与对接要点_简明展示版.md",
+      "destination": "资料\\平台调研\\四类平台参数指标与对接要点_简明展示版.md"
+    },
+    {
+      "source": "四类平台参数指标与对接要点_简明展示版.conversion_profile.json",
+      "destination": "资料\\平台调研\\四类平台参数指标与对接要点_简明展示版.conversion_profile.json"
+    },
+    {
+      "source": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.docx",
+      "destination": "资料\\平台调研\\四类平台参数指标与Gazebo实现详尽调研_更新版20261027.docx"
+    },
+    {
+      "source": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.md",
+      "destination": "资料\\平台调研\\四类平台参数指标与Gazebo实现详尽调研_更新版20261027.md"
+    },
+    {
+      "source": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.conversion_profile.json",
+      "destination": "资料\\平台调研\\四类平台参数指标与Gazebo实现详尽调研_更新版20261027.conversion_profile.json"
+    },
+    {
+      "source": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files",
+      "destination": "资料\\平台调研\\四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files"
+    },
+    {
+      "source": "机器人移动话题说明.md",
+      "destination": "资料\\接口说明\\机器人移动话题说明.md"
+    },
+    {
+      "source": "五类任务与四类平台_技术沟通汇报_20261027.pptx",
+      "destination": "资料\\汇报材料\\五类任务与四类平台_技术沟通汇报_20261027.pptx"
+    },
+    {
+      "source": "多无人平台任务规划与仿真验证系统\\多无人平台任务规划与仿真验证系统.pptx",
+      "destination": "资料\\汇报材料\\多无人平台任务规划与仿真验证系统.pptx"
+    },
+    {
+      "source": "output\\figures",
+      "destination": "outputs\\figures"
+    },
+    {
+      "source": "output\\20261026-对比询价指标",
+      "destination": "outputs\\20261026-对比询价指标"
+    },
+    {
+      "source": ".work\\task_schematics_20261027\\standalone.html",
+      "destination": "outputs\\任务动态示意_20261027\\index.html"
+    }
+  ],
+  "deletions": [
+    {
+      "path": "_extract",
+      "reason": "文档提取的临时纯文本；原始Word和正式报告保留"
+    },
+    {
+      "path": ".slidep",
+      "reason": "旧PPT工具的命令记录与日志；PPT保留"
+    },
+    {
+      "path": "planning\\__pycache__",
+      "reason": "Python自动生成的字节码缓存"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__",
+      "reason": "Python自动生成的字节码缓存"
+    },
+    {
+      "path": "robot_navigation_lab\\__pycache__",
+      "reason": "Python自动生成的字节码缓存"
+    },
+    {
+      "path": "robot_navigation_lab\\tests\\__pycache__",
+      "reason": "Python自动生成的字节码缓存"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_加图前_20261024_182151.docx",
+      "reason": "SHA256与保留副本相同：.workbuddy\\backups\\五类作战任务_加图前_20261024_182048.docx"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_修改前_20261024_175505.docx",
+      "reason": "SHA256与保留副本相同：.workbuddy\\backups\\五类作战任务_修改前_20261024_175341.docx"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames",
+      "reason": "111张GIF中间帧；成品GIF、原始轨迹及截图生成/编码脚本保留"
+    }
+  ],
+  "deleted_files": 159,
+  "deleted_bytes": 13259103.0,
+  "before": [
+    {
+      "path": "对手编队决策模型建模询价要求与报价单20261008.conversion_profile.json",
+      "bytes": 827,
+      "sha256": "67d4ca93299e385560399ecdbacf9c0e24b191fb20b16fb42f42066bb0c0a955"
+    },
+    {
+      "path": "对手编队决策模型建模询价要求与报价单20261008.docx",
+      "bytes": 25751,
+      "sha256": "4e4518a858f2db0f7bfe8f164f935a6123c73200613cfb778bfc025bca828050"
+    },
+    {
+      "path": "对手编队决策模型建模询价要求与报价单20261008.md",
+      "bytes": 6760,
+      "sha256": "fc7feadc7317433300b892fb9e468f8074173f2a725324fc100606bca3250227"
+    },
+    {
+      "path": "机器人移动话题说明.md",
+      "bytes": 8508,
+      "sha256": "a17822f23a60db147316f6c2f5683efd49c55d7c991d51da3870402de4e9639c"
+    },
+    {
+      "path": "四类平台参数与对接说明_会议展示版.conversion_profile.json",
+      "bytes": 726,
+      "sha256": "63fb42d5609ffd9a352be3976bedaa1af8a66b2faa187b8df93c4ab534692e2e"
+    },
+    {
+      "path": "四类平台参数与对接说明_会议展示版.docx",
+      "bytes": 40754,
+      "sha256": "e008c241f98caea0d6b7eb034781327004f1c4ea62fe806ace4702ec4c14cb00"
+    },
+    {
+      "path": "四类平台参数与对接说明_会议展示版.md",
+      "bytes": 7988,
+      "sha256": "8c88d1a6c6e180d062abe478e08c525afae717a26941d6ba635a776b1cdbf7a7"
+    },
+    {
+      "path": "四类平台参数指标与对接要点_简明展示版.conversion_profile.json",
+      "bytes": 742,
+      "sha256": "7ef664b9425e31467428a21812d37473f5a6ee8a514408e65ef61ef0a9a2db6f"
+    },
+    {
+      "path": "四类平台参数指标与对接要点_简明展示版.docx",
+      "bytes": 38852,
+      "sha256": "1dbf6c79ca68c1077ff78a3af763d9e7a74bfaad287fc9814ab260cef5cdb077"
+    },
+    {
+      "path": "四类平台参数指标与对接要点_简明展示版.md",
+      "bytes": 2774,
+      "sha256": "8bdf4d16ae22d3f649c63920008635b7ad74069297f2d4e10285f1fc98e860b7"
+    },
+    {
+      "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.conversion_profile.json",
+      "bytes": 959,
+      "sha256": "a7d47ed3cc49e9e9df0b84a9b339b9d2f7c2c9fdb27bb55a2bdc70f682ba6f15"
+    },
+    {
+      "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.docx",
+      "bytes": 513647,
+      "sha256": "3230a703843f474fc4f2d6dac0824c574d3548cefe48a583791e35cc6108ad29"
+    },
+    {
+      "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027.md",
+      "bytes": 38715,
+      "sha256": "4c8c2710257fdec3c4b5aac1bd0a46551e41cd19a28cc0827842be94003c7fa9"
+    },
+    {
+      "path": "五类任务与四类平台_技术沟通汇报_20261027.pptx",
+      "bytes": 6378871,
+      "sha256": "f88a60270f54e0be24a217ee613cd679b1c43f6a6772ca7849e2372b627353f2"
+    },
+    {
+      "path": "五类作战任务_10月26日修改.conversion_profile.json",
+      "bytes": 855,
+      "sha256": "4991b5974a56be044730559b05c4e9ed239d7baeb70e7794a3c39f9a6a8a239a"
+    },
+    {
+      "path": "五类作战任务_10月26日修改.docx",
+      "bytes": 5820813,
+      "sha256": "032d1b5c531f01f7ef18877028dec519cfcb0eda2b7ddd67978b9d6df0efbba5"
+    },
+    {
+      "path": "五类作战任务_10月26日修改.md",
+      "bytes": 31257,
+      "sha256": "e5a33ee4415f0f92e0641ce491a72399d1c48c585ecbe2da1b8beb8cd70fc945"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1907,
+      "sha256": "3416394b5de59962776b13a3e3bb873f5e682a340c2e5053b6707bc07c8ed956"
+    },
+    {
+      "path": ".slidep\\commands.jsonl",
+      "bytes": 463,
+      "sha256": "60157587e9c33a77f9902c9616d7ceb3dfe53128ae1576137287a5980c0ab024"
+    },
+    {
+      "path": ".slidep\\slidep.log",
+      "bytes": 402,
+      "sha256": "0ea57c4769423cdabde5abadf4d04724f8dec06a618471ed3820b56ed9ad86d8"
+    },
+    {
+      "path": ".work\\capture_robot_navigation.py",
+      "bytes": 11380,
+      "sha256": "a887cc1ca1da0a171ba5eddbe3e3399a00ae538667b66b7b898cc0bd0441043b"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\live.html",
+      "bytes": 10271,
+      "sha256": "bb0c1a38b418ce6994c6dd38c0a6ad3f2689a33aceb6bb35e951ff9132aaa471"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\navigation.py",
+      "bytes": 12326,
+      "sha256": "c69b48f384f814263b83802c80b977eb6b5b6d18e1b36df0ba33b14a079beca6"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\player.html",
+      "bytes": 15005,
+      "sha256": "5cd50c6cd2b3a58bfb176681f4698ff616e5ebb4821460063b2a918cbd516477"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\README.md",
+      "bytes": 11139,
+      "sha256": "59b11f65574767e6a05a0c14f43f8e8ab7c216c3c9d210036618c19bbe63ef50"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\run_lesson.py",
+      "bytes": 6339,
+      "sha256": "5b03e4055217ede1290a880fe06e8131aa46ec9040668b6ed0156604bc4d054e"
+    },
+    {
+      "path": ".work\\backups\\navigation_showcase_20261028_112640\\serve.py",
+      "bytes": 6841,
+      "sha256": "1fe2b8b816f9de75277958af6659b556abe273e5f9e2fff1190189051d950d46"
+    },
+    {
+      "path": ".work\\backups\\obsidian_scope_correction_20261028_104207_263354\\实操_独立机器人导航与Gazebo物理验证.md",
+      "bytes": 8943,
+      "sha256": "7221557fd365b5b90944883f3f7829cee9fe6456c23caec9637d7d02fffccf4b"
+    },
+    {
+      "path": ".work\\backups\\obsidian_scope_correction_20261028_104207_263354\\mapping.json",
+      "bytes": 369,
+      "sha256": "d775621b635b34ec6a6231c4dd9c7b779f8da9311ea007c9e667a0f6bfeb1912"
+    },
+    {
+      "path": ".work\\backups\\obsidian_showcase_20261028_113854_625200\\实操_独立机器人导航与Gazebo物理验证.md",
+      "bytes": 9686,
+      "sha256": "e08484945481a202dd4559fa5c9b9751b47121d41357013fdb2bcba8fe71851d"
+    },
+    {
+      "path": ".work\\backups\\obsidian_showcase_20261028_113854_625200\\mapping.json",
+      "bytes": 361,
+      "sha256": "e9d05393465e849fd64079fb91ad33d1619e8ae7f97c5deb6a1fa5ca14ffc4e6"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\机器人移动话题说明_编辑前.docx",
+      "bytes": 47930,
+      "sha256": "4cfcb365e70268e1f802a33d1ec75f614a7d1d31815e76e54cdcacf4ae871278"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\机器人移动话题说明_整理稿.docx",
+      "bytes": 196515,
+      "sha256": "8ce0912892221ce253676139af1e2ea9628e619a01dbb04722018a886f565c50"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\build_document.py",
+      "bytes": 22205,
+      "sha256": "1ad95e0f88308dfbe50a8965c60cb5846af05cb79ac7cef940092f234308bee5"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\export_word.ps1",
+      "bytes": 817,
+      "sha256": "5d36b994576b8e971b2c115d51b5bed2fe81b43b6da70f7b718ab2d022f5d8a0"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\image1.png",
+      "bytes": 32704,
+      "sha256": "fd9a306e45bfa2e4bf79e8446cc004a50bed8029dc38a51859352f59ec9a3fed"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\movement-flow.png",
+      "bytes": 69271,
+      "sha256": "556ca3ae7ee3089b31e844a805d7ad17af450e122b1b90dc166958ff62fbdacf"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\render_document.py",
+      "bytes": 1373,
+      "sha256": "c45caa6d417d18c4f52a20fb2c9f1b47f4c678dbe7346cc8d2492f76d6194e69"
+    },
+    {
+      "path": ".work\\docx_scope_20261026\\scope-flow.png",
+      "bytes": 83147,
+      "sha256": "125f03bc6c05c086cc6ea283b9bdb24c0bb807457b26428cda763dad257f9943"
+    },
+    {
+      "path": ".work\\middle_report_qa\\timeout-report.png",
+      "bytes": 161617,
+      "sha256": "c68264d8051f7cbda0f3803d9887a99e60273ee0271db0be509a2f12e2cc02d1"
+    },
+    {
+      "path": ".work\\note_tables_20261027\\receipt.json",
+      "bytes": 1189,
+      "sha256": "10a8a1ea1d96b36e395969fbf81da2369c6e9418ec6245433fb6ab407f8f9b63"
+    },
+    {
+      "path": ".work\\note_tables_20261027\\write_note.py",
+      "bytes": 29690,
+      "sha256": "1e350be437a12ac0b51a40529180f3b6b9d9daae8ef9c0e2e5593c658ece287c"
+    },
+    {
+      "path": ".work\\platform_brief_20261027\\调研笔记_修改前.md",
+      "bytes": 19285,
+      "sha256": "8a352190ef2d620cc983e71c1f3ed74803ce40600c65d81356a4f955b37e01ab"
+    },
+    {
+      "path": ".work\\platform_brief_20261027\\build_brief.py",
+      "bytes": 8601,
+      "sha256": "7f5f962ba3816746b51a2714ea77ea17b2f5cc44daa600e6b5e69a4f37daf3dc"
+    },
+    {
+      "path": ".work\\platform_meeting_20261027\\调研笔记_修改前.md",
+      "bytes": 19719,
+      "sha256": "f382f22295f58076898565451393026c0bfee9914ed253116d7e54eb6b075e71"
+    },
+    {
+      "path": ".work\\platform_meeting_20261027\\build_meeting.py",
+      "bytes": 8057,
+      "sha256": "1dad25d8c4eba0627af47c82fd1a601b4481856b8a6dea011dd423c91d0a47be"
+    },
+    {
+      "path": ".work\\platform_report\\build_report.py",
+      "bytes": 16461,
+      "sha256": "5ab12d1c41fa4c4ed72e5793df08565dda9fd65b69305ddaf0bff8bcf992e285"
+    },
+    {
+      "path": ".work\\platform_report_detailed\\build_detailed.py",
+      "bytes": 31830,
+      "sha256": "eb44912cfab68734da8ad99ef82abdd651f4c230ea0441bec69944e70e405123"
+    },
+    {
+      "path": ".work\\platform_report_detailed\\inspect_sources.py",
+      "bytes": 2298,
+      "sha256": "7b997b4987f0738731fcbdf4e859ec963ef4a40e5dc4e0b45d494f86b2633356"
+    },
+    {
+      "path": ".work\\platform_report_detailed\\model_evidence.json",
+      "bytes": 465,
+      "sha256": "6a35184f2be3a847406dac037504646894cca90dc3f84e2d486769a4664ea26e"
+    },
+    {
+      "path": ".work\\platform_report_detailed\\scene_reference.jpg",
+      "bytes": 439648,
+      "sha256": "5270c043229fc9c574240a2c1d9d582012df42a3b19ef71684038437b2aee177"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\apply_notes.ps1",
+      "bytes": 6212,
+      "sha256": "9991f39d50469dd6f617d2c2d1d0ee1786f7c246251a3aa964900241e3d08596"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\audit_current_20261027.py",
+      "bytes": 5628,
+      "sha256": "0fd34b2a142ad9911a124a6f62810e1f09feb8493282f6244a216684c0e0675a"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\audit_snapshot.py",
+      "bytes": 5622,
+      "sha256": "f5285ece67d1bc5777fcb73d7ac9867aa8b3208ea6df258f47690e5139db2e0e"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\build_audit_docx.py",
+      "bytes": 5022,
+      "sha256": "60ea44844c83e21197c558d4ed75921e6cb0e6e9b17681571ccf9407865d00cb"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\build_corrected_scope.py",
+      "bytes": 5341,
+      "sha256": "f2221ad59e6eaf8e5e9c1f70047caa7ba626c414c8a5c5d24c9fe963587149b1"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\build_readable_audit_20261027.py",
+      "bytes": 8348,
+      "sha256": "0eef90b482dd34c5e3833cec49a772ef5405904a6f4b5104a1c17114cca8b4b7"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\build_responsibility_docx.py",
+      "bytes": 5339,
+      "sha256": "fe54ca6657d723ccecfb6a6a1b6e4784f4289ad095d3cb3bcbba0e376f8d026e"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\build_standard_audit_20261027.py",
+      "bytes": 6316,
+      "sha256": "6d2684ccc7cfd5727c9bfb7cadcda288cf7ab8fb55a92d29b718d80542d7525f"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\capture_audit.py",
+      "bytes": 5330,
+      "sha256": "1ccc701a2900d74e506fba1cac7efab2c45a7384cf355a53e89de892c4e9e1b5"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\capture_readable_report_20261027.py",
+      "bytes": 3682,
+      "sha256": "97093ae39b99c5450285cc3ef1ceed8b95c082fa6ffaf1851f222f5379c086f2"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\capture_responsibility_revision.py",
+      "bytes": 12158,
+      "sha256": "55e45740957eca3875fa9d2bdb87d4eabc2096ddf21cf557c21c681ef25ce6a2"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\capture_scope_correction_20261027.py",
+      "bytes": 13333,
+      "sha256": "8f730242c2c5acc28ce4064675a630e56235b3d6ea039fe1e9fc9ebfccf6dac1"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\capture_standard_audit_20261027.py",
+      "bytes": 6425,
+      "sha256": "0ff2921749e2aaa151249b29fca6f133f1dfcbf07335c87325c8f3f060e98913"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\corrected_scope_20261027.json",
+      "bytes": 13283,
+      "sha256": "74396c3e668e9855873672f8c031deebc4f327726e3375f8cdbfad0161f376e4"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\freeze_audit.py",
+      "bytes": 1538,
+      "sha256": "18caa822e2874867cdc9e89103d1073b4cba5c9b6df7a512209399c6d645caf3"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\freeze_review_20261027.py",
+      "bytes": 1858,
+      "sha256": "ad641f9d76a2de75b05626be4ee372dd0438c6d25945fc1540e8155a0049ae61"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\notes_payload.json",
+      "bytes": 30191,
+      "sha256": "836b99265a8e2a2da0b1e677b2980fc99a54a1456c038c3bf2bf8b8bfcf9820d"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\prepare_current_audit.py",
+      "bytes": 1071,
+      "sha256": "e37537ad2ebfd4a901bd18c956982920922b9ba4451e5be718d00c12fec6578b"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\prepare_responsibility_revision.py",
+      "bytes": 2709,
+      "sha256": "4dda1fe57cf116d029b29c57f2d8e019161e3df688f2b3e8e4e51ef266dd107e"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\prepare_scope_correction.py",
+      "bytes": 1848,
+      "sha256": "798ae4e86cc1a0854ce61ce7cac390cb8b9a1090116d80b1f2c1fbc07f3dedaf"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\readable_extra_pages_20261027.json",
+      "bytes": 10755,
+      "sha256": "83dec25d939257c47f9d9c8c34e14ecc2fab28dfd6699f95ee2081958737b639"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\readable_report_backup.json",
+      "bytes": 825,
+      "sha256": "4327718d9ca369b1d2c37ad8347f53cd074df3026fc32e94d31d4fbb8155079b"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\receipt.json",
+      "bytes": 1626,
+      "sha256": "276f9eb6c3e6685c4af129cdb02c3546d469b0fe8f3c2de5089387c4b7622f1f"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\report_content.json",
+      "bytes": 39278,
+      "sha256": "335b52fb2799bf9ff3ed0d35780bd6d9e61dd8fce9e98d7d06957fe50c2b3c32"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\responsibility_content.json",
+      "bytes": 13283,
+      "sha256": "74396c3e668e9855873672f8c031deebc4f327726e3375f8cdbfad0161f376e4"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\responsibility_revision_backup.json",
+      "bytes": 2310,
+      "sha256": "6ce6303286d8bfe18c1d916357eaf9777afdbe9026d3e49068d75069eaa45cf4"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\scope_correction_backup.json",
+      "bytes": 1962,
+      "sha256": "10c16696f01e3c9cfd3fe2290b2ad1c9f83e89723db9f49d7b77aad74ff1c144"
+    },
+    {
+      "path": ".work\\platform_review_20261026\\standard_audit_content_20261027.json",
+      "bytes": 60093,
+      "sha256": "7e7301e24cfe4ef9aad370b0a4ebe760a40f869f27a9083761617d2633e52ebf"
+    },
+    {
+      "path": ".work\\platform_update_20261027\\调研笔记_更新前.md",
+      "bytes": 18833,
+      "sha256": "766efd6af9bf52d21735ffbafc5b4451102fb4aa441c5f37bebd1aaf51649b57"
+    },
+    {
+      "path": ".work\\platform_update_20261027\\四类平台参数指标与Gazebo实现详尽调研_更新前.docx",
+      "bytes": 499872,
+      "sha256": "f5a3e2621e6c68c59edfb4eedcd4d1b97feaf344b858d4986dace39bd5d200ea"
+    },
+    {
+      "path": ".work\\platform_update_20261027\\qa_result.json",
+      "bytes": 102,
+      "sha256": "f7c75d3be856c939953219040c91079c11e4d9ee9508b0965355dd776d0ff93e"
+    },
+    {
+      "path": ".work\\platform_update_20261027\\revision_manifest.json",
+      "bytes": 7199,
+      "sha256": "732d5b39545ea779528e770f7fe5ac65569291d1568cc43c5e0797df754ee9f5"
+    },
+    {
+      "path": ".work\\platform_update_20261027\\update_report.py",
+      "bytes": 19666,
+      "sha256": "0d0ddf34b62c08817aaef7ef00b1c339db28dc587e4c2491055c9fee888dc998"
+    },
+    {
+      "path": ".work\\project_cleanup_20261028\\organize.ps1",
+      "bytes": 8573,
+      "sha256": "e6e463c05b8f348dffbc3b3c3efb6da32f5b0535fa0992b8375d18cca007e5ae"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\boundary.png",
+      "bytes": 251524,
+      "sha256": "6a23254f7f950350b76f7a91493df651608cdd2c41ea4037ae5bce7a35bc6617"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\completion_audit.json",
+      "bytes": 2280,
+      "sha256": "1688178482c1725babf3383b22e53cbfea7727f46a41bcd1d8ea93a37e063788"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\exploration.png",
+      "bytes": 198463,
+      "sha256": "b3d69dc68fd01dba010c9254b003a433bc00c6c70adf39c7c389e97617a855ba"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\handover.png",
+      "bytes": 227398,
+      "sha256": "9bc803cd3fdf40b7c7710aac3231fbe216d4cfa7bb38ab0787293689cfaadea0"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\inspect.cjs",
+      "bytes": 2120,
+      "sha256": "ba65032649d62524f8098ba7d7c33167be26af3da7a8341d3106f23fea960c40"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\mobile.png",
+      "bytes": 163626,
+      "sha256": "48d6bfcd1507482c6b51927d1b3526f896920145bd92f7f1136c24282cb9615a"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\original_hashes.json",
+      "bytes": 3445,
+      "sha256": "4fe966c8134ed5f1b15994b4666e35009d98d5558da5416d90e1ca4005d533e7"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\patrol.png",
+      "bytes": 236864,
+      "sha256": "128b507302dc9f15f7e1695c054d675dc843a670ce547c90007566abd42c6e3c"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\stages.png",
+      "bytes": 185494,
+      "sha256": "73e8f9c3885d4bef129eb33472ec32eec6382bf2142fdeb8182ed787dd7c0748"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\standalone.html",
+      "bytes": 7845366,
+      "sha256": "d68e884c9c173583d4690e08e42f743e74fc88267c79e7110e4522eb0fc436dd"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\verification.json",
+      "bytes": 32785,
+      "sha256": "87c0223a2a15f5ff17a937c361fc0aae65f24f70b643c7d9952e7c2e1632676f"
+    },
+    {
+      "path": ".work\\task_schematics_20261027\\verify.cjs",
+      "bytes": 8982,
+      "sha256": "b285bb8114a6b14d16dffac2aee5d26191ad6ea64a3f2b98d1061251230e23e5"
+    },
+    {
+      "path": ".work\\trajectory_qa\\assert_player.cjs",
+      "bytes": 4311,
+      "sha256": "b02effd98d1f30d31f4802986db3492bc776b37149e3e596833ed79c0eeb287f"
+    },
+    {
+      "path": ".work\\trajectory_qa\\assert_scene.cjs",
+      "bytes": 1731,
+      "sha256": "a961831999221e8887b993158831fd8971a14f31ac33f2a0684ba08ba2f65515"
+    },
+    {
+      "path": ".work\\trajectory_qa\\check.cjs",
+      "bytes": 2321,
+      "sha256": "120d89d17e58eff2fa21f390c69cbf478556b7eae5e9030135934113e90b6a8a"
+    },
+    {
+      "path": ".work\\trajectory_qa\\end.png",
+      "bytes": 218062,
+      "sha256": "3051f36ded76f20fa0d0187a2773a6e83607e39f5270a07ec47d549fd9164d46"
+    },
+    {
+      "path": ".work\\trajectory_qa\\latest_retest.json",
+      "bytes": 260,
+      "sha256": "266068bc9753686b5b751ef79b1b54943f87d6cf76f1e84b725cb448ffb1cec4"
+    },
+    {
+      "path": ".work\\trajectory_qa\\mobile.png",
+      "bytes": 135857,
+      "sha256": "b4b99c52d9ede4d1949eab3c4ff3088d0003d2052be9ec0f976fce98b2f04062"
+    },
+    {
+      "path": ".work\\trajectory_qa\\raw_hashes.json",
+      "bytes": 437,
+      "sha256": "62aa60073842c85bd10f0d3a0591fa27d90b03a58fe3126af5c7e7c6e1bdc8d4"
+    },
+    {
+      "path": ".work\\trajectory_qa\\scene-restored.png",
+      "bytes": 216055,
+      "sha256": "665ca9370692b7ea251cb5e1e9dee236a2fda0ab9cbf177eea173398f8039a52"
+    },
+    {
+      "path": ".work\\trajectory_qa\\selected.png",
+      "bytes": 235962,
+      "sha256": "7fd4a9de88581b26afab4c34a4368ba58d0cf82b1dde848ba6737ddef5a1dd60"
+    },
+    {
+      "path": ".work\\trajectory_qa\\start.png",
+      "bytes": 188182,
+      "sha256": "f09521f53fe1dc2352629f0a902f85fc828937c668dc49711b9b428e4fd0a3be"
+    },
+    {
+      "path": ".workbuddy\\backups\\2026-10-26_五类作战任务_图文版_改前.docx",
+      "bytes": 5813148,
+      "sha256": "57667442c924ddae1b2fcb162315eb24586846eeb90f084f4df45563715c6426"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_加图前_20261024_182048.docx",
+      "bytes": 2075794,
+      "sha256": "7b77375bbc46970324dbeca431a76fa60d65e14193c6656bc9a335f175bad315"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_加图前_20261024_182151.docx",
+      "bytes": 2075794,
+      "sha256": "7b77375bbc46970324dbeca431a76fa60d65e14193c6656bc9a335f175bad315"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_修改前_20261024_175341.docx",
+      "bytes": 298329,
+      "sha256": "9be153be6d2b49b47d9700024154467c8a986bc84fb90287c0e5d2abdfc8749b"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_修改前_20261024_175505.docx",
+      "bytes": 298329,
+      "sha256": "9be153be6d2b49b47d9700024154467c8a986bc84fb90287c0e5d2abdfc8749b"
+    },
+    {
+      "path": ".workbuddy\\backups\\五类作战任务_修改前_20261024_180810.docx",
+      "bytes": 2065292,
+      "sha256": "5c7d80ba191c294b1400c4e46b2eb374f0b262939cf30ec037b5c6c0208284b3"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-16.md",
+      "bytes": 14388,
+      "sha256": "9efa822932ba73ffdfda04436549b47c6f570123bd5c6aeaad1aca5040754b20"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-17.md",
+      "bytes": 15335,
+      "sha256": "d5bd1cf8b2f3e57096f6bfab3f3ac7a5c5c74d902ab3647d2d9186f5a06f2785"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-19.md",
+      "bytes": 15581,
+      "sha256": "1277a166d0b760b2ddf8f4711dd84d06844702c57c3ef09b402c672646c2a69c"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-20.md",
+      "bytes": 2496,
+      "sha256": "d2d06b483f1bda0c48f3351caca58ba7ef72b58214dc2abdd2d9b10adfd3cd8a"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-21.md",
+      "bytes": 20320,
+      "sha256": "bd1958a1c618aebcb3b20637fc476151c3eb20f01f5f0df64599d6357ebfb0e6"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-22.md",
+      "bytes": 24864,
+      "sha256": "de1c88f4bf2e4d1cee0e58457d3d2f253fb77a4e093e2df7bf063ce3a560e823"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-23.md",
+      "bytes": 25042,
+      "sha256": "dbfccbfe2e7db3bb2bdf46854463e1317e3a81bc9a29122ee06f5b3b6f7cbd28"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-24.md",
+      "bytes": 10902,
+      "sha256": "b9809f0884738570b5391f28464feecee5158aa9d03ea6e758ff1a2dd3ae7e1e"
+    },
+    {
+      "path": ".workbuddy\\memory\\2026-10-26.md",
+      "bytes": 26832,
+      "sha256": "254f263d1cb6467c357617b28258109dc30c5925293a39b279fc6e200734ae7c"
+    },
+    {
+      "path": ".workbuddy\\memory\\MEMORY.md",
+      "bytes": 12788,
+      "sha256": "c89bca6f3af156163f9f5cfa4bc41cdd4613b9e57435ff1ce51555acf59a5ba4"
+    },
+    {
+      "path": "learning\\test1.py",
+      "bytes": 258,
+      "sha256": "a5eb3e8aa470019ca825243c93995af0480cfa181369b976e2f8160955b35e9d"
+    },
+    {
+      "path": "output\\20261026-对比询价指标\\pipeline-state.yaml",
+      "bytes": 743,
+      "sha256": "b9afab1fb85d5b0568308b6791e2191ec3b3db65abb827742f8e00e409d3ba4f"
+    },
+    {
+      "path": "output\\figures\\三类任务_生图提示词.md",
+      "bytes": 6965,
+      "sha256": "6df395733c8abf732d6b7ae1cbe93cbb4f43147973b7a6866a5ff74b7615c2eb"
+    },
+    {
+      "path": "output\\figures\\area_interception_concept.png",
+      "bytes": 1161853,
+      "sha256": "01ef0523dfc2b72644b673c2dec50a1f66cf9e2ec3e7c1d087c415d1c37c5e53"
+    },
+    {
+      "path": "output\\figures\\assault_task_phases_generated.png",
+      "bytes": 1086366,
+      "sha256": "0c9a8c15360f6a1b6209a63cc6826596899ab5e7f3687f97352e8f621df6350a"
+    },
+    {
+      "path": "output\\figures\\boundary_patrolling_academic.png",
+      "bytes": 1507456,
+      "sha256": "646a008be6b701de34e108cfc6e3ec85b1493e28c33db820cb1c6c1c593af903"
+    },
+    {
+      "path": "output\\figures\\boundary_patrolling_concept.png",
+      "bytes": 464580,
+      "sha256": "1c229e5946149efbacde02bc3e8fa1ddaf15436129e7a99daef6e2f809b7cc5d"
+    },
+    {
+      "path": "output\\figures\\boundary_patrolling_sequence.png",
+      "bytes": 1430885,
+      "sha256": "de29da6c3ffa71bd6980205d8d28bed035a0efb3aca0ce9a3dad6faa016f191e"
+    },
+    {
+      "path": "output\\figures\\boundary_patrolling_simple.png",
+      "bytes": 1940078,
+      "sha256": "a966f0eea35fb942b4c262ae458547a6b8bd40447dea52d5b73c96a4077fb7e3"
+    },
+    {
+      "path": "output\\figures\\coordinated_exploration_concept.png",
+      "bytes": 1243888,
+      "sha256": "3cdf2584c48a0ab145dc388647ad79ca9676697e23761add4611e07aff9ece13"
+    },
+    {
+      "path": "output\\figures\\hold_handover_generated.png",
+      "bytes": 1127506,
+      "sha256": "70ef0fbf65a9d6bc2d814152d1fe1076499e27d1abd4fce7dbd7a48707dfbf9c"
+    },
+    {
+      "path": "output\\figures\\patrol_revisit_generated.png",
+      "bytes": 1131882,
+      "sha256": "9592a881fd43a452b0dfc1331e4713ac9128febe9aa0fe944f3c990db11cf498"
+    },
+    {
+      "path": "outputs\\资料_五类作战任务定义与文献依据.md",
+      "bytes": 26906,
+      "sha256": "cbd8d090e68809af8d4a599cf1172642833264689cdd55d5a81408ec7f2933d8"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26.zip",
+      "bytes": 274595,
+      "sha256": "10a54561f03945c8153c2fe2e8a13dba7d22fa0ec8aea27c1641a1b07f95c26a"
+    },
+    {
+      "path": "outputs\\2026-10-19\\系统功能关系与指标归属.png",
+      "bytes": 460504,
+      "sha256": "f5b5c4dc71e69f1a52229ed5994ea76f9caa8d804c971a2a1eda75bebe014aef"
+    },
+    {
+      "path": "outputs\\2026-10-19\\系统功能关系与指标归属.svg",
+      "bytes": 12025,
+      "sha256": "9cef7e35ac467050bbdcdb2e92b817c4b093096430e7ceab687780d15550923b"
+    },
+    {
+      "path": "outputs\\2026-10-19\\draw_requirements_map.py",
+      "bytes": 5598,
+      "sha256": "ef033b67856a332cc23aedecdcade803eae01eb1232daed8d6bdf0a6e026f541"
+    },
+    {
+      "path": "outputs\\2026-10-19\\draw_system_relationships.py",
+      "bytes": 6808,
+      "sha256": "fe55a2f09cac8d8af07bc2555675b0559babd6562fd72a4191c829e9817cf302"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\inspect_assets.py",
+      "bytes": 16450,
+      "sha256": "230302369fd427ad1bc25f91cdbc83fbfc5b8a2359e72a6e995040bfb5136613"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\README.md",
+      "bytes": 12929,
+      "sha256": "eb48e00c5311de54188c1f744541923140c2c6872bae27b8146642cb51d1e2f8"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\source_manifest.json",
+      "bytes": 27885,
+      "sha256": "6532222d9654ca0a347231410092a0d65468525720f3e6a9aa83566818a6dacc"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\asset_inventory.json",
+      "bytes": 1232368,
+      "sha256": "2f5a25a0906bc2c4b99b82a1c33edb20976ed18a6fd42e02070cf953be60981d"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\geometry.csv",
+      "bytes": 346295,
+      "sha256": "13780ea9b1b68a34e1547094ac4410f6bf3a2cac88cf1bdfe5198908372d9644"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\inspection_summary.json",
+      "bytes": 987,
+      "sha256": "bc245e53887c6fe011426ce8a11739c394035e7b3f5264853d8e53b839404514"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\model_summary.csv",
+      "bytes": 15077,
+      "sha256": "a9a8c81fd8c9a2761695a5cfbd1725716e8c29a207e80a26ee873bbb97da0921"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\roads.csv",
+      "bytes": 2541,
+      "sha256": "3f920f62d8b983e9a7f6a6da686ad2169141409148fe539f92a95cbf61b7a690"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\scene_map.html",
+      "bytes": 144169,
+      "sha256": "999dcc835d33ca139163f2b11fc9ecdd47e8638db512f0900484595abcd0f208"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\scene_objects.csv",
+      "bytes": 211391,
+      "sha256": "ce2c13401e198e5aafb7e5bf02599b88bd71f6489e5108e1fb4e14ede996a251"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\simple_tracked\\model.config",
+      "bytes": 185,
+      "sha256": "1215b835d25e4d339e266812fb8728a9b26162d1d69601fc4e997a774701b477"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\simple_tracked\\model.sdf",
+      "bytes": 48103,
+      "sha256": "421910265612b23c909616fce1edaef324472fe12c28939f18f44ef21f8f75f2"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\simple_tracked\\provenance.json",
+      "bytes": 433,
+      "sha256": "be2a7bffc962560942c38ddb6c306b0c24ac0eb29ae167a0931f16b5689fcb1e"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\vehicle_blue\\model.config",
+      "bytes": 183,
+      "sha256": "bbc49250b0e5e873e6677399e42cb876b9879086acb3dba1b7f5ee3b8587351b"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\vehicle_blue\\model.sdf",
+      "bytes": 6285,
+      "sha256": "36ae0cd7887164d12ebcde33fa24e758fd83f99caf385562bd806048a90861d2"
+    },
+    {
+      "path": "outputs\\gazebo_assets_2026-10-26\\parsed\\robot_models\\vehicle_blue\\provenance.json",
+      "bytes": 407,
+      "sha256": "aef6af6ace752f859db13d4a8cecf5e200542d36ab143eda04771093289dd08b"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\audit_results.json",
+      "bytes": 3823,
+      "sha256": "136d2b1941a613e06609244124e33cc59b02f54cfa1548eafebf945ec915391f"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\baseline_tests.txt",
+      "bytes": 6149,
+      "sha256": "f149c3434907271d132613cb33a027c217fc4cb4f6ede79f429ba02f20b13cc3"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\delivery_receipt.json",
+      "bytes": 479,
+      "sha256": "d9ad004e0cccba5c1e439165c0584b0bff5b5fe0882e1a3d3e6d6ac87e065225"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\deviation_cli.txt",
+      "bytes": 2613,
+      "sha256": "6e38fe8dc8f6a75f8b56abc9286777f0fbaffb7de0b5fc70a8291bf1800ee053"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\failure_cli.txt",
+      "bytes": 2609,
+      "sha256": "d062e98231d1eeb1f69d72a5364a43e01dd70ef3380a2cc82dfc8085594a16a0"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\kill_cli.txt",
+      "bytes": 2713,
+      "sha256": "e138aa742c1590f01eb2d27862485878aa119c8bafdd05bce4e151fc12513052"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\motion_cli.txt",
+      "bytes": 2638,
+      "sha256": "cea3abfa7f089d7e2e333e29c7c7ef86f0743dd7cec8d22eef89f59507288ecf"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\normal_cli.txt",
+      "bytes": 2591,
+      "sha256": "2d4a0e03b0b1d079eb63f1a7f8a2dc59472fa5c6dc5952678e158d550db7bf65"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\ordinary_rules_probe.json",
+      "bytes": 292,
+      "sha256": "ba738df5c8bc50b7a5bc784b82aa178ea89683732d2860ab458e369031cafabd"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\planning_middle_demo责任分工与对接核查.docx",
+      "bytes": 45236,
+      "sha256": "db6e0628facfed3654c85b2adaf62aa5a0305e3cbeb141eebfd021e4efa8f5b7"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\responsibility_receipt.json",
+      "bytes": 1074,
+      "sha256": "4b146d4585943dceb05479ac8ce86694ee3cf8e741236f903ddfb7755c88145c"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\scope_correction_receipt_20261027.json",
+      "bytes": 1074,
+      "sha256": "4b146d4585943dceb05479ac8ce86694ee3cf8e741236f903ddfb7755c88145c"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\source_manifest.json",
+      "bytes": 3397,
+      "sha256": "84a0f2d6dda4c23eee13e69729272c32b76c038bdb377e35f5b72b71bc6ca942"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\sources_text.json",
+      "bytes": 37822,
+      "sha256": "c0a8b019b363b27056c06cacb1b81ec011153fcf2c8e7d7d9454f9794bba1abd"
+    },
+    {
+      "path": "outputs\\planning_middle_demo审查_20261026\\timeout_cli.txt",
+      "bytes": 2623,
+      "sha256": "9bec320e5983dd8813b5a9a6060848fde5dbe17644d8e2ee5f872c07cba507b8"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\audit_results.json",
+      "bytes": 3823,
+      "sha256": "5787e62c6d399387fcb2f3c484d8a92582991afb6bb7b2c8fc6f24dcc1232cea"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\baseline_tests.txt",
+      "bytes": 7578,
+      "sha256": "03b351816f2276f69c64e31590aa1be1672a4af64265853311dc3d0b320207f7"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\delivery_receipt.json",
+      "bytes": 842,
+      "sha256": "983cb79e6af8199e9d6952df23acd183fd821b89fbd08d04fe1e75eaef0258df"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\deviation_cli.txt",
+      "bytes": 2761,
+      "sha256": "726278c8c2d728798e6ea6d1db387a60c382f8a4cdb73b6337b6f4c77301915b"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\failure_cli.txt",
+      "bytes": 2755,
+      "sha256": "bfe352dc39e6235a3ae801276c744688e91e71eca2aaf3867fa6e24ecfb58f3d"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\kill_cli.txt",
+      "bytes": 2856,
+      "sha256": "68515e182ac4f91fc45327776c3d12d2ef58668a78e08365a64af54a9790da29"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\live_tests_20261027.txt",
+      "bytes": 7578,
+      "sha256": "5292fabb33c221ec3cf667e2087aa59e29a7f2196c998c4940c1519f2e1bca03"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\motion_cli.txt",
+      "bytes": 2783,
+      "sha256": "5a5bd39a42b0e2f1db1aa0a3a860b18b4427f00ba858e5eb551bb770ec16c35e"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\normal_cli.txt",
+      "bytes": 2736,
+      "sha256": "94cb91f33667068107604fccfe0914baba09a577cf551c6fedfaae8818aedfcd"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\ordinary_rules_probe.json",
+      "bytes": 292,
+      "sha256": "ba738df5c8bc50b7a5bc784b82aa178ea89683732d2860ab458e369031cafabd"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\planning_middle_demo指标逐项核查报告.docx",
+      "bytes": 43471,
+      "sha256": "29639c42f524d0b2a7a35cbb96a13e0bdd95765f689ca0f0a3b6f998f907031c"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\report_content.json",
+      "bytes": 16890,
+      "sha256": "231b5ae7450236609b571fead71028ceb03c794fbb02645d948d79d330f90bba"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\snapshot_missing_dependency_tests.txt",
+      "bytes": 8251,
+      "sha256": "3c88d66ce8642e9da0c5746b1deaf010f30a54daa65bab116358e9981b4dd7c8"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\source_manifest.json",
+      "bytes": 5074,
+      "sha256": "2bb4d1711fa8cb9d0228ddbd2b394329aca64b99f688f13c06594f889ceb4a63"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\sources_text.json",
+      "bytes": 49579,
+      "sha256": "2631f9f8dcc6602cb197cffad181677c87cf0b5cf4a9f3a20a1c1e99bf4918f3"
+    },
+    {
+      "path": "outputs\\planning_middle_demo指标核查_20261027\\timeout_cli.txt",
+      "bytes": 2769,
+      "sha256": "de37b659b98de299dbdcdda6614943747406926f8d65247b15c61b74f2c3341b"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\planning_probes.jsonl",
+      "bytes": 5648,
+      "sha256": "d53f2f729da6515d80e5dd71e82fa5734f54f2691dbd8bf91a2d60f4620f94f1"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\README.md",
+      "bytes": 1633,
+      "sha256": "556f79af572f219fd803542b05dd37ad4c2e6fe7e2003af73738c0e1b4f3edf1"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\reproduce_planning.py",
+      "bytes": 5438,
+      "sha256": "994a241ccbf481bc730b456a81b0fe95d73f16d332b99444cdc6334b3639ec97"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\reproduce_taskalloc.py",
+      "bytes": 5183,
+      "sha256": "34c7f30175e0c064379725b6fd6bce518e50a1d720dc42122ba1da6be162a81c"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\source_hashes.json",
+      "bytes": 1889,
+      "sha256": "6386b8a6c95a89a2d484ef8688ade403f1cba1604ec729833a5ea8eda11332cd"
+    },
+    {
+      "path": "outputs\\review_2026-10-22\\taskalloc_probes.jsonl",
+      "bytes": 1148,
+      "sha256": "386958b289bd148eb70bfebb81288cb4605a08b8a03454b17c4ab629fff79e93"
+    },
+    {
+      "path": "outputs\\平台参数调研\\四类平台参数指标与Gazebo实现详尽调研.docx",
+      "bytes": 501891,
+      "sha256": "004dc296c03b03a0f3b9c162e451e937311706f99c0e3e75b6e0b29936c7b2ac"
+    },
+    {
+      "path": "planning\\解读.md",
+      "bytes": 12487,
+      "sha256": "2b324d1e19a8c53bb2e7f8247eaef7ed1af9e8df21ba33f707eb0e640ba74a40"
+    },
+    {
+      "path": "planning\\analyze.py",
+      "bytes": 6831,
+      "sha256": "8be841e95d628182b03a195ed45e94bb0709b0f4b95b70211de855b79faa1581"
+    },
+    {
+      "path": "planning\\bridge.py",
+      "bytes": 13382,
+      "sha256": "e036ddfe6cdd9c059262dc136fceb360f505476ee16013bad08c4ec7fc8a6d2b"
+    },
+    {
+      "path": "planning\\contract.py",
+      "bytes": 11264,
+      "sha256": "5283111c131768bf90efc18757d10572e00909d0ed21754131f5092cf861c673"
+    },
+    {
+      "path": "planning\\criteria.py",
+      "bytes": 19718,
+      "sha256": "0a41bc3a76202786b1f101bb3b1fde05a4b40bf70f97a8081e9cc39cc31503c8"
+    },
+    {
+      "path": "planning\\demo_pipeline.py",
+      "bytes": 16818,
+      "sha256": "79e044aab330fdb5cc03e4871243844c9fee5817b4ce55b2aba8bf1c9e616d00"
+    },
+    {
+      "path": "planning\\evidence.py",
+      "bytes": 6786,
+      "sha256": "967384e88370cd75e649ecac874b8272a73764c1dcfb352b9c580f173d5bec38"
+    },
+    {
+      "path": "planning\\executor.py",
+      "bytes": 5029,
+      "sha256": "7dbdeca6dd6c2c3e2d27604461bf75012d26456021a7a6756812308792f3e07c"
+    },
+    {
+      "path": "planning\\flow_trace.jsonl",
+      "bytes": 58976,
+      "sha256": "5032b3099fd1c6e5a79180100839901f96c63322d57d011408ac5101ad617b82"
+    },
+    {
+      "path": "planning\\metrics.py",
+      "bytes": 5473,
+      "sha256": "0bac83d82c42a59644694f9b6c19a465f08dc2136b8651674d123158fb6b5d74"
+    },
+    {
+      "path": "planning\\planner.py",
+      "bytes": 35091,
+      "sha256": "eba9f98e33d7dfb0a971dc4a7c0a5e5bd28580a4552c51b27a639a96bdcd1bc5"
+    },
+    {
+      "path": "planning\\README.md",
+      "bytes": 25459,
+      "sha256": "d713c66d3f4298af70ee9626452506b50cf3199f3156c93c4adfc30c126da5ef"
+    },
+    {
+      "path": "planning\\run_flow.py",
+      "bytes": 18770,
+      "sha256": "0c99722c442f2a30d092fc2de584ea7fdb82db40f56da2bd4af9496c11460ffb"
+    },
+    {
+      "path": "planning\\docs\\任务定义_中间层V1.docx",
+      "bytes": 52787,
+      "sha256": "ec3567d43b111cf208768a41f8bf5eb1f27b052f0302b7cd7cef0d6fe5706b06"
+    },
+    {
+      "path": "planning\\docs\\任务定义_中间层V1.md",
+      "bytes": 22870,
+      "sha256": "b72a98976901d6dcc583b6591aac6511909c70778c84988f0b4cd906e9c4dd4c"
+    },
+    {
+      "path": "planning\\docs\\五类任务_标准定义要求与实现方案.docx",
+      "bytes": 48340,
+      "sha256": "4f66312e5606930a5d2af5df355bf90b70207b4d14bca77878b5d307963a4735"
+    },
+    {
+      "path": "planning\\docs\\五类任务_标准定义要求与实现方案.md",
+      "bytes": 16422,
+      "sha256": "d50ddacd72d53b4d98c292f13957fb040af0f7fc1aa12d902f77b08608112e4f"
+    },
+    {
+      "path": "planning\\docs\\系统改进设计_V2.docx",
+      "bytes": 45645,
+      "sha256": "546b48d4446beb92bdfe6b89fcd54fe95a3704af65ae96bcf94829411e1a2e65"
+    },
+    {
+      "path": "planning\\docs\\系统改进设计_V2.md",
+      "bytes": 12649,
+      "sha256": "607bddac700e3ff9f3440f465725c376253b6b3a977bd7c192c3f5fc4bd29ebb"
+    },
+    {
+      "path": "planning\\docs\\下游机器人移动接口对接.md",
+      "bytes": 11038,
+      "sha256": "52f9da3819aae2058677c1a3153a755ce20bfdc62fa01973145cadeea9b8b422"
+    },
+    {
+      "path": "planning\\docs\\md2docx.py",
+      "bytes": 5863,
+      "sha256": "66b4cf6780923e567f475b9c4f8f898c472d0065e2c2bc05cd4e844795494d46"
+    },
+    {
+      "path": "planning\\docs\\ortools_cpsat_备选.md",
+      "bytes": 5086,
+      "sha256": "a2fc7bec1eb691016b69ad4af8b1d9f0aba41661b0b6d3a0fe6f2c8b4ef85866"
+    },
+    {
+      "path": "planning\\rl\\learn_weights.py",
+      "bytes": 7846,
+      "sha256": "bd4f0f84c340098f3578f27ab92127cb87df65bc7eaaf932a78a9d22ffef6ba4"
+    },
+    {
+      "path": "planning\\rl\\README.md",
+      "bytes": 5146,
+      "sha256": "97483f50ff431d59e25cecc2d31f6daba0ffceb902ebca2cc39e434b6044bcdc"
+    },
+    {
+      "path": "planning\\rl\\TRAIN_MARLLIB.md",
+      "bytes": 9432,
+      "sha256": "0326643f8219ebfe0eb8f30714078b2d2f86346b4cb809fbe0522ef066e69fdd"
+    },
+    {
+      "path": "planning\\spec\\sample_scenario.json",
+      "bytes": 7250,
+      "sha256": "cbc134aacf3cbb77dd57efe9d8e11b19c24ceb8dea54e1d8ddf363cb45b80b39"
+    },
+    {
+      "path": "planning\\spec\\SPEC.md",
+      "bytes": 12394,
+      "sha256": "2f84ff218ad33f597432b7eb2c620cb86851e4d4c25d820a62fe528492b6ac62"
+    },
+    {
+      "path": "planning\\tests\\diag_refuel.py",
+      "bytes": 4673,
+      "sha256": "b4b6c008076a8672279fa6531e1793ed4cd78565898290efa8b4c8128d1fb67d"
+    },
+    {
+      "path": "planning\\tests\\diag_solver.py",
+      "bytes": 2824,
+      "sha256": "ef620f1a8fc57b9a95a7530076e2d95c546fdaced6f2328db8a2c4fe998aa70a"
+    },
+    {
+      "path": "planning\\tests\\diag_window.py",
+      "bytes": 4707,
+      "sha256": "077eda621cfb1e0b58e267c2ea8c1636f0af94bfda56aaa52320d34da538dd66"
+    },
+    {
+      "path": "planning\\tests\\regress.py",
+      "bytes": 10500,
+      "sha256": "5346729b5f5a5431d29bc6663bb13308c6be87e04bf1f0988ce5ddc98e39668a"
+    },
+    {
+      "path": "planning\\tests\\test_myopia.py",
+      "bytes": 3263,
+      "sha256": "01702f2c13e1c3acd312719454ae0726f05784a470f39a5857570bdef82b4edc"
+    },
+    {
+      "path": "planning\\tests\\test_planner_units.py",
+      "bytes": 12664,
+      "sha256": "9f052007852727191c705183cbf25407c73dd6b3449fed3917e8e287db970cba"
+    },
+    {
+      "path": "planning\\tests\\test_violations.py",
+      "bytes": 7525,
+      "sha256": "5ae4a1e7fd7e5f05f01be0813913e673b23d3962eaeb7c69bde61787eb69e571"
+    },
+    {
+      "path": "planning\\__pycache__\\analyze.cpython-313.pyc",
+      "bytes": 9798,
+      "sha256": "640d5722d22b93332dc705e96c2cf51bef9730b602233f053e8148f4b91d3f00"
+    },
+    {
+      "path": "planning\\__pycache__\\bridge.cpython-313.pyc",
+      "bytes": 14217,
+      "sha256": "f1b30e9e272ed4fd04da216f4e77d224a7170542e9287856ac770621ee2a22b7"
+    },
+    {
+      "path": "planning\\__pycache__\\contract.cpython-313.pyc",
+      "bytes": 11805,
+      "sha256": "4c67c706b4ebc7057ab115e67d538368e01816934bdacfd6e9ac926640274ffd"
+    },
+    {
+      "path": "planning\\__pycache__\\contract.cpython-314.pyc",
+      "bytes": 14657,
+      "sha256": "1b2ec1d815f9e5c6beb58969461e957c7923c7ac49ec3b1f15e61f0656bf4c65"
+    },
+    {
+      "path": "planning\\__pycache__\\contract.cpython-38.pyc",
+      "bytes": 7770,
+      "sha256": "67f4be5079452ffc839c2f26cd1bb416ca3cee43dfe5f9de71e2456361a59748"
+    },
+    {
+      "path": "planning\\__pycache__\\criteria.cpython-313.pyc",
+      "bytes": 24033,
+      "sha256": "18324d084bce467e5636c86ee97f547793c0f4fc2869e5435d435438f738bf55"
+    },
+    {
+      "path": "planning\\__pycache__\\criteria.cpython-314.pyc",
+      "bytes": 27087,
+      "sha256": "2b0c3cde037ba674341f03f0ed0d6d5790c5ebd575fd3f32ce559246d1acb48e"
+    },
+    {
+      "path": "planning\\__pycache__\\demo_pipeline.cpython-313.pyc",
+      "bytes": 24328,
+      "sha256": "dcf9fb77ecf50c0c80f446d1f02f4b9a89b0bee887dffdef0bd485c68edeb064"
+    },
+    {
+      "path": "planning\\__pycache__\\evidence.cpython-313.pyc",
+      "bytes": 8985,
+      "sha256": "ad0b32916de7120362817b6b97bd2851aa8cad11bf3b619fe232a44d1b2da330"
+    },
+    {
+      "path": "planning\\__pycache__\\evidence.cpython-314.pyc",
+      "bytes": 11335,
+      "sha256": "5b88679ba435bd02dec1d9f10073014d229c1c09f42103afc91ec0a48a16083b"
+    },
+    {
+      "path": "planning\\__pycache__\\executor.cpython-313.pyc",
+      "bytes": 5825,
+      "sha256": "1909724eb5cbff568f4a5d46fe1cb364ca4ea5b6ee32f36fd718ff55b9f9607c"
+    },
+    {
+      "path": "planning\\__pycache__\\executor.cpython-314.pyc",
+      "bytes": 6496,
+      "sha256": "00182ec628418d03c78edd809c64fa9aef87dbde3e60737eea8d39fe2f0a1f4f"
+    },
+    {
+      "path": "planning\\__pycache__\\executor.cpython-38.pyc",
+      "bytes": 3188,
+      "sha256": "64b3ddce45421166189ada6179467ae0ebb2c5ff25e8c07f14a47e822c164abc"
+    },
+    {
+      "path": "planning\\__pycache__\\metrics.cpython-313.pyc",
+      "bytes": 7757,
+      "sha256": "90881c2fd21aed60d800380d53e4994ba204b917f082db31dfd04daaf01fadbe"
+    },
+    {
+      "path": "planning\\__pycache__\\metrics.cpython-314.pyc",
+      "bytes": 8878,
+      "sha256": "427b21a9fd9b7162eab88156daf7f168dc23f39840ee9cf5db330267365f3e5f"
+    },
+    {
+      "path": "planning\\__pycache__\\planner.cpython-313.pyc",
+      "bytes": 36883,
+      "sha256": "731a5c7bc94cdbf0544164c6c1df9847b0141fa175f9e1fb5473ed780c761772"
+    },
+    {
+      "path": "planning\\__pycache__\\planner.cpython-314.pyc",
+      "bytes": 40847,
+      "sha256": "d2cd9c74be0d0ad3116c8ee1bf4d99f2b924db50c605bd5ab816908d583a1532"
+    },
+    {
+      "path": "planning\\__pycache__\\planner.cpython-38.pyc",
+      "bytes": 15753,
+      "sha256": "2d52021d431ea1f3d60e17701c3c9595fdd817cb0200664f513484ed712bcfec"
+    },
+    {
+      "path": "planning\\__pycache__\\run_flow.cpython-313.pyc",
+      "bytes": 23463,
+      "sha256": "b48e270d55910c88e74c94989de53d1d426611e21002703d099240c0c569d5c7"
+    },
+    {
+      "path": "planning\\__pycache__\\run_flow.cpython-314.pyc",
+      "bytes": 20962,
+      "sha256": "e9480cb0fd5ad2a4716986b67708ce23e8e4b055d40ef63fc7878487dc44c23c"
+    },
+    {
+      "path": "planning_middle_demo\\.gitignore",
+      "bytes": 19,
+      "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793"
+    },
+    {
+      "path": "planning_middle_demo\\behavior_demo.html",
+      "bytes": 22883,
+      "sha256": "a3810d47a592f9e70b2e6b85dfefb7dac2702f7691bd700e5462706575075957"
+    },
+    {
+      "path": "planning_middle_demo\\behavior_demo.py",
+      "bytes": 8562,
+      "sha256": "7c6562585f2da153b2a95308c99d1efcb15994ca1d787068fffc99703f214917"
+    },
+    {
+      "path": "planning_middle_demo\\behavior_runtime.py",
+      "bytes": 6827,
+      "sha256": "3ef4870b71e667d34bb60195a28a6d59263301a9f4672d030fc783eef0f4a916"
+    },
+    {
+      "path": "planning_middle_demo\\behaviors.py",
+      "bytes": 29430,
+      "sha256": "2f12638538394cdfc422ef257a56be88d8719160eb1c5102531336e9fdd0576d"
+    },
+    {
+      "path": "planning_middle_demo\\city_nav.py",
+      "bytes": 24307,
+      "sha256": "2212e3d81e2d7953fa9fb2a5cde8ccf69e3102c53393d87de8f145d03457b26f"
+    },
+    {
+      "path": "planning_middle_demo\\contracts_v2.py",
+      "bytes": 22388,
+      "sha256": "efd2b7f1685876a73df8d99523e6cbdb76e11cb423146d8e1dc4e95014f77391"
+    },
+    {
+      "path": "planning_middle_demo\\coordinator_v2.py",
+      "bytes": 22243,
+      "sha256": "1ba87a43b7f5109ce99bf7b724ca20b6ca8cea91a49888e0912568d6e9f043b1"
+    },
+    {
+      "path": "planning_middle_demo\\fleet.py",
+      "bytes": 6644,
+      "sha256": "c3f37e5cf1a8c191d7b0560f3712b1d1679c3011cc3ec9177d314831b7a5d07f"
+    },
+    {
+      "path": "planning_middle_demo\\gen_map.py",
+      "bytes": 12725,
+      "sha256": "3694b814edf27aecfc36c708b982f8fa72bf5f5f23129276ea661ee44c80550c"
+    },
+    {
+      "path": "planning_middle_demo\\generate_task_schematics.py",
+      "bytes": 2671,
+      "sha256": "3a1bd7622eef9c654ef186e569c08a180961a1c53e4aa50b2188b3f5c522b54f"
+    },
+    {
+      "path": "planning_middle_demo\\mock_fleet.py",
+      "bytes": 20927,
+      "sha256": "97078d01bdd00454fa490d93bd5039cc57236469aa218ab23e13cb4b7c7a565a"
+    },
+    {
+      "path": "planning_middle_demo\\motion.py",
+      "bytes": 9567,
+      "sha256": "5c7cdf9628998a98fe8dcbf861defda5744f1c6a15a72ea599619a7100a0398d"
+    },
+    {
+      "path": "planning_middle_demo\\planner_v2.py",
+      "bytes": 25474,
+      "sha256": "8e209874be799f688278b8fbc8a5b7b1a479b784e9b679da9fb78bdb65c6605d"
+    },
+    {
+      "path": "planning_middle_demo\\README_v2.md",
+      "bytes": 19947,
+      "sha256": "094f87e18fd70420de4649dd6ae22b9a8ed2286c4dfdeb54e9dd077b31760342"
+    },
+    {
+      "path": "planning_middle_demo\\reporting_v2.py",
+      "bytes": 10091,
+      "sha256": "44605bc31757e635d1dcfc08fda4a562cb723dda98cdf6cfeab2e8cefd5d621e"
+    },
+    {
+      "path": "planning_middle_demo\\run_demo_v2.py",
+      "bytes": 10959,
+      "sha256": "5cfe4075da7568d99a0f7fbb36764edb17407f88e68be46db22cc1e93411c1e6"
+    },
+    {
+      "path": "planning_middle_demo\\task_motion_schematics.html",
+      "bytes": 36858,
+      "sha256": "3900995967c05bae4d1d422e6d21a6643e8c9f45fe7aa74f83245508f9509074"
+    },
+    {
+      "path": "planning_middle_demo\\trajectory_player.html",
+      "bytes": 25727,
+      "sha256": "56f4edee760006d810fc6f20c6c665d61f96156bd8dde8b1e38e74a405ee0565"
+    },
+    {
+      "path": "planning_middle_demo\\trajectory_v2.py",
+      "bytes": 10748,
+      "sha256": "56469caa768eeee4fcdae8d374bd1c9719236fcf6956a4fd3b9ddc82e15a2531"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\simple_city.world",
+      "bytes": 373747,
+      "sha256": "b36f8a3974f22643169b153e0475c66eaa3ab73f9e929460b1d2c0f37fed491e"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\SOURCES.md",
+      "bytes": 1918,
+      "sha256": "3fd42ba97100961282ba3ddc25ddb6bbc19c1d6d25d5586ecd3ee9027e61722d"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\models\\fire_station\\model.sdf",
+      "bytes": 3289,
+      "sha256": "1af64b55dc7501a32b3798077fdf16b8cff85feb2db66760784a4039f6ad3eac"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\models\\law_office\\model.sdf",
+      "bytes": 564,
+      "sha256": "3d39dbb3bf08b23d1606cb57ef464ccd9b94a9062c93ba9a7106a3ea2bed543d"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\models\\police_station\\model.sdf",
+      "bytes": 818,
+      "sha256": "9043d259c5cbf3923683b1c7b5532ea8491b81edfe1426c9bfffdee81886c6e7"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\models\\salon\\model.sdf",
+      "bytes": 592,
+      "sha256": "90ae5b8e8cd157f57c4ec08b08c44cd6aa256b20206630c233aa452b0e476c65"
+    },
+    {
+      "path": "planning_middle_demo\\assets\\city\\models\\thrift_shop\\model.sdf",
+      "bytes": 611,
+      "sha256": "126c40248acbb08b3d7c09d1c90690beb3641ca2855414db006886dc2b1e3559"
+    },
+    {
+      "path": "planning_middle_demo\\config\\platform_references.json",
+      "bytes": 7323,
+      "sha256": "73d99edb479853a6fe4e717507e4006dfadaedef3dac1892f37619bd357caeb5"
+    },
+    {
+      "path": "planning_middle_demo\\docs\\场景与平台数据记录.md",
+      "bytes": 13081,
+      "sha256": "6692bde931cd55047d4d7bd4250e48be916a17ca07e3de87d8428e019746d0c2"
+    },
+    {
+      "path": "planning_middle_demo\\docs\\接口与想定Schema对照.md",
+      "bytes": 8113,
+      "sha256": "f969351e2ed1895ba7a633abf7e96cbfaac00f4171ed1f7c39c2889e69ed04c5"
+    },
+    {
+      "path": "planning_middle_demo\\docs\\下层接口草案.md",
+      "bytes": 6772,
+      "sha256": "428389ec1c49f50ec4eca1a895af3cc6a23f1d4857e401b076e19c30b0bd5490"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\simple_city_map.html",
+      "bytes": 20111,
+      "sha256": "26ce750f2e39a62b98e31be15bd0794a4ec385c29d92539ebd0d86ac1dd3d8a5"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\manifest.json",
+      "bytes": 622,
+      "sha256": "ccf3b517bd166bbd3bc48bfcd193611d44c0ce3c15aceec33629fdcc6d9ac0a8"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\report.html",
+      "bytes": 13867,
+      "sha256": "e7082f353de40683c0e2c10e212565f42acfb0dc4550d0109d1fcd8a99aea2df"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\report.json",
+      "bytes": 6061,
+      "sha256": "8f1b879487426f8b95fcb8fa50980b1adfc33c72eb863d3457b60a4b73522622"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\scenario.json",
+      "bytes": 4231,
+      "sha256": "a05719e839654bbf72a362670c5a72cf7379d204ed8d335cd7a7d43c7f1be190"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\summary.txt",
+      "bytes": 122252,
+      "sha256": "6af426ab9b1b621a2dfa08d2ffe09422e86c26934e37dad9a0627d496a0ed3b2"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\trace.jsonl",
+      "bytes": 125096,
+      "sha256": "8da304ce8959cadd63fe28d11dce694cf8d2779f429dc5e73bc1c106c34bae56"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\avoid_run\\trajectory.html",
+      "bytes": 100961,
+      "sha256": "56fdef3c0e55672c4a5df4e2ba72c78a67d7e090cd93199c99a49c3a613fff16"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\behavior_demo\\behavior_demo.html",
+      "bytes": 586564,
+      "sha256": "d4976810a30ef597e172eaaf7c29469ad2c1f796e5f3a81ff6e61d97b3cea3fc"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\behavior_demo\\behavior_trace.json",
+      "bytes": 1481560,
+      "sha256": "6eae00a3722642c834ffc7f94774a03dd48d9e3ebe50901444027efda73b003e"
+    },
+    {
+      "path": "planning_middle_demo\\outputs\\behavior_demo\\preview.png",
+      "bytes": 121751,
+      "sha256": "96f3f23fb85cc15239d9e73df87e04bd85ef15d309118cfeb436a52fa3090ce2"
+    },
+    {
+      "path": "planning_middle_demo\\scenarios\\fleet_demo.json",
+      "bytes": 921,
+      "sha256": "e5cbf7bfb0d9478936af55ecba53797fd4d75045fd419b3815ccd88df95466e2"
+    },
+    {
+      "path": "planning_middle_demo\\scenarios\\simple_city.json",
+      "bytes": 2804,
+      "sha256": "f4084c9884948d1ac6403b27ee2cd4a63e17fd8bf9ad868d22283e7ed7d0e976"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_avoidance_flow.py",
+      "bytes": 2427,
+      "sha256": "7cf09f62d316d15bece91fca652ccfef2e5233b112e962f38704cb09ccee06d0"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_behaviors.py",
+      "bytes": 5995,
+      "sha256": "d6b3a1f19776c00fdf28ded2b367d6ee929fa4445b67a6198f9774686eed4337"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_city_nav.py",
+      "bytes": 3285,
+      "sha256": "b565344e2e38617217b7482de554c07b4db7990dd6447588d899ce9cd161650c"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_flow_v2.py",
+      "bytes": 12460,
+      "sha256": "2c1c740b17a53dcd2947554ff964c02990144bdf51197f4b0256245b370a0917"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_task_schematics.py",
+      "bytes": 2364,
+      "sha256": "41e9b1ff38965f9ca0c7d90773a6ba811a43148e8fbd498b0dec98d1bb1c4a74"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_timeline_rules.py",
+      "bytes": 8911,
+      "sha256": "df249b99dae1e649240b57e171330f7e59b74013682f1659f2e0a5428da74170"
+    },
+    {
+      "path": "planning_middle_demo\\tests\\test_trajectory_v2.py",
+      "bytes": 5278,
+      "sha256": "992beb0b8f8ea4d807e5a3f4a596a8da7addade07bcfaf079b5a8298c547bff6"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\behavior_demo.cpython-314.pyc",
+      "bytes": 13991,
+      "sha256": "92252bc22b0967b9d3330b40ad3ea6c5f486ed25414d4eab2ca0d0928c24ce17"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\behavior_runtime.cpython-314.pyc",
+      "bytes": 11840,
+      "sha256": "c38977af62c973a95424b439f1f3afd17572109fc818d121041288ac279d6d07"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\behaviors.cpython-314.pyc",
+      "bytes": 50410,
+      "sha256": "37ef358b33117f74c5e7090e237fa610dd2dbc985f60098296ab5b51914caa76"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\city_nav.cpython-314.pyc",
+      "bytes": 41050,
+      "sha256": "e1f3566a4ed4bacecbd99d036e81a5b363427a99a6660383e8b7d30543b63b86"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\contracts_v2.cpython-314.pyc",
+      "bytes": 27032,
+      "sha256": "4c80e191a1d2083b0d19dc9b6cae591c06cc4db5eec190ee3c8ca6d15243461b"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\coordinator_v2.cpython-314.pyc",
+      "bytes": 33487,
+      "sha256": "446d816356e18de9d27b738472cbb4a15ccf469e7bf928ef232bb7a80b9e97ad"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\fleet.cpython-314.pyc",
+      "bytes": 6756,
+      "sha256": "4d1590c490df6fad8e46d7e391260cccabca5c4494b0a7c556c09cc56725169c"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\generate_task_schematics.cpython-314.pyc",
+      "bytes": 4424,
+      "sha256": "dc763484cadef5e5abaff8327cddd34f42452f28f07f0418dc4acf159c5d23a8"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\mock_fleet.cpython-314.pyc",
+      "bytes": 21759,
+      "sha256": "b53e55e1e827f2675b5fe63eed48e2f3b140b8d438ea57fd03484c26ad972b97"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\motion.cpython-314.pyc",
+      "bytes": 13436,
+      "sha256": "4367a4446b5a2c801505c385f40bd01da1358a9526e410fad34790d0a5df55d8"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\planner_v2.cpython-314.pyc",
+      "bytes": 35808,
+      "sha256": "7d4f1e7cc63ce51d98e7f430fe98bb6b7731efbcb952b3058b06e3b7885f658f"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\reporting_v2.cpython-314.pyc",
+      "bytes": 15203,
+      "sha256": "2752f192a23116ae449b18e2255b038ee17cffaf923016be6e8eecbf2a1b48ad"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\run_demo_v2.cpython-314.pyc",
+      "bytes": 12469,
+      "sha256": "f4b43bf30bf1baeede2db96150223c28e1fec5752e9d7af1c42de3e16d1705d7"
+    },
+    {
+      "path": "planning_middle_demo\\__pycache__\\trajectory_v2.cpython-314.pyc",
+      "bytes": 19722,
+      "sha256": "cbf35193d394732dd87be8db8a1df581dd96e537914462da29372fe14260fa8d"
+    },
+    {
+      "path": "robot_navigation_lab\\build_scene.py",
+      "bytes": 4265,
+      "sha256": "31c5e1175d4e3ff12471a6a34a545eea808257d712b12215b1100ef55228e9e8"
+    },
+    {
+      "path": "robot_navigation_lab\\commands.py",
+      "bytes": 2146,
+      "sha256": "addde9a43a0d5bf13de4dc4a39e093640be5b348fb07ffa6428a97b7df0c5008"
+    },
+    {
+      "path": "robot_navigation_lab\\gazebo_backend.py",
+      "bytes": 9681,
+      "sha256": "e335fdb76fc223e2dd05aa9fa83cee6badc5cf5baecfd40638dee463581e2d30"
+    },
+    {
+      "path": "robot_navigation_lab\\inspection_view.js",
+      "bytes": 5636,
+      "sha256": "91784e83cdb04fa8eedc02f91932b7b6e134bdac313741850328d671875932ce"
+    },
+    {
+      "path": "robot_navigation_lab\\live.html",
+      "bytes": 10914,
+      "sha256": "edadeff5a303f244882171741aa2a2836c6f15d0c9f447bc1bd37c91e665a14c"
+    },
+    {
+      "path": "robot_navigation_lab\\navigation.py",
+      "bytes": 12940,
+      "sha256": "3cb90014c9ec9aee23638ba3bbe9754d3d804846988acd4ef3c18bc3a0b1852d"
+    },
+    {
+      "path": "robot_navigation_lab\\player.html",
+      "bytes": 15278,
+      "sha256": "6e60fca1fd0cbee4461deb973a2c8d48f990cf5c7ce1dd8a481b6e72f10167cd"
+    },
+    {
+      "path": "robot_navigation_lab\\README.md",
+      "bytes": 13258,
+      "sha256": "620669f9a84d036ea5dcd16100622d59e4867f40f965eaac27defd3839627e39"
+    },
+    {
+      "path": "robot_navigation_lab\\run_lesson.py",
+      "bytes": 7220,
+      "sha256": "5e27aa545e2ef6ebf94d0bd0f025d047480259c059f4ac324d1fda1c671cb8ae"
+    },
+    {
+      "path": "robot_navigation_lab\\serve.py",
+      "bytes": 6651,
+      "sha256": "778123d2a4518d535e488aa3fff45ead21574f6ffada04084d5a41d5f20c1458"
+    },
+    {
+      "path": "robot_navigation_lab\\start_console.py",
+      "bytes": 3013,
+      "sha256": "344e35d8365ffa3fc851a05aae0e28959c5d731873bcb66816d573d3afde6cb9"
+    },
+    {
+      "path": "robot_navigation_lab\\start_gazebo.cmd",
+      "bytes": 86,
+      "sha256": "be81fdaf3e9b55cb895d5b5f84207643ebb7e8b8597f2f3b54d11bc992355e9b"
+    },
+    {
+      "path": "robot_navigation_lab\\start_kinematic.cmd",
+      "bytes": 89,
+      "sha256": "9eefe5d3754670faf6e3c78644417a449ce9da76f4f4e2d7bff324baf2f9c7c8"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\gazebo_models\\sources.json",
+      "bytes": 695,
+      "sha256": "e5d6cf45413171fe9bbf7a562d982437ac14b18a2ecdba83077c4a5ad108f514"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\gazebo_models\\law_office\\model.sdf",
+      "bytes": 564,
+      "sha256": "3d39dbb3bf08b23d1606cb57ef464ccd9b94a9062c93ba9a7106a3ea2bed543d"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\gazebo_models\\salon\\model.sdf",
+      "bytes": 592,
+      "sha256": "90ae5b8e8cd157f57c4ec08b08c44cd6aa256b20206630c233aa452b0e476c65"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\gazebo_models\\thrift_shop\\model.sdf",
+      "bytes": 611,
+      "sha256": "126c40248acbb08b3d7c09d1c90690beb3641ca2855414db006886dc2b1e3559"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\sources\\citysim_LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\sources\\gazebo_models_LICENSE",
+      "bytes": 651,
+      "sha256": "776eee6c1a315c1acca92898edb797a9549c71da0e41dcb0eb6864df6301678e"
+    },
+    {
+      "path": "robot_navigation_lab\\assets\\sources\\simple_city.world",
+      "bytes": 373747,
+      "sha256": "b36f8a3974f22643169b153e0475c66eaa3ab73f9e929460b1d2c0f37fed491e"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\environment_verified.json",
+      "bytes": 1231,
+      "sha256": "9a967fa4c4bf6cfa303707e45d6c740e25654679eda6e9c8091f490b4ed12ae1"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\gazebo_live_finished.png",
+      "bytes": 103736,
+      "sha256": "ebc55223503dfe03c7a6bcd373825ae675103f92cd80ac5dfc251cabbe53dc3c"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\gazebo_live_running.png",
+      "bytes": 100113,
+      "sha256": "2175f725c729a8829592d69270594c3c60a62f816a09c41f72a45f74ef7e3a31"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\gazebo_live_verification.json",
+      "bytes": 2279,
+      "sha256": "7dfafa5750e701a65fa7dcccad226dba72232da3d37892c2a23c8948aa5ad1dd"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_live_verification.json",
+      "bytes": 2113,
+      "sha256": "55a1fb116346eccbb54aa7aeda1b3af21dcc22a3ea9a3c68e9b1cb603fceac6b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_live.png",
+      "bytes": 122614,
+      "sha256": "c182c4293da15f89aafa77dc6b655137b4226bcf685425434f2ec5f5d79cc122"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\approach.png",
+      "bytes": 98895,
+      "sha256": "e46b30a0215473a94269371d1f7cbc16d18571e5514901a937d19f89184bc496"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\command.json",
+      "bytes": 308,
+      "sha256": "7c2c0e6894911c38705ba553d9e26920c07acf954a74d7009be03510c59871c0"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\events.json",
+      "bytes": 6847,
+      "sha256": "c5dad481851c2c6e092ba8742f71c616b0293c3cf1a79bda303a81f721cc8f26"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\feedback.json",
+      "bytes": 272,
+      "sha256": "44ca6acb424386a463c07467147d734d4b12c22b813845bd16713fc956de97be"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gazebo.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\index.html",
+      "bytes": 4345612,
+      "sha256": "7003dd1c701ef30e9eaaf9516ae75d09dfbe500d9989de994e828423b545aac3"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\inspection.png",
+      "bytes": 100243,
+      "sha256": "9a6ce922de0eeb64c28896d61dcb047512837819439c4350423a1c71b63bbda3"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\manifest.json",
+      "bytes": 233,
+      "sha256": "a4a2d14a4bd743a6560674c2f74983ab9b9f4e8da81f301038929e541d35295f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\overview_midpoint.png",
+      "bytes": 121248,
+      "sha256": "f07509f26e5498cc3b4d280a8bfe64cec77f1eb226008d437f1f5b0e9af1671f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\overview.gif",
+      "bytes": 464138,
+      "sha256": "6f61a4c26738a5e52129ee948cd3bd1866b1994970d80420641ba1436f046775"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\overview.json",
+      "bytes": 314,
+      "sha256": "7273cd95c242a4fa4959d2b32035f75cde239a9c97e1da59b06ffdabd6733e5f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\preview.png",
+      "bytes": 96108,
+      "sha256": "35d3cef1a1c55895b01d730cd2b545a05ec7782de9ce55a4a617163139d54476"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\report.json",
+      "bytes": 2164,
+      "sha256": "01e547ecc8e7e7e2fc3c841aadefb29384e176ca52b0e0ba4b58e07a28f3bef2"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\scene.json",
+      "bytes": 6187,
+      "sha256": "b441eda05dc8371fd1651655db7b18a2415e05efdeadf48ac23b7b2b812a9736"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\trace.jsonl",
+      "bytes": 4315558,
+      "sha256": "ccf1939ebc1c695179d5026251062b934376e6fdc1b94095567e55e45c95b5ec"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\world.sdf",
+      "bytes": 6366,
+      "sha256": "705ee493d63d927a1cd2a6115f7d5d741bbc8321477af9d9152c37e2a572b931"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\000.png",
+      "bytes": 87458,
+      "sha256": "a637ae6641d4dd375f721fedb12250c147c774c96187ee65e467c5f9fec04a4c"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\001.png",
+      "bytes": 87513,
+      "sha256": "840f1926e6e7578b6038599b675bffb4e6d71476df6a294f9f4bdbcb8144ecf2"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\002.png",
+      "bytes": 87898,
+      "sha256": "1c23ce9e9db85e58399f3fe6ddffd8651683ef8a6ed5922a2a44c6b150042b36"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\003.png",
+      "bytes": 87905,
+      "sha256": "29fd3f7a8939836cc406b1f49e80672b3d8153315537aaf1a46fbd8b06b68e13"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\004.png",
+      "bytes": 88014,
+      "sha256": "8efb41a4f9f1497c2191c1a8e2d4bce7ae8e610c7257deaadc7d6c6360ea5192"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\005.png",
+      "bytes": 88447,
+      "sha256": "1abd36ef9ebb7380ccf6ab1ea761b21008dbca05311a239e654efa76d48a6c24"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\006.png",
+      "bytes": 88606,
+      "sha256": "7632d626b8e451edfbee2071be62e10e5b43f31584fc0765fffa2c95752fbd53"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\007.png",
+      "bytes": 88447,
+      "sha256": "ee919f5851d9040c3d401c6b35c965fd7ea8ae1d02702cd473433379bd771b76"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\008.png",
+      "bytes": 88566,
+      "sha256": "e50709a2fa176e13760e0d97fa621f5b2a45ed1a46538db75c06547b185dff1f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\009.png",
+      "bytes": 88648,
+      "sha256": "bd5b1d39d296eda46f2ac984d2764b5a1470d3f81b5e40d91058766821c1a03d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\010.png",
+      "bytes": 88741,
+      "sha256": "47414786384ca68d8088cf97cbbf7db50a952ae467988788fa65af7331e1a3d2"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\011.png",
+      "bytes": 88688,
+      "sha256": "b279fceef3e567cf81591982a2b73ef5049b1e22ec767eaf9bbed760b0873b3d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\012.png",
+      "bytes": 88571,
+      "sha256": "bd074641cbcf952ad37f04e4587a08c3e20112014f1d0c86a25b19c4732fc3aa"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\013.png",
+      "bytes": 88387,
+      "sha256": "270c89568ccb8576379c426f2e9471ad4157dc5bf70506816b935bf779ad9fea"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\014.png",
+      "bytes": 88419,
+      "sha256": "8bb836a3aab828fc0688a5853fa8107cdc9d94b0e136319a2d82962325bc2acd"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\015.png",
+      "bytes": 88290,
+      "sha256": "ce6e94fb838a255e18787e0e2f8af0d8fd9ce6ee7bb5694e3e5135fa60803619"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\016.png",
+      "bytes": 87919,
+      "sha256": "b036c58c08b4b8e72e5e1084630eeb4d3e6541eff813bb6ad6e32715bc5643a8"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\017.png",
+      "bytes": 88096,
+      "sha256": "c912cc941f52d07f43f9996fcd01628aa3049f5b99d993f0be8493fbeda6564b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\018.png",
+      "bytes": 88001,
+      "sha256": "18b3124bf99e295be061f6617ce0e84d70ff98dd587c952f67906d9a1762555f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\019.png",
+      "bytes": 88245,
+      "sha256": "10c7af8f5ae47894b0cfa0ea74d4f677b017a07586705c5c3e8dab05e369d079"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\020.png",
+      "bytes": 88396,
+      "sha256": "ca24509878f4264275119fce8acd72fbd649a9a9ba86e1aadd6a1536c8f2236f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\021.png",
+      "bytes": 88453,
+      "sha256": "ba3e089273cf0b0892b74d0714880c7695f94a0cd593e83fd2bd0a056a807da7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\022.png",
+      "bytes": 88111,
+      "sha256": "bce81baf7a76f96dfdc4e59a0f39cf0d48f5f9bb12b86359325266886c6a940c"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\023.png",
+      "bytes": 90242,
+      "sha256": "37137f8c1d63d2f462154bc0262b753190bd258d1f63abae8e8628fe9b6ab824"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\024.png",
+      "bytes": 91220,
+      "sha256": "8d67213d6626b2111ec30a14621b05b6df06deb3b5e117a6b27b2ebf9878a1f5"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\025.png",
+      "bytes": 90993,
+      "sha256": "761f5d1a4845d1d235fde8e01bfa88dc7d70a208838b676142ac642120ec0d55"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\026.png",
+      "bytes": 91192,
+      "sha256": "dd40fc77c4680b7378088f7e9d59e175d3b30fefa127cf9b9eb02afaef19dd12"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\027.png",
+      "bytes": 91069,
+      "sha256": "856422efe8343b798d3ef7e2236292756966d7831e82b685f06f870dc1a72aef"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\028.png",
+      "bytes": 90956,
+      "sha256": "ec0e5d897bc1dcb53ebd4801c95000c6b2532e6bf9b5bcb0cf920be096d13a5e"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\029.png",
+      "bytes": 91146,
+      "sha256": "a625c120f0287d0703234c91dfdba02d00e648eb9ea44ef9c9e0d1c2bab4d56f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\030.png",
+      "bytes": 90887,
+      "sha256": "e3ce6e71641de4f656ebaa5675777f835b2fabdd0aae2fc47a5fd04f32e5f242"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\031.png",
+      "bytes": 90965,
+      "sha256": "d2a149f90dab2ff4e538cef82ab2596dad89d5128f418af21c47e21e07abee0a"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\032.png",
+      "bytes": 90894,
+      "sha256": "46ff4c8fe8df24745e741b694d97c2b6475c1d0ed8b8ded7ab927e200888acc0"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\033.png",
+      "bytes": 90802,
+      "sha256": "d606996a6c145dd6fb36492304b940c2ed1b2e94c24d70a5409a150176a9afd6"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\034.png",
+      "bytes": 90230,
+      "sha256": "96561e80926532e6fa4ff847227336f6bec46274a84e19681eef79c8eba21ad7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\035.png",
+      "bytes": 90591,
+      "sha256": "48e2fbc6363803e989ba1d95c79ded70eaf9f3008f476fc6c87a2a060ff7866b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\036.png",
+      "bytes": 90026,
+      "sha256": "1f87a8537ae82a4a5bbd10457af05a2ec94070ff865af69458f491b48f91bb65"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\037.png",
+      "bytes": 89365,
+      "sha256": "8d7b867a7b5b2f79a47a7ab8513692dc3c2626981212eeac494a5243c1285c99"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\038.png",
+      "bytes": 90052,
+      "sha256": "3173876d6da9acf787d6cce31a6ce799e9e5bf535717d456383d37a08ed81d83"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\039.png",
+      "bytes": 90330,
+      "sha256": "5aaa2178b39f349c460f308f52af96b52331ad5dfb88c5eb747d7ddf7eb52ece"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\040.png",
+      "bytes": 90142,
+      "sha256": "c9ee4cac9aa96383d1274848229008c577309daf4e1176a5be9d7829b43a4b20"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\041.png",
+      "bytes": 90170,
+      "sha256": "83b22d8091217b2b6d0d5edb86c0fb56d792690d679a07a87b0c24d4c1dd9b04"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\042.png",
+      "bytes": 90138,
+      "sha256": "246b6f6da29178c8586b32ee8247ccd12fe329a0c6e9f1c43cdcc05e4e918fec"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\043.png",
+      "bytes": 90168,
+      "sha256": "8eb62dabd1b20311c647cc8858dbd458833ef78d1958b3aefbff33815cccf15d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\044.png",
+      "bytes": 90008,
+      "sha256": "23694d43f104914bd2a22323d763e1dda39f4ed8bd3f8135998d7c2944e1cd6d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\045.png",
+      "bytes": 92246,
+      "sha256": "a8ef40fc26229eebf6826d319df0fad8f92db08af5647c8803731da676ee7d1e"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\046.png",
+      "bytes": 92321,
+      "sha256": "1f786258efaecfdc532ef128db6517b594870fa6138fa45f6cd6b0c635c7ddd4"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\047.png",
+      "bytes": 92192,
+      "sha256": "06d92a93f045c402cb0d07624a6bb515c2afa38d64480e6b23e118467440d45d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\048.png",
+      "bytes": 92272,
+      "sha256": "672792aef6f2f5dbe6e284bb0d363164b34b2503acae60326081371c09934e17"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\049.png",
+      "bytes": 92379,
+      "sha256": "4decc4e2b594b9ef90aa0e9360d179ce5bb1ca331931f9da8aeecf1d7ff269be"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\050.png",
+      "bytes": 92382,
+      "sha256": "8d8f0c6f58cae5db2d4d313fcb1ef803d350624aea67aa2b573a67c84253c4ec"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\051.png",
+      "bytes": 92188,
+      "sha256": "9e59feba0438273b99e4e08087ea9adb0e2f40b053de4f27548ad5325e6ba98b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\052.png",
+      "bytes": 92215,
+      "sha256": "24a266ff7b28912996f6452ae7a78ea651e981219eb550ff1556b837377ba591"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\053.png",
+      "bytes": 92233,
+      "sha256": "ab9505148a3c5f0b14ff4076dbfade1701e4478b04c6a0762c2c56fb7d1bb979"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\054.png",
+      "bytes": 92232,
+      "sha256": "4d7df4ba82d8d61f3bdff0439d701bf7eb13749887b20c13903ac2f1394f0284"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\055.png",
+      "bytes": 92111,
+      "sha256": "884bb0bc7b006f06c9a61f603af324da2b875a5b66c311d0e9c211602c74f1f3"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\056.png",
+      "bytes": 92237,
+      "sha256": "c40f27ee3c9db9e8def1b0de12d6c7ef003b2e13491392f0820b51081a4d3ff5"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\057.png",
+      "bytes": 92186,
+      "sha256": "d2593619dcffad867677b752e8af82ebc95fea400fcbe5aa08628d2703101576"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\058.png",
+      "bytes": 92061,
+      "sha256": "bbe833c8d8de61dd03b3c1163bab2133a1738a47c3ebacc531d195e0a8eb74b3"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\059.png",
+      "bytes": 91308,
+      "sha256": "10f0434b166777e095f5171e34c53c70ba4232f027ed6a030da5e3e0a4934ef5"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\060.png",
+      "bytes": 91601,
+      "sha256": "eeaaa19733b343fb08f8114ca252df5c94529c7f3cf972dbf1d996721d232a04"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\061.png",
+      "bytes": 91899,
+      "sha256": "a3b43697b9958fdc489fc92d0d9e662b854cf7f9bb49c0e821bafd6feb3d1f4e"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\062.png",
+      "bytes": 91847,
+      "sha256": "88709a03902984b715a1a210a40d01b46fa041e649a1743d7873819c496236c6"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\063.png",
+      "bytes": 91352,
+      "sha256": "e85acdd8852767c527e1f14cbf28eefa4e43e9f033cfa3e80c75e7b671d9b8af"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\064.png",
+      "bytes": 91862,
+      "sha256": "11acb4189844ca85e72ad53f0cf44a01f8944864aa1970100dd700ed2002ade9"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\065.png",
+      "bytes": 92018,
+      "sha256": "fc1bc137f62d1b8dde831393d543cdb2200f66e17bf3c7d0af6d5900720ace30"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\066.png",
+      "bytes": 91249,
+      "sha256": "931761b487fd03ca02d76396774cb1381b8b26c71dc50e12ddf71eb1298098b1"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\067.png",
+      "bytes": 92051,
+      "sha256": "48890ec5947af0b20ad8940255aae9c435e575cbd3ca915ebcd2591307095da6"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\068.png",
+      "bytes": 92488,
+      "sha256": "530b4b162e583b1f81d2801f9e406e4a16d15dffb7a2ca4cdde54197f1b47cf0"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\069.png",
+      "bytes": 92544,
+      "sha256": "d925a2410c97b8c97b074f9a069e13546ea8cbce8e49573a6fd55e38da0ccaae"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\070.png",
+      "bytes": 92539,
+      "sha256": "e9535b49648a521504c7c8bf8eca8a00e5c31f0f381fd2e6f47ca7f14f119e95"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\071.png",
+      "bytes": 92394,
+      "sha256": "ee0aea0272cb6983c5ac996e238f29069abbe6f198e2f4868b1cd34b1a574713"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\072.png",
+      "bytes": 92046,
+      "sha256": "56e59087c2fcc6e931fa7eb5a22614054d39545fd08b4d1ccaa90d2fad84c069"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\073.png",
+      "bytes": 92366,
+      "sha256": "6252574e7f3adf7e865943d1558f18fbd3901e035a5cd62aac5e3b9c74838bd3"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\074.png",
+      "bytes": 92337,
+      "sha256": "87c638387ec0f09412d5245c48b369eb90aaef68238040658680df39632aaa78"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\075.png",
+      "bytes": 92420,
+      "sha256": "eb3577a36f30fddd614e7e5f688a49c3d0146e64ea5c300dc7106a5e41903737"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\076.png",
+      "bytes": 92160,
+      "sha256": "a00a084c8c6e185a1bb81be916127b347a9fd57c18bcfba521c9cca43745ba49"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\077.png",
+      "bytes": 92487,
+      "sha256": "265d5b5b4f1b6ad76dea395bd51bcf0a4f8be335a60afd8d24c25b914a1a41aa"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\078.png",
+      "bytes": 92300,
+      "sha256": "f0379595e2d1d8c91f6fb1187e2737b17d70477bbb76ce448631798dcf4b2f02"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\079.png",
+      "bytes": 92339,
+      "sha256": "111a47695bfe71e6a9ad89efb1510cf04654bc082bfd16c490bc457f3de5636a"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\080.png",
+      "bytes": 92398,
+      "sha256": "3e6f0cf29f96dff0e90a92b7ef5ad6e9035ac2a51c7f913c1c7ee0ce8aab4de2"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\081.png",
+      "bytes": 91747,
+      "sha256": "86b12167b5856842dfbc3f63d35c85a652da09b3025cfd0c79bf6cc5f676d771"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\082.png",
+      "bytes": 91536,
+      "sha256": "898d80a4df76872b536d77dac5db7f770fe4333caa34bf506cda009cfe20aa6c"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\083.png",
+      "bytes": 91808,
+      "sha256": "8936974cd03d3087dd892498e5caa7965f8a7ff759b625aa8fcaaa4bf5c36a7a"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\084.png",
+      "bytes": 91786,
+      "sha256": "d3f7d5391f0647da032e8ed15925b2544d7d0be99a8ba15579145e88b0317caa"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\085.png",
+      "bytes": 91647,
+      "sha256": "b42a5b0d2ff8cf67761d44be32293bdb4da1527b4b14d423719cc1436c75ae6f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\086.png",
+      "bytes": 91636,
+      "sha256": "5d76743abef572f2a72f77e3b5ca7286812b910683c96f4398d5c65aedf30318"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\087.png",
+      "bytes": 91863,
+      "sha256": "4df2b8122ab86c7ac83087f8c4e78d96d75c58dc28a436f083ac111e1e442809"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\088.png",
+      "bytes": 91583,
+      "sha256": "149c635aca37448f0ececef5e6c37112d6278bf2859cc9e246aa7f003c742868"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\089.png",
+      "bytes": 92219,
+      "sha256": "6bc4b5f091d872f4c3bd3c0a97a7a81d1e4464cd0c5baff409e9fae69eb02ee7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\090.png",
+      "bytes": 92636,
+      "sha256": "ea85acee5d044e3b53c3487210e0b6efad524aebfc6322365d93bc24e688d14c"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\091.png",
+      "bytes": 92575,
+      "sha256": "6c9d1babf25754e09c7d55260871c03b6c452a289cd99ef79c3084c371c3edaf"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\092.png",
+      "bytes": 92511,
+      "sha256": "7e4d56d197d03a1a814916b392b17e695cab7ed0307a93176fddb0692f8d612d"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\093.png",
+      "bytes": 92587,
+      "sha256": "e49efc1af92af99fd1c43cef099899c7cac001af23e2be7faffbb481bfebe2d7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\094.png",
+      "bytes": 92550,
+      "sha256": "0fcdede876bd4f38c4e30b0f4cd14ff11abcbec6a63631db2be809a7679338db"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\095.png",
+      "bytes": 92817,
+      "sha256": "f908eea358db4c64f9916d5ec59be3db0abf96acccd72c36a40bfcee71fa4b89"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\096.png",
+      "bytes": 92633,
+      "sha256": "effca10f4b4d6ebc8488ad4f78dda1d53e7f675620228393dcec12a7f981c872"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\097.png",
+      "bytes": 92663,
+      "sha256": "12dea2360eba2b6e71e40389f1aab7c72aa55e0e88cfe73022cc0824e90f712f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\098.png",
+      "bytes": 92642,
+      "sha256": "aff934d871c71bbdc0483b106467fdbbf14d19c6abc070f95f84824428bd8c4b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\099.png",
+      "bytes": 92794,
+      "sha256": "696e78fc0c3a368a54971fb27d26efc17ab84ec32f3f30a00bf6de705918b451"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\100.png",
+      "bytes": 92716,
+      "sha256": "688ada30097e8fd67f9d1fc072ef01a292904c2ece4772192f93087af20bb018"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\101.png",
+      "bytes": 92649,
+      "sha256": "04a12533ca66547ca8335a09fdaad610500e8db9b77f620994b62b42de2977fd"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\102.png",
+      "bytes": 92584,
+      "sha256": "c448df8bb5f8dc8b8607ea36833c0cc30136f52efa2371ef045dd207dec4baa7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\103.png",
+      "bytes": 91761,
+      "sha256": "92c4395c9fe7259acd499feaf91993d158ecdfac8495f9f9ff265e15d69fd085"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\104.png",
+      "bytes": 91568,
+      "sha256": "3108f735e8f2f6f7907ccfbf7d59ea9d2759324cb0ea16fef46dcb8950d5f046"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\105.png",
+      "bytes": 91749,
+      "sha256": "98a95c759da1bdc62341255cf8c5692fe937637d1164e921b2336471ee53e0d8"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\106.png",
+      "bytes": 91546,
+      "sha256": "5be3ecabc5d39c6681727201bd3cc16d32be111dcddd000da991fd6e970f720a"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\107.png",
+      "bytes": 91087,
+      "sha256": "70605b37b4e115a419154994fdeccb261b188834a3cec2f35013e7016a553047"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\108.png",
+      "bytes": 91674,
+      "sha256": "96970dfb4b129a331665caa0ad550fd9e0a987127e1467916c948b31fe793550"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\109.png",
+      "bytes": 91946,
+      "sha256": "771f91e195cba5c423a8dd6801c87e9f4e034db6a4c75d0504c40220e57ab549"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_gazebo_20261028\\gif_frames\\110.png",
+      "bytes": 86871,
+      "sha256": "2fcc6382e7d15079c28e849e1ae5f49f07f0954f507ddfd6af40b1a1a9022bb9"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\approach.png",
+      "bytes": 99657,
+      "sha256": "e47d4fb1e958b15720d4c37db31d6a2ef2c5ad76125bcf5b51e045b2a74e6f1b"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\command.json",
+      "bytes": 308,
+      "sha256": "7c2c0e6894911c38705ba553d9e26920c07acf954a74d7009be03510c59871c0"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\events.json",
+      "bytes": 6804,
+      "sha256": "9902d4ca974c7706f22baba3756d84b3397b078d6ec4f224b7b1787dffe8b90f"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\feedback.json",
+      "bytes": 273,
+      "sha256": "aba4e1835ad50ca79bcbbf9f3853562402f80a05e4e7719a20427eeffe5191c7"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\index.html",
+      "bytes": 2168422,
+      "sha256": "3d125e20c9457e66971c8369b2a04bce5d7e23b95be09b08da5d7cb55d50fd07"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\inspection.png",
+      "bytes": 100991,
+      "sha256": "7c20530d7d1f64dcffd4aceaafc0f4c554a3d885dcd02e333d5c8ae76fff945e"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\manifest.json",
+      "bytes": 237,
+      "sha256": "797be6a9b4c3ff935628b5b0115c395cfd8f9f696f06e2fd84bc262d65a326f0"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\preview.png",
+      "bytes": 97001,
+      "sha256": "1ac673613730e884cb4aad80de9263ef000f29b621d52e5e3b8660859d19e079"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\report.json",
+      "bytes": 2146,
+      "sha256": "39e04ddeeea80a9b14751133819a3b97bcdc40c16eacadc7b320a13bee8a2c5a"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\scene.json",
+      "bytes": 6187,
+      "sha256": "b441eda05dc8371fd1651655db7b18a2415e05efdeadf48ac23b7b2b812a9736"
+    },
+    {
+      "path": "robot_navigation_lab\\outputs\\showcase_kinematic_20261028\\trace.jsonl",
+      "bytes": 2138429,
+      "sha256": "8a5375e28f5c5bcf100647d19edb9f40c64d2961df8ab2213be7b11e157ec3c1"
+    },
+    {
+      "path": "robot_navigation_lab\\scenes\\city_shops.json",
+      "bytes": 6187,
+      "sha256": "b441eda05dc8371fd1651655db7b18a2415e05efdeadf48ac23b7b2b812a9736"
+    },
+    {
+      "path": "robot_navigation_lab\\tasks\\shop_inspection.json",
+      "bytes": 178,
+      "sha256": "590367710ff3556d9cd7e0aa5a0f292032a7aaba248e90c4edc20dba45f301d5"
+    },
+    {
+      "path": "robot_navigation_lab\\tests\\live_route_browser.cjs",
+      "bytes": 2108,
+      "sha256": "73534e3b59f501450a9e1ab28642b75a2fcdd4454048c4ac958d624b3a2fcc84"
+    },
+    {
+      "path": "robot_navigation_lab\\tests\\showcase_browser.cjs",
+      "bytes": 2305,
+      "sha256": "80e41b101e2c46ce4e826744739defb4de2215e2e049987306a0801106d8f735"
+    },
+    {
+      "path": "robot_navigation_lab\\tests\\test_inspection.py",
+      "bytes": 4566,
+      "sha256": "300f8038ccea6aeab0327a9d3a2f7c351a5e4f8ec5aa0cdc588948ce73005558"
+    },
+    {
+      "path": "robot_navigation_lab\\tests\\__pycache__\\test_inspection.cpython-314.pyc",
+      "bytes": 11703,
+      "sha256": "7b24fd73216f36d60171bcc59190624efafc294936f2540b8e444b5666e97899"
+    },
+    {
+      "path": "robot_navigation_lab\\tools\\capture_replay.cjs",
+      "bytes": 1276,
+      "sha256": "9ba8c02736d580e08c7ced7052f5f90a0674d0eb812cd187f330b68a620617a4"
+    },
+    {
+      "path": "robot_navigation_lab\\tools\\encode_overview.py",
+      "bytes": 1697,
+      "sha256": "c244d47a1b4a62ed3640d6d9fd1e442d6e56ad553bd67df2ad59b8ee3c4c361a"
+    },
+    {
+      "path": "robot_navigation_lab\\tools\\setup_gazebo.py",
+      "bytes": 1923,
+      "sha256": "464f484e4caa8c2b5af708d81ec2ebc0bac57204a41d94d79bd678f31cddb826"
+    },
+    {
+      "path": "robot_navigation_lab\\tools\\verify_collision.py",
+      "bytes": 1616,
+      "sha256": "cb475e10ebd6384587aca4c76209905b1e11530609d6b4db60bdbfbadba8a662"
+    },
+    {
+      "path": "robot_navigation_lab\\__pycache__\\commands.cpython-314.pyc",
+      "bytes": 4206,
+      "sha256": "92f9d2beff2bb8d697d27d99d34c548cbf8d286d9a5d9fd8205e7bf966b02eae"
+    },
+    {
+      "path": "robot_navigation_lab\\__pycache__\\gazebo_backend.cpython-314.pyc",
+      "bytes": 15845,
+      "sha256": "995569ccb6622714b103ff69381f8499517f49166e1d6e31ddadb0667d2f9bf0"
+    },
+    {
+      "path": "robot_navigation_lab\\__pycache__\\navigation.cpython-314.pyc",
+      "bytes": 31542,
+      "sha256": "da41a702e928c9ec7d27e70282c8f7639e3477316c9099e66c08fae3b3409be6"
+    },
+    {
+      "path": "robot_navigation_lab\\__pycache__\\run_lesson.cpython-314.pyc",
+      "bytes": 12677,
+      "sha256": "3bffe651c0a23fd5d11d282337c5a508707c3d9bc83cbea2dff92400249a9434"
+    },
+    {
+      "path": "taskalloc\\check_group_fix.py",
+      "bytes": 1446,
+      "sha256": "3a082ca1c5b303116c3c37e562005e2644069f857abf7ad58144c267834ff6c5"
+    },
+    {
+      "path": "taskalloc\\check_v2_env_stub.py",
+      "bytes": 5981,
+      "sha256": "d5b5a87f85b662c363bbe8383b2214051b45550e4b261b9af3c0ae4569672ea5"
+    },
+    {
+      "path": "taskalloc\\check_v2_logic.py",
+      "bytes": 6261,
+      "sha256": "b3e6f707a3a02ebd8293b850c8b94436a6056d3685981aea5f5bd1584f864ba0"
+    },
+    {
+      "path": "taskalloc\\eval_taskalloc.py",
+      "bytes": 14001,
+      "sha256": "8fbe199a2a0e844ccf64259b69ad7e8f6903797b2578e5e5277fef149676e989"
+    },
+    {
+      "path": "taskalloc\\policy_evaluation.py",
+      "bytes": 5136,
+      "sha256": "ce6a403a5b166a860bef3b1808110648ac934c877ae47ab881d823591563e4a5"
+    },
+    {
+      "path": "taskalloc\\README.md",
+      "bytes": 1613,
+      "sha256": "b272e04c291987540268c35d02b4d249dafc01470c553aea2698696cd91a3eb4"
+    },
+    {
+      "path": "taskalloc\\run_taskalloc.sh",
+      "bytes": 3223,
+      "sha256": "5108064bb70587ae2c6a1feaf8f1817b41ce93a03e33d22975577f7568449d55"
+    },
+    {
+      "path": "taskalloc\\taskalloc_env.py",
+      "bytes": 24549,
+      "sha256": "7f761f2ba43a17ff877135b7012eaede97e6e4a334beedd79b12fb928e4f93ff"
+    },
+    {
+      "path": "taskalloc\\taskalloc_v2_env.py",
+      "bytes": 19193,
+      "sha256": "3e990bace87a5f2c92ec27bddecc5defddc96ae2712076b76ed858aa32ce37b3"
+    },
+    {
+      "path": "taskalloc\\test_taskalloc_env.py",
+      "bytes": 7772,
+      "sha256": "d3a315c65f11a2cbab5fdc86452da4a58d461bace5736dc542a12fd6b3f47d7e"
+    },
+    {
+      "path": "taskalloc\\train_taskalloc.py",
+      "bytes": 10363,
+      "sha256": "195b94f73c84934ed24443a82755ed6672e4efec294831268779311e4c0a9fd0"
+    },
+    {
+      "path": "_extract\\gazebo.txt",
+      "bytes": 30036,
+      "sha256": "39b27dfbc0fc299a1db4546fda376bec0a5fe27876a9522e239fc8d6c4952f9d"
+    },
+    {
+      "path": "_extract\\platform_detail.txt",
+      "bytes": 6898,
+      "sha256": "dafc7b7abb38b2c6ae237e9211a0201da2882e80e2e6d183d7da95b405a7d0aa"
+    },
+    {
+      "path": "_extract\\platform_points.txt",
+      "bytes": 2182,
+      "sha256": "3d80f5bc80fc3bce26895c48d9a43c366b429bb83a264a9c8b272ab75bf6efc6"
+    },
+    {
+      "path": "_extract\\task.txt",
+      "bytes": 28822,
+      "sha256": "4b97f66429dd90f9c6759870c4433f8fe082c4747bb312cc3abd2807e56bf5dc"
+    },
+    {
+      "path": "_extract\\verify.txt",
+      "bytes": 11701,
+      "sha256": "ce0d022edbf5461cee3a524ba0a82e4712ab06c03a2853059e452fde8d30dc75"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_001.png",
+      "bytes": 1131882,
+      "sha256": "9592a881fd43a452b0dfc1331e4713ac9128febe9aa0fe944f3c990db11cf498"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_002.png",
+      "bytes": 1161853,
+      "sha256": "01ef0523dfc2b72644b673c2dec50a1f66cf9e2ec3e7c1d087c415d1c37c5e53"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_003.png",
+      "bytes": 1243888,
+      "sha256": "3cdf2584c48a0ab145dc388647ad79ca9676697e23761add4611e07aff9ece13"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_004.png",
+      "bytes": 1086366,
+      "sha256": "0c9a8c15360f6a1b6209a63cc6826596899ab5e7f3687f97352e8f621df6350a"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_005.png",
+      "bytes": 1127506,
+      "sha256": "70ef0fbf65a9d6bc2d814152d1fe1076499e27d1abd4fce7dbd7a48707dfbf9c"
+    },
+    {
+      "path": "五类作战任务_10月26日修改_files\\image_manifest.json",
+      "bytes": 3576,
+      "sha256": "8b4b9c46df71e86742d26549b3abde5a793cc9a45cc45acba875ab745afe6761"
+    },
+    {
+      "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files\\image_001.jpg",
+      "bytes": 439648,
+      "sha256": "5270c043229fc9c574240a2c1d9d582012df42a3b19ef71684038437b2aee177"
+    },
+    {
+      "path": "四类平台参数指标与Gazebo实现详尽调研_更新版20261027_files\\image_manifest.json",
+      "bytes": 722,
+      "sha256": "e1fb85aa52478b3849a9b975f18d4781d36e3f56c2f3b01e03b7205e855dbd01"
+    },
+    {
+      "path": "多无人平台任务规划与仿真验证系统\\多无人平台任务规划与仿真验证系统.pptx",
+      "bytes": 88138,
+      "sha256": "17cb984ddee6d0de87aac1aaf42c5be80bbc837ad354e989baf5b79aa8002f4b"
+    }
+  ]
+}

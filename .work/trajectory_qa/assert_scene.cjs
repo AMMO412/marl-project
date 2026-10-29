@@ -1,0 +1,14 @@
+const {chromium}=require('C:/Users/ammo/.codex/tmp/beijing-map-20261017-01a148de/node_modules/playwright');
+const {pathToFileURL}=require('url');const assert=require('assert/strict');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+const page=await browser.newPage({viewport:{width:1440,height:1120}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto(pathToFileURL(process.cwd()+'/planning_middle_demo/outputs/run_20261026_214515_752916/trajectory.html').href);
+assert.equal(await page.locator('#scene-background polyline').count(),11);
+assert.match(await page.locator('#jobs-map').textContent(),/无线电塔/);
+await page.locator('#show-background').uncheck();assert.equal(await page.locator('#scene-background polyline').count(),0);
+await page.locator('#show-background').check();assert.equal(await page.locator('#scene-background polyline').count(),11);
+await page.locator('#show-landmarks').uncheck();assert.doesNotMatch(await page.locator('#jobs-map text').allTextContents().then(x=>x.join('')),/无线电塔/);
+await page.locator('#show-landmarks').check();assert.match(await page.locator('#jobs-map text').allTextContents().then(x=>x.join('')),/无线电塔/);
+await page.locator('#play').click();await page.waitForFunction(()=>Number(document.getElementById('clock').textContent)>.2);await page.locator('#play').click();
+await page.screenshot({path:'.work/trajectory_qa/scene-restored.png',fullPage:true});
+assert.deepEqual(errors,[]);console.log('PASS: 11 roads, landmark/background toggles, playback, no script errors');await browser.close();})().catch(e=>{console.error(e);process.exit(1)});

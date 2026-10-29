@@ -1,0 +1,394 @@
+{
+  "format": "taskalloc-scenario/v1",
+  "version": 1,
+  "step": 0,
+  "objective": "makespan",
+  "platforms": [
+    {
+      "pid": "P00",
+      "ptype": "tank",
+      "pos": [
+        84.44,
+        75.8
+      ],
+      "battery": 120.0,
+      "payload": 8.0,
+      "speed": 1.0,
+      "work_rate": 1.2,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.5,
+      "work_cost": 1.44
+    },
+    {
+      "pid": "P01",
+      "ptype": "ugv",
+      "pos": [
+        42.06,
+        25.89
+      ],
+      "battery": 100.0,
+      "payload": 6.0,
+      "speed": 0.8,
+      "work_rate": 1.0,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.32,
+      "work_cost": 1.0
+    },
+    {
+      "pid": "P02",
+      "ptype": "uav_a",
+      "pos": [
+        51.13,
+        40.49
+      ],
+      "battery": 60.0,
+      "payload": 2.0,
+      "speed": 2.0,
+      "work_rate": 0.6,
+      "sensor": "sar",
+      "alive": true,
+      "move_cost": 2.0,
+      "work_cost": 0.36
+    },
+    {
+      "pid": "P03",
+      "ptype": "uav_b",
+      "pos": [
+        78.38,
+        30.33
+      ],
+      "battery": 80.0,
+      "payload": 1.5,
+      "speed": 1.6,
+      "work_rate": 0.5,
+      "sensor": "ir",
+      "alive": true,
+      "move_cost": 1.28,
+      "work_cost": 0.25
+    },
+    {
+      "pid": "P04",
+      "ptype": "tank",
+      "pos": [
+        47.66,
+        58.34
+      ],
+      "battery": 120.0,
+      "payload": 8.0,
+      "speed": 1.0,
+      "work_rate": 1.2,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.5,
+      "work_cost": 1.44
+    },
+    {
+      "pid": "P05",
+      "ptype": "ugv",
+      "pos": [
+        90.81,
+        50.47
+      ],
+      "battery": 100.0,
+      "payload": 6.0,
+      "speed": 0.8,
+      "work_rate": 1.0,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.32,
+      "work_cost": 1.0
+    },
+    {
+      "pid": "P06",
+      "ptype": "uav_a",
+      "pos": [
+        28.18,
+        75.58
+      ],
+      "battery": 60.0,
+      "payload": 2.0,
+      "speed": 2.0,
+      "work_rate": 0.6,
+      "sensor": "sar",
+      "alive": true,
+      "move_cost": 2.0,
+      "work_cost": 0.36
+    },
+    {
+      "pid": "P07",
+      "ptype": "uav_b",
+      "pos": [
+        61.84,
+        25.05
+      ],
+      "battery": 80.0,
+      "payload": 1.5,
+      "speed": 1.6,
+      "work_rate": 0.5,
+      "sensor": "ir",
+      "alive": true,
+      "move_cost": 1.28,
+      "work_cost": 0.25
+    },
+    {
+      "pid": "P08",
+      "ptype": "tank",
+      "pos": [
+        90.97,
+        98.28
+      ],
+      "battery": 120.0,
+      "payload": 8.0,
+      "speed": 1.0,
+      "work_rate": 1.2,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.5,
+      "work_cost": 1.44
+    },
+    {
+      "pid": "P09",
+      "ptype": "ugv",
+      "pos": [
+        81.02,
+        90.22
+      ],
+      "battery": 100.0,
+      "payload": 6.0,
+      "speed": 0.8,
+      "work_rate": 1.0,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.32,
+      "work_cost": 1.0
+    },
+    {
+      "pid": "P10",
+      "ptype": "uav_a",
+      "pos": [
+        31.01,
+        72.98
+      ],
+      "battery": 60.0,
+      "payload": 2.0,
+      "speed": 2.0,
+      "work_rate": 0.6,
+      "sensor": "sar",
+      "alive": true,
+      "move_cost": 2.0,
+      "work_cost": 0.36
+    },
+    {
+      "pid": "P11",
+      "ptype": "uav_b",
+      "pos": [
+        89.88,
+        68.4
+      ],
+      "battery": 80.0,
+      "payload": 1.5,
+      "speed": 1.6,
+      "work_rate": 0.5,
+      "sensor": "ir",
+      "alive": true,
+      "move_cost": 1.28,
+      "work_cost": 0.25
+    },
+    {
+      "pid": "P12",
+      "ptype": "tank",
+      "pos": [
+        47.21,
+        10.07
+      ],
+      "battery": 120.0,
+      "payload": 8.0,
+      "speed": 1.0,
+      "work_rate": 1.2,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.5,
+      "work_cost": 1.44
+    },
+    {
+      "pid": "P13",
+      "ptype": "ugv",
+      "pos": [
+        43.42,
+        61.09
+      ],
+      "battery": 100.0,
+      "payload": 6.0,
+      "speed": 0.8,
+      "work_rate": 1.0,
+      "sensor": "eo",
+      "alive": true,
+      "move_cost": 0.32,
+      "work_cost": 1.0
+    },
+    {
+      "pid": "P14",
+      "ptype": "uav_a",
+      "pos": [
+        91.3,
+        96.66
+      ],
+      "battery": 60.0,
+      "payload": 2.0,
+      "speed": 2.0,
+      "work_rate": 0.6,
+      "sensor": "sar",
+      "alive": true,
+      "move_cost": 2.0,
+      "work_cost": 0.36
+    }
+  ],
+  "tasks": [
+    {
+      "tid": "T00",
+      "ttype": "patrol",
+      "pos": [
+        47.7,
+        86.53
+      ],
+      "work": 12.0,
+      "window": [
+        0,
+        60
+      ],
+      "crew": 1,
+      "need_payload": 0.0,
+      "need_sensor": "eo",
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T01",
+      "ttype": "blockade",
+      "pos": [
+        26.05,
+        80.5
+      ],
+      "work": 18.0,
+      "window": [
+        0,
+        80
+      ],
+      "crew": 3,
+      "need_payload": 2.0,
+      "need_sensor": null,
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T02",
+      "ttype": "recon",
+      "pos": [
+        54.87,
+        1.4
+      ],
+      "work": 10.0,
+      "window": [
+        0,
+        50
+      ],
+      "crew": 2,
+      "need_payload": 0.0,
+      "need_sensor": "sar",
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T03",
+      "ttype": "assault",
+      "pos": [
+        71.97,
+        39.88
+      ],
+      "work": 20.0,
+      "window": [
+        0,
+        90
+      ],
+      "crew": 4,
+      "need_payload": 4.0,
+      "need_sensor": null,
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T04",
+      "ttype": "hold",
+      "pos": [
+        82.48,
+        66.82
+      ],
+      "work": 15.0,
+      "window": [
+        0,
+        70
+      ],
+      "crew": 2,
+      "need_payload": 1.0,
+      "need_sensor": "eo",
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T05",
+      "ttype": "patrol",
+      "pos": [
+        0.11,
+        49.36
+      ],
+      "work": 12.0,
+      "window": [
+        0,
+        60
+      ],
+      "crew": 1,
+      "need_payload": 0.0,
+      "need_sensor": "eo",
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T06",
+      "ttype": "blockade",
+      "pos": [
+        86.76,
+        24.39
+      ],
+      "work": 18.0,
+      "window": [
+        0,
+        80
+      ],
+      "crew": 3,
+      "need_payload": 2.0,
+      "need_sensor": null,
+      "progress": 0.0,
+      "status": "open"
+    },
+    {
+      "tid": "T07",
+      "ttype": "recon",
+      "pos": [
+        32.52,
+        87.05
+      ],
+      "work": 10.0,
+      "window": [
+        0,
+        50
+      ],
+      "crew": 2,
+      "need_payload": 0.0,
+      "need_sensor": "sar",
+      "progress": 0.0,
+      "status": "open"
+    }
+  ]
+}

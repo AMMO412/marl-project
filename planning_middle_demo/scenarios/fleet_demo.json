@@ -1,0 +1,29 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 20,
+  "K": 5,
+  "max_attempts": 2,
+  "grace_s": 1,
+  "dev_threshold": 4.0,
+  "platforms": [
+    {"robot_no": 1, "pos": [10, 10]},
+    {"robot_no": 2, "pos": [30, 10]},
+    {"robot_no": 3, "pos": [50, 10]},
+    {"robot_no": 4, "pos": [10, 30]},
+    {"robot_no": 21, "pos": [70, 10]},
+    {"robot_no": 22, "pos": [70, 30]},
+    {"robot_no": 31, "pos": [30, 60]},
+    {"robot_no": 32, "pos": [50, 60]},
+    {"robot_no": 41, "pos": [30, 80]},
+    {"robot_no": 42, "pos": [50, 80]}
+  ],
+  "jobs": [
+    {"job_id": "J1", "type": "patrol",   "pos": [20, 15]},
+    {"job_id": "J2", "type": "blockade", "pos": [60, 20]},
+    {"job_id": "J3", "type": "recon",    "pos": [40, 70]},
+    {"job_id": "J4", "type": "hold",     "pos": [25, 25]},
+    {"job_id": "J5", "type": "patrol",   "pos": [75, 15]},
+    {"job_id": "J6", "type": "assault",  "pos": [40, 20]}
+  ]
+}

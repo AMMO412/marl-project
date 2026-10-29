@@ -1,0 +1,55 @@
+{
+  "status": "complete",
+  "scope": "按参考图制作固定时间轴动态示意，不声称实现任务执行或物理仿真",
+  "requirements": [
+    {
+      "requirement": "六张参考图均被读取，原回放图作对照",
+      "evidence": "六个原图哈希和HTML内嵌图片；浏览器已验证全部引用",
+      "result": "proven"
+    },
+    {
+      "requirement": "五种图示分别有不同动态运动",
+      "evidence": "五个模式的100个关键帧、每页实机截图",
+      "result": "proven"
+    },
+    {
+      "requirement": "循环路线、检查点及重复经过",
+      "evidence": "patrol回到起点及时间轴检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "区域边界及固定支线返回",
+      "evidence": "boundary支线出发和回接连续性检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "多单元到位、停留、执行与确认图形",
+      "evidence": "stages到位静止及确认图标前后阶段检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "室内路径、区域显现、共享图画面",
+      "evidence": "exploration门洞路径、显现高度和共享单元格检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "持续停留、接替进入、重叠与离开",
+      "evidence": "handover固定单元、进入完成、重叠及离开检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "可打开、可操作的独立可视化产物",
+      "evidence": "index.html；播放暂停逐步时间轴倍速循环及离线复制检查通过",
+      "result": "proven"
+    },
+    {
+      "requirement": "区分示意与原实验结果",
+      "evidence": "页面显著标注、manifest、README及Obsidian记录；26原文件哈希保持一致",
+      "result": "proven"
+    }
+  ],
+  "browser_checks": "C:\\Users\\ammo\\Desktop\\MARL项目\\.work\\task_schematics_20261027\\verification.json",
+  "python_tests": "57 passed",
+  "artifact": "C:\\Users\\ammo\\Desktop\\MARL项目\\planning_middle_demo\\outputs\\task_motion_schematics_20261027\\index.html",
+  "artifact_sha256": "d68e884c9c173583d4690e08e42f743e74fc88267c79e7110e4522eb0fc436dd"
+}

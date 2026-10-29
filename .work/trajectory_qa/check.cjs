@@ -1,0 +1,25 @@
+const {chromium}=require('C:/Users/ammo/.codex/tmp/beijing-map-20261017-01a148de/node_modules/playwright');
+const {pathToFileURL}=require('url');
+const fs=require('fs');
+(async()=>{
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+const page=await browser.newPage({viewport:{width:1440,height:1180},deviceScaleFactor:1});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const url=pathToFileURL(process.cwd()+'/planning_middle_demo/outputs/run_20261026_214515_752916/trajectory.html').href;
+await page.goto(url);await page.waitForTimeout(250);
+console.log('initial',JSON.stringify(await page.evaluate(()=>({rows:document.querySelectorAll('#workers-table tr').length,clock:document.querySelector('#clock').textContent,kinds:[...document.querySelectorAll('#workers-table tr')].map(r=>r.cells[1].textContent),markers:document.querySelectorAll('#workers-map [role=button]').length}))));
+await page.screenshot({path:'.work/trajectory_qa/start.png',fullPage:true});
+await page.locator('#play').click();await page.waitForTimeout(1200);await page.locator('#play').click();
+console.log('after-play',await page.locator('#clock').textContent());
+await page.locator('#timeline').evaluate(el=>{el.value='30';el.dispatchEvent(new Event('input',{bubbles:true}));});
+await page.locator('#worker-select').selectOption('rover_04');
+console.log('at-30',JSON.stringify(await page.locator('#row-3').innerText()));
+await page.screenshot({path:'.work/trajectory_qa/selected.png',fullPage:true});
+await page.locator('#event-list button').last().click();
+console.log('at-end',JSON.stringify(await page.evaluate(()=>({clock:document.querySelector('#clock').textContent,done:document.querySelector('#count-done').textContent,last:document.querySelector('#row-3').innerText}))));
+await page.screenshot({path:'.work/trajectory_qa/end.png',fullPage:true});
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.work/trajectory_qa/mobile.png',fullPage:true});
+console.log('mobile-overflow',await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
+console.log('page-errors',JSON.stringify(errors));
+await browser.close();if(errors.length)process.exitCode=1;
+})().catch(e=>{console.error(e);process.exit(1)});

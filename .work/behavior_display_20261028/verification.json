@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "holdSamplesChecked": 198,
+  "tasksChecked": 6,
+  "recordingUnchanged": true,
+  "behaviorSourcesUnchanged": true,
+  "reconRendererUnchanged": true,
+  "checks": [
+    "exact recorded positions",
+    "labels inside canvas and separated",
+    "camera fixed per chapter",
+    "event-based current handover count",
+    "no future role bars",
+    "task isolation",
+    "chapter switching on jumps",
+    "play/pause/restart/end",
+    "seek and timeline clicks",
+    "390px viewport",
+    "offline/no remote requests"
+  ],
+  "errors": []
+}

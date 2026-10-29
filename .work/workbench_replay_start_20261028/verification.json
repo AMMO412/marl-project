@@ -1,0 +1,197 @@
+{
+  "errors": [],
+  "first": {
+    "id": "workbench_20261028_174224_708566",
+    "t": 72,
+    "range": {
+      "jobId": "J4",
+      "dispatch": 72,
+      "start": 72,
+      "execution": 110,
+      "end": 139
+    },
+    "pre": true,
+    "labels": [
+      "#02 · 前往作业区",
+      "#04 · 前往作业区",
+      "#21 · 前往作业区",
+      "#22 · 前往作业区",
+      "J4",
+      "警察局"
+    ],
+    "poses": [
+      [
+        "rover_21",
+        17.173,
+        29.706
+      ],
+      [
+        "rover_22",
+        15.812,
+        32.2
+      ],
+      [
+        "rover_04",
+        29.16,
+        51.84
+      ],
+      [
+        "rover_02",
+        48.39,
+        43.07
+      ]
+    ]
+  },
+  "sweep": {
+    "rows": [
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J1",
+        "view": "spatial",
+        "n": 75
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J1",
+        "view": "process",
+        "n": 75
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J2",
+        "view": "spatial",
+        "n": 67
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J2",
+        "view": "process",
+        "n": 67
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J3",
+        "view": "spatial",
+        "n": 108
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J3",
+        "view": "process",
+        "n": 108
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J4",
+        "view": "spatial",
+        "n": 68
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J4",
+        "view": "process",
+        "n": 68
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J5",
+        "view": "spatial",
+        "n": 41
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J5",
+        "view": "process",
+        "n": 41
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J6",
+        "view": "spatial",
+        "n": 58
+      },
+      {
+        "id": "workbench_20261028_174224_708566",
+        "job": "J6",
+        "view": "process",
+        "n": 58
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J1",
+        "view": "spatial",
+        "n": 74
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J1",
+        "view": "process",
+        "n": 74
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J6",
+        "view": "spatial",
+        "n": 68
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J6",
+        "view": "process",
+        "n": 68
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J5",
+        "view": "spatial",
+        "n": 34
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J5",
+        "view": "process",
+        "n": 34
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J3",
+        "view": "spatial",
+        "n": 101
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J3",
+        "view": "process",
+        "n": 101
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J2",
+        "view": "spatial",
+        "n": 42
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J2",
+        "view": "process",
+        "n": 42
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J4",
+        "view": "spatial",
+        "n": 85
+      },
+      {
+        "id": "behavior_20261028_verify",
+        "job": "J4",
+        "view": "process",
+        "n": 85
+      }
+    ],
+    "bad": []
+  },
+  "explicitSkipMarked": true,
+  "restartRestoresFullTask": true,
+  "oldDeepLinkRestartFixed": true
+}

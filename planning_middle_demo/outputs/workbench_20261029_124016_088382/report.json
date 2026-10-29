@@ -1,0 +1,264 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 494,
+  "objective": "makespan",
+  "all_succeeded": true,
+  "settled": true,
+  "jobs": [
+    {
+      "job_id": "ASL-CITY-1",
+      "jtype": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "work": 20.0,
+      "window": [
+        0,
+        520
+      ],
+      "crew": 16,
+      "need_payload": 4.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 20.0,
+      "status": "succeeded",
+      "attempts": 1,
+      "started_at": 200,
+      "planned_end": 260
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        -69.964,
+        -144.762
+      ],
+      "battery": 43.4,
+      "alive": true,
+      "topic": "/rover_01/cmd_vel"
+    },
+    {
+      "pid": "rover_02",
+      "kind": "UGV",
+      "robot_no": 2,
+      "pos": [
+        -11.2,
+        -95.657
+      ],
+      "battery": 50.7,
+      "alive": true,
+      "topic": "/rover_02/cmd_vel"
+    },
+    {
+      "pid": "rover_03",
+      "kind": "UGV",
+      "robot_no": 3,
+      "pos": [
+        -13.351,
+        -94.419
+      ],
+      "battery": 49.1,
+      "alive": true,
+      "topic": "/rover_03/cmd_vel"
+    },
+    {
+      "pid": "rover_04",
+      "kind": "UGV",
+      "robot_no": 4,
+      "pos": [
+        -15.829,
+        -94.169
+      ],
+      "battery": 47.2,
+      "alive": true,
+      "topic": "/rover_04/cmd_vel"
+    },
+    {
+      "pid": "rover_05",
+      "kind": "UGV",
+      "robot_no": 5,
+      "pos": [
+        -18.193,
+        -94.941
+      ],
+      "battery": 45.0,
+      "alive": true,
+      "topic": "/rover_05/cmd_vel"
+    },
+    {
+      "pid": "rover_06",
+      "kind": "UGV",
+      "robot_no": 6,
+      "pos": [
+        -20.058,
+        -96.615
+      ],
+      "battery": 42.1,
+      "alive": true,
+      "topic": "/rover_06/cmd_vel"
+    },
+    {
+      "pid": "rover_07",
+      "kind": "UGV",
+      "robot_no": 7,
+      "pos": [
+        -21.07,
+        -98.877
+      ],
+      "battery": 39.2,
+      "alive": true,
+      "topic": "/rover_07/cmd_vel"
+    },
+    {
+      "pid": "rover_08",
+      "kind": "UGV",
+      "robot_no": 8,
+      "pos": [
+        -21.084,
+        -101.364
+      ],
+      "battery": 36.3,
+      "alive": true,
+      "topic": "/rover_08/cmd_vel"
+    },
+    {
+      "pid": "rover_09",
+      "kind": "UGV",
+      "robot_no": 9,
+      "pos": [
+        -9.228,
+        -100.065
+      ],
+      "battery": 50.7,
+      "alive": true,
+      "topic": "/rover_09/cmd_vel"
+    },
+    {
+      "pid": "rover_10",
+      "kind": "UGV",
+      "robot_no": 10,
+      "pos": [
+        -9.729,
+        -97.678
+      ],
+      "battery": 49.8,
+      "alive": true,
+      "topic": "/rover_10/cmd_vel"
+    },
+    {
+      "pid": "rover_11",
+      "kind": "UGV",
+      "robot_no": 11,
+      "pos": [
+        -20.058,
+        -103.642
+      ],
+      "battery": 45.3,
+      "alive": true,
+      "topic": "/rover_11/cmd_vel"
+    },
+    {
+      "pid": "rover_12",
+      "kind": "UGV",
+      "robot_no": 12,
+      "pos": [
+        -16.557,
+        -102.465
+      ],
+      "battery": 42.7,
+      "alive": true,
+      "topic": "/rover_12/cmd_vel"
+    },
+    {
+      "pid": "rover_13",
+      "kind": "UGV",
+      "robot_no": 13,
+      "pos": [
+        -15.425,
+        -102.029
+      ],
+      "battery": 40.5,
+      "alive": true,
+      "topic": "/rover_13/cmd_vel"
+    },
+    {
+      "pid": "rover_14",
+      "kind": "UGV",
+      "robot_no": 14,
+      "pos": [
+        -13.845,
+        -102.031
+      ],
+      "battery": 38.6,
+      "alive": true,
+      "topic": "/rover_14/cmd_vel"
+    },
+    {
+      "pid": "rover_15",
+      "kind": "UGV",
+      "robot_no": 15,
+      "pos": [
+        -13.428,
+        -101.997
+      ],
+      "battery": 37.0,
+      "alive": true,
+      "topic": "/rover_15/cmd_vel"
+    },
+    {
+      "pid": "rover_16",
+      "kind": "UGV",
+      "robot_no": 16,
+      "pos": [
+        -9.748,
+        -102.395
+      ],
+      "battery": 35.7,
+      "alive": true,
+      "topic": "/rover_16/cmd_vel"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 20,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 19
+  },
+  "done": 1,
+  "used_energy": 906.9,
+  "per_task_energy": 906.88,
+  "makespan": 494,
+  "spread": 9.98,
+  "need_report": [],
+  "solve_summary": null,
+  "rejected_reasons": {
+    "续航不足": 4,
+    "方案级越界（叠加超续航），本轮撤下": 2,
+    "协同人数不足": 1
+  },
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 620,
+  "H": 600,
+  "K": 25,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "behavior_details": true,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": false,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}

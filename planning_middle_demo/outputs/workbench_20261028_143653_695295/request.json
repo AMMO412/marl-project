@@ -1,0 +1,8 @@
+{
+  "scenario": "simple_city",
+  "mode": "normal",
+  "motion": "real",
+  "avoid": false,
+  "max_ticks": 200,
+  "objective": "makespan"
+}

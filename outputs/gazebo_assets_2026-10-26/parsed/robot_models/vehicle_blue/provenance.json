@@ -1,0 +1,8 @@
+{
+  "source_file": "sources/gz/examples/worlds/diff_drive.sdf",
+  "source_url": "https://github.com/gazebosim/gz-sim/blob/d540cfd3aa204bc2a75f164478f2f09e01bd3bbb/examples/worlds/diff_drive.sdf",
+  "upstream_model_name": "vehicle_blue",
+  "changes": "XML serialization and extraction only; comments omitted; parameters unchanged",
+  "license_file": "sources/gz/LICENSE",
+  "runtime_verified": false
+}

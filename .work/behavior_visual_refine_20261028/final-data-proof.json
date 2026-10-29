@@ -1,0 +1,19 @@
+{
+  "run": "workbench_20261028_174224_708566",
+  "old_report_fields_unchanged": true,
+  "canonical_audit_identical": true,
+  "canonical_event_count": 953,
+  "applied_feedback": 904,
+  "new_report_fields": [
+    "behavior_details"
+  ],
+  "simulated_until_s": 187,
+  "jobs_succeeded": 6,
+  "preserved_sources": {
+    "planning_middle_demo/outputs/behavior_20261028_verify/behavior_trace.json": true,
+    "planning_middle_demo/outputs/workbench_behavior_20261028/trace.jsonl": true,
+    "planning_middle_demo/behaviors.py": true,
+    "planning_middle_demo/behavior_runtime.py": true,
+    "planning_middle_demo/city_nav.py": true
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "xml_files": 28,
+  "scenes": 8,
+  "scene_objects": 692,
+  "roads": 11,
+  "model_declarations": 162,
+  "geometries": 370,
+  "exact_source_matches": 28,
+  "scene_counts": [
+    {
+      "id": "ap:zephyr_runway:zephyr_runway",
+      "objects": 3,
+      "roads": 0
+    },
+    {
+      "id": "gz:diff_drive:diff_drive",
+      "objects": 3,
+      "roads": 0
+    },
+    {
+      "id": "gz:heightmap:heightmap",
+      "objects": 5,
+      "roads": 0
+    },
+    {
+      "id": "gz:default:linear_battery_demo",
+      "objects": 3,
+      "roads": 0
+    },
+    {
+      "id": "gz:default:tracked_vehicle_simple",
+      "objects": 6,
+      "roads": 0
+    },
+    {
+      "id": "aws:default:no_roof_small_warehouse",
+      "objects": 25,
+      "roads": 0
+    },
+    {
+      "id": "aws:default:small_warehouse",
+      "objects": 26,
+      "roads": 0
+    },
+    {
+      "id": "city:default:simple_city",
+      "objects": 621,
+      "roads": 11
+    }
+  ]
+}

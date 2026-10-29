@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五类任务到位行为 · 带避障演示</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#2563eb; --warn:#dc2626; --ok:#15803d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+  header{padding:18px 24px 10px}
+  h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px}
+  .sub{color:var(--muted);margin-top:4px;font-size:12.5px}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;padding:0 24px}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);
+         border-radius:12px;overflow:hidden;min-height:520px}
+  canvas{display:block;width:100%;height:64vh;min-height:480px}
+  .hud{position:absolute;left:14px;top:12px;display:flex;gap:8px;align-items:center;
+       background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:999px;
+       padding:5px 12px;font-size:12.5px;backdrop-filter:blur(4px)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .clock{position:absolute;right:14px;top:12px;background:rgba(255,255,255,.9);
+         border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px}
+  aside{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .card h3{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:12.5px}
+  .kv span:first-child{color:var(--muted)}
+  .badge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;
+         border:1px solid currentColor}
+  #events .ev{font-size:12px;color:#374151;padding:2px 0;border-bottom:1px dashed #f0f1f3}
+  #events .ev:last-child{border-bottom:0}
+  .t{color:#9ca3af;font-variant-numeric:tabular-nums;margin-right:6px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  footer{padding:12px 24px 20px}
+  #tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:#fff;color:#374151;border-radius:999px;
+       padding:5px 12px;font-size:12.5px;cursor:pointer}
+  .tab.active{border-color:#c7d2fe;background:#eef2ff;color:#3730a3}
+  .controls{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);
+            border-radius:10px;padding:8px 12px}
+  #seek{flex:1;accent-color:var(--accent)}
+  button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:8px;
+         padding:4px 12px;cursor:pointer}
+  select{font:inherit;border:1px solid var(--line);border-radius:8px;padding:3px 6px;background:#fff}
+  #timeline{position:relative;margin-top:10px;height:34px;border-radius:8px;overflow:hidden;
+            background:#fff;border:1px solid var(--line);display:flex}
+  .seg{position:relative;height:100%;border-right:1px solid #fff;cursor:pointer;
+       display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#fff;
+       white-space:nowrap;overflow:hidden;min-width:6px}
+  .playhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:#111827;pointer-events:none}
+  .notes{font-size:11.5px;color:var(--muted);line-height:1.55}
+  @media (max-width:1100px){ main{grid-template-columns:1fr} aside{flex-direction:row;flex-wrap:wrap}
+    aside .card{flex:1 1 240px} }
+
+header{padding:20px 24px 12px}.playback-panel{margin:0 24px 16px}#tabs{margin-bottom:10px}.controls{flex-wrap:wrap}.controls label{font-size:11px;color:#718096;white-space:nowrap}.controls select,.controls button{font-size:12px}#seek{min-width:170px}.stage{min-height:600px}canvas{height:70vh;min-height:580px;max-height:850px}main{padding-bottom:24px}#timeline{height:28px}.card h3{font-size:12px}.hold-message{padding:12px;background:#eff6ef;border:1px solid #d7e7d5;border-radius:7px;font-size:12px;color:#4c7354}.hold-count{font-size:12px;color:#6b7280;margin:12px 0}.hold-count b{font-size:22px;color:#24845b;margin:0 5px}.role-card{padding:11px;border:1px solid #e2e8f0;border-left:3px solid;border-radius:6px;margin-top:9px;background:#fcfdfc}.role-card b{display:block;font-size:12px}.role-card strong{display:block;font-size:12px;font-weight:500;margin-top:4px;color:#506475}.role-card small{display:block;font-size:10px;color:#94a3b8;margin-top:5px}.route-card{padding:9px 0;border-bottom:1px solid #edf0f4}.route-card:last-child{border:0}.route-card b{display:block;font-size:12px;font-weight:500;color:#4f6981}.route-card small{display:block;color:#8c9aae;font-size:10px;margin-top:4px}#hold-track{display:flex;gap:8px;overflow:auto;padding:10px 0 2px}#hold-track[hidden]{display:none}#hold-track button{font-size:11px;white-space:nowrap;text-align:left;color:#4b6e59;background:#f4faf3;border-color:#dbe8d7;padding:8px 12px}#hold-track small{display:block;color:#8c9e8d;font-size:10px}.future{opacity:.45}.clock{right:14px;left:auto}.notes{font-size:10px}aside{max-height:none}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #75a490;outline-offset:3px}@media(max-width:1100px){aside{display:grid;grid-template-columns:1fr 1fr}.stage{min-height:520px}canvas{height:65vh;min-height:500px}}@media(max-width:650px){header{padding:15px 12px 8px}h1{font-size:17px}.sub{font-size:11px}.playback-panel{margin:0 12px 12px}main{padding:0 12px 18px;grid-template-columns:1fr}aside{display:block}.card{margin-bottom:10px}.controls{gap:8px}.controls #seek{order:5;flex:1 1 100%}.stage{min-height:440px}canvas{height:480px;min-height:480px}.hud{font-size:10px;left:8px;top:8px;padding:4px 8px;max-width:70%;flex-wrap:wrap;gap:5px}.clock{font-size:10px;top:8px;right:8px;padding:4px 8px}.tab{font-size:11px;padding:5px 8px}.legend{font-size:10px}}
+
+main{align-items:start}.stage{position:sticky;top:10px}@media(max-width:1100px){.stage{position:relative;top:0}}
+[hidden]{display:none!important}
+.hold-guide{margin:0 24px 12px;padding:12px 16px;background:#eef7f1;border:1px solid #d1e5d7;border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.hold-guide strong{display:block;font-size:16px;color:#14532d}.hold-guide p{margin:3px 0 0;color:#587262;font-size:12px}
+.hold-guide .count{white-space:nowrap;color:#39704d;font-size:12px}.hold-guide .count b{font-size:25px;margin:0 5px}
+body.hold-view #timeline{display:none}body.hold-view .stage{position:relative;top:0;min-height:0}
+body.hold-view canvas{height:51vh;min-height:380px;max-height:570px}
+.role-board{padding:10px 14px;border-top:1px solid #e5e7eb;background:white}
+.role-board h3{font-size:12px;color:#475569;margin:0;font-weight:600}
+#role-timeline{display:block;width:100%;height:105px;cursor:pointer}
+.role-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:#64748b}
+.role-legend i{display:inline-block;width:15px;height:6px;margin-right:4px;border-radius:2px}
+.map-caption{font-size:11px;padding:7px 14px;color:#64748b;background:#fbfcfd}
+#hold-card .role-card{padding:8px 10px;margin-top:7px}#hold-card .hold-message{padding:9px}#hold-card .hold-count{margin:9px 0}
+details.card summary{cursor:pointer;font-size:12px;color:#64748b}details.card .notes{margin-top:8px}
+.final-metrics{margin-top:12px;font-size:11px;color:#64748b}.final-metrics summary{cursor:pointer}
+body.hold-view .legend{display:none}#range-label{font-size:11px;color:#64748b;min-width:100px}
+@media(max-width:650px){.hold-guide{margin:0 12px 12px;padding:10px;align-items:flex-start}.hold-guide strong{font-size:13px}.hold-guide p{font-size:11px}.hold-guide .count{font-size:10px}.hold-guide .count b{font-size:20px}body.hold-view canvas{height:390px;min-height:390px}.role-board{padding:9px 6px}.role-legend{gap:7px}.map-caption{font-size:10px}.role-board h3{font-size:11px}body.hold-view .stage{position:relative}}
+</style>
+</head>
+<body>
+<header>
+  <h1>五类任务到位行为 · 带避障演示</h1>
+  <div class="sub">独立串行行为验证记录（区别于工作台并行运行）；规划器下发指派 → A* 绕开真实建筑轮廓机动 → 到位后按任务类型执行行为；轨迹与事件均为代码运行结果</div>
+</header>
+
+<section class="playback-panel">
+  <div id="tabs"></div>
+  <div class="controls"><button id="play">播放</button><button id="restart">重播本段</button><select id="chapter"><option value="action">作业区动作</option><option value="approach">机动避障</option></select><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><input id="seek" type="range" min="0" max="1" step="any" value="0"><span id="range-label"></span><label><input type="checkbox" id="showBuildings" checked>碰撞盒</label><label><input type="checkbox" id="showPaths" checked>当前路径</label><label><input type="checkbox" id="showStraight">被挡直线对照</label></div>
+  <div id="hold-track" hidden></div><div id="timeline"></div>
+</section>
+<section id="hold-guide" class="hold-guide" hidden><div><strong id="hold-headline"></strong><p>看颜色认成员，看位置认移动；下方时间带显示日志中的角色变化。</p></div><div class="count">此刻已完成接替 <b id="hold-count-now">0</b> 次</div></section>
+<main>
+  <section class="stage">
+    <canvas id="map"></canvas>
+    <div class="hud"><span class="dot" id="hudDot"></span><span id="hudJob">—</span>
+      <span id="hudPhase" style="color:#6b7280"></span></div>
+    <div class="clock" id="clock">0.0 s</div>
+    <div id="hold-map-caption" class="map-caption" hidden>箭头为原始记录位置；引线只展开说明标签。空心标记为参考位置，不表示成员已经到位。</div>
+    <div id="role-board" class="role-board" hidden><h3>成员角色时间带 · 只显示已播放的记录，点击可定位</h3><svg id="role-timeline" role="img" aria-label="两名成员的角色变化时间带"></svg><div class="role-legend"><span><i style="background:#2563eb"></i>成员深色：主班角色</span><span><i style="background:#cbd5e1"></i>浅色：待命角色</span><span><i style="background:#f59e0b"></i>橙色：接替中</span><span><i style="background:#64748b"></i>灰色：机动记录</span></div></div>
+  </section>
+  <aside>
+    <div class="card">
+      <h3>当前作业</h3>
+      <div id="jobinfo"></div>
+      <div class="legend">
+        <span><i style="background:#cbd5e1"></i>建筑（SDF 盒体）</span>
+        <span><i style="background:#2563eb"></i>A* 路径</span>
+        <span><i style="background:#9ca3af"></i>直线（被挡）</span>
+      </div>
+    </div>
+    <div class="card" id="hold-card" hidden><h3>换班过程 · 当前记录</h3><div id="hold-status"></div></div><div class="card" id="route-card"><h3>当前路径 · 避障证据</h3><div id="route-status"></div></div><div class="card" id="metrics-card"><h3>行为指标（本作业全程最终值）</h3><div id="metrics"></div></div>
+    <div class="card"><h3>事件</h3><div id="events"></div></div>
+    <details class="card"><summary>记录说明与局限</summary><div class="notes" id="notes"></div></details>
+  </aside>
+</main>
+
+
+
+<script>
+const DATA = __DATA__;
+const TYPE_NAME = {patrol:'巡逻警戒',blockade:'区域封控',recon:'协同侦察',assault:'机动突击',hold:'要点坚守'};
+const EVENT_NAME = {
+  dispatched:'下发作业', phase:'阶段切换', arrived_area:'进入作业区',
+  checkpoint_visited:'检查点复查', cycle_completed:'完成一圈', on_post:'在位',
+  posts_occupied:'封控就位', intrusion_detected:'发现入侵', interceptor_assigned:'指定拦截',
+  intercepted:'拦截到位', breach:'被突破', handover_start:'开始接替',
+  handover_complete:'接替完成', relief:'换班', all_staged:'全员到位',
+  assault_started:'突击开始', effect_started:'开始处置', effect_applied:'处置结束',
+  confirmed:'结果确认完成', map_initialised:'共享地图初始化', frontier_mapped:'前沿已探测',
+  map_shared:'地图更新', coverage_reached:'覆盖达标', report_sent:'侦察成果回传',
+  behavior_complete:'行为结束', route_failed:'路径失败',
+  command_received:'接收任务指令', target_designated:'目标指示',
+  arrived:'平台到位', all_in_position:'同时到达攻击阵位',
+  result_pending:'结果待确认', assessment_received:'外部评估回传',
+  status:'任务状态', withdraw_started:'开始撤离', withdrawn:'撤离到位',
+  result_failed:'结果未达成', confirmation_timeout:'确认超时',
+  attack_window_missed:'错过攻击窗口', task_timeout:'任务超时'
+};
+const AGENT_COLORS = ['#2563eb','#db2777','#0d9488','#d97706','#7c3aed','#0891b2','#be123c','#4d7c0f'];
+
+const canvas = document.getElementById('map');
+const ctx = canvas.getContext('2d');
+const seek = document.getElementById('seek');
+const clockEl = document.getElementById('clock');
+const playBtn = document.getElementById('play');
+const speedSel = document.getElementById('speed');
+const straightToggle = document.getElementById('showStraight');
+const tabsEl = document.getElementById('tabs');
+const timelineEl = document.getElementById('timeline');
+const hudDot = document.getElementById('hudDot');
+const hudJob = document.getElementById('hudJob');
+const hudPhase = document.getElementById('hudPhase');
+
+let T=0,playing=false,last=0,selectedJob=(DATA.jobs.find(j=>j.type==='hold')||DATA.jobs[0]).job_id,chapter='action',view={scale:1,ox:0,oy:0,pad:40,bounds:DATA.bounds};
+
+function money(v, k=2){ return Number(v).toFixed(k); }
+function project(p){
+  return [view.ox + (p[0]-view.bounds[0])*view.scale,
+          view.oy + (view.bounds[3]-p[1])*view.scale];
+}
+function actionStart(job){if(job.type==='hold'){const events=job.events.filter(e=>['on_post','handover_start'].includes(e.kind));if(events.length)return Math.min(...events.map(e=>e.t));}return (job.events.find(e=>e.kind==='arrived_area')||{}).t??job.t0;}
+function rangeOf(job){return {start:chapter==='approach'?job.t0:actionStart(job),end:chapter==='approach'?Math.max(job.t0+.1,actionStart(job)):job.t1};}
+function routeTime(job,route){return job.t0+(route.t||0);}
+function latestRoutes(job){const latest={};for(const route of job.routes)if(routeTime(job,route)<=T+1e-6)latest[route.pid]=route;return latest;}
+function standbyFor(job){const route=job.routes.find(r=>r.pid===job.pids[1]);return route?.to;}
+function fitBounds(job){
+ let points=[job.site];const m=job.metrics;
+ if(chapter==='approach'){for(const r of job.approach||[])points.push(...r.path,r.from_pose,r.to);}
+ else if(job.type==='hold'){
+  points.push(m.posts[0]);if(standbyFor(job))points.push(standbyFor(job));
+  for(const sample of job.samples)if(sample.t>=actionStart(job))points.push(...Object.values(sample.agents));
+ }else{
+  for(const sample of job.samples)if(sample.t>=actionStart(job))points.push(...Object.values(sample.agents));
+  points.push(...(m.loop||[]),...(m.posts||[]),...(m.staging||[]),...(m.objective||[]));
+  const radius=m.area_radius||m.outer_radius||m.ring_radius||0;
+  if(radius)points.push([job.site[0]-radius,job.site[1]-radius],[job.site[0]+radius,job.site[1]+radius]);
+ }
+ const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+ const w=Math.max(5,Math.max(...xs)-Math.min(...xs)),h=Math.max(5,Math.max(...ys)-Math.min(...ys)),pad=Math.max(.7,Math.max(w,h)*.08);
+ return [cx-w/2-pad,cy-h/2-pad,cx+w/2+pad,cy+h/2+pad];
+}
+function resize(){
+ const dpr=window.devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;
+ canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+ const bounds=fitBounds(currentJob()),pad=42,s=Math.min((w-2*pad)/(bounds[2]-bounds[0]),(h-2*pad)/(bounds[3]-bounds[1]));
+ view={scale:s,pad,bounds,ox:(w-(bounds[2]-bounds[0])*s)/2,oy:(h-(bounds[3]-bounds[1])*s)/2};draw();
+}
+
+function currentJob(){return DATA.jobs.find(j=>j.job_id===selectedJob)||DATA.jobs[0];}
+
+function frameOf(job){
+  let best = null;
+  for (const s of job.samples){
+    if (s.t <= T + 1e-6) best = s; else break;
+  }
+  return best || job.samples[0];
+}
+function jobProgress(job){ return (T-job.t0)/Math.max(1e-6, job.t1-job.t0); }
+
+function drawGrid(){
+  const b = view.bounds;
+  ctx.save();
+  ctx.fillStyle = '#fbfcfd';
+  const p0 = project([b[0], b[3]]), p1 = project([b[2], b[1]]);
+  ctx.fillRect(p0[0], p0[1], p1[0]-p0[0], p1[1]-p0[1]);
+  ctx.strokeStyle = '#eef0f3'; ctx.lineWidth = 1;
+  for (let x=Math.ceil(b[0]/5)*5; x<=b[2]; x+=5){
+    const a=project([x,b[1]]), c=project([x,b[3]]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(c[0],c[1]); ctx.stroke();
+  }
+  for (let y=Math.ceil(b[1]/5)*5; y<=b[3]; y+=5){
+    const a=project([b[0],y]), c=project([b[2],y]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(c[0],c[1]); ctx.stroke();
+  }
+  ctx.strokeStyle='#dfe3e8'; ctx.strokeRect(p0[0],p0[1],p1[0]-p0[0],p1[1]-p0[1]);
+  ctx.restore();
+}
+
+function drawBuildings(){
+  ctx.save();
+  for (const o of DATA.obstacles){
+    ctx.beginPath();
+    o.polygon.forEach((p,i)=>{ const q=project(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(203,213,225,.85)';
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+    ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSite(job){
+  const s = project(job.site);
+  ctx.save();
+  ctx.setLineDash([4,4]); ctx.strokeStyle = job.color; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(s[0], s[1], 16, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = job.color; ctx.font = '600 11px system-ui';
+  ctx.fillText(job.job_id + ' ' + job.label, s[0]+20, s[1]-10);
+  ctx.restore();
+}
+
+function drawPatrol(job, frame){
+  const loop = job.metrics.loop || [];
+  if (!loop.length) return;
+  ctx.save();
+  ctx.strokeStyle = job.color + 'aa'; ctx.lineWidth = 1.4; ctx.setLineDash([5,4]);
+  ctx.beginPath();
+  loop.forEach((p,i)=>{ const q=project(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+  ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+  loop.forEach((p,i)=>{
+    const q=project(p);
+    const visited = job.events.some(e=>e.kind==='checkpoint_visited' && e.index===i && e.t<=T);
+    ctx.beginPath(); ctx.arc(q[0],q[1], visited?4.5:3, 0, Math.PI*2);
+    ctx.fillStyle = visited ? '#f59e0b' : '#ffffff';
+    ctx.strokeStyle = job.color; ctx.lineWidth=1.4; ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawBlockade(job, frame){
+  const m = job.metrics, s = project(job.site), R = m.ring_radius*view.scale, O = m.outer_radius*view.scale;
+  ctx.save();
+  ctx.strokeStyle = job.color + '66'; ctx.setLineDash([3,4]); ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(s[0],s[1],R,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = '#9ca3af'; ctx.setLineDash([2,5]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],O,0,Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  (m.posts||[]).forEach((p,i)=>{
+    const q=project(p); ctx.fillStyle='#fff'; ctx.strokeStyle=job.color;
+    ctx.beginPath(); ctx.rect(q[0]-3.5,q[1]-3.5,7,7); ctx.fill(); ctx.stroke();
+  });
+  const st = project(m.intruder_start);
+  ctx.setLineDash([6,5]); ctx.strokeStyle='#f97316'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(st[0],st[1]); ctx.lineTo(s[0],s[1]); ctx.stroke();
+  ctx.setLineDash([]);
+  const intr = frame && frame.debug && frame.debug.intruder;
+  if (intr){
+    const q=project(intr);
+    ctx.save(); ctx.translate(q[0],q[1]); ctx.rotate(Math.PI/4);
+    ctx.fillStyle='#f59e0b'; ctx.fillRect(-5,-5,10,10); ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawRecon(job, frame){
+  const m = job.metrics, site = project(job.site);
+  const R = (m.sensor_radius||2.6)*view.scale;
+  ctx.save();
+  const area = m.area_radius*view.scale;
+  ctx.strokeStyle = job.color+'33'; ctx.setLineDash([2,5]);
+  ctx.beginPath(); ctx.arc(site[0],site[1],area,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  for (const e of job.events){
+    if (e.kind !== 'frontier_mapped' || e.t > T || !e.pos) continue;
+    const q = project(e.pos);
+    const g = ctx.createRadialGradient(q[0],q[1],1,q[0],q[1],R);
+    g.addColorStop(0,'rgba(124,58,237,.10)'); g.addColorStop(1,'rgba(124,58,237,.01)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q[0],q[1],R,0,Math.PI*2); ctx.fill();
+  }
+  if (frame && frame.debug && frame.debug.targets){
+    for (const pid in frame.debug.targets){
+      const q = project(frame.debug.targets[pid]);
+      ctx.strokeStyle = job.color; ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.arc(q[0],q[1],5,0,Math.PI*2); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawAssault(job, frame){
+  const m = job.metrics, s = project(job.site);
+  ctx.save();
+  const objR = 1.4*view.scale;
+  ctx.strokeStyle = job.color+'55'; ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],objR,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  (m.staging||[]).forEach(p=>{
+    const q=project(p); ctx.strokeStyle='#94a3b8';
+    ctx.beginPath(); ctx.arc(q[0],q[1],4,0,Math.PI*2); ctx.stroke();
+  });
+  (m.objective||[]).forEach(p=>{
+    const q=project(p); ctx.fillStyle=job.color+'22'; ctx.strokeStyle=job.color;
+    ctx.beginPath(); ctx.arc(q[0],q[1],4,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+  const conf = m.confirm_radius*view.scale;
+  ctx.strokeStyle='#16a34a88'; ctx.setLineDash([2,4]);
+  ctx.beginPath(); ctx.arc(s[0],s[1],conf,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function holdState(job,frame){
+ const evs=job.events.filter(e=>e.t<=T),starts=evs.filter(e=>e.kind==='handover_start'),completes=evs.filter(e=>e.kind==='handover_complete');
+ const lastStart=starts.at(-1),lastComplete=completes.at(-1),pending=lastStart&&(!lastComplete||lastStart.t>lastComplete.t)?lastStart:null;
+ const primary=frame?.debug?.primary||lastComplete?.incoming||job.pids[0],secondary=frame?.debug?.secondary||job.pids.find(p=>p!==primary),post=job.metrics.posts[0],standby=standbyFor(job);
+ const distance=(a,b)=>a&&b?Math.hypot(a[0]-b[0],a[1]-b[1]):Infinity;
+ const onPost=job.events.find(e=>e.kind==='on_post'),roles={};
+ for(const pid of job.pids){const pos=frame?.agents[pid];
+  if(pending&&pid===pending.incoming)roles[pid]='接班中 → 岗位';
+  else if(pending&&pid===pending.outgoing)roles[pid]=distance(pos,post)<=.8?'原班守岗 · 等待交接':'原班仍在接近岗位';
+  else if(pid===primary)roles[pid]=distance(pos,post)<=.8?'当前主班 · 在岗':'当前主班 · 就位中';
+  else roles[pid]=distance(pos,standby)<=.8?'待命位置等待':lastComplete?'已交班 · 等待/返回待命':'前往待命位置';
+ }
+ let message=pending?`${pending.outgoing.replace('rover_','#')} → ${pending.incoming.replace('rover_','#')}：接班成员正在前往岗位。`:`当前主班 ${primary.replace('rover_','#')}；另一成员在待命或返程。`;
+ if(pending&&(!onPost||T<onPost.t))message+='原班尚未建立正式到岗记录，不标为持续守岗。';
+ if(frame?.phase==='完成'||T>=job.t1-.11)message+='记录已结束；两成员仍在岗位附近，不补画撤离动作。';
+ return {primary,secondary,pending,completed:completes.length,roles,message,onPost,post,standby};
+}
+function drawHold(job,frame){
+ const state=holdState(job,frame),post=project(state.post),standby=state.standby?project(state.standby):null;
+ ctx.save();ctx.fillStyle='#edf7ee';ctx.strokeStyle='#8fbc96';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.arc(post[0],post[1],25,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#527c59';ctx.font='600 13px system-ui';ctx.fillText('交接岗位',post[0]-28,post[1]-39);
+ if(standby){ctx.setLineDash([4,4]);ctx.strokeStyle='#aab5c1';ctx.beginPath();ctx.arc(standby[0],standby[1],20,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#8593a3';ctx.fillText('待命位置',standby[0]-28,standby[1]-34);}
+ ctx.restore();
+}
+
+function drawRoutes(job){
+ if(!document.getElementById('showPaths').checked)return;
+ const frame=frameOf(job);ctx.save();
+ for(const [pid,route]of Object.entries(latestRoutes(job))){
+  const pos=frame?.agents[pid];if(pos&&Math.hypot(pos[0]-route.to[0],pos[1]-route.to[1])<.6)continue;
+  if(straightToggle.checked&&!route.straight_line_ok){const a=project(route.from_pose),b=project(route.to);ctx.setLineDash([5,5]);ctx.strokeStyle='#dc8b63aa';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();ctx.setLineDash([]);}
+  ctx.strokeStyle=AGENT_COLORS[job.pids.indexOf(pid)%AGENT_COLORS.length]+'70';ctx.lineWidth=2;ctx.beginPath();let path=route.path;if(chapter==='action'&&job.type==='hold'&&pos){let nearest=0;for(let i=1;i<path.length;i++)if(Math.hypot(path[i][0]-pos[0],path[i][1]-pos[1])<Math.hypot(path[nearest][0]-pos[0],path[nearest][1]-pos[1]))nearest=i;path=[pos,...path.slice(nearest+1)];}path.forEach((p,i)=>{const q=project(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.stroke();
+ }
+ ctx.restore();
+}
+
+function drawTrails(job){
+  const frame = frameOf(job);
+  const byPid = {};
+  for (const s of job.samples){
+    if (s.t > T) break;
+    if(job.type==='hold'&&s.t<Math.max(rangeOf(job).start,T-8))continue;
+    for (const pid in s.agents){
+      (byPid[pid] = byPid[pid] || []).push(s.agents[pid]);
+    }
+  }
+  ctx.save();
+  let i=0;
+  for (const pid in byPid){
+    ctx.strokeStyle = AGENT_COLORS[i % AGENT_COLORS.length] + '99';
+    ctx.lineWidth = 1.5; ctx.beginPath();
+    byPid[pid].forEach((p,k)=>{ const q=project(p); k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+    ctx.stroke(); i++;
+  }
+  ctx.restore();
+}
+
+function drawAgents(job,frame){
+ if(!frame)return;let index=0;const hold=job.type==='hold'?holdState(job,frame):null;view.labels=[];
+ for(const [pid,[x,y,yaw]]of Object.entries(frame.agents)){
+  const q=project([x,y]),color=AGENT_COLORS[index%AGENT_COLORS.length];ctx.save();ctx.translate(...q);ctx.rotate(-yaw);ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,7);ctx.lineTo(-7,-7);ctx.closePath();ctx.fillStyle=color;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.fill();ctx.stroke();ctx.restore();
+  ctx.save();ctx.font='600 12px system-ui';const text=pid.replace('rover_','#')+(hold?' · '+hold.roles[pid]:''),w=ctx.measureText(text).width+16;
+  const lx=Math.max(6,Math.min(canvas.clientWidth-w-6,hold?q[0]+(index===0?-w-35:35):q[0]-w/2)),ly=hold?Math.max(55,Math.min(canvas.clientHeight-35,q[1]+(index===0?-80:65))):q[1]+20;
+  view.labels.push({pid,x:lx,y:ly-9,width:w,height:26,point:q});
+  ctx.beginPath();ctx.moveTo(...q);ctx.lineTo(lx+w/2,ly+9);ctx.strokeStyle=color+'99';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fffffff2';ctx.fillRect(lx,ly-9,w,26);ctx.fillStyle=color;ctx.fillText(text,lx+8,ly+8);ctx.restore();index++;
+ }
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  drawGrid();if(document.getElementById('showBuildings').checked)drawBuildings();
+  const job = currentJob();
+  if(job.type!=='hold')drawSite(job);
+  if (job.type === 'patrol') drawPatrol(job, frameOf(job));
+  if (job.type === 'blockade') drawBlockade(job, frameOf(job));
+  if (job.type === 'recon') drawRecon(job, frameOf(job));
+  if (job.type === 'assault') drawAssault(job, frameOf(job));
+  if (job.type === 'hold') drawHold(job, frameOf(job));
+  drawRoutes(job); drawTrails(job); drawAgents(job, frameOf(job));
+  updatePanel(job);updateDetails(job,frameOf(job));
+}
+
+function drawRoleTimeline(job){
+ const svg=document.getElementById('role-timeline'),w=Math.max(250,svg.clientWidth),left=47,right=w-13;
+ const x=t=>left+(t-job.t0)/Math.max(.1,job.t1-job.t0)*(right-left),short=p=>p.replace('rover_','#');
+ const arrived=job.events.find(e=>e.kind==='arrived_area')?.t??job.t0;
+ let content='';
+ job.pids.forEach((pid,row)=>{
+  const y=17+row*29,color=AGENT_COLORS[row%AGENT_COLORS.length];
+  content+=`<text x="2" y="${y+14}" fill="${color}" font-size="11" font-weight="600">${short(pid)}</text><rect x="${left}" y="${y}" width="${right-left}" height="20" rx="3" fill="#f1f5f9"/>`;
+  const segments=[];
+  for(let i=0;i<job.samples.length;i++){
+   const sample=job.samples[i],end=Math.min(T,job.samples[i+1]?.t??job.t1);
+   if(sample.t>T)break;if(end<=sample.t)continue;
+   const debug=sample.debug||{},moving=sample.t<arrived;
+   const fill=moving?'#64748b':debug.swapping?'#f59e0b':debug.primary===pid?color:(row===0?'#dbeafe':'#fce7f3');
+   const role=moving?'机动记录':debug.swapping?'接替中':debug.primary===pid?'主班角色':'待命角色';
+   const previous=segments.at(-1);
+   if(previous&&previous.fill===fill&&previous.role===role)previous.end=end;
+   else segments.push({start:sample.t,end,fill,role});
+  }
+  for(const segment of segments)content+=`<rect x="${x(segment.start)}" y="${y}" width="${Math.max(.1,x(segment.end)-x(segment.start))}" height="20" fill="${segment.fill}"><title>${short(pid)} · ${segment.role} · 本任务 ${money(segment.start-job.t0,1)}–${money(segment.end-job.t0,1)} s</title></rect>`;
+ });
+ const span=job.t1-job.t0;
+ for(let i=0;i<=4;i++){
+  const t=job.t0+span*i/4,px=x(t);
+  content+=`<line x1="${px}" y1="13" x2="${px}" y2="69" stroke="#e2e8f0" stroke-width=".7"/><text x="${px}" y="86" text-anchor="${i===4?'end':i===0?'start':'middle'}" fill="#94a3b8" font-size="10">${money(t-job.t0,1)}s</text>`;
+ }
+ const marker=x(Math.max(job.t0,Math.min(job.t1,T)));
+ content+=`<line x1="${marker}" y1="8" x2="${marker}" y2="70" stroke="#0f172a" stroke-width="1.5"/><text x="${Math.max(left+20,Math.min(right-20,marker))}" y="101" text-anchor="middle" fill="#475569" font-size="10">当前 ${money(T-job.t0,1)}s</text>`;
+ svg.setAttribute('viewBox',`0 0 ${w} 105`);svg.innerHTML=content;
+ svg.onpointerdown=e=>{const box=svg.getBoundingClientRect(),px=(e.clientX-box.left)*w/box.width;seekTo(job.t0+Math.max(0,Math.min(1,(px-left)/(right-left)))*span);};
+}
+
+const METRIC_KEYS = {
+  patrol: [['revisit_s','一圈重访','s'], ['checkpoints','检查点数','个'], ['radius','环路半径','单位']],
+  blockade: [['intercept_t','拦截耗时','s'], ['ring_radius','封控半径','单位']],
+  recon: [['coverage','地图覆盖率','%'], ['cells','栅格数','格']],
+  assault: [],
+  hold: [['handovers','完成接替','次'], ['presence_gap_s','零人在位','s'], ['min_present','最少在位','台']]
+};
+function metricText(kind, key, value){
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
+  const item = (METRIC_KEYS[kind]||[]).find(x=>x[0]===key);
+  if (!item) return null;
+  let v = Number(value);
+  if (item[2] === '%') v = v * 100;
+  const digits = (item[2] === '%' || item[2] === 's' || item[2] === '单位') ? 1 : 0;
+  return [item[1], money(v, digits) + ' ' + item[2]];
+}
+
+let lastJobId = null;
+function updatePanel(job){
+  const frame = frameOf(job);
+  const phase = frame ? frame.phase : job.phase;
+  hudDot.style.background = job.color;
+  hudJob.textContent = job.job_id + ' · ' + job.label;
+  hudPhase.textContent = '· ' + phase;
+  clockEl.textContent = money(T,1) + ' s';
+  if (lastJobId !== job.job_id){
+    lastJobId = job.job_id;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.job===job.job_id));
+    document.getElementById('jobinfo').innerHTML = job.type==='hold'?`
+      <div class="kv"><span>成员</span><b>${job.pids.map(p=>p.replace('rover_','#')).join(' / ')}</b></div>
+      <div class="kv"><span>本任务记录</span><span>0 → ${money(job.t1-job.t0,1)} s</span></div>
+      <div class="kv"><span>位置来源</span><span>已有本地运动记录</span></div>`:`
+      <div class="kv"><span>类型</span><b>${job.label}</b></div>
+      <div class="kv"><span>成员</span><span>${job.pids.join(' / ')}</span></div>
+      <div class="kv"><span>计划窗口</span><span>${job.plan_start}s → ${job.plan_end}s</span></div>
+      <div class="kv"><span>重放时段</span><span>${money(job.t0,0)}s → ${money(job.t1,0)}s</span></div>
+      <div class="kv"><span>累计路径 / 直线</span><span>${money(job.distance,1)} / ${money(job.straight_distance,1)} 单位</span></div>
+      <div class="kv"><span>接近路径绕行</span><span>${job.approach_blocked} / ${job.approach.length} 条被挡</span></div>
+      <div class="kv"><span>直线被建筑阻挡</span><span>${job.routes_blocked} 条</span></div>`;
+    const rows = (METRIC_KEYS[job.type]||[]).map(([k])=>{
+      const t = metricText(job.type, k, job.metrics[k]);
+      return t ? `<div class="kv"><span>${t[0]}</span><span>${t[1]}</span></div>` : '';
+    }).join('');
+    const siteRows = `<div class="kv"><span>作业点</span><span>${job.site.join(', ')}</span></div>`
+      + `<div class="kv"><span>点位吸附</span><span>${job.metrics.site_snap_offset? money(job.metrics.site_snap_offset)+' 单位':'无'}</span></div>`;
+    const phaseRows = (job.metrics.phases||[]).map(p=>`<div class="kv"><span>${p.phase}</span><span>t=${money(p.t,1)} s</span></div>`).join('');
+    const m = job.metrics;
+    const assaultRows = job.type==='assault' ? [
+      m.roles ? `<div class="kv"><span>角色编成</span><span>${Object.entries(m.roles).map(([p,r])=>p.replace('rover_','#')+' '+r).join(' / ')}</span></div>` : '',
+      m.attack_window ? `<div class="kv"><span>攻击窗口</span><span>${m.attack_window[0]} → ${m.attack_window[1]} s</span></div>` : '',
+      m.effect_t!=null ? `<div class="kv"><span>开始处置 / 打击时长</span><span>t=${money(m.effect_t,1)} s / ${money(m.strike_s,1)} s</span></div>` : '',
+      m.arrival_spread_s!=null ? `<div class="kv"><span>同时到达偏差</span><span>${money(m.arrival_spread_s,1)} s（${m.simultaneous_ok?'达标':'未达标'}）</span></div>` : '',
+      m.attack_window_ok!=null ? `<div class="kv"><span>攻击窗口内完成</span><span>${m.attack_window_ok?'是':'否'}</span></div>` : '',
+      m.overall_status ? `<div class="kv"><span>任务状态</span><b>${m.overall_status}</b></div>` : '',
+      m.assessment_source ? `<div class="kv"><span>评估来源</span><span>${m.assessment_source}（${m.assessment_source_class||''}）</span></div>` : '',
+      m.assessment_latency_s!=null ? `<div class="kv"><span>评估时延</span><span>${money(m.assessment_latency_s,1)} s</span></div>` : '',
+      (m.result_items||[]).length ? `<div class="kv"><span>结果项</span><span>${m.result_items.map(x=>x.id+'：'+x.status).join('；')}</span></div>` : '',
+      m.withdraw_ok!=null ? `<div class="kv"><span>撤离</span><span>${money(m.withdraw_s,1)} s / 限 ${money(m.withdraw_deadline_s,1)} s（${m.withdraw_ok?'合规':'超时'}）</span></div>` : '',
+      m.evaluation ? `<div class="kv"><span>弹药消耗 / 命中率</span><span>${m.evaluation.ammo_used} 发 / 未建模</span></div>` : '',
+    ].join('') : '';
+    document.getElementById('metrics').innerHTML = siteRows + rows + assaultRows + phaseRows;
+    document.getElementById('notes').innerHTML = DATA.limitation.map(x=>'· '+x).join('<br>');
+  }
+  const evs = job.events.filter(e=>e.t<=T).slice(-7).reverse();
+  document.getElementById('events').innerHTML = evs.map(e=>{
+    const name = EVENT_NAME[e.kind] || e.kind;
+    const extra = e.pid ? ' ' + e.pid.replace('rover_','r') : '';
+    const val = e.coverage!=null ? ' ' + money(e.coverage*100,0) + '%' : (e.revisit_s!=null? ' ' + money(e.revisit_s,1)+'s':'');
+    return `<div class="ev" title="原记录时刻 ${money(e.t,1)} s"><span class="t">${money(e.t-job.t0,1)}s</span>${name}${extra}${val}</div>`;
+  }).join('') || '<div class="ev" style="color:#9ca3af">尚无事件</div>';
+}
+
+
+function updateDetails(job,frame){
+ const hold=job.type==='hold',card=document.getElementById('hold-card');card.hidden=!hold;
+ for(const id of ['hold-guide','role-board','hold-map-caption'])document.getElementById(id).hidden=!hold;
+ document.getElementById('metrics-card').hidden=hold;
+ document.getElementById('route-card').hidden=hold&&chapter==='action';
+ const evs=job.events.filter(e=>e.t<=T);const latest=latestRoutes(job);
+ const routes=Object.values(latest).filter(r=>{const p=frame?.agents[r.pid];return p&&Math.hypot(p[0]-r.to[0],p[1]-r.to[1])>=.6;});
+ document.getElementById('route-status').innerHTML=routes.map(r=>`<div class="route-card"><b>${r.pid.replace('rover_','#')} · ${r.straight_line_ok?'当前直线可通行':'原直线被挡 → 已绕行'}</b><small>路径 ${money(r.length)} / 直线 ${money(r.straight)} 单位</small><small>规划路径最小净空 ${money(r.min_clearance,3)} 单位</small></div>`).join('')||'<div class="notes">当前路径已到达或尚未产生。可切换“机动避障”查看接近过程。</div>';
+ if(hold){
+  const state=holdState(job,frame);
+  document.getElementById('hold-count-now').textContent=state.completed;
+  document.getElementById('hold-headline').textContent=state.pending?`${state.pending.outgoing.replace('rover_','#')} → ${state.pending.incoming.replace('rover_','#')}：正在接替`:frame.phase==='完成'?'记录结束：保留最后位置与角色':`当前主班 ${state.primary.replace('rover_','#')} · 另一成员待命或返程`;
+  document.getElementById('hold-status').innerHTML=`<div class="hold-message">${state.message}</div>${job.pids.map((pid,i)=>`<div class="role-card" style="border-left-color:${AGENT_COLORS[i]}"><b>${pid.replace('rover_','#')}</b><strong>${state.roles[pid]}</strong><small>原记录位置 ${frame.agents[pid].slice(0,2).map(x=>money(x)).join(', ')}</small></div>`).join('')}<p class="notes">首次在位事件：${state.onPost&&state.onPost.t<=T?money(state.onPost.t-job.t0,1)+' s（本任务）':'当前尚未播放到该事件'}。角色按日志标注，不代表实际控制效果。</p><details class="final-metrics"><summary>查看整段记录最终统计</summary><div>最终接替 ${job.metrics.handovers} 次；记录中的零人在位累计 ${money(job.metrics.presence_gap_s,1)} s。此处为整段最终值，不是当前值。</div></details>`;
+  drawRoleTimeline(job);
+  hudPhase.textContent='· '+(state.pending?'接替进行中':frame.phase)+' · 已接替 '+state.completed+' 次';document.getElementById('hold-track').hidden=false;
+  document.getElementById('hold-track').innerHTML=job.events.filter(e=>['on_post','handover_start','handover_complete'].includes(e.kind)).map(e=>`<button class="${e.t<=T?'past':'future'}" data-jump="${e.t}"><small>${money(e.t-job.t0,0)} s</small>${EVENT_NAME[e.kind]}${e.incoming?' · '+e.outgoing.replace('rover_','#')+' → '+e.incoming.replace('rover_','#'):''}</button>`).join('');
+ }else document.getElementById('hold-track').hidden=true;
+ if(job.type==='recon'&&frame.debug?.coverage!=null)hudPhase.textContent='· '+frame.phase+' · 当前覆盖 '+money(frame.debug.coverage*100,1)+'%';
+ const range=rangeOf(job);clockEl.textContent=money(T-job.t0,1)+' s · 本任务';seek.value=(T-range.start)/Math.max(.1,range.end-range.start);
+ document.getElementById('range-label').textContent=money(T-range.start,1)+' / '+money(range.end-range.start,1)+' s · 本段';
+ document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.dataset.job===job.job_id));
+ const head=document.getElementById('playhead');if(head)head.style.left=(T/DATA.total*100)+'%';
+}
+function selectJob(jid,mode=chapter,autoplay=false){
+ selectedJob=jid;chapter=mode;document.body.classList.toggle('hold-view',currentJob().type==='hold');document.getElementById('chapter').value=mode;T=rangeOf(currentJob()).start;playing=autoplay;playBtn.textContent=playing?'暂停':'播放';lastJobId=null;resize();
+}
+function seekTo(time){
+ const job=currentJob(),mode=time<actionStart(job)?'approach':'action',changed=mode!==chapter;
+ chapter=mode;document.getElementById('chapter').value=mode;const r=rangeOf(job);T=Math.max(r.start,Math.min(r.end,time));playing=false;playBtn.textContent='播放';
+ if(changed)resize();else draw();
+}
+function buildTabs(){
+ for(const job of DATA.jobs){const b=document.createElement('button');b.className='tab';b.dataset.job=job.job_id;b.textContent=job.job_id+' '+job.label;b.onclick=()=>selectJob(job.job_id,chapter,true);tabsEl.append(b);
+ const seg=document.createElement('div');seg.className='seg';seg.style.flex=String(job.t1-job.t0);seg.style.background=job.color;seg.textContent=job.job_id+' '+job.label;seg.title='独立串行验证记录';seg.onclick=()=>selectJob(job.job_id,chapter,true);timelineEl.append(seg);}
+ const head=document.createElement('div');head.className='playhead';head.id='playhead';timelineEl.append(head);
+}
+function tick(ts){if(!last)last=ts;const dt=Math.min(.1,(ts-last)/1000);last=ts;if(playing){const range=rangeOf(currentJob());T=Math.min(range.end,T+dt*Number(speedSel.value));if(T>=range.end){playing=false;playBtn.textContent='播放';}draw();}requestAnimationFrame(tick);}
+seek.max=1;seek.oninput=()=>{playing=false;playBtn.textContent='播放';const r=rangeOf(currentJob());T=r.start+Number(seek.value)*(r.end-r.start);draw();};
+playBtn.onclick=()=>{const r=rangeOf(currentJob());if(T>=r.end)T=r.start;playing=!playing;playBtn.textContent=playing?'暂停':'播放';last=0;};
+document.getElementById('restart').onclick=()=>selectJob(selectedJob,chapter,true);
+document.getElementById('chapter').onchange=e=>selectJob(selectedJob,e.target.value,true);
+for(const el of [straightToggle,document.getElementById('showBuildings'),document.getElementById('showPaths')])el.onchange=draw;
+document.addEventListener('click',e=>{const button=e.target.closest('[data-jump]');if(button)seekTo(Number(button.dataset.jump));});
+window.addEventListener('resize',resize);
+const params=new URLSearchParams(location.search);
+if(DATA.jobs.some(j=>j.job_id===params.get('job')))selectedJob=params.get('job');
+chapter=params.get('chapter')==='approach'?'approach':'action';
+buildTabs();selectJob(selectedJob,chapter,false);
+if(params.has('t')&&Number.isFinite(Number(params.get('t')))){const r=rangeOf(currentJob());T=Math.max(r.start,Math.min(r.end,Number(params.get('t'))));draw();}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

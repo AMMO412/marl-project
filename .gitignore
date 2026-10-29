@@ -1,0 +1,22 @@
+# Runtime caches and environments; keep unique sources, materials and results.
+__pycache__/
+*.py[cod]
+node_modules/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+*.pid
+.screenshots/
+
+# Local credentials. Commit sanitized examples only.
+.env
+.env.*
+!.env.example
+
+# Do not blanket-ignore .work/, .workbuddy/, 资料/ or outputs/:
+# they currently contain unique sources and historical evidence.
+# Review and stage specific paths for later commits; no automatic snapshots.

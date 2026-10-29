@@ -1,0 +1,9 @@
+{
+  "scenario": "asl_city",
+  "mode": "normal",
+  "motion": "real",
+  "avoid": true,
+  "max_ticks": 200,
+  "objective": "makespan",
+  "behavior": true
+}
