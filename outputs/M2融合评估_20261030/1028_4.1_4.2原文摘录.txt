@@ -1,0 +1,217 @@
+只读摘录；保留原段落文字，表格以 | 分隔单元格。BODY为OOXML正文直接子元素的零基索引，不是页码。
+
+[BODY 241 paragraph]
+4.1 输入：上级任务消息
+
+[BODY 242 paragraph]
+模型输入目前没有定稿，先给出一个最小消息信封，字段与任务描述字段对齐。它只解决“能把一条上级任务读进来并校验”，不解决消息去重、版本合并和跨消息依赖。
+
+[BODY 243 table]
+字段 | 类型 | 说明
+版本号 | 字符串 | 消息版本，当前为0.3
+消息编号 | 字符串 | 消息唯一编号，用于追溯和去重
+下发时间 | 字符串 | ISO 8601时间
+来源 | 字符串 | 上级、调整、自主
+任务列表 | 数组 | 至少一条任务，每条与任务描述字段对齐
+
+[BODY 244 paragraph]
+
+
+[BODY 245 paragraph]
+单条任务字段：任务编号、任务类型、优先级、目标、时间窗、能力要求、最少/最多平台数、任务参数、约束、前置任务清单。任务类型用T-RCN等编码，时间窗用开始秒和结束秒。
+
+[BODY 246 paragraph]
+最小输入示例：
+
+[BODY 247 paragraph]
+{
+
+[BODY 248 paragraph]
+  "schema_version": "0.1",
+
+[BODY 249 paragraph]
+  "message_id": "MSG-20261026-001",
+
+[BODY 250 paragraph]
+  "issued_at": "2026-10-26T10:00:00Z",
+
+[BODY 251 paragraph]
+  "source": "UPPER",
+
+[BODY 252 paragraph]
+  "tasks": [
+
+[BODY 253 paragraph]
+    {
+
+[BODY 254 paragraph]
+      "task_id": "T1",
+
+[BODY 255 paragraph]
+      "task_type": "T-RCN",
+
+[BODY 256 paragraph]
+      "priority": 1,
+
+[BODY 257 paragraph]
+      "target": {"area": [[0, 0], [2000, 0], [2000, 2000], [0, 2000]]},
+
+[BODY 258 paragraph]
+      "window": {"start_s": 0, "end_s": 1800},
+
+[BODY 259 paragraph]
+      "required_capabilities": {"RCN": 2},
+
+[BODY 260 paragraph]
+      "min_units": 2,
+
+[BODY 261 paragraph]
+      "max_units": 4,
+
+[BODY 262 paragraph]
+      "params": {"sensor": "EO", "coverage_required": 0.9, "duration_s": 600}
+
+[BODY 263 paragraph]
+    }
+
+[BODY 264 paragraph]
+  ]
+
+[BODY 265 paragraph]
+}
+
+[BODY 266 paragraph]
+输入处理规则：
+
+[BODY 267 paragraph]
+1. 缺字段、空任务列表、未知任务类型、任务字段校验失败，一律拒绝，不静默丢弃。
+
+[BODY 268 paragraph]
+2. 一条消息可以带多个任务；任务间依赖用前置任务清单，跨消息依赖暂不支持。
+
+[BODY 269 paragraph]
+3. 平台标识与仿真机器人编号是两套标识，映射由编成表维护。
+
+[BODY 270 paragraph]
+4. 输入只负责解析和校验；任务规则仍由五类任务定义统一维护，避免输入层和定义层各写一套。
+
+[BODY 271 paragraph]
+4.2 输出：计划与机器人指令
+
+[BODY 272 paragraph]
+模型输出分两层，计划层负责任务分配与仿真评估，执行层负责通过ROS话题发布机器人速度指令。cmd_vel是速度指令，不是“去某点/走某航线”的任务指令；计划层到执行层的转换由导航或控制模块完成。本文件只定义消息契约，不实现导航控制器。
+
+[BODY 273 paragraph]
+机器人编号与话题：
+
+[BODY 274 table]
+类型 | 编号 | 话题 | 垂直速度
+UGV | 1–20 | /rover_01/cmd_vel至/rover_20/cmd_vel | 不支持
+TANK | 21–30 | /rover_21/cmd_vel至/rover_30/cmd_vel | 不支持
+PLANE | 31–40 | /rover_31/cmd_vel至/rover_40/cmd_vel | 支持
+WING | 41–50 | /rover_41/cmd_vel至/rover_50/cmd_vel | 支持
+
+[BODY 275 paragraph]
+
+
+[BODY 276 paragraph]
+输出示例：
+
+[BODY 277 paragraph]
+{
+
+[BODY 278 paragraph]
+  "plan_id": "PLAN-20261026-001",
+
+[BODY 279 paragraph]
+  "assignments": [
+
+[BODY 280 paragraph]
+    {
+
+[BODY 281 paragraph]
+      "unit_id": "U1",
+
+[BODY 282 paragraph]
+      "subtask_id": "T1-S1",
+
+[BODY 283 paragraph]
+      "task_type": "T-RCN",
+
+[BODY 284 paragraph]
+      "start_s": 0,
+
+[BODY 285 paragraph]
+      "end_s": 600,
+
+[BODY 286 paragraph]
+      "target": {"area": {"polygon": [[0, 0], [1000, 0], [1000, 2000], [0, 2000]]}}
+
+[BODY 287 paragraph]
+    }
+
+[BODY 288 paragraph]
+  ],
+
+[BODY 289 paragraph]
+  "commands": [
+
+[BODY 290 paragraph]
+    {
+
+[BODY 291 paragraph]
+      "robot_id": 1,
+
+[BODY 292 paragraph]
+      "topic": "/rover_01/cmd_vel",
+
+[BODY 293 paragraph]
+      "twist": {
+
+[BODY 294 paragraph]
+        "linear": {"x": 0.2, "y": 0, "z": 0},
+
+[BODY 295 paragraph]
+        "angular": {"x": 0, "y": 0, "z": 0}
+
+[BODY 296 paragraph]
+      },
+
+[BODY 297 paragraph]
+      "duration_s": 5
+
+[BODY 298 paragraph]
+    }
+
+[BODY 299 paragraph]
+  ]
+
+[BODY 300 paragraph]
+}
+
+[BODY 301 paragraph]
+输入侧的区域是点列表；计划输出中的区域会包成“多边形”结构，这是内部表示，不影响输入契约。
+
+[BODY 302 paragraph]
+速度指令约定：
+
+[BODY 303 paragraph]
+• 消息类型为geometry_msgs/msg/Twist，约20 Hz持续发布。
+
+[BODY 304 paragraph]
+• linear.x为前进/后退，angular.z为转向；地面平台不使用linear.z，飞机31–50号可使用。
+
+[BODY 305 paragraph]
+• linear.y、angular.x、angular.y保持0。
+
+[BODY 306 paragraph]
+• 停止命令六个分量全为0；发布器退出或通信中断不等于停止，必须显式发送零速度。
+
+[BODY 307 paragraph]
+• Twist本身没有持续时间字段，持续时间由发令程序管理，建议不超过120秒。
+
+[BODY 308 paragraph]
+• 同一机器人只安排一个持续发令源；最小实现不提供命令超时自动停车。
+
+[BODY 309 paragraph]
+• 位姿反馈走/model/rover_XX/pose，不是标准/tf树；本文件不规定位姿订阅实现。

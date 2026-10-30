@@ -1,0 +1,451 @@
+{
+  "scope": "Read-only 4.1/4.2 document and source audit; no adapter, planner, controller or simulator executed.",
+  "source_document": "D:\\Desktop\\MARL项目\\资料\\需求与任务\\无人集群编队五类任务定义_1028.docx",
+  "source_document_sha256": "10d75ee7d2d1bc1890dfdd4d7212cd3d56d0974ce9aec580d3825c43153acdb3",
+  "source_locations": "Zero-based direct child index of word/document.xml w:body; not page numbers.",
+  "sections": [
+    {
+      "body_index": 241,
+      "kind": "paragraph",
+      "text": "4.1 输入：上级任务消息"
+    },
+    {
+      "body_index": 242,
+      "kind": "paragraph",
+      "text": "模型输入目前没有定稿，先给出一个最小消息信封，字段与任务描述字段对齐。它只解决“能把一条上级任务读进来并校验”，不解决消息去重、版本合并和跨消息依赖。"
+    },
+    {
+      "body_index": 243,
+      "kind": "table",
+      "text": "字段 | 类型 | 说明\n版本号 | 字符串 | 消息版本，当前为0.3\n消息编号 | 字符串 | 消息唯一编号，用于追溯和去重\n下发时间 | 字符串 | ISO 8601时间\n来源 | 字符串 | 上级、调整、自主\n任务列表 | 数组 | 至少一条任务，每条与任务描述字段对齐"
+    },
+    {
+      "body_index": 244,
+      "kind": "paragraph",
+      "text": ""
+    },
+    {
+      "body_index": 245,
+      "kind": "paragraph",
+      "text": "单条任务字段：任务编号、任务类型、优先级、目标、时间窗、能力要求、最少/最多平台数、任务参数、约束、前置任务清单。任务类型用T-RCN等编码，时间窗用开始秒和结束秒。"
+    },
+    {
+      "body_index": 246,
+      "kind": "paragraph",
+      "text": "最小输入示例："
+    },
+    {
+      "body_index": 247,
+      "kind": "paragraph",
+      "text": "{"
+    },
+    {
+      "body_index": 248,
+      "kind": "paragraph",
+      "text": "  \"schema_version\": \"0.1\","
+    },
+    {
+      "body_index": 249,
+      "kind": "paragraph",
+      "text": "  \"message_id\": \"MSG-20261026-001\","
+    },
+    {
+      "body_index": 250,
+      "kind": "paragraph",
+      "text": "  \"issued_at\": \"2026-10-26T10:00:00Z\","
+    },
+    {
+      "body_index": 251,
+      "kind": "paragraph",
+      "text": "  \"source\": \"UPPER\","
+    },
+    {
+      "body_index": 252,
+      "kind": "paragraph",
+      "text": "  \"tasks\": ["
+    },
+    {
+      "body_index": 253,
+      "kind": "paragraph",
+      "text": "    {"
+    },
+    {
+      "body_index": 254,
+      "kind": "paragraph",
+      "text": "      \"task_id\": \"T1\","
+    },
+    {
+      "body_index": 255,
+      "kind": "paragraph",
+      "text": "      \"task_type\": \"T-RCN\","
+    },
+    {
+      "body_index": 256,
+      "kind": "paragraph",
+      "text": "      \"priority\": 1,"
+    },
+    {
+      "body_index": 257,
+      "kind": "paragraph",
+      "text": "      \"target\": {\"area\": [[0, 0], [2000, 0], [2000, 2000], [0, 2000]]},"
+    },
+    {
+      "body_index": 258,
+      "kind": "paragraph",
+      "text": "      \"window\": {\"start_s\": 0, \"end_s\": 1800},"
+    },
+    {
+      "body_index": 259,
+      "kind": "paragraph",
+      "text": "      \"required_capabilities\": {\"RCN\": 2},"
+    },
+    {
+      "body_index": 260,
+      "kind": "paragraph",
+      "text": "      \"min_units\": 2,"
+    },
+    {
+      "body_index": 261,
+      "kind": "paragraph",
+      "text": "      \"max_units\": 4,"
+    },
+    {
+      "body_index": 262,
+      "kind": "paragraph",
+      "text": "      \"params\": {\"sensor\": \"EO\", \"coverage_required\": 0.9, \"duration_s\": 600}"
+    },
+    {
+      "body_index": 263,
+      "kind": "paragraph",
+      "text": "    }"
+    },
+    {
+      "body_index": 264,
+      "kind": "paragraph",
+      "text": "  ]"
+    },
+    {
+      "body_index": 265,
+      "kind": "paragraph",
+      "text": "}"
+    },
+    {
+      "body_index": 266,
+      "kind": "paragraph",
+      "text": "输入处理规则："
+    },
+    {
+      "body_index": 267,
+      "kind": "paragraph",
+      "text": "1. 缺字段、空任务列表、未知任务类型、任务字段校验失败，一律拒绝，不静默丢弃。"
+    },
+    {
+      "body_index": 268,
+      "kind": "paragraph",
+      "text": "2. 一条消息可以带多个任务；任务间依赖用前置任务清单，跨消息依赖暂不支持。"
+    },
+    {
+      "body_index": 269,
+      "kind": "paragraph",
+      "text": "3. 平台标识与仿真机器人编号是两套标识，映射由编成表维护。"
+    },
+    {
+      "body_index": 270,
+      "kind": "paragraph",
+      "text": "4. 输入只负责解析和校验；任务规则仍由五类任务定义统一维护，避免输入层和定义层各写一套。"
+    },
+    {
+      "body_index": 271,
+      "kind": "paragraph",
+      "text": "4.2 输出：计划与机器人指令"
+    },
+    {
+      "body_index": 272,
+      "kind": "paragraph",
+      "text": "模型输出分两层，计划层负责任务分配与仿真评估，执行层负责通过ROS话题发布机器人速度指令。cmd_vel是速度指令，不是“去某点/走某航线”的任务指令；计划层到执行层的转换由导航或控制模块完成。本文件只定义消息契约，不实现导航控制器。"
+    },
+    {
+      "body_index": 273,
+      "kind": "paragraph",
+      "text": "机器人编号与话题："
+    },
+    {
+      "body_index": 274,
+      "kind": "table",
+      "text": "类型 | 编号 | 话题 | 垂直速度\nUGV | 1–20 | /rover_01/cmd_vel至/rover_20/cmd_vel | 不支持\nTANK | 21–30 | /rover_21/cmd_vel至/rover_30/cmd_vel | 不支持\nPLANE | 31–40 | /rover_31/cmd_vel至/rover_40/cmd_vel | 支持\nWING | 41–50 | /rover_41/cmd_vel至/rover_50/cmd_vel | 支持"
+    },
+    {
+      "body_index": 275,
+      "kind": "paragraph",
+      "text": ""
+    },
+    {
+      "body_index": 276,
+      "kind": "paragraph",
+      "text": "输出示例："
+    },
+    {
+      "body_index": 277,
+      "kind": "paragraph",
+      "text": "{"
+    },
+    {
+      "body_index": 278,
+      "kind": "paragraph",
+      "text": "  \"plan_id\": \"PLAN-20261026-001\","
+    },
+    {
+      "body_index": 279,
+      "kind": "paragraph",
+      "text": "  \"assignments\": ["
+    },
+    {
+      "body_index": 280,
+      "kind": "paragraph",
+      "text": "    {"
+    },
+    {
+      "body_index": 281,
+      "kind": "paragraph",
+      "text": "      \"unit_id\": \"U1\","
+    },
+    {
+      "body_index": 282,
+      "kind": "paragraph",
+      "text": "      \"subtask_id\": \"T1-S1\","
+    },
+    {
+      "body_index": 283,
+      "kind": "paragraph",
+      "text": "      \"task_type\": \"T-RCN\","
+    },
+    {
+      "body_index": 284,
+      "kind": "paragraph",
+      "text": "      \"start_s\": 0,"
+    },
+    {
+      "body_index": 285,
+      "kind": "paragraph",
+      "text": "      \"end_s\": 600,"
+    },
+    {
+      "body_index": 286,
+      "kind": "paragraph",
+      "text": "      \"target\": {\"area\": {\"polygon\": [[0, 0], [1000, 0], [1000, 2000], [0, 2000]]}}"
+    },
+    {
+      "body_index": 287,
+      "kind": "paragraph",
+      "text": "    }"
+    },
+    {
+      "body_index": 288,
+      "kind": "paragraph",
+      "text": "  ],"
+    },
+    {
+      "body_index": 289,
+      "kind": "paragraph",
+      "text": "  \"commands\": ["
+    },
+    {
+      "body_index": 290,
+      "kind": "paragraph",
+      "text": "    {"
+    },
+    {
+      "body_index": 291,
+      "kind": "paragraph",
+      "text": "      \"robot_id\": 1,"
+    },
+    {
+      "body_index": 292,
+      "kind": "paragraph",
+      "text": "      \"topic\": \"/rover_01/cmd_vel\","
+    },
+    {
+      "body_index": 293,
+      "kind": "paragraph",
+      "text": "      \"twist\": {"
+    },
+    {
+      "body_index": 294,
+      "kind": "paragraph",
+      "text": "        \"linear\": {\"x\": 0.2, \"y\": 0, \"z\": 0},"
+    },
+    {
+      "body_index": 295,
+      "kind": "paragraph",
+      "text": "        \"angular\": {\"x\": 0, \"y\": 0, \"z\": 0}"
+    },
+    {
+      "body_index": 296,
+      "kind": "paragraph",
+      "text": "      },"
+    },
+    {
+      "body_index": 297,
+      "kind": "paragraph",
+      "text": "      \"duration_s\": 5"
+    },
+    {
+      "body_index": 298,
+      "kind": "paragraph",
+      "text": "    }"
+    },
+    {
+      "body_index": 299,
+      "kind": "paragraph",
+      "text": "  ]"
+    },
+    {
+      "body_index": 300,
+      "kind": "paragraph",
+      "text": "}"
+    },
+    {
+      "body_index": 301,
+      "kind": "paragraph",
+      "text": "输入侧的区域是点列表；计划输出中的区域会包成“多边形”结构，这是内部表示，不影响输入契约。"
+    },
+    {
+      "body_index": 302,
+      "kind": "paragraph",
+      "text": "速度指令约定："
+    },
+    {
+      "body_index": 303,
+      "kind": "paragraph",
+      "text": "• 消息类型为geometry_msgs/msg/Twist，约20 Hz持续发布。"
+    },
+    {
+      "body_index": 304,
+      "kind": "paragraph",
+      "text": "• linear.x为前进/后退，angular.z为转向；地面平台不使用linear.z，飞机31–50号可使用。"
+    },
+    {
+      "body_index": 305,
+      "kind": "paragraph",
+      "text": "• linear.y、angular.x、angular.y保持0。"
+    },
+    {
+      "body_index": 306,
+      "kind": "paragraph",
+      "text": "• 停止命令六个分量全为0；发布器退出或通信中断不等于停止，必须显式发送零速度。"
+    },
+    {
+      "body_index": 307,
+      "kind": "paragraph",
+      "text": "• Twist本身没有持续时间字段，持续时间由发令程序管理，建议不超过120秒。"
+    },
+    {
+      "body_index": 308,
+      "kind": "paragraph",
+      "text": "• 同一机器人只安排一个持续发令源；最小实现不提供命令超时自动停车。"
+    },
+    {
+      "body_index": 309,
+      "kind": "paragraph",
+      "text": "• 位姿反馈走/model/rover_XX/pose，不是标准/tf树；本文件不规定位姿订阅实现。"
+    }
+  ],
+  "version_facts": {
+    "source_table_current": "0.3",
+    "source_example_version": "0.1",
+    "m2_accepted_versions": [
+      "0.1",
+      "0.2",
+      "0.3"
+    ],
+    "user_confirmed_external_version": "0.3",
+    "user_confirmed_older_versions": "reject",
+    "decision_implemented_in_business_code": false
+  },
+  "source_hashes_before": {
+    "D:\\Desktop\\M2\\assets\\city_buildings.csv": "d19f729cff0ebb11372ccccddf6113458417656ad2aa8f4bc92058be965651b0",
+    "D:\\Desktop\\M2\\assets\\container_00_combined_scene.sdf": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf",
+    "D:\\Desktop\\M2\\examples\\city4_fleet.json": "9debddfd837ae3a70569e1f89a77e28b60179507e4677cad7f8b8fbd0b7dc0c9",
+    "D:\\Desktop\\M2\\examples\\city4_message.json": "a6aa2921f591a1ba9c4b30b8a8b89c9724bc820f23d17c8b0d7c613715431587",
+    "D:\\Desktop\\M2\\examples\\city_asl_fleet.json": "ccd51561cd3c78de14843afd8914a6357394726d0a8cc371f94221e606b1ab43",
+    "D:\\Desktop\\M2\\examples\\city_asl_message.json": "c4f00c808b8983b50693bb1bb2de98e7be0500d8b9e57d6653b7ecd49b0ccdd3",
+    "D:\\Desktop\\M2\\examples\\scenario_city4.json": "ff0472dbde90d976d757b3febdba5d81b79392175233fca066b39a67415762dd",
+    "D:\\Desktop\\M2\\formation_planner\\__init__.py": "ff091a2bd7bda9e693fd79f5673947b607ce8b5813ab321ae3e501e743b9f25c",
+    "D:\\Desktop\\M2\\formation_planner\\__main__.py": "1a3eeea0d6e0abe363d5d671844dcac806de37ce0b0eeac19819167e92f8ab87",
+    "D:\\Desktop\\M2\\formation_planner\\asl.py": "4c7af9a9c64b4a47a45e65af1745b9ac5cc1b4c5e94cff7a6895e6a8ef07bda7",
+    "D:\\Desktop\\M2\\formation_planner\\assignment.py": "8a54c49a6fbf46a83643ff00831f965cc30a54fdf45e9f9dbdcce0f20a11d1cf",
+    "D:\\Desktop\\M2\\formation_planner\\capabilities.py": "91c85b02c53048c0bed4e28364ba6ca5114a0a92d7bc8530fa73cfba91d087c5",
+    "D:\\Desktop\\M2\\formation_planner\\city_asl.py": "fb244115410dd20609360de5386867c5535d859004866b921d315f0a71f61691",
+    "D:\\Desktop\\M2\\formation_planner\\city_buildings.py": "3bbe58c5a32d3917bb5e0c5b2f2ade161c4f7a4030fc26d63fb4fd03b4ed3698",
+    "D:\\Desktop\\M2\\formation_planner\\cli.py": "239d001cd22312636fb1914110b6dc5389bab8ca74c301c49089a7bc8187d221",
+    "D:\\Desktop\\M2\\formation_planner\\coordinator.py": "de67ef524e07fac3338ed321efd79f722c9beac03fa780d07184a578235c25a4",
+    "D:\\Desktop\\M2\\formation_planner\\execution.py": "50578658a41d2784115dc4ba4454f2d38879e71a3602af6a7187c82649fa8593",
+    "D:\\Desktop\\M2\\formation_planner\\feedback.py": "33edad2e9278dbc046fba97ca452076fe6a04ed8a0e391b5655d662e5f3d1c8d",
+    "D:\\Desktop\\M2\\formation_planner\\geometry.py": "aea40f6059dfb0fc736201baedcc312ca5ceefcb8872cfe24955432c5ae5ab7c",
+    "D:\\Desktop\\M2\\formation_planner\\message.py": "613ef2cb90f7a0ca7a7f7c47fcc79dcfe968a2d8b9eace1b97b2750cbffaa663",
+    "D:\\Desktop\\M2\\formation_planner\\model.py": "70e1a4f2c7e986259682cae303c96d2726f06aca03732388bf054f591232b170",
+    "D:\\Desktop\\M2\\formation_planner\\motion.py": "296f141c4350d88a851a0bc39af4763f82849957ba616468c8c531f5594c79c1",
+    "D:\\Desktop\\M2\\formation_planner\\objectives.py": "53b8e1a86c44885d7a669027486454c52141cc367a84062d8ac252ab274831c0",
+    "D:\\Desktop\\M2\\formation_planner\\report.py": "fc0add8160c0b57d82aa9a6c4120c73d17e510b749756aea84a22352e3b5ccd3",
+    "D:\\Desktop\\M2\\formation_planner\\robots.py": "f615fb338dec6b6cb89314a2b82d85f67fb0a03b1d75f6dc53c4d28681ffd3f5",
+    "D:\\Desktop\\M2\\formation_planner\\routing.py": "8007ed7738b665b1db6e95dabc8dc6c43f18d0a508faa9a33810ebcf27545011",
+    "D:\\Desktop\\M2\\formation_planner\\scenario.py": "32ce4094c03b74c0f7c9a334b067ce80662a2da0f9908c0e021614183c2ed8af",
+    "D:\\Desktop\\M2\\formation_planner\\scheduler.py": "34e969853358f6e583f41b3354916a7742479b2086f371dc0a44a563ca0242a7",
+    "D:\\Desktop\\M2\\formation_planner\\sdf_scene.py": "29562a82d526edff62c2d0912cce0a3a33243a07eea4dc274ec7638452e6a727",
+    "D:\\Desktop\\M2\\formation_planner\\targets.py": "60f0ba5e273c2d15e53829879c79f7181983c8dec9278d152b631a1a2441a45f",
+    "D:\\Desktop\\M2\\formation_planner\\templates.py": "f531125129902f012d5d5fe19c4a7a3712b8f239781afd25b1c12aad5a29fb62",
+    "D:\\Desktop\\M2\\formation_planner\\validate.py": "a4b83d1390281755f7b358096ee9d19d979244e9e54f1497ea2a5724e0b27695",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\assessment.py": "d43b474716d9a23b23a97b5792ae64c67f667b6e24ccb7cd58a92c54e2754171",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\assets\\city\\SOURCES.md": "3fd42ba97100961282ba3ddc25ddb6bbc19c1d6d25d5586ecd3ee9027e61722d",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\behavior_demo.html": "ce85b7ae48bc53539f49086f42b62b9f361dd5f455befc5260e31cd4170bb696",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\behavior_demo.py": "9f33ab64eea5f7c141ed060af04c787ddba589d17d32cd4d54b5228a367f5ca7",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\behavior_runtime.py": "0d66b230e54e10a3c0e304c13481a80985c5a4a1e46b8bbd8a9c80f6a11743e7",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\behaviors.py": "46906ed473c673cd35cb5cb3881b98ed48fb2a6b456730114a0d7a67acfa2ca2",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\city_nav.py": "5c53f38f160c57f1d22e6629e71a0b009285eba01af5e0ec18cb6bd7d8f8e20e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\config\\platform_references.json": "73d99edb479853a6fe4e717507e4006dfadaedef3dac1892f37619bd357caeb5",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\contracts_v2.py": "61bf11b3883d61c06f57dcfafdfb372dfb2acf821379c57661cec9df89a32e8e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\coordinator_v2.py": "71d4f507d37b553cc30daf0b9088b3bfd47c4f8b1f24aa55a67cb848952beaf4",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\docs\\下层接口草案.md": "356ca44f291fcd46ed3220beaff0fa13f6753e63acee6ee8494d2d6e5df6e44d",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\docs\\场景与平台数据记录.md": "d50f3b62bd86d7e8b36f7667538936a9624d5f8826f63db7e79aab7dfe9e16dd",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\docs\\接口与想定Schema对照.md": "f969351e2ed1895ba7a633abf7e96cbfaac00f4171ed1f7c39c2889e69ed04c5",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\fleet.py": "8980af824a68e9e6edd005e54edcd71de4ebebd66e4e289e730e05d27f8e2802",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\gen_map.py": "3694b814edf27aecfc36c708b982f8fa72bf5f5f23129276ea661ee44c80550c",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\generate_task_schematics.py": "3a1bd7622eef9c654ef186e569c08a180961a1c53e4aa50b2188b3f5c522b54f",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\mock_fleet.py": "8edeeb7fafc923e59c05cb80feeb865652d9ed9ca2668d120886b65df5aeae6c",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\motion.py": "5c7cdf9628998a98fe8dcbf861defda5744f1c6a15a72ea599619a7100a0398d",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\planner_v2.py": "03cd728b330d4a408cc14c177302b3885248ea3a0436374b785d9053ce4add13",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\README_v2.md": "561ea747f2dccd6f31f1c43aaf983b9caad3af408c4ddadaf76928fc9bbedc82",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\reporting_v2.py": "44605bc31757e635d1dcfc08fda4a562cb723dda98cdf6cfeab2e8cefd5d621e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\run_demo_v2.py": "51a56d1e82b489431fff34558b388e8314b1189b6a2ff8fd315df6bddce86475",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\asl_city.json": "47b55d90af9937c3c21f645378b7e4f9e813a22600346834a9e1daf7d3365399",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\asl_container.json": "a1175413e681ef0eaf21b706297ded6bb3dde6404c2744fc061f8ac1cb2982aa",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\asl_container_16.json": "6f44a66c6319bf27e6d9077db9add02d407634d15083e36007888ff55b26bcb4",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\fleet_demo.json": "e5cbf7bfb0d9478936af55ecba53797fd4d75045fd419b3815ccd88df95466e2",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\sdf_initial_state.json": "cf9e5d3338e08a080dd8006ae82c66571b8cf7eff5d192484562fd80bb6b221a",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\simple_city.json": "f4084c9884948d1ac6403b27ee2cd4a63e17fd8bf9ad868d22283e7ed7d0e976",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\sdf_state.py": "0d61c2e5bfaa0ad14dc4dbc2e4224a013f22caac039ae151226cf1569e24ece2",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\task_motion_schematics.html": "3900995967c05bae4d1d422e6d21a6643e8c9f45fe7aa74f83245508f9509074",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_avoidance_flow.py": "531414bd1cff8ac7e832dfa965245a71c9c841fa33e7f8d8958a070fbe3d04a6",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_behaviors.py": "d9269bdc391c239af24a2f4881d39cff2dc954c272adfb24e21c937ace8230dd",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_city_nav.py": "077da31261779b0dcea90cea33ec932b273c3737af59c44d2419262aecf45d1e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_effect_adjudication.py": "e2db461f85031c99b8edeca21408960e2087ed9d1ceb91ffd140edcc13de67da",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_flow_v2.py": "2c1c740b17a53dcd2947554ff964c02990144bdf51197f4b0256245b370a0917",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_mixed_fleet.py": "3514d45c3a1b48dec1d703e7147ccbc50a529f0754b9ccc4aed6fcdf03a51fde",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_task_schematics.py": "41e9b1ff38965f9ca0c7d90773a6ba811a43148e8fbd498b0dec98d1bb1c4a74",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_timeline_rules.py": "df249b99dae1e649240b57e171330f7e59b74013682f1659f2e0a5428da74170",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_trajectory_v2.py": "992beb0b8f8ea4d807e5a3f4a596a8da7addade07bcfaf079b5a8298c547bff6",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_workbench.py": "ad8ec3f6ab1cb80bc27b295c5678a4c5114cdd07959a57045ad023df5a81097e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\tests\\test_workbench_recording.py": "c4d9916ec3d476696f97adf1736c3be59656eae3fb97a300d2ff9f48a043637b",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\trajectory_player.html": "c7472162b1c1e9a0c5fd0e2c7e430e2a53f1d27bae5d773f97ea80dd10c3b06b",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\trajectory_v2.py": "a3bee7a8d02d7c98dbe98fe9b49155b378805556065a62ffee25ed73d4aaf25e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench\\app.js": "6278903219d1181d47076285a0e5210dcd09c62d128cff42e1d0234139e4eb09",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench\\index.html": "40deaef0334ff43dda50a2458e73ce0a77e0242fbcae4c315f2d25908a7bee7b",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench\\styles.css": "dc530612e1a68251955a06e282121cd6d8be0e3629f75bf6239615aa36948c6e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench\\task_details.js": "ef5e8618fb1283823f818ef8e01c8ab8e9423ee67f3e7eebe3163e751e503398",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench_recording.py": "3f726467c8cdb2322403ebf4aceec4fee59d5848954d145146c5d2acdb9c2da7",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\workbench_server.py": "f8c2e9c5a7964409aab55090a2eead873b6b95ab8c886ceb670bdfcbf49c339a",
+    "D:\\Desktop\\MARL项目\\资料\\需求与任务\\无人集群编队五类任务定义_1028.docx": "10d75ee7d2d1bc1890dfdd4d7212cd3d56d0974ce9aec580d3825c43153acdb3"
+  },
+  "source_content_unchanged": true,
+  "source_file_count": 82
+}
