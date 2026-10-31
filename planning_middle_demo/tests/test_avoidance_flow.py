@@ -113,8 +113,12 @@ class MockFleetAvoidanceTests(unittest.TestCase):
             self.assertIn('command_received', kinds, jid)
             maneuver = kinds['all_staged']['t'] - kinds['command_received']['t']
             self.assertGreater(maneuver, 5.0, '%s 机动只用了 %.1f s' % (jid, maneuver))
-        # 逐拍位移检查：反馈里相邻两步的位姿差不超过平台速度，没有瞬移
-        # （出发点吸附当步的限值 = 速度 + 显式记录的吸附距离）
+        # 逐拍位移检查：反馈里相邻两步的位姿差不超过**该平台**速度，没有瞬移
+        # （出发点吸附当步的限值 = 速度 + 显式记录的吸附距离）。多类型编成下
+        # 固定翼/飞翼限速高于地面平台，不能再用统一的 1.2 上限。
+        speed = {p['pid']: float(
+            __import__('fleet').PLANNING_PARAMS.get(p.get('kind'), {})
+            .get('speed', 0.8)) for p in report['platforms']}
         worst, worst_pid, worst_raw = 0.0, None, 0.0   # worst = 最大超限量
         for pid, rows in poses.items():
             prev = None
@@ -123,7 +127,7 @@ class MockFleetAvoidanceTests(unittest.TestCase):
                     gap = sim_s - prev[0]
                     step_len = ((pos[0] - prev[1][0]) ** 2
                                 + (pos[1] - prev[1][1]) ** 2) ** 0.5
-                    limit = 1.2
+                    limit = speed.get(pid, 0.8) * 1.15 + 0.05
                     for snap_s, offset in snaps.get(pid, {}).items():
                         if prev[0] <= snap_s <= sim_s:
                             # 该步内发生出发点吸附：扣除显式记录的吸附距离
@@ -183,12 +187,11 @@ class EnduranceGateTests(unittest.TestCase):
         self.assertIn('全程', reason)
 
     def test_asl_city_all_platforms_pass(self):
-        """当前几何下 16 台都应在续航包线内，否则 crew=16 会组不起来。"""
-        need = [self.pl._energy_need(p, self.job) for p in self.plats]
-        self.assertLess(max(need), self.plats[0].battery,
-                        '最远一台需电 %.1f > 电池 %.0f'
-                        % (max(need), self.plats[0].battery))
+        """当前几何下全部成员都应在各自续航包线内，否则 crew=6 会组不起来。"""
         for p in self.plats:
+            need = self.pl._energy_need(p, self.job)
+            self.assertLess(need, p.battery,
+                            '%s 需电 %.1f > 电池 %.0f' % (p.pid, need, p.battery))
             ok, reason = self.pl.feasible(p, self.job)
             self.assertTrue(ok, '%s 被拒：%s' % (p.pid, reason))
 

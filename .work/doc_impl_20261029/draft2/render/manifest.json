@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "backend": "native",
+  "rasterEngine": "libreoffice",
+  "source": "saved",
+  "inputPath": "D:\\Desktop\\MARL项目\\资料\\需求与任务\\机动突击任务规划与效果判定实现说明_20261029.docx",
+  "sourceSha256": "04630435448d1edb28e8f6cf03057975eb9fb025744f87fcc21180553bc0553a",
+  "dpi": 144,
+  "pageCount": 22,
+  "images": [
+    {
+      "index": 1,
+      "page": 1,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0001.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 54446
+    },
+    {
+      "index": 2,
+      "page": 2,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0002.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 139783
+    },
+    {
+      "index": 3,
+      "page": 3,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0003.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 298514
+    },
+    {
+      "index": 4,
+      "page": 4,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0004.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 277327
+    },
+    {
+      "index": 5,
+      "page": 5,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0005.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 259693
+    },
+    {
+      "index": 6,
+      "page": 6,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0006.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 208099
+    },
+    {
+      "index": 7,
+      "page": 7,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft2\\render\\page-0007.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 250612
+    }
+  ],
+  "missingFonts": [
+    "Courier"
+  ]
+}

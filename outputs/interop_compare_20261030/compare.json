@@ -1,0 +1,948 @@
+{
+  "generated_at": "2026-10-30T17:51:33+0800",
+  "interop_version": "1.0.0",
+  "objectives": [
+    "timeliness",
+    "energy"
+  ],
+  "backends": [
+    "unified",
+    "base_v2",
+    "m2"
+  ],
+  "comparisons": [
+    {
+      "formation_id": "INTEROP-container_00",
+      "tasks": 3,
+      "platforms": 4,
+      "objectives": [
+        "timeliness",
+        "energy"
+      ],
+      "backends": [
+        "unified",
+        "base_v2",
+        "m2"
+      ],
+      "results": [
+        {
+          "backend": "unified",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 6,
+          "makespan_s": 183.617,
+          "travel_m": 341.9,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 6162.6,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 0.0,
+          "model_energy": 117.612
+        },
+        {
+          "backend": "base_v2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 177.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U3",
+              "detail": "U3 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 1,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 173.1,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 7,
+          "makespan_s": 182.056,
+          "travel_m": 420.2,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T1",
+              "detail": "任务 T1 用了 4 台，超过 max_units=3"
+            }
+          ],
+          "violation_count": 1,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 13709.2,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 0.0,
+          "model_energy": 133.78
+        },
+        {
+          "backend": "unified",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 6,
+          "makespan_s": 277.284,
+          "travel_m": 259.5,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 26.1,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 0.0,
+          "model_energy": 86.969
+        },
+        {
+          "backend": "base_v2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 177.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U4",
+              "detail": "U4 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 1,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 15.8,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 7,
+          "makespan_s": 275.994,
+          "travel_m": 311.1,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T1",
+              "detail": "任务 T1 用了 4 台，超过 max_units=3"
+            }
+          ],
+          "violation_count": 1,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 13026.3,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 0.0,
+          "model_energy": 109.245
+        }
+      ],
+      "name": "area_recon",
+      "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_recon.message.json",
+      "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_recon.formation.json"
+    },
+    {
+      "formation_id": "INTEROP-container_00",
+      "tasks": 4,
+      "platforms": 6,
+      "objectives": [
+        "timeliness",
+        "energy"
+      ],
+      "backends": [
+        "unified",
+        "base_v2",
+        "m2"
+      ],
+      "results": [
+        {
+          "backend": "unified",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 5,
+          "makespan_s": 130.183,
+          "travel_m": 326.5,
+          "routes_available": true,
+          "unassigned_count": 2,
+          "unassigned": [
+            {
+              "subtask_id": "T2-S1",
+              "parent_task_id": "T2",
+              "task_type": "T-RCN",
+              "reason": "NO_CAPABILITY",
+              "detail": "U1: 能力不满足 {'RCN': 3, 'HLD': 2}; U2: 能力不满足 {'RCN': 3, 'HLD': 2}; U3: 能力不满足 {'RCN': 3, 'HLD': 2}"
+            },
+            {
+              "subtask_id": "T3-S2",
+              "parent_task_id": "T3",
+              "task_type": "T-RCN",
+              "reason": "WINDOW",
+              "detail": "U5: 结束 70.2s 超过窗口 70.0s"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 5862.4,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 0.0,
+          "model_energy": 142.713
+        },
+        {
+          "backend": "base_v2",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 198.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3",
+              "parent_task_id": "T3",
+              "reason": "UNASSIGNED",
+              "detail": "需要 3 台，实际 0 台；拒绝样例: 超出时间窗(end=246>70)"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U5",
+              "detail": "U5 的 HLD=0 < 3"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U6",
+              "detail": "U6 的 HLD=0 < 3"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T2#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 3,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 68.5,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 5,
+          "makespan_s": 130.183,
+          "travel_m": 326.5,
+          "routes_available": true,
+          "unassigned_count": 2,
+          "unassigned": [
+            {
+              "subtask_id": "T2-S1",
+              "parent_task_id": "T2",
+              "task_type": "T-RCN",
+              "reason": "NO_CAPABILITY",
+              "detail": "U1: 能力不满足 {'RCN': 3, 'HLD': 2}; U2: 能力不满足 {'RCN': 3, 'HLD': 2}; U3: 能力不满足 {'RCN': 3, 'HLD': 2}"
+            },
+            {
+              "subtask_id": "T3-S2",
+              "parent_task_id": "T3",
+              "task_type": "T-RCN",
+              "reason": "WINDOW",
+              "detail": "U5: 结束 70.2s 超过窗口 70.0s"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 12880.3,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 0.0,
+          "model_energy": 142.713
+        },
+        {
+          "backend": "unified",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 5,
+          "makespan_s": 129.55,
+          "travel_m": 309.9,
+          "routes_available": true,
+          "unassigned_count": 2,
+          "unassigned": [
+            {
+              "subtask_id": "T2-S1",
+              "parent_task_id": "T2",
+              "task_type": "T-RCN",
+              "reason": "NO_CAPABILITY",
+              "detail": "U1: 能力不满足 {'RCN': 3, 'HLD': 2}; U2: 能力不满足 {'RCN': 3, 'HLD': 2}; U3: 能力不满足 {'RCN': 3, 'HLD': 2}"
+            },
+            {
+              "subtask_id": "T3-S2",
+              "parent_task_id": "T3",
+              "task_type": "T-RCN",
+              "reason": "WINDOW",
+              "detail": "U5: 结束 70.2s 超过窗口 70.0s"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 19.5,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 0.0,
+          "model_energy": 135.416
+        },
+        {
+          "backend": "base_v2",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 198.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3",
+              "parent_task_id": "T3",
+              "reason": "UNASSIGNED",
+              "detail": "需要 3 台，实际 0 台；拒绝样例: 超出时间窗(end=247>70)"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U6",
+              "detail": "U6 的 HLD=0 < 3"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U5",
+              "detail": "U5 的 HLD=0 < 3"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T2#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 3,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 67.1,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 3,
+          "rows": 5,
+          "makespan_s": 129.55,
+          "travel_m": 309.9,
+          "routes_available": true,
+          "unassigned_count": 2,
+          "unassigned": [
+            {
+              "subtask_id": "T2-S1",
+              "parent_task_id": "T2",
+              "task_type": "T-RCN",
+              "reason": "NO_CAPABILITY",
+              "detail": "U1: 能力不满足 {'RCN': 3, 'HLD': 2}; U2: 能力不满足 {'RCN': 3, 'HLD': 2}; U3: 能力不满足 {'RCN': 3, 'HLD': 2}"
+            },
+            {
+              "subtask_id": "T3-S2",
+              "parent_task_id": "T3",
+              "task_type": "T-RCN",
+              "reason": "WINDOW",
+              "detail": "U5: 结束 70.2s 超过窗口 70.0s"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 12956.5,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 0.0,
+          "model_energy": 135.416
+        }
+      ],
+      "name": "capability_gap",
+      "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.message.json",
+      "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.formation.json"
+    },
+    {
+      "formation_id": "INTEROP-container_00",
+      "tasks": 4,
+      "platforms": 7,
+      "objectives": [
+        "timeliness",
+        "energy"
+      ],
+      "backends": [
+        "unified",
+        "base_v2",
+        "m2"
+      ],
+      "results": [
+        {
+          "backend": "unified",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 9,
+          "makespan_s": 210.0,
+          "travel_m": 884.8,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 143.9,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 3.537,
+          "model_energy": 265.667
+        },
+        {
+          "backend": "base_v2",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 5,
+          "makespan_s": 291.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 3,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 49.1,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 4,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "timeliness",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 10,
+          "makespan_s": 210.0,
+          "travel_m": 1079.8,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T4",
+              "detail": "任务 T4 用了 3 台，超过 max_units=2"
+            }
+          ],
+          "violation_count": 1,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 13114.4,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 4,
+          "model_risk": 3.861,
+          "model_energy": 312.87
+        },
+        {
+          "backend": "unified",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 9,
+          "makespan_s": 437.253,
+          "travel_m": 809.4,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 148.4,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 3.537,
+          "model_energy": 204.589
+        },
+        {
+          "backend": "base_v2",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 5,
+          "makespan_s": 291.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T1#U7",
+              "detail": "U7 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U7",
+              "detail": "U7 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 3,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 49.3,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 4,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "energy",
+          "tasks_total": 4,
+          "tasks_assigned": 4,
+          "rows": 10,
+          "makespan_s": 492.613,
+          "travel_m": 821.5,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 2,
+          "runtime_ms": 13104.9,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 4,
+          "model_risk": 3.861,
+          "model_energy": 217.191
+        }
+      ],
+      "name": "mixed_inspection",
+      "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.message.json",
+      "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.formation.json"
+    },
+    {
+      "formation_id": "INTEROP-container_00",
+      "tasks": 3,
+      "platforms": 6,
+      "objectives": [
+        "timeliness",
+        "energy"
+      ],
+      "backends": [
+        "unified",
+        "base_v2",
+        "m2"
+      ],
+      "results": [
+        {
+          "backend": "unified",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 300.0,
+          "travel_m": 424.1,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 208.3,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 1.64,
+          "model_energy": 159.211
+        },
+        {
+          "backend": "base_v2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 292.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U5",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            },
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U6",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 2,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 31.2,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 7,
+          "makespan_s": 300.0,
+          "travel_m": 649.2,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T1",
+              "detail": "任务 T1 用了 3 台，超过 max_units=1"
+            },
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T2",
+              "detail": "任务 T2 用了 2 台，超过 max_units=1"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 13097.9,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 0.773,
+          "model_energy": 276.45
+        },
+        {
+          "backend": "unified",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 434.822,
+          "travel_m": 592.3,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 250.4,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": null,
+          "model_risk": 2.223,
+          "model_energy": 137.617
+        },
+        {
+          "backend": "base_v2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 292.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U6",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            },
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U5",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 2,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 30.2,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，不提供里程；对比实验固定work_rate=1、电量=1000000、work=duration×crew。此归一化实验不等同于to-v2实际运行，不能据此宣称运行参数已对齐或执行成功",
+          "comparison_scope": "normalized_planning_experiment",
+          "normalization": {
+            "work_rate": 1.0,
+            "battery": 1000000.0,
+            "work": "duration_s * min_units",
+            "runtime_equivalent": false
+          },
+          "backend_tasks_assigned": 3,
+          "model_risk": null,
+          "model_energy": null
+        },
+        {
+          "backend": "m2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 7,
+          "makespan_s": 504.585,
+          "travel_m": 596.7,
+          "routes_available": true,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 1,
+          "runtime_ms": 13183.1,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "comparison_scope": "offline_planning",
+          "normalization": {},
+          "backend_tasks_assigned": 3,
+          "model_risk": 2.221,
+          "model_energy": 191.837
+        }
+      ],
+      "name": "patrol_checkpoint",
+      "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.message.json",
+      "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.formation.json"
+    }
+  ],
+  "best_by_objective": {
+    "area_recon": {
+      "timeliness": "unified",
+      "energy": "unified"
+    },
+    "capability_gap": {
+      "timeliness": "unified",
+      "energy": "unified"
+    },
+    "mixed_inspection": {
+      "timeliness": "unified",
+      "energy": "unified"
+    },
+    "patrol_checkpoint": {
+      "timeliness": "unified",
+      "energy": "unified"
+    }
+  }
+}

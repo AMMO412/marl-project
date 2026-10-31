@@ -1,0 +1,131 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 600,
+  "K": 25,
+  "_meta": {
+    "sdf": "资料/接口说明/container_00_combined_scene.sdf",
+    "models": "资料/接口说明/models",
+    "scale": 1.0,
+    "offset_x": 0.0,
+    "offset_y": 0.0,
+    "bounds": [
+      -185,
+      -210,
+      20,
+      30
+    ],
+    "radius": 1.75,
+    "resolution": 0.5,
+    "unit": "米",
+    "demo_max_steps": 520,
+    "demo_only": true,
+    "_task": "T-ASL 机动突击：城市场景十字路口建筑群（效果判定·逐项结算）",
+    "_source_note": "平台起点、主路/城市道路/广场/花坛/标识柱、4 栋 House 与 2 栋 Office Building 均来自 container_00_combined_scene.sdf；建筑占地由本地 Fuel 模型 DAE 包围盒换算。集结区设在从出发列到十字路口的斜向接近路线上；撤离点是目标西南 25 m 的收拢点。2026-10-29 按效果判定规范改编成：rover_01 侦察指示组、rover_02–05 突击组、rover_06 评估组（assessment_post 为评估观察位）；效果分类默认毁伤（required_level=6，两轮齐射含一次二次打击演示），评估走可插拔接口默认桩（constructed_assessment_stub，输出标注未验证）。"
+  },
+  "platforms": [
+    {
+      "robot_no": 1,
+      "pos": [
+        0.0,
+        -22.5
+      ]
+    },
+    {
+      "robot_no": 2,
+      "pos": [
+        0.0,
+        -17.5
+      ]
+    },
+    {
+      "robot_no": 3,
+      "pos": [
+        0.0,
+        -12.5
+      ]
+    },
+    {
+      "robot_no": 4,
+      "pos": [
+        0.0,
+        -7.5
+      ]
+    },
+    {
+      "robot_no": 5,
+      "pos": [
+        0.0,
+        -2.5
+      ]
+    },
+    {
+      "robot_no": 6,
+      "pos": [
+        -5.0,
+        -22.5
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "ASL-CITY-1",
+      "type": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "window": [
+        0,
+        520
+      ],
+      "crew": 6,
+      "_behavior": {
+        "staging_center": [
+          -57.0,
+          -82.5
+        ],
+        "staging_radius": 6.0,
+        "objective_radius": 10.0,
+        "confirm_radius": 15.0,
+        "arrive_tol": 0.7,
+        "sync_tol": 12.0,
+        "scout_pid": "rover_01",
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "designation_confidence": 0.9,
+        "assessor_pid": "rover_06",
+        "assessment_post": [
+          -95.0,
+          -120.0
+        ],
+        "attack_window": [
+          0,
+          520
+        ],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 60.0,
+        "execute_deadline": 240.0,
+        "effect_kind": "damage",
+        "required_level": 6.0,
+        "damage_per_hit": 1.0,
+        "fire_interval": 3.0,
+        "rounds_per_salvo": 1,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群（SDF env_city_square 及周边 House/Office 建筑）",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1,
+        "withdraw": true,
+        "withdraw_point": [
+          -75.0,
+          -130.0
+        ],
+        "withdraw_ring": 2.0,
+        "withdraw_deadline": 180.0,
+        "timeout_s": 900.0
+      }
+    }
+  ]
+}

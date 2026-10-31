@@ -1,0 +1,25 @@
+== 任务规划中间层 · 规划能力版（middle-demo/v2） ==
+目标：makespan   H=710   在途语义：瞬移（规划快进）   仿真推进到 t=210
+
+作业：共 4，完成 4，失败 0，未结束 0
+规划：共 27 次；重试 0 次；超时 0 次
+重规划触发源（各自独立，同一轮可多条）：{'init': 1, 'periodic': 26}
+成绩单：总能耗 985.3，每作业能耗 246.33，完成时刻 210，分散度 90.66
+（比总能耗会被"干得少"骗到；完成数不一致时先看完成数）
+
+作业 类型 工作量 进度 窗口 crew 尝试 状态
+T1     custom     240.0     240.0/240.0 [0,500]     2         1         succeeded
+T2     custom     48.0      48.0/48.0   [0,600]     1         1         succeeded
+T3     custom     360.0     360.0/360.0 [60,700]    1         1         succeeded
+T4     custom     60.0      60.0/60.0   [0,700]     1         1         succeeded
+
+平台（能力参数为我方暂定，非下游实测）：
+  rover_01 UGV 号01  pos(112.5,-80.0) 电量0.0 存活 话题 /container_00/robot_001
+  rover_02 UGV 号02  pos(112.5,-80.0) 电量0.0 存活 话题 /container_00/robot_002
+  rover_21 TANK 号21  pos(60.0,60.0) 电量0.0 存活 话题 /container_00/robot_021
+  rover_22 TANK 号22  pos(60.0,60.0) 电量0.0 存活 话题 /container_00/robot_022
+  rover_31 PLANE 号31  pos(-100.0,-60.0) 电量215.2 存活 话题 /container_00/robot_031
+  rover_41 WING 号41  pos(0.0,60.0) 电量60.4 存活 话题 /container_00/robot_041
+  rover_42 WING 号42  pos(0.0,60.0) 电量59.1 存活 话题 /container_00/robot_042
+
+边界：规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较

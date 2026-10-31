@@ -1,0 +1,247 @@
+{
+  "generated_at": "2026-10-30T16:18:15+0800",
+  "interop_version": "1.0.0",
+  "objectives": [
+    "timeliness",
+    "energy"
+  ],
+  "backends": [
+    "unified",
+    "base_v2",
+    "m2"
+  ],
+  "comparisons": [
+    {
+      "formation_id": "INTEROP-container_00",
+      "tasks": 3,
+      "platforms": 6,
+      "objectives": [
+        "timeliness",
+        "energy"
+      ],
+      "backends": [
+        "unified",
+        "base_v2",
+        "m2"
+      ],
+      "results": [
+        {
+          "backend": "unified",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 3,
+          "makespan_s": 300.0,
+          "travel_m": 276.7,
+          "routes_available": true,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3-S1",
+              "parent_task_id": "T3",
+              "task_type": "T-HLD",
+              "reason": "COORDINATION",
+              "detail": "U1: 平台已被协同组预留"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 7679.5,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "backend_tasks_assigned": null
+        },
+        {
+          "backend": "base_v2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 292.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U5",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            },
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U6",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 2,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 183.8,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，travel 距离按 travel_s × speed 估算；作业 work=duration×crew，使合作工期与统一层同口径",
+          "backend_tasks_assigned": 3
+        },
+        {
+          "backend": "m2",
+          "objective": "timeliness",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 6,
+          "makespan_s": 300.0,
+          "travel_m": 494.9,
+          "routes_available": true,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3-S1",
+              "parent_task_id": "T3",
+              "task_type": "T-HLD",
+              "reason": "NO_CAPABILITY",
+              "detail": "U5: 能力不满足 {'HLD': 2}; U6: 能力不满足 {'HLD': 2}"
+            }
+          ],
+          "violations": [
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T1",
+              "detail": "任务 T1 用了 3 台，超过 max_units=1"
+            },
+            {
+              "type": "FORCE_LIMIT",
+              "subtask_id": "T2",
+              "detail": "任务 T2 用了 2 台，超过 max_units=1"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 13653.5,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "backend_tasks_assigned": 3
+        },
+        {
+          "backend": "unified",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 3,
+          "makespan_s": 300.0,
+          "travel_m": 329.5,
+          "routes_available": true,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3-S1",
+              "parent_task_id": "T3",
+              "task_type": "T-HLD",
+              "reason": "COORDINATION",
+              "detail": "U1: 平台已被协同组预留"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 6043.1,
+          "note": "interop 统一层：协同组统一开始时刻，路径含避障",
+          "backend_tasks_assigned": null
+        },
+        {
+          "backend": "base_v2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 4,
+          "makespan_s": 292.0,
+          "travel_m": 0.0,
+          "routes_available": false,
+          "unassigned_count": 0,
+          "unassigned": [],
+          "violations": [
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U6",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            },
+            {
+              "type": "WINDOW",
+              "subtask_id": "T3#U5",
+              "detail": "112.0–292.0 超出 120.0–900.0"
+            }
+          ],
+          "violation_count": 2,
+          "capability_gaps": [
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U6",
+              "detail": "U6 的 HLD=0 < 2"
+            },
+            {
+              "type": "CAPABILITY_GAP",
+              "subtask_id": "T3#U5",
+              "detail": "U5 的 HLD=0 < 2"
+            }
+          ],
+          "capability_gap_count": 2,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 31.1,
+          "note": "基座 planner_v2：motion=real；计划层不含路径几何，travel 距离按 travel_s × speed 估算；作业 work=duration×crew，使合作工期与统一层同口径",
+          "backend_tasks_assigned": 3
+        },
+        {
+          "backend": "m2",
+          "objective": "energy",
+          "tasks_total": 3,
+          "tasks_assigned": 3,
+          "rows": 6,
+          "makespan_s": 480.301,
+          "travel_m": 329.5,
+          "routes_available": true,
+          "unassigned_count": 1,
+          "unassigned": [
+            {
+              "subtask_id": "T3-S1",
+              "parent_task_id": "T3",
+              "task_type": "T-HLD",
+              "reason": "NO_CAPABILITY",
+              "detail": "U5: 能力不满足 {'HLD': 2}; U6: 能力不满足 {'HLD': 2}"
+            }
+          ],
+          "violations": [],
+          "violation_count": 0,
+          "capability_gaps": [],
+          "capability_gap_count": 0,
+          "coordination_unaligned_groups": 0,
+          "runtime_ms": 13666.3,
+          "note": "M2 formation_planner：路径按 A*（地面）/直线（空中），travel 含转向耗时；simultaneous_arrival 只保证同组不同平台，不强制开始时刻对齐",
+          "backend_tasks_assigned": 3
+        }
+      ],
+      "name": "patrol_checkpoint",
+      "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.message.json",
+      "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.formation.json"
+    }
+  ],
+  "best_by_objective": {
+    "patrol_checkpoint": {
+      "timeliness": "unified",
+      "energy": "unified"
+    }
+  }
+}

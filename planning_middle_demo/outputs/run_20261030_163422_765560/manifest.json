@@ -1,0 +1,19 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\area_recon.scenario.json",
+  "scenario_sha256": "924b667f4fbc0751aafdd4749b63bdbd94306e52a881f1c244a1d978a6195800",
+  "mode": "normal",
+  "max_ticks": 150,
+  "max_attempts": 2,
+  "grace_s": 1,
+  "H": 510,
+  "K": 8,
+  "dev_threshold": 4.0,
+  "motion": "teleport",
+  "avoid": false,
+  "behavior": false,
+  "generated_at": "2026-10-30T16:34:22.766440+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false
+}

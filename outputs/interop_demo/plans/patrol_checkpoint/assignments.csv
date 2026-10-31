@@ -1,0 +1,5 @@
+﻿unit_id,robot_id,topic,platform_class,subtask_id,parent_task_id,task_type,target,start_s,end_s,window_start_s,window_end_s,depends_on,coordination,status,path_length_m,waypoint_count,risk,energy,path
+U6,41,/container_00/robot_041,WING,T1-S1,T1,T-PTL,"{""route"": [[-60.0, 30.0], [-20.0, 30.0], [-20.0, 70.0], [-60.0, 70.0]]}",7.823,97.823,0.000,600.000,,,ASSIGNED,66.002,2,0.000,28.440,"(-20.00,-22.50) | (-60.00,30.00)"
+U1,1,/container_00/robot_001,UGV,T3-S1,T3,T-HLD,"{""point"": [112.0, -84.0]}",120.000,300.000,120.000,900.000,,simultaneous_arrival,ASSIGNED,140.949,5,0.557,43.047,"(0.00,-22.50) | (89.10,-66.80) | (113.10,-68.80) | (113.10,-84.80) | (112.00,-84.00)"
+U2,2,/container_00/robot_002,UGV,T3-S2,T3,T-HLD,"{""point"": [112.0, -88.0]}",120.000,300.000,120.000,900.000,,simultaneous_arrival,ASSIGNED,147.658,5,1.082,43.383,"(0.00,-17.50) | (93.10,-68.80) | (113.10,-68.80) | (113.10,-88.80) | (112.00,-88.00)"
+U5,31,/container_00/robot_031,PLANE,T2-S1,T2,T-PTL,"{""route"": [[40.0, 20.0], [40.0, 60.0], [90.0, 60.0]]}",2.487,92.487,0.000,600.000,,,ASSIGNED,69.507,2,0.000,44.341,"(-15.00,-22.50) | (40.00,20.00)"

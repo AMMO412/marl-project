@@ -1,0 +1,67 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-MIXED",
+  "generated_at": "2026-10-30T19:03:13.820+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 7,
+    "tasks": 4,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-MIXED-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.message.json",
+      "sha256": "85da301ed0b213bc41985f5fcb28ff33b379004b527ff36870d56bba20b49ecd"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.formation.json",
+      "sha256": "a1f663f4084e24af52c41fc39c2d2508f3c480fd948a97246de00f98b3e36843"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\plan.json",
+      "sha256": "bb4947e633b74fbdcca9493948369a92479807d0cce4505c53fc796da634509b",
+      "bytes": 31043
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\assignments.csv",
+      "sha256": "00b0d474de4d1b00a319bc3f20a3f852a587cc36ae0b31184af7ff574f90fe14",
+      "bytes": 1952
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\commands.csv",
+      "sha256": "2b5e748da5fa7bed86bdf03e69dc0fb3839a0be01192b1397a5b861f6ded537b",
+      "bytes": 4587
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\report.md",
+      "sha256": "67e49f6af974cb19494c3156be98ac71b2377da60a1ef8443466020247f0f091",
+      "bytes": 3688
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\ros2_commands.txt",
+      "sha256": "57d261433a73c4bc5ea59ca68ae7ab94ef6bcdcb6d678168985ba4fbcefd6cf3",
+      "bytes": 8730
+    }
+  },
+  "command": "demo --message interop/scenarios/mixed_inspection.message.json --formation interop/scenarios/mixed_inspection.formation.json --out ..\\outputs\\interop_demo\\runtime_mixed --max-ticks 260",
+  "planner": "interop",
+  "runtime_report": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_mixed\\run\\report.json"
+}

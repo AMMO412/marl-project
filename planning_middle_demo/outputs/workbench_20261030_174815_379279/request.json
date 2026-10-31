@@ -1,0 +1,11 @@
+{
+  "scenario": "interop_neutral",
+  "mode": "normal",
+  "motion": "teleport",
+  "avoid": false,
+  "max_ticks": 260,
+  "objective": "makespan",
+  "behavior": false,
+  "effect_kind": "damage",
+  "planner": "interop"
+}

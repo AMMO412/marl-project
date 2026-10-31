@@ -37,7 +37,7 @@ MODES = ("normal", "failure", "timeout", "kill", "deviation")
 
 def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
              grace_s=1, H=None, K=None, dev_threshold=4.0,
-             motion="teleport", avoid=False, behavior=False):
+             motion="teleport", avoid=False, behavior=False, planner=None):
     check_scenario_v2(scenario)
     if type(max_ticks) is not int or max_ticks < 1:
         raise ValueError("max_ticks 必须 >= 1")
@@ -94,7 +94,7 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
     behavior = bool(behavior) and motion == "real" and nav is not None
     core = CoordinatorV2(scenario, max_attempts=max_attempts, grace_s=grace_s,
                          H=H, K=K, dev_threshold=dev_threshold, motion=motion,
-                         behavior=behavior)
+                         behavior=behavior, planner=planner)
     fleet = MockFleet(fail_once=fail_once, delay_once=delay_once,
                       slow_once=slow_once, motion=motion,
                       timed_events=job_events, nav=nav, behavior=behavior,
@@ -188,6 +188,11 @@ def main(argv=None):
     parser.add_argument("--behavior", action="store_true",
                         help="到位后运行行为状态机（巡逻/封控/侦察/突击/坚守），"
                              "需 motion=real 且 --avoid")
+    parser.add_argument("--planner", choices=("auto", "base", "interop"),
+                        default="auto",
+                        help="规划引擎：auto=中性场景用融合统一层、突击场景回退"
+                             "基座（默认）；base=基座 planner_v2；interop=强制"
+                             "统一层（含突击场景会拒绝）")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--quiet", action="store_true",
                         help="控制台省略逐条事件；完整记录仍保留")
@@ -195,10 +200,24 @@ def main(argv=None):
     try:
         content = args.scenario.read_bytes()
         scenario = json.loads(content.decode("utf-8-sig"))
+        custom = None
+        if args.planner in ("auto", "interop"):
+            from interop.errors import UnsupportedFeature, WireError
+            from interop.runtime import planner_from_v2
+            try:
+                custom = planner_from_v2(scenario,
+                                         objective=scenario.get("objective"))
+            except UnsupportedFeature as exc:
+                if args.planner == "interop":
+                    parser.exit(2, "该场景不能使用 interop 规划器：%s\n" % exc)
+                print("提示：该场景含突击/效果判定，回退基座 planner_v2。",
+                      file=sys.stderr)
+            except WireError as exc:
+                parser.exit(2, "该场景不能使用 interop 规划器：%s\n" % exc)
         report, audit = simulate(scenario, args.mode, args.max_ticks,
                                  args.max_attempts, args.grace_s, args.H,
                                  args.K, args.dev_threshold, args.motion,
-                                 args.avoid, args.behavior)
+                                 args.avoid, args.behavior, planner=custom)
         out = args.out or ROOT / "outputs" / datetime.now().strftime(
             "run_%Y%m%d_%H%M%S_%f")
         # 每次输出独立目录，禁止覆盖已有实验。
@@ -212,6 +231,7 @@ def main(argv=None):
                         dev_threshold=args.dev_threshold,
                         motion=args.motion, avoid=args.avoid,
                         behavior=args.behavior,
+                        planner=report.get("planner", "base_v2"),
                         generated_at=datetime.now().astimezone().isoformat(),
                         backend="mock_only", external_integration_verified=False)
         for name, value in (("manifest.json", manifest),

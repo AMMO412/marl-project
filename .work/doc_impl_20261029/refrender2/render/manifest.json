@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "backend": "native",
+  "rasterEngine": "libreoffice",
+  "source": "saved",
+  "inputPath": "D:\\Desktop\\MARL项目\\资料\\需求与任务\\无人集群编队五类任务定义_1028.docx",
+  "sourceSha256": "10d75ee7d2d1bc1890dfdd4d7212cd3d56d0974ce9aec580d3825c43153acdb3",
+  "dpi": 144,
+  "pageCount": 33,
+  "images": [
+    {
+      "index": 1,
+      "page": 7,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\refrender2\\render\\page-0001.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 336689
+    },
+    {
+      "index": 2,
+      "page": 8,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\refrender2\\render\\page-0002.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 275034
+    },
+    {
+      "index": 3,
+      "page": 15,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\refrender2\\render\\page-0003.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 432847
+    },
+    {
+      "index": 4,
+      "page": 23,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\refrender2\\render\\page-0004.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 271506
+    }
+  ],
+  "missingFonts": [
+    "Courier"
+  ]
+}

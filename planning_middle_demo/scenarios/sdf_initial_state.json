@@ -1,0 +1,3261 @@
+{
+  "source": "D:\\Desktop\\MARL项目\\资料\\接口说明\\container_00_combined_scene.sdf",
+  "sha256": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf",
+  "sdf_version": "1.8",
+  "world": "container_00",
+  "unit": "m",
+  "generated_at": "2026-10-29T17:43:48.248018+08:00",
+  "counts": {
+    "robots": 50,
+    "obstacles": 39,
+    "roads": 5,
+    "landmarks": 14,
+    "missing": 3
+  },
+  "bounds": {
+    "x": [
+      -173.8,
+      165.0
+    ],
+    "y": [
+      -200.0,
+      125.0
+    ]
+  },
+  "fleet": {
+    "UGV": {
+      "count": 20,
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "sample": "robot_001",
+      "can_climb": false
+    },
+    "TANK": {
+      "count": 10,
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "sample": "robot_021",
+      "can_climb": false
+    },
+    "PLANE": {
+      "count": 10,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "sample": "robot_031",
+      "can_climb": true
+    },
+    "WING": {
+      "count": 10,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "sample": "robot_041",
+      "can_climb": true
+    }
+  },
+  "robots": [
+    {
+      "no": 1,
+      "name": "robot_001",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        -22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        -22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 2,
+      "name": "robot_002",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        -17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        -17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 3,
+      "name": "robot_003",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        -12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        -12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 4,
+      "name": "robot_004",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        -7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        -7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 5,
+      "name": "robot_005",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        -2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        -2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 6,
+      "name": "robot_006",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 7,
+      "name": "robot_007",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 8,
+      "name": "robot_008",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 9,
+      "name": "robot_009",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 10,
+      "name": "robot_010",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        0.0,
+        22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        0.0,
+        22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 11,
+      "name": "robot_011",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        -22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        -22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 12,
+      "name": "robot_012",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        -17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        -17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 13,
+      "name": "robot_013",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        -12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        -12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 14,
+      "name": "robot_014",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        -7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        -7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 15,
+      "name": "robot_015",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        -2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        -2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 16,
+      "name": "robot_016",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 17,
+      "name": "robot_017",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 18,
+      "name": "robot_018",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 19,
+      "name": "robot_019",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 20,
+      "name": "robot_020",
+      "kind": "UGV",
+      "kind_label": "轮式无人车",
+      "pose": [
+        -5.0,
+        22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -5.0,
+        22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 21,
+      "name": "robot_021",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        -22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        -22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 22,
+      "name": "robot_022",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        -17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        -17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 23,
+      "name": "robot_023",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        -12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        -12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 24,
+      "name": "robot_024",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        -7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        -7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 25,
+      "name": "robot_025",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        -2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        -2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 26,
+      "name": "robot_026",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        2.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        2.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 27,
+      "name": "robot_027",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        7.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        7.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 28,
+      "name": "robot_028",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        12.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        12.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 29,
+      "name": "robot_029",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        17.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        17.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 30,
+      "name": "robot_030",
+      "kind": "TANK",
+      "kind_label": "履带无人车",
+      "pose": [
+        -10.0,
+        22.5,
+        0.35,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -10.0,
+        22.5
+      ],
+      "start_z": 0.35,
+      "can_climb": false,
+      "control_plugin": "ignition-gazebo-diff-drive-system",
+      "mesh": null,
+      "chassis_size": [
+        2.011,
+        1.0,
+        0.569
+      ],
+      "envelope_size": [
+        2.011,
+        1.85,
+        0.875
+      ],
+      "envelope_radius": 1.366,
+      "wheel_radius": 0.3,
+      "wheel_separation": 1.25,
+      "collision_count": 5
+    },
+    {
+      "no": 31,
+      "name": "robot_031",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        -22.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        -22.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 32,
+      "name": "robot_032",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        -17.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        -17.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 33,
+      "name": "robot_033",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        -12.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        -12.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 34,
+      "name": "robot_034",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        -7.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        -7.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 35,
+      "name": "robot_035",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        -2.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        -2.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 36,
+      "name": "robot_036",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        2.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        2.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 37,
+      "name": "robot_037",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        7.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        7.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 38,
+      "name": "robot_038",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        12.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        12.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 39,
+      "name": "robot_039",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        17.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        17.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 40,
+      "name": "robot_040",
+      "kind": "PLANE",
+      "kind_label": "固定翼无人机",
+      "pose": [
+        -15.0,
+        22.5,
+        6.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -15.0,
+        22.5
+      ],
+      "start_z": 6.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 41,
+      "name": "robot_041",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        -22.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        -22.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 42,
+      "name": "robot_042",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        -17.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        -17.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 43,
+      "name": "robot_043",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        -12.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        -12.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 44,
+      "name": "robot_044",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        -7.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        -7.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 45,
+      "name": "robot_045",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        -2.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        -2.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 46,
+      "name": "robot_046",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        2.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        2.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 47,
+      "name": "robot_047",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        7.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        7.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 48,
+      "name": "robot_048",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        12.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        12.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 49,
+      "name": "robot_049",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        17.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        17.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    },
+    {
+      "no": 50,
+      "name": "robot_050",
+      "kind": "WING",
+      "kind_label": "飞翼无人机",
+      "pose": [
+        -20.0,
+        22.5,
+        10.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -20.0,
+        22.5
+      ],
+      "start_z": 10.0,
+      "can_climb": true,
+      "control_plugin": "ignition-gazebo-velocity-control-system",
+      "mesh": null,
+      "chassis_size": null,
+      "envelope_size": [
+        1.0,
+        2.0,
+        0.2
+      ],
+      "envelope_radius": 1.118,
+      "wheel_radius": null,
+      "wheel_separation": null,
+      "collision_count": 1
+    }
+  ],
+  "obstacles": [
+    {
+      "id": "env_roadside_planter_01#0",
+      "label": "env roadside planter 01",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          53.8,
+          12.8
+        ],
+        [
+          56.2,
+          12.8
+        ],
+        [
+          56.2,
+          15.2
+        ],
+        [
+          53.8,
+          15.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_02#0",
+      "label": "env roadside planter 02",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          53.8,
+          -15.2
+        ],
+        [
+          56.2,
+          -15.2
+        ],
+        [
+          56.2,
+          -12.8
+        ],
+        [
+          53.8,
+          -12.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_03#0",
+      "label": "env roadside planter 03",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          78.8,
+          12.8
+        ],
+        [
+          81.2,
+          12.8
+        ],
+        [
+          81.2,
+          15.2
+        ],
+        [
+          78.8,
+          15.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_04#0",
+      "label": "env roadside planter 04",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          78.8,
+          -15.2
+        ],
+        [
+          81.2,
+          -15.2
+        ],
+        [
+          81.2,
+          -12.8
+        ],
+        [
+          78.8,
+          -12.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_05#0",
+      "label": "env roadside planter 05",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          103.8,
+          12.8
+        ],
+        [
+          106.2,
+          12.8
+        ],
+        [
+          106.2,
+          15.2
+        ],
+        [
+          103.8,
+          15.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_06#0",
+      "label": "env roadside planter 06",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          103.8,
+          -15.2
+        ],
+        [
+          106.2,
+          -15.2
+        ],
+        [
+          106.2,
+          -12.8
+        ],
+        [
+          103.8,
+          -12.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_07#0",
+      "label": "env roadside planter 07",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          128.8,
+          12.8
+        ],
+        [
+          131.2,
+          12.8
+        ],
+        [
+          131.2,
+          15.2
+        ],
+        [
+          128.8,
+          15.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_08#0",
+      "label": "env roadside planter 08",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          128.8,
+          -15.2
+        ],
+        [
+          131.2,
+          -15.2
+        ],
+        [
+          131.2,
+          -12.8
+        ],
+        [
+          128.8,
+          -12.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_09#0",
+      "label": "env roadside planter 09",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          53.8
+        ],
+        [
+          15.2,
+          53.8
+        ],
+        [
+          15.2,
+          56.2
+        ],
+        [
+          12.8,
+          56.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_10#0",
+      "label": "env roadside planter 10",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          53.8
+        ],
+        [
+          -12.8,
+          53.8
+        ],
+        [
+          -12.8,
+          56.2
+        ],
+        [
+          -15.2,
+          56.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_11#0",
+      "label": "env roadside planter 11",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          78.8
+        ],
+        [
+          15.2,
+          78.8
+        ],
+        [
+          15.2,
+          81.2
+        ],
+        [
+          12.8,
+          81.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_12#0",
+      "label": "env roadside planter 12",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          78.8
+        ],
+        [
+          -12.8,
+          78.8
+        ],
+        [
+          -12.8,
+          81.2
+        ],
+        [
+          -15.2,
+          81.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_13#0",
+      "label": "env roadside planter 13",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          103.8
+        ],
+        [
+          15.2,
+          103.8
+        ],
+        [
+          15.2,
+          106.2
+        ],
+        [
+          12.8,
+          106.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_14#0",
+      "label": "env roadside planter 14",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          103.8
+        ],
+        [
+          -12.8,
+          103.8
+        ],
+        [
+          -12.8,
+          106.2
+        ],
+        [
+          -15.2,
+          106.2
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_15#0",
+      "label": "env roadside planter 15",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          -56.2
+        ],
+        [
+          15.2,
+          -56.2
+        ],
+        [
+          15.2,
+          -53.8
+        ],
+        [
+          12.8,
+          -53.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_16#0",
+      "label": "env roadside planter 16",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          -56.2
+        ],
+        [
+          -12.8,
+          -56.2
+        ],
+        [
+          -12.8,
+          -53.8
+        ],
+        [
+          -15.2,
+          -53.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_17#0",
+      "label": "env roadside planter 17",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          -81.2
+        ],
+        [
+          15.2,
+          -81.2
+        ],
+        [
+          15.2,
+          -78.8
+        ],
+        [
+          12.8,
+          -78.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_18#0",
+      "label": "env roadside planter 18",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          -81.2
+        ],
+        [
+          -12.8,
+          -81.2
+        ],
+        [
+          -12.8,
+          -78.8
+        ],
+        [
+          -15.2,
+          -78.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_19#0",
+      "label": "env roadside planter 19",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          12.8,
+          -106.2
+        ],
+        [
+          15.2,
+          -106.2
+        ],
+        [
+          15.2,
+          -103.8
+        ],
+        [
+          12.8,
+          -103.8
+        ]
+      ]
+    },
+    {
+      "id": "env_roadside_planter_20#0",
+      "label": "env roadside planter 20",
+      "source": "box",
+      "size": [
+        2.4,
+        2.4,
+        1.2
+      ],
+      "polygon": [
+        [
+          -15.2,
+          -106.2
+        ],
+        [
+          -12.8,
+          -106.2
+        ],
+        [
+          -12.8,
+          -103.8
+        ],
+        [
+          -15.2,
+          -103.8
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_north#0",
+      "label": "env walls north",
+      "source": "box",
+      "size": [
+        1.0,
+        20.0,
+        15.0
+      ],
+      "polygon": [
+        [
+          109.5,
+          -92.0
+        ],
+        [
+          110.5,
+          -92.0
+        ],
+        [
+          110.5,
+          -72.0
+        ],
+        [
+          109.5,
+          -72.0
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_west#0",
+      "label": "env walls west",
+      "source": "box",
+      "size": [
+        10.0,
+        1.0,
+        15.0
+      ],
+      "polygon": [
+        [
+          97.0,
+          -77.5
+        ],
+        [
+          107.0,
+          -77.5
+        ],
+        [
+          107.0,
+          -76.5
+        ],
+        [
+          97.0,
+          -76.5
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_south#0",
+      "label": "env walls south",
+      "source": "box",
+      "size": [
+        17.0,
+        1.0,
+        15.0
+      ],
+      "polygon": [
+        [
+          109.5,
+          -92.5
+        ],
+        [
+          126.5,
+          -92.5
+        ],
+        [
+          126.5,
+          -91.5
+        ],
+        [
+          109.5,
+          -91.5
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_east#0",
+      "label": "env walls east",
+      "source": "box",
+      "size": [
+        1.0,
+        20.0,
+        15.0
+      ],
+      "polygon": [
+        [
+          116.5,
+          -92.0
+        ],
+        [
+          117.5,
+          -92.0
+        ],
+        [
+          117.5,
+          -72.0
+        ],
+        [
+          116.5,
+          -72.0
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_low_1#0",
+      "label": "env walls low 1",
+      "source": "box",
+      "size": [
+        8.0,
+        2.0,
+        2.0
+      ],
+      "polygon": [
+        [
+          76.0,
+          -107.0
+        ],
+        [
+          84.0,
+          -107.0
+        ],
+        [
+          84.0,
+          -105.0
+        ],
+        [
+          76.0,
+          -105.0
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_low_2#0",
+      "label": "env walls low 2",
+      "source": "box",
+      "size": [
+        2.0,
+        10.0,
+        2.0
+      ],
+      "polygon": [
+        [
+          89.0,
+          -65.0
+        ],
+        [
+          91.0,
+          -65.0
+        ],
+        [
+          91.0,
+          -55.0
+        ],
+        [
+          89.0,
+          -55.0
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_low_3#0",
+      "label": "env walls low 3",
+      "source": "box",
+      "size": [
+        12.0,
+        2.0,
+        2.0
+      ],
+      "polygon": [
+        [
+          114.0,
+          -58.0
+        ],
+        [
+          126.0,
+          -58.0
+        ],
+        [
+          126.0,
+          -56.0
+        ],
+        [
+          114.0,
+          -56.0
+        ]
+      ]
+    },
+    {
+      "id": "env_walls_low_4#0",
+      "label": "env walls low 4",
+      "source": "box",
+      "size": [
+        2.0,
+        14.0,
+        2.0
+      ],
+      "polygon": [
+        [
+          134.0,
+          -107.0
+        ],
+        [
+          136.0,
+          -107.0
+        ],
+        [
+          136.0,
+          -93.0
+        ],
+        [
+          134.0,
+          -93.0
+        ]
+      ]
+    },
+    {
+      "id": "env_beacon_lawn#0",
+      "label": "env beacon lawn",
+      "source": "box",
+      "size": [
+        1.5,
+        1.5,
+        6.0
+      ],
+      "polygon": [
+        [
+          -0.75,
+          34.25
+        ],
+        [
+          0.75,
+          34.25
+        ],
+        [
+          0.75,
+          35.75
+        ],
+        [
+          -0.75,
+          35.75
+        ]
+      ]
+    },
+    {
+      "id": "env_beacon_walls#0",
+      "label": "env beacon walls",
+      "source": "box",
+      "size": [
+        1.5,
+        1.5,
+        6.0
+      ],
+      "polygon": [
+        [
+          79.25,
+          -45.75
+        ],
+        [
+          80.75,
+          -45.75
+        ],
+        [
+          80.75,
+          -44.25
+        ],
+        [
+          79.25,
+          -44.25
+        ]
+      ]
+    },
+    {
+      "id": "env_beacon_city#0",
+      "label": "env beacon city",
+      "source": "box",
+      "size": [
+        1.5,
+        1.5,
+        6.0
+      ],
+      "polygon": [
+        [
+          -70.75,
+          -45.75
+        ],
+        [
+          -69.25,
+          -45.75
+        ],
+        [
+          -69.25,
+          -44.25
+        ],
+        [
+          -70.75,
+          -44.25
+        ]
+      ]
+    },
+    {
+      "id": "env_beacon_wetlands#0",
+      "label": "env beacon wetlands",
+      "source": "box",
+      "size": [
+        1.5,
+        1.5,
+        6.0
+      ],
+      "polygon": [
+        [
+          -70.75,
+          39.25
+        ],
+        [
+          -69.25,
+          39.25
+        ],
+        [
+          -69.25,
+          40.75
+        ],
+        [
+          -70.75,
+          40.75
+        ]
+      ]
+    },
+    {
+      "id": "env_beacon_yosemite#0",
+      "label": "env beacon yosemite",
+      "source": "box",
+      "size": [
+        1.5,
+        1.5,
+        6.0
+      ],
+      "polygon": [
+        [
+          69.25,
+          39.25
+        ],
+        [
+          70.75,
+          39.25
+        ],
+        [
+          70.75,
+          40.75
+        ],
+        [
+          69.25,
+          40.75
+        ]
+      ]
+    },
+    {
+      "id": "env_city_house_01#0",
+      "label": "env city house 01",
+      "source": "mesh_aabb",
+      "size": [
+        16.4899581114834,
+        12.930602789999998,
+        7.686705479999999
+      ],
+      "polygon": [
+        [
+          -145.642,
+          -191.84
+        ],
+        [
+          -129.152,
+          -191.84
+        ],
+        [
+          -129.152,
+          -178.91
+        ],
+        [
+          -145.642,
+          -178.91
+        ]
+      ]
+    },
+    {
+      "id": "env_city_house_02#0",
+      "label": "env city house 02",
+      "source": "mesh_aabb",
+      "size": [
+        12.711123948806005,
+        9.77272700600669,
+        7.1904699615420835
+      ],
+      "polygon": [
+        [
+          -47.851,
+          -180.89
+        ],
+        [
+          -60.562,
+          -180.89
+        ],
+        [
+          -60.562,
+          -190.662
+        ],
+        [
+          -47.851,
+          -190.662
+        ]
+      ]
+    },
+    {
+      "id": "env_city_house_03#0",
+      "label": "env city house 03",
+      "source": "mesh_aabb",
+      "size": [
+        13.17396931215556,
+        8.706417225819447,
+        9.171858687359403
+      ],
+      "polygon": [
+        [
+          -144.077,
+          -109.37
+        ],
+        [
+          -130.903,
+          -109.37
+        ],
+        [
+          -130.903,
+          -100.663
+        ],
+        [
+          -144.077,
+          -100.663
+        ]
+      ]
+    },
+    {
+      "id": "env_city_house_04#0",
+      "label": "env city house 04",
+      "source": "mesh_aabb",
+      "size": [
+        16.4899581114834,
+        12.930602789999998,
+        7.686705479999999
+      ],
+      "polygon": [
+        [
+          -44.358,
+          -98.16
+        ],
+        [
+          -60.848,
+          -98.16
+        ],
+        [
+          -60.848,
+          -111.09
+        ],
+        [
+          -44.358,
+          -111.09
+        ]
+      ]
+    },
+    {
+      "id": "env_city_office_01#0",
+      "label": "env city office 01",
+      "source": "mesh_aabb",
+      "size": [
+        17.697162637706278,
+        17.69708729139743,
+        18.657459890732657
+      ],
+      "polygon": [
+        [
+          -156.151,
+          -153.849
+        ],
+        [
+          -156.151,
+          -136.151
+        ],
+        [
+          -173.849,
+          -136.151
+        ],
+        [
+          -173.849,
+          -153.849
+        ]
+      ]
+    },
+    {
+      "id": "env_city_office_02#0",
+      "label": "env city office 02",
+      "source": "mesh_aabb",
+      "size": [
+        17.697162637706278,
+        17.69708729139743,
+        18.657459890732657
+      ],
+      "polygon": [
+        [
+          -33.849,
+          -136.151
+        ],
+        [
+          -33.849,
+          -153.849
+        ],
+        [
+          -16.151,
+          -153.849
+        ],
+        [
+          -16.151,
+          -136.151
+        ]
+      ]
+    }
+  ],
+  "roads": [
+    {
+      "id": "env_road_east_west",
+      "size": [
+        330.0,
+        8.0,
+        0.06
+      ],
+      "pose": [
+        0.0,
+        0.0,
+        0.03,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polygon": [
+        [
+          -165.0,
+          -4.0
+        ],
+        [
+          165.0,
+          -4.0
+        ],
+        [
+          165.0,
+          4.0
+        ],
+        [
+          -165.0,
+          4.0
+        ]
+      ]
+    },
+    {
+      "id": "env_road_north_south",
+      "size": [
+        8.0,
+        250.0,
+        0.06
+      ],
+      "pose": [
+        0.0,
+        0.0,
+        0.03,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polygon": [
+        [
+          -4.0,
+          -125.0
+        ],
+        [
+          4.0,
+          -125.0
+        ],
+        [
+          4.0,
+          125.0
+        ],
+        [
+          -4.0,
+          125.0
+        ]
+      ]
+    },
+    {
+      "id": "env_city_road_ns",
+      "size": [
+        14.0,
+        110.0,
+        0.06
+      ],
+      "pose": [
+        -95.0,
+        -145.0,
+        0.03,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polygon": [
+        [
+          -102.0,
+          -200.0
+        ],
+        [
+          -88.0,
+          -200.0
+        ],
+        [
+          -88.0,
+          -90.0
+        ],
+        [
+          -102.0,
+          -90.0
+        ]
+      ]
+    },
+    {
+      "id": "env_city_road_ew",
+      "size": [
+        140.0,
+        14.0,
+        0.08
+      ],
+      "pose": [
+        -95.0,
+        -145.0,
+        0.04,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polygon": [
+        [
+          -165.0,
+          -152.0
+        ],
+        [
+          -25.0,
+          -152.0
+        ],
+        [
+          -25.0,
+          -138.0
+        ],
+        [
+          -165.0,
+          -138.0
+        ]
+      ]
+    },
+    {
+      "id": "env_city_square",
+      "size": [
+        34.0,
+        34.0,
+        0.1
+      ],
+      "pose": [
+        -95.0,
+        -145.0,
+        0.05,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "polygon": [
+        [
+          -112.0,
+          -162.0
+        ],
+        [
+          -78.0,
+          -162.0
+        ],
+        [
+          -78.0,
+          -128.0
+        ],
+        [
+          -112.0,
+          -128.0
+        ]
+      ]
+    }
+  ],
+  "landmarks": [
+    {
+      "name": "env_beacon_lawn",
+      "kind": "beacon",
+      "pose": [
+        0.0,
+        35.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "env_beacon_walls",
+      "kind": "beacon",
+      "pose": [
+        80.0,
+        -45.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "env_beacon_city",
+      "kind": "beacon",
+      "pose": [
+        -70.0,
+        -45.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "env_beacon_wetlands",
+      "kind": "beacon",
+      "pose": [
+        -70.0,
+        40.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "env_beacon_yosemite",
+      "kind": "beacon",
+      "pose": [
+        70.0,
+        40.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "env_city_house_01",
+      "kind": "reference",
+      "uri": "House 1",
+      "pose": [
+        -137.0,
+        -185.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_city_house_02",
+      "kind": "reference",
+      "uri": "House 2",
+      "pose": [
+        -53.0,
+        -185.0,
+        0.0,
+        0.0,
+        0.0,
+        3.142
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_city_house_03",
+      "kind": "reference",
+      "uri": "House 3",
+      "pose": [
+        -137.0,
+        -105.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_city_house_04",
+      "kind": "reference",
+      "uri": "House 1",
+      "pose": [
+        -53.0,
+        -105.0,
+        0.0,
+        0.0,
+        0.0,
+        3.142
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_city_office_01",
+      "kind": "reference",
+      "uri": "Office Building",
+      "pose": [
+        -165.0,
+        -145.0,
+        0.0,
+        0.0,
+        0.0,
+        1.571
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_city_office_02",
+      "kind": "reference",
+      "uri": "Office Building",
+      "pose": [
+        -25.0,
+        -145.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.571
+      ],
+      "scale": null
+    },
+    {
+      "name": "env_wetlands_north",
+      "kind": "reference",
+      "uri": "baylands",
+      "pose": [
+        -150.0,
+        50.0,
+        -0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": "0.76 0.46 0.65"
+    },
+    {
+      "name": "env_wetlands_south",
+      "kind": "reference",
+      "uri": "baylands",
+      "pose": [
+        -150.0,
+        -50.0,
+        -0.5,
+        0.0,
+        0.0,
+        3.142
+      ],
+      "scale": "0.76 0.46 0.65"
+    },
+    {
+      "name": "env_yosemite",
+      "kind": "reference",
+      "uri": "yosemite",
+      "pose": [
+        145.0,
+        90.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": null
+    }
+  ],
+  "missing": [
+    {
+      "name": "env_wetlands_north",
+      "uri": "model://baylands",
+      "reason": "本地没有该 include 的 model.sdf，未计入"
+    },
+    {
+      "name": "env_wetlands_south",
+      "uri": "model://baylands",
+      "reason": "本地没有该 include 的 model.sdf，未计入"
+    },
+    {
+      "name": "env_yosemite",
+      "uri": "model://yosemite",
+      "reason": "本地没有该 include 的 model.sdf，未计入"
+    }
+  ],
+  "note": "尺寸为 SDF 碰撞几何外包络；外部模型占地仅在本地 DAE/盒体可得时登记，否则列入 missing，不臆造。"
+}

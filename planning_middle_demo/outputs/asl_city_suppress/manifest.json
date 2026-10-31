@@ -1,0 +1,19 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\_tmp_suppress.json",
+  "scenario_sha256": "ecc88ecfb8797103167b47f3f1d5eb26850e1c083d2d437457aa46b025346285",
+  "mode": "normal",
+  "max_ticks": 640,
+  "max_attempts": 2,
+  "grace_s": 1,
+  "H": 700,
+  "K": 25,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "generated_at": "2026-10-29T18:18:01.504451+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false
+}

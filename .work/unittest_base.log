@@ -1,0 +1,33 @@
+﻿python : .....................................................................D:\Desktop\MARL项目\planning_middle_demo\te
+sts\test_interop.py:382: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\ammo\\AppData\\Local\\Temp\
+\tmpg_spv5kc\\scenario.json' mode='r' encoding='utf-8'>
+所在位置 行:1 字符: 174
++ ... ddle_demo'; python -X utf8 -m unittest discover -s tests -p "test_*.p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (..................coding='utf-8'>:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  data = json.load(open(out, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+................D:\Desktop\MARL项目\planning_middle_demo\tests\test_interop.py:298: ResourceWarning: unclosed file <_io.T
+extIOWrapper name='C:\\Users\\ammo\\AppData\\Local\\Temp\\tmp9_g5i9by\\plan.json' mode='r' encoding='utf-8'>
+  data = json.load(open(paths["plan_json"], encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\Desktop\MARL项目\planning_middle_demo\tests\test_interop.py:303: ResourceWarning: unclosed file <_io.TextIOWrapper nam
+e='C:\\Users\\ammo\\AppData\\Local\\Temp\\tmp9_g5i9by\\manifest.json' mode='r' encoding='utf-8'>
+  manifest = json.load(open(paths["manifest_json"], encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................................................
+----------------------------------------------------------------------
+Ran 151 tests in 29.633s
+
+OK
+计划 PLAN-INTEROP-RECON（后端 unified，目标 timeliness）
+  任务 3，全部落实 3；槽位 6，已分配 6，未分配 0
+  makespan 183.6 s；冲突 0（已解决 0）；指令 26 条；规划 6688 ms
+  输出：C:\Users\ammo\AppData\Local\Temp\tmp_wj2hh1v\plan\plan.json
+  报告：C:\Users\ammo\AppData\Local\Temp\tmp_wj2hh1v\plan\report.md
+  清单：C:\Users\ammo\AppData\Local\Temp\tmp_wj2hh1v\plan\manifest.json
+计划校验通过：6 条分配，26 条指令
+基座场景：C:\Users\ammo\AppData\Local\Temp\tmpg_spv5kc\scenario.json
+可直接：python planning_middle_demo/run_demo_v2.py --scenario C:\Users\ammo\AppData\Local\Temp\tmpg_spv5kc\scenario.json

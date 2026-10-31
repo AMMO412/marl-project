@@ -20,3 +20,6 @@ Thumbs.db
 # Do not blanket-ignore .work/, .workbuddy/, 资料/ or outputs/:
 # they currently contain unique sources and historical evidence.
 # Review and stage specific paths for later commits; no automatic snapshots.
+
+# Office temporary lock files
+~$*

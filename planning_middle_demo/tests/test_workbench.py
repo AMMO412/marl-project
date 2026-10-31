@@ -37,9 +37,15 @@ class ConfigTests(unittest.TestCase):
 
     def test_behavior_record_is_preferred_and_loads_actions(self):
         catalog = Workbench().catalog()
+        # 默认运行规则：优先最新融合层运行，其次最新 asl_city 行为运行，
+        # 再退回任意最新行为运行。
+        interop = [r for r in catalog['runs'] if r.get('planner') == 'interop']
+        asl = [r for r in catalog['runs']
+               if r['behavior_details'] and r.get('scenario') == 'asl_city']
         detailed = [r for r in catalog['runs'] if r['behavior_details']]
-        self.assertEqual(catalog['default_run'], detailed[0]['id'] if detailed
-                         else 'workbench_behavior_20261028')
+        expected = (interop or asl or detailed)[0]['id'] if (interop or asl or detailed) \
+            else 'workbench_behavior_20261028'
+        self.assertEqual(catalog['default_run'], expected)
         if not (Path(__file__).resolve().parents[1] / 'outputs' / MIXED_RUN).is_dir():
             self.skipTest('缺少历史混合录制 %s' % MIXED_RUN)
         data = load_run(MIXED_RUN)

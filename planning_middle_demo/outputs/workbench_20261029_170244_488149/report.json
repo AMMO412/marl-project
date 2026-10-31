@@ -1,0 +1,190 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 317,
+  "objective": "makespan",
+  "all_succeeded": true,
+  "settled": true,
+  "jobs": [
+    {
+      "job_id": "ASL-CITY-1",
+      "jtype": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "work": 20.0,
+      "window": [
+        0,
+        520
+      ],
+      "crew": 6,
+      "need_payload": 4.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 20.0,
+      "status": "succeeded",
+      "attempts": 1,
+      "started_at": 144,
+      "planned_end": 204,
+      "behavior": {
+        "staging_center": [
+          -57.0,
+          -82.5
+        ],
+        "staging_radius": 12.0,
+        "objective_radius": 14.0,
+        "confirm_radius": 18.0,
+        "arrive_tol": 0.7,
+        "sync_tol": 12.0,
+        "scout_pid": "rover_01",
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "designation_confidence": 0.9,
+        "assessor_pid": "rover_06",
+        "assessment_post": [
+          -95.0,
+          -120.0
+        ],
+        "attack_window": [
+          0,
+          520
+        ],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 60.0,
+        "execute_deadline": 240.0,
+        "effect_kind": "damage",
+        "required_level": 6.0,
+        "damage_per_hit": 1.0,
+        "fire_interval": 3.0,
+        "rounds_per_salvo": 1,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群（SDF env_city_square 及周边 House/Office 建筑）",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1,
+        "withdraw": true,
+        "withdraw_point": [
+          -75.0,
+          -130.0
+        ],
+        "withdraw_ring": 7.0,
+        "withdraw_deadline": 180.0,
+        "timeout_s": 900.0
+      }
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        -69.853,
+        -144.823
+      ],
+      "battery": 51.1,
+      "alive": true,
+      "topic": "/rover_01/cmd_vel"
+    },
+    {
+      "pid": "rover_02",
+      "kind": "UGV",
+      "robot_no": 2,
+      "pos": [
+        -68.159,
+        -130.19
+      ],
+      "battery": 35.9,
+      "alive": true,
+      "topic": "/rover_02/cmd_vel"
+    },
+    {
+      "pid": "rover_03",
+      "kind": "UGV",
+      "robot_no": 3,
+      "pos": [
+        -75.215,
+        -123.089
+      ],
+      "battery": 32.8,
+      "alive": true,
+      "topic": "/rover_03/cmd_vel"
+    },
+    {
+      "pid": "rover_04",
+      "kind": "UGV",
+      "robot_no": 4,
+      "pos": [
+        -82.217,
+        -130.123
+      ],
+      "battery": 17.8,
+      "alive": true,
+      "topic": "/rover_04/cmd_vel"
+    },
+    {
+      "pid": "rover_05",
+      "kind": "UGV",
+      "robot_no": 5,
+      "pos": [
+        -75.157,
+        -137.177
+      ],
+      "battery": 12.7,
+      "alive": true,
+      "topic": "/rover_05/cmd_vel"
+    },
+    {
+      "pid": "rover_06",
+      "kind": "UGV",
+      "robot_no": 6,
+      "pos": [
+        -82.187,
+        -129.859
+      ],
+      "battery": 39.1,
+      "alive": true,
+      "topic": "/rover_06/cmd_vel"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 13,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 12
+  },
+  "done": 1,
+  "used_energy": 410.5,
+  "per_task_energy": 410.51,
+  "makespan": 317,
+  "spread": 8.28,
+  "need_report": [],
+  "solve_summary": null,
+  "rejected_reasons": {
+    "续航不足": 36,
+    "方案级越界（叠加超续航），本轮撤下": 1,
+    "协同人数不足": 7
+  },
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 620,
+  "H": 600,
+  "K": 25,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "behavior_details": true,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": false,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}

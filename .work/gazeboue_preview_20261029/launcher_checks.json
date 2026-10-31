@@ -1,0 +1,43 @@
+[
+  {
+    "script": "关闭Gazebo预览.cmd",
+    "code": 0,
+    "elapsed": 1.4529810000021826,
+    "output": "Action: close\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174607_384363.log\nLocal preview stopped.\nCompleted.\n"
+  },
+  {
+    "script": "打开Gazebo预览.cmd",
+    "code": 0,
+    "elapsed": 40.04024109999955,
+    "output": "Action: open\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174608_795599.log\nPreparing scene and starting Gazebo server...\nLoading models, please wait (up to 90 seconds). GUI PID 7629.\n/mnt/d/Desktop/MARL项目/gazebo/local_preview/runtime/screenshots/2026-10-29T17-46-47.839414098.png\nGazebo is ready. You can now run the movement or camera scripts.\nCompleted.\n"
+  },
+  {
+    "script": "查看场景全貌.cmd",
+    "code": 0,
+    "elapsed": 1.5473753000005672,
+    "output": "Action: view --view overview\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174649_019727.log\nCamera changed to overview\nCompleted.\n"
+  },
+  {
+    "script": "回到机器人近景.cmd",
+    "code": 0,
+    "elapsed": 1.267713699999149,
+    "output": "Action: view --view fleet\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174650_413648.log\nCamera changed to fleet\nCompleted.\n"
+  },
+  {
+    "script": "停止1号机器人.cmd",
+    "code": 0,
+    "elapsed": 3.0698205000007874,
+    "output": "Action: stop\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174655_726668.log\nrobot_001: sending command; stop script can interrupt this movement.\n{\n  \"robot\": \"robot_001\",\n  \"command\": {\n    \"linear\": 0,\n    \"angular\": 0,\n    \"wall_seconds\": 0\n  },\n  \"displacement_m\": 0.11243079637445397,\n  \"feedback_samples\": 25,\n  \"first\": {\n    \"wall\": 1793267216.369894,\n    \"sim_time\": 19.37,\n    \"x\": 0.9621774058717285,\n    \"y\": -22.499999999941043,\n    \"z\": 0.36869588312200413\n  },\n  \"last\": {\n    \"wall\": 1793267218.2453299,\n    \"sim_time\": 20.57,\n    \"x\": 1.0746082022461825,\n    \"y\": -22.49999999993576,\n    \"z\": 0.3698953047953153\n  },\n  \"stop_drift_last_half_wall_second_m\": 3.2849947206889167e-09,\n  \"note\": \"Gazebo Jetty direct transport preview; not ROS/container integration\"\n}\nRecord: /mnt/d/Desktop/MARL项目/gazebo/local_preview/runtime/drive_1793267218269684387.json\nCompleted.\n"
+  },
+  {
+    "script": "移动1号机器人.cmd",
+    "code": 0,
+    "output": "Action: drive\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174651_770496.log\nrobot_001: sending command; stop script can interrupt this movement.\nMovement cancelled by stop request.\n{\n  \"robot\": \"robot_001\",\n  \"command\": {\n    \"linear\": 0.5,\n    \"angular\": 0.0,\n    \"wall_seconds\": 10.0\n  },\n  \"displacement_m\": 1.0746083767886165,\n  \"feedback_samples\": 68,\n  \"first\": {\n    \"wall\": 1793267212.4103298,\n    \"sim_time\": 17.02,\n    \"x\": -1.7235208413235448e-07,\n    \"y\": -22.50000000000018,\n    \"z\": 0.3663470338768464\n  },\n  \"last\": {\n    \"wall\": 1793267217.9424071,\n    \"sim_time\": 20.37,\n    \"x\": 1.0746082044365324,\n    \"y\": -22.499999999935756,\n    \"z\": 0.3696954022098439\n  },\n  \"stop_drift_last_half_wall_second_m\": 2.735949689025574e-09,\n  \"note\": \"Gazebo Jetty direct transport preview; not ROS/container integration\"\n}\nRecord: /mnt/d/Desktop/MARL项目/gazebo/local_preview/runtime/drive_1793267217961920776.json\nCompleted.\n"
+  },
+  {
+    "script": "打开Gazebo预览.cmd",
+    "code": 0,
+    "elapsed": 2.0345634000004793,
+    "output": "Action: open\nLog: D:\\Desktop\\MARL项目\\gazebo\\local_preview\\runtime\\launch_20261029_174658_747970.log\nPreview window exists. Checking that a rendered frame is available...\n/mnt/d/Desktop/MARL项目/gazebo/local_preview/runtime/screenshots/2026-10-29T17-46-59.771657541.png\nGazebo is ready. Use its existing window.\nCompleted.\n"
+  }
+]

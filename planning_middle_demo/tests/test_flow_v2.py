@@ -185,7 +185,7 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(fleet.kind_of(1), "UGV")
         self.assertEqual(fleet.kind_of(31), "PLANE")
         self.assertEqual(fleet.kind_of(41), "WING")
-        self.assertEqual(fleet.topic_of(7), "/rover_07/cmd_vel")
+        self.assertEqual(fleet.topic_of(7), "/container_00/robot_007")
         self.assertTrue(fleet.PLANNING_PARAMS["PLANE"]["can_climb"])
         self.assertFalse(fleet.PLANNING_PARAMS["UGV"]["can_climb"])
 

@@ -24,6 +24,10 @@ class AgentState:
     y: float
     yaw: float = 0.0
     speed: float = 0.8
+    z: float = 0.0              # 当前高度（场景单位/米）
+    altitude: float = 0.0       # 巡航高度：0 = 地面平台
+    can_climb: bool = False
+    kind: str = ''
     path: list = field(default_factory=list)
     index: int = 0
     follow: object = None
@@ -38,18 +42,27 @@ class AgentState:
 
 class BehaviorRunner:
     def __init__(self, nav, behavior, starts, speeds=None, dt=0.1,
-                 ticks_per_step=10):
+                 ticks_per_step=10, caps=None):
         self.nav = nav
         self.behavior = behavior
         self.dt = dt
         self.ticks_per_step = ticks_per_step
         speeds = speeds or {}
+        caps = caps or {}
+        air_alt = (behavior.params.get('air_altitude') or {})
         self.agents = {}
         for pid, start in starts.items():
+            cap = caps.get(pid) or {}
+            can_climb = bool(cap.get('can_climb'))
+            base_z = float(cap.get('start_z') or 0.0)
+            altitude = (max(base_z, float(air_alt.get(pid, base_z)))
+                        if can_climb else 0.0)
             self.agents[pid] = AgentState(
                 pid=pid, x=float(start[0]), y=float(start[1]),
                 yaw=float(start[2]) if len(start) > 2 else 0.0,
-                speed=float(speeds.get(pid, 0.8)))
+                speed=float(speeds.get(pid, 0.8)),
+                z=base_z, altitude=altitude, can_climb=can_climb,
+                kind=str(cap.get('kind') or ''))
         self.time = 0.0
         self.samples = []
         self.events = []
@@ -62,6 +75,13 @@ class BehaviorRunner:
         self._inside = False
 
     # ---- 目标点 → 路径 ----
+    def _climb_rate(self):
+        """爬升率（场景单位/步）；参数可调，缺省 8，约 0.8/拍。"""
+        try:
+            return max(1.0, float((self.behavior.params or {}).get('climb_rate', 8.0)))
+        except (TypeError, ValueError):
+            return 8.0
+
     def _log_route_failed(self, agent, target, reason):
         key = (agent.pid, round(target[0], 2), round(target[1], 2), reason)
         if key != getattr(self, '_last_fail', None):
@@ -111,6 +131,28 @@ class BehaviorRunner:
         target = [float(target[0]), float(target[1])]
         if agent.target is not None and distance(target, agent.target) < 0.35:
             return
+        if agent.can_climb and agent.altitude > 0:
+            # 空中平台越障直飞：已知静态建筑高度低于巡航高度，2D 地图上的
+            # 膨胀障碍不适用。航路仍记录直线长度，便于核对"直飞 vs 绕行"。
+            # 注意：只有配了巡航高度（air_altitude）的空中平台才直飞；
+            # 没配高度的飞机仍按地面 A* 处理，避免"z=0 却穿楼"。
+            straight = distance((agent.x, agent.y), target)
+            agent.target = target
+            agent.path = [[agent.x, agent.y], [target[0], target[1]]]
+            agent.follow = None
+            agent.path_meta = dict(length=straight, straight_length=straight,
+                                   straight_line_ok=True, min_clearance=None,
+                                   mode='air_direct', altitude=agent.altitude)
+            self.routes.append(dict(pid=agent.pid, job_id=self._job,
+                                    t=round(self.time, 2),
+                                    from_pose=[round(agent.x, 2), round(agent.y, 2),
+                                               round(agent.z, 2)],
+                                    to=target,
+                                    path=[p[:] for p in agent.path],
+                                    length=straight, straight=straight,
+                                    straight_line_ok=True, min_clearance=None,
+                                    mode='air_direct', altitude=agent.altitude))
+            return
         plan = self._plan_leg(agent, target)
         if plan is None:
             return
@@ -120,13 +162,15 @@ class BehaviorRunner:
         agent.path_meta = plan
         self.routes.append(dict(pid=agent.pid, job_id=self._job,
                                 t=round(self.time, 2),
-                                from_pose=[round(agent.x, 2), round(agent.y, 2)],
+                                from_pose=[round(agent.x, 2), round(agent.y, 2),
+                                           round(agent.z, 2)],
                                 to=target, path=[[round(p[0], 2), round(p[1], 2)]
                                                  for p in plan['path']],
                                 length=plan['length'],
                                 straight=plan['straight_length'],
                                 straight_line_ok=plan['straight_line_ok'],
-                                min_clearance=plan['min_clearance']))
+                                min_clearance=plan['min_clearance'],
+                                mode='ground_astar'))
 
     # ---- 单步 ----
     def step(self):
@@ -154,6 +198,24 @@ class BehaviorRunner:
         # 步内 10 拍闭环跟随
         for k in range(self.ticks_per_step):
             for agent in self.agents.values():
+                if agent.can_climb and agent.altitude > 0:
+                    # 空中直飞：两点线段按速度推进；高度按爬升率趋近巡航高
+                    if agent.path and len(agent.path) >= 2:
+                        tx, ty = agent.path[-1]
+                        dx, dy = tx - agent.x, ty - agent.y
+                        d = math.hypot(dx, dy)
+                        if d > 1e-9:
+                            agent.yaw = math.atan2(dy, dx)
+                            step = min(agent.speed * self.dt, d)
+                            agent.x += dx / d * step
+                            agent.y += dy / d * step
+                            agent.odometer += step
+                    climb = self._climb_rate() * self.dt
+                    if agent.z < agent.altitude:
+                        agent.z = min(agent.altitude, agent.z + climb)
+                    elif agent.z > agent.altitude:
+                        agent.z = max(agent.altitude, agent.z - climb)
+                    continue
                 if not agent.path or agent.follow is None:
                     continue
                 v, w, state = self._follower.step(agent.pose, agent.path,
@@ -171,7 +233,8 @@ class BehaviorRunner:
                 self.samples.append(dict(
                     t=round(self.time + k * self.dt, 2), job=self._job,
                     phase=phase,
-                    agents={pid: [round(a.x, 3), round(a.y, 3), round(a.yaw, 3)]
+                    agents={pid: [round(a.x, 3), round(a.y, 3), round(a.yaw, 3),
+                                  round(a.z, 3)]
                             for pid, a in self.agents.items()},
                     debug=debug))
         self.events.extend(self.behavior.drain())

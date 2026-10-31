@@ -1,0 +1,107 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-RECON-001",
+  "issued_at": "2026-10-30T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -20,
+            10
+          ],
+          [
+            40,
+            10
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            -20,
+            40
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 300
+      },
+      "required_capabilities": {
+        "RCN": 2
+      },
+      "min_units": 2,
+      "max_units": 3,
+      "params": {
+        "duration_s": 40,
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "description": "草坪北侧区域协同侦察"
+    },
+    {
+      "task_id": "T2",
+      "task_type": "T-RCN",
+      "priority": 2,
+      "target": {
+        "route": [
+          [
+            60,
+            20
+          ],
+          [
+            100,
+            20
+          ],
+          [
+            140,
+            20
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 400
+      },
+      "required_capabilities": {
+        "RCN": 2
+      },
+      "min_units": 1,
+      "max_units": 2,
+      "params": {
+        "duration_s": 45
+      },
+      "description": "东西向道路走廊侦察"
+    },
+    {
+      "task_id": "T3",
+      "task_type": "T-HLD",
+      "priority": 3,
+      "target": {
+        "key_point": [
+          70,
+          10
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 500
+      },
+      "required_capabilities": {
+        "HLD": 2
+      },
+      "min_units": 1,
+      "max_units": 1,
+      "params": {
+        "hold_duration_s": 120
+      },
+      "description": "路口要点坚守"
+    }
+  ]
+}

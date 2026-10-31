@@ -1,0 +1,146 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 510,
+  "K": 8,
+  "_meta": {
+    "source": "interop 4.1 适配（schema_version=0.3）",
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-RECON-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    },
+    "cell_size_m": 1.0,
+    "formula": "job.work=duration_s, work_rate=1.0（基座侧按步=秒）"
+  },
+  "platforms": [
+    {
+      "robot_no": 1,
+      "pos": [
+        0.0,
+        -22.5
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 31,
+      "pos": [
+        -15.0,
+        -22.5
+      ],
+      "_platform_class": "PLANE"
+    },
+    {
+      "robot_no": 41,
+      "pos": [
+        -20.0,
+        -22.5
+      ],
+      "_platform_class": "WING"
+    },
+    {
+      "robot_no": 42,
+      "pos": [
+        -20.0,
+        -17.5
+      ],
+      "_platform_class": "WING"
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "T1",
+      "pos": [
+        10.0,
+        25.0
+      ],
+      "work": 40.0,
+      "window": [
+        0,
+        300
+      ],
+      "crew": 2,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "_task_type": "T-RCN",
+      "_target": {
+        "area": [
+          [
+            -20,
+            10
+          ],
+          [
+            40,
+            10
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            -20,
+            40
+          ]
+        ]
+      }
+    },
+    {
+      "job_id": "T2",
+      "pos": [
+        60.0,
+        20.0
+      ],
+      "work": 45.0,
+      "window": [
+        0,
+        400
+      ],
+      "crew": 1,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "_task_type": "T-RCN",
+      "_target": {
+        "route": [
+          [
+            60,
+            20
+          ],
+          [
+            100,
+            20
+          ],
+          [
+            140,
+            20
+          ]
+        ]
+      }
+    },
+    {
+      "job_id": "T3",
+      "pos": [
+        70.0,
+        10.0
+      ],
+      "work": 120.0,
+      "window": [
+        0,
+        500
+      ],
+      "crew": 1,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "_task_type": "T-HLD",
+      "_target": {
+        "key_point": [
+          70,
+          10
+        ]
+      }
+    }
+  ]
+}

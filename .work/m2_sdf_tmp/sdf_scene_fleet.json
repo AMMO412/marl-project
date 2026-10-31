@@ -1,0 +1,894 @@
+{
+  "formation": {
+    "formation_id": "M2-SDF",
+    "units": [
+      {
+        "unit_id": "U1",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 1,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": -22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "U2",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 21,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": -22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "U3",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 31,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": -22.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "U4",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 41,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -22.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "constraint_id": "SDF-env_roadside_planter_01-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            53.8,
+            12.8
+          ],
+          [
+            56.2,
+            12.8
+          ],
+          [
+            56.2,
+            15.2
+          ],
+          [
+            53.8,
+            15.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_01",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_02-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            53.8,
+            -15.2
+          ],
+          [
+            56.2,
+            -15.2
+          ],
+          [
+            56.2,
+            -12.8
+          ],
+          [
+            53.8,
+            -12.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_02",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_03-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            78.8,
+            12.8
+          ],
+          [
+            81.2,
+            12.8
+          ],
+          [
+            81.2,
+            15.2
+          ],
+          [
+            78.8,
+            15.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_03",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_04-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            78.8,
+            -15.2
+          ],
+          [
+            81.2,
+            -15.2
+          ],
+          [
+            81.2,
+            -12.8
+          ],
+          [
+            78.8,
+            -12.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_04",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_05-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            103.8,
+            12.8
+          ],
+          [
+            106.2,
+            12.8
+          ],
+          [
+            106.2,
+            15.2
+          ],
+          [
+            103.8,
+            15.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_05",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_06-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            103.8,
+            -15.2
+          ],
+          [
+            106.2,
+            -15.2
+          ],
+          [
+            106.2,
+            -12.8
+          ],
+          [
+            103.8,
+            -12.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_06",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_07-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            128.8,
+            12.8
+          ],
+          [
+            131.2,
+            12.8
+          ],
+          [
+            131.2,
+            15.2
+          ],
+          [
+            128.8,
+            15.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_07",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_08-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            128.8,
+            -15.2
+          ],
+          [
+            131.2,
+            -15.2
+          ],
+          [
+            131.2,
+            -12.8
+          ],
+          [
+            128.8,
+            -12.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_08",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_09-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            53.8
+          ],
+          [
+            15.2,
+            53.8
+          ],
+          [
+            15.2,
+            56.2
+          ],
+          [
+            12.8,
+            56.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_09",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_10-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            53.8
+          ],
+          [
+            -12.8,
+            53.8
+          ],
+          [
+            -12.8,
+            56.2
+          ],
+          [
+            -15.2,
+            56.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_10",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_11-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            78.8
+          ],
+          [
+            15.2,
+            78.8
+          ],
+          [
+            15.2,
+            81.2
+          ],
+          [
+            12.8,
+            81.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_11",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_12-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            78.8
+          ],
+          [
+            -12.8,
+            78.8
+          ],
+          [
+            -12.8,
+            81.2
+          ],
+          [
+            -15.2,
+            81.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_12",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_13-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            103.8
+          ],
+          [
+            15.2,
+            103.8
+          ],
+          [
+            15.2,
+            106.2
+          ],
+          [
+            12.8,
+            106.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_13",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_14-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            103.8
+          ],
+          [
+            -12.8,
+            103.8
+          ],
+          [
+            -12.8,
+            106.2
+          ],
+          [
+            -15.2,
+            106.2
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_14",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_15-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            -56.2
+          ],
+          [
+            15.2,
+            -56.2
+          ],
+          [
+            15.2,
+            -53.8
+          ],
+          [
+            12.8,
+            -53.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_15",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_16-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            -56.2
+          ],
+          [
+            -12.8,
+            -56.2
+          ],
+          [
+            -12.8,
+            -53.8
+          ],
+          [
+            -15.2,
+            -53.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_16",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_17-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            -81.2
+          ],
+          [
+            15.2,
+            -81.2
+          ],
+          [
+            15.2,
+            -78.8
+          ],
+          [
+            12.8,
+            -78.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_17",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_18-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            -81.2
+          ],
+          [
+            -12.8,
+            -81.2
+          ],
+          [
+            -12.8,
+            -78.8
+          ],
+          [
+            -15.2,
+            -78.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_18",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_19-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            12.8,
+            -106.2
+          ],
+          [
+            15.2,
+            -106.2
+          ],
+          [
+            15.2,
+            -103.8
+          ],
+          [
+            12.8,
+            -103.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_19",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_roadside_planter_20-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            -15.2,
+            -106.2
+          ],
+          [
+            -12.8,
+            -106.2
+          ],
+          [
+            -12.8,
+            -103.8
+          ],
+          [
+            -15.2,
+            -103.8
+          ]
+        ]
+      },
+      "source": "env_roadside_planter_20",
+      "height_m": 1.2
+    },
+    {
+      "constraint_id": "SDF-env_walls_north-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            109.5,
+            -92.0
+          ],
+          [
+            110.5,
+            -92.0
+          ],
+          [
+            110.5,
+            -72.0
+          ],
+          [
+            109.5,
+            -72.0
+          ]
+        ]
+      },
+      "source": "env_walls_north",
+      "height_m": 15.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_west-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            97.0,
+            -77.5
+          ],
+          [
+            107.0,
+            -77.5
+          ],
+          [
+            107.0,
+            -76.5
+          ],
+          [
+            97.0,
+            -76.5
+          ]
+        ]
+      },
+      "source": "env_walls_west",
+      "height_m": 15.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_south-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            109.5,
+            -92.5
+          ],
+          [
+            126.5,
+            -92.5
+          ],
+          [
+            126.5,
+            -91.5
+          ],
+          [
+            109.5,
+            -91.5
+          ]
+        ]
+      },
+      "source": "env_walls_south",
+      "height_m": 15.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_east-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            116.5,
+            -92.0
+          ],
+          [
+            117.5,
+            -92.0
+          ],
+          [
+            117.5,
+            -72.0
+          ],
+          [
+            116.5,
+            -72.0
+          ]
+        ]
+      },
+      "source": "env_walls_east",
+      "height_m": 15.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_low_1-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            76.0,
+            -107.0
+          ],
+          [
+            84.0,
+            -107.0
+          ],
+          [
+            84.0,
+            -105.0
+          ],
+          [
+            76.0,
+            -105.0
+          ]
+        ]
+      },
+      "source": "env_walls_low_1",
+      "height_m": 2.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_low_2-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            89.0,
+            -65.0
+          ],
+          [
+            91.0,
+            -65.0
+          ],
+          [
+            91.0,
+            -55.0
+          ],
+          [
+            89.0,
+            -55.0
+          ]
+        ]
+      },
+      "source": "env_walls_low_2",
+      "height_m": 2.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_low_3-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            114.0,
+            -58.0
+          ],
+          [
+            126.0,
+            -58.0
+          ],
+          [
+            126.0,
+            -56.0
+          ],
+          [
+            114.0,
+            -56.0
+          ]
+        ]
+      },
+      "source": "env_walls_low_3",
+      "height_m": 2.0
+    },
+    {
+      "constraint_id": "SDF-env_walls_low_4-collision",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {
+        "polygon": [
+          [
+            134.0,
+            -107.0
+          ],
+          [
+            136.0,
+            -107.0
+          ],
+          [
+            136.0,
+            -93.0
+          ],
+          [
+            134.0,
+            -93.0
+          ]
+        ]
+      },
+      "source": "env_walls_low_4",
+      "height_m": 2.0
+    },
+    {
+      "constraint_id": "THREAT-DEMO",
+      "type": "threat",
+      "applies_to": "ground",
+      "intensity": 0.7,
+      "area": {
+        "polygon": [
+          [
+            20,
+            -35
+          ],
+          [
+            70,
+            -35
+          ],
+          [
+            70,
+            -10
+          ],
+          [
+            20,
+            -10
+          ]
+        ]
+      },
+      "note": "演示用威胁区；真实威胁数据到位后替换"
+    }
+  ],
+  "meta": {
+    "cell_size_m": 1,
+    "grid_cell_m": 2.0,
+    "grid_margin_m": 1.0,
+    "plan_id": "PLAN-M2-SDF-001",
+    "scene": "container_00",
+    "scene_bounds": [
+      -290.0,
+      -230.0,
+      290.0,
+      230.0
+    ],
+    "source_sdf": "container_00_combined_scene.sdf"
+  }
+}

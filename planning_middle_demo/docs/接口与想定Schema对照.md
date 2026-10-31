@@ -88,7 +88,7 @@
 
 ### P0-B：ROS2 Topic 消息体（#2）
 
-`delivery_block` 已对齐话题名（`/rover_XX/cmd_vel`、`/model/rover_XX/pose`），
+`delivery_block` 已对齐话题名（`/container_00/robot_XXX`、`/model/robot_XXX/pose`，2026-10-30 更新），
 但方案 `.msg × 2` 的 `/gazebo/model_states` + `/robot/odom_ext` + `/sensor/*`
 消息体**未定义**。接真实下层时，把 `mock_fleet` 替换为订阅这些话题的适配器，
 `delivery_block` 的运动字段（`motion_caps`）不变。

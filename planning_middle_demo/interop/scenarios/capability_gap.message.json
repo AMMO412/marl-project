@@ -1,0 +1,130 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-GAP-001",
+  "issued_at": "2026-10-30T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-HLD",
+      "priority": 1,
+      "target": {
+        "key_point": [
+          0,
+          40
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 300
+      },
+      "required_capabilities": {
+        "HLD": 3
+      },
+      "min_units": 2,
+      "max_units": 2,
+      "params": {
+        "hold_duration_s": 120,
+        "defense_positions": [
+          [
+            0,
+            36
+          ],
+          [
+            0,
+            44
+          ]
+        ],
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "description": "只有 TANK 满足 HLD3，恰好两台"
+    },
+    {
+      "task_id": "T2",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "target_list": [
+          [
+            -40,
+            70
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 400
+      },
+      "required_capabilities": {
+        "RCN": 3,
+        "HLD": 2
+      },
+      "min_units": 1,
+      "max_units": 1,
+      "params": {
+        "duration_s": 30
+      },
+      "description": "没有平台同时满足 RCN3 与 HLD2，应报 NO_CAPABILITY"
+    },
+    {
+      "task_id": "T3",
+      "task_type": "T-RCN",
+      "priority": 2,
+      "target": {
+        "target_list": [
+          [
+            -40,
+            70
+          ],
+          [
+            -30,
+            80
+          ],
+          [
+            -50,
+            90
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 70
+      },
+      "required_capabilities": {
+        "RCN": 3
+      },
+      "min_units": 3,
+      "max_units": 3,
+      "params": {
+        "duration_s": 30
+      },
+      "description": "只有一台 PLANE 满足 RCN3，窗口只够一个槽位，应报 WINDOW"
+    },
+    {
+      "task_id": "T4",
+      "task_type": "T-PTL",
+      "priority": 2,
+      "target": {
+        "point": [
+          40,
+          40
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 400
+      },
+      "required_capabilities": {
+        "PTL": 2
+      },
+      "min_units": 1,
+      "max_units": 1,
+      "params": {
+        "duration_s": 60
+      },
+      "description": "普通巡逻点"
+    }
+  ]
+}

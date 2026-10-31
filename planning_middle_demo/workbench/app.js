@@ -5,11 +5,13 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const modes = {recording:'专项串行回放',normal:'正常执行',failure:'失败重试',timeout:'超时恢复',kill:'成员失联',deviation:'进度偏差'};
 const statuses = {pending:'待分配',running:'执行中',cancelling:'取消中',succeeded:'已完成',failed:'已失败'};
 const types = {patrol:'巡逻警戒',blockade:'区域封控',recon:'协同侦察',assault:'机动突击',hold:'要点坚守'};
+function taskLabel(j){const source=state.run?.scenario?.jobs?.find(x=>x.job_id===j.job_id);const wire=source?._task_type;return types[j.jtype||j.type]||({'T-PTL':'巡逻警戒','T-RCN':'协同侦察','T-SEC':'区域封控','T-HLD':'要点坚守'}[wire])||wire||j.jtype||j.type||'未标注任务';}
 const icons = {patrol:'↻',blockade:'◇',recon:'⌕',assault:'↗',hold:'⌂'};
 const kindNames = {UGV:'轮式车',TANK:'履带车',PLANE:'固定翼',WING:'飞翼'};
+function buildingName(id){const k=String(id||'').replace(/^env[ _]city[ _]/,'').replace(/#\d+$/,'').replace(/_/g,' ').trim();const h=k.match(/^house\s*(\d+)/i);if(h)return '民居 '+Number(h[1]);const o=k.match(/^office\s*(\d+)/i);if(o)return '办公楼 '+Number(o[1]);return k;}
 const taskPalette=['#288d79','#bd8534','#7264cb','#c27158','#478cac','#9a6b99'];
 const events = {recording_start:'专项片段开始',recording_end:'专项片段结束',plan_emitted:'生成规划方案',job_dispatched:'下发作业',job_succeeded:'作业完成',job_requeued:'作业重新排队',job_failed:'作业失败',member_lost:'平台失联',timeout:'作业超时',deviation:'进度偏差',cancel_sent:'发出取消请求',command_abandoned:'终止失联成员指令',feedback_ignored:'反馈未采纳',behavior_event:'到位行为'};
-const behaviorEvents = {phase:'行为阶段切换',checkpoint_visited:'到达检查点',cycle_completed:'完成一圈巡逻',posts_occupied:'封控占位就绪',intrusion_detected:'发现入侵',interceptor_assigned:'指派拦截',intercepted:'拦截成功',breach:'越界',map_initialised:'地图初始化',frontier_mapped:'前沿测绘',coverage_reached:'覆盖达标',report_sent:'成果回传',map_shared:'共享地图更新',all_staged:'全员到位',assault_started:'突击开始',effect_started:'效能施加',effect_applied:'效能达成',confirmed:'结果确认',on_post:'上岗',handover_start:'接替开始',handover_complete:'接替完成',relief:'换班',behavior_complete:'行为完成',arrived_area:'进入作业区',route_failed:'路径失败',command_received:'受领任务',target_designated:'目标指示',all_in_position:'全员到位执行位',result_pending:'结果待评估',assessment_received:'评估回传',withdraw_started:'撤离开始',withdrawn:'撤离完成',withdraw_timeout:'撤离超时',confirmation_timeout:'确认超时',attack_window_missed:'错过攻击窗口',task_timeout:'任务超时',arrived:'到达点位',energy_depleted:'电量耗尽',start_snapped:'出发点吸附'};
+const behaviorEvents = {phase:'行为阶段切换',checkpoint_visited:'到达检查点',cycle_completed:'完成一圈巡逻',posts_occupied:'封控占位就绪',intrusion_detected:'发现入侵',interceptor_assigned:'指派拦截',intercepted:'拦截成功',breach:'越界',map_initialised:'地图初始化',frontier_mapped:'前沿测绘',coverage_reached:'覆盖达标',report_sent:'成果回传',map_shared:'共享地图更新',all_staged:'全员到位',assault_started:'突击开始',effect_started:'效果施加开始',effect_applied:'动作结束',confirmed:'结果确认',salvo_fired:'齐射',ammo_depleted:'平台弹药耗尽',ammo_exhausted:'弹药耗尽终止',restrike_needed:'需要二次打击',control_established:'控制建立',control_lost:'控制丢失',suppression_gap:'压制中断',handover:'移交',assessment_requested:'评估发起',assessment_received:'评估回传',effect_achieved:'效果达成',deadline_exceeded:'执行超时',terminate:'任务终止',behavior_result:'效果判定结果',result_failed:'结果未达成',result_pending:'结果待评估',on_post:'上岗',handover_start:'接替开始',handover_complete:'接替完成',relief:'换班',behavior_complete:'行为完成',arrived_area:'进入作业区',route_failed:'路径失败',command_received:'受领任务',target_designated:'目标指示',all_in_position:'全员到位执行位',withdraw_started:'撤离开始',withdrawn:'撤离完成',withdraw_timeout:'撤离超时',confirmation_timeout:'确认超时',attack_window_missed:'错过攻击窗口',task_timeout:'任务超时',arrived:'到达点位',energy_depleted:'电量耗尽',start_snapped:'出发点吸附'};
 const triggerNames = {init:'首次规划',periodic:'周期更新',member_change:'成员变化',exec_fail:'执行失败',timeout:'超时',deviation:'进度偏差'};
 const titles = {overview:'演示总览',tasks:'任务与分配',platforms:'平台状态',runs:'实验与报告',files:'项目文件'};
 const sourceFiles = [['readme','README_v2.md','项目说明与运行方式'],['planner','planner_v2.py','六步规则规划器'],['coordinator','coordinator_v2.py','反馈、调度与重规划'],['fleet','mock_fleet.py','本地执行与反馈替身'],['contracts','contracts_v2.py','场景与消息数据契约']];
@@ -23,7 +25,24 @@ function stamp(t){return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Mat
 function shortRun(id){if(id==='behavior_20261028_verify')return '专项验证记录 · 2026-10-28';if(id==='workbench_behavior_20261028')return '城市到位动作 · 2026-10-28';if(id==='avoid_run')return '旧版城市绕障 · 无到位动作';return id.replace('workbench_','').replace(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_.*$/,'$1-$2-$3 $4:$5:$6');}
 function setPage(page){state.page=page;$$('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#crumb').textContent=titles[page];$('#page-title').innerHTML=(page==='overview'?'把规划过程，看清楚。':esc(titles[page]))+'<span class="version">V2</span>';renderTime();draw();window.scrollTo(0,0);}
 function eventCategory(e){if(e.kind==='plan_emitted')return 'planning';if(e.kind==='behavior_event')return 'behavior';if(['member_lost','timeout','deviation','job_requeued','job_failed','cancel_sent','command_abandoned','feedback_ignored'].includes(e.kind))return 'exception';return 'task';}
-function eventDetail(e){if(e.kind==='plan_emitted')return (e.triggers||[]).map(x=>x.split(':')[0]).join(' / ')+' · '+e.n_assignments+' 项指派';if(e.kind==='behavior_event'){const ev=e.event||{},sub=ev.kind;let d=behaviorEvents[sub]||sub||'';if(ev.phase)d+=' · '+ev.phase;if(ev.pid)d+=' · '+ev.pid;if(ev.cycle!=null)d+=' · 第'+ev.cycle+'圈';if(ev.coverage!=null)d+=' · 覆盖'+Math.round(ev.coverage*100)+'%';return d;}if(e.pids)return e.pids.map(no).join(' · ')+' · 第 '+e.attempt+' 次尝试';return e.reason||e.cause||e.pid||e.command_id||e.job_id||'';}
+function eventDetail(e){if(e.kind==='plan_emitted')return (e.triggers||[]).map(x=>x.split(':')[0]).join(' / ')+' · '+e.n_assignments+' 项指派';if(e.kind==='behavior_event'){const ev=e.event||{},sub=ev.kind;let d=behaviorEvents[sub]||sub||'';if(ev.phase)d+=' · '+ev.phase;if(ev.pid)d+=' · '+ev.pid;if(ev.cycle!=null)d+=' · 第'+ev.cycle+'圈';if(ev.coverage!=null)d+=' · 覆盖'+Math.round(ev.coverage*100)+'%';
+  // T-ASL 效果判定事件的摘要字段
+  if(ev.rounds!=null&&ev.pids)d+=' · '+(ev.pids||[]).map(no).join('/')+' 各'+ev.rounds+'发';
+  if(ev.damage_level!=null)d+=' · 毁伤等级'+num(ev.damage_level);
+  if(ev.level!=null&&ev.required!=null)d+=' · '+num(ev.level,1)+'/'+num(ev.required,1);
+  if(ev.gap_s!=null)d+=' · 中断'+num(ev.gap_s,1)+' s';
+  if(ev.held_s!=null)d+=' · 保持'+num(ev.held_s,1)+' s';
+  if(ev.occupants!=null)d+=' · 在位'+ev.occupants;
+  if(ev.at!=null&&sub==='effect_achieved')d+=' · T+'+num(ev.at,1)+' s';
+  if(ev.by)d+=' · '+ev.by;
+  if(ev.source)d+=' · '+ev.source;
+  if(ev.overall)d+=' · '+(resultStatusNames[ev.overall]||ev.overall);
+  if(ev.reason)d+=' · '+(terminationNames[ev.reason]||ev.reason);
+  if(ev.verified===false)d+=' · 桩·未验证';
+  if(ev.latency_s!=null)d+=' · 时延'+num(ev.latency_s,1)+' s';
+  return d;}if(e.pids)return e.pids.map(no).join(' · ')+' · 第 '+e.attempt+' 次尝试';return e.reason||e.cause||e.pid||e.command_id||e.job_id||'';}
+const resultStatusNames={achieved:'达成',failed:'未达成',pending:'待确认',info:'信息',succeeded:'成功'};
+const terminationNames={ammo_exhausted:'弹药耗尽',deadline_exceeded:'执行超时',confirmation_timeout:'确认超时',timeout:'任务超时',attack_window_missed:'错过攻击窗口',result_failed:'评估未达成',withdrawn:'撤离完成',result_confirmed:'结果已确认'};
 function eventTitle(e){if(e.kind==='behavior_event'){const ev=e.event||{};return behaviorEvents[ev.kind]||ev.kind||'到位行为';}return events[e.kind]||e.kind;}
 function makeFrames(data){
   const jobs={};data.report.jobs.forEach(j=>jobs[j.job_id]={status:'pending',progress:0,attempts:0,pids:[],start:null,end:null,phase:null,behavior:{}});
@@ -96,7 +115,7 @@ function renderBehaviors(){
   $('#behavior-model').classList.toggle('warning',!enabled);
   $('#behavior-count').textContent=enabled?state.run.report.jobs.filter(j=>f.jobs[j.job_id].behavior.at!=null).length+' / '+state.run.report.jobs.length:'0';
   $('#behavior-note').textContent=enabled?'来自当前运行的动作阶段与事件；点击卡片定位任务，点击关键节点跳转。':'此历史运行未启用到位动作。点击“载入动作演示”查看已有动作记录。';
-  $('#behavior-list').innerHTML=enabled?state.run.report.jobs.map(j=>{const s=f.jobs[j.job_id];return `<button class="behavior-tile ${selectedJobId()===j.job_id?'selected':''}" style="--task-color:${taskColor(j.job_id)}" data-job="${esc(j.job_id)}"><span class="behavior-tile-head"><b>${esc(j.job_id)} · ${esc(types[j.jtype])}</b><span>${esc(s.status==='succeeded'?'已完成':phaseName(s.phase))}</span></span><small>${esc(behaviorSummary(j,s))}</small></button>`;}).join(''):'<div class="empty">本轮轨迹只记录到点作业。<button class="button small" data-behavior-run>载入动作演示 →</button></div>';
+  $('#behavior-list').innerHTML=enabled?state.run.report.jobs.map(j=>{const s=f.jobs[j.job_id];return `<button class="behavior-tile ${selectedJobId()===j.job_id?'selected':''}" style="--task-color:${taskColor(j.job_id)}" data-job="${esc(j.job_id)}"><span class="behavior-tile-head"><b>${esc(j.job_id)} · ${esc(taskLabel(j))}</b><span>${esc(s.status==='succeeded'?'已完成':phaseName(s.phase))}</span></span><small>${esc(behaviorSummary(j,s))}</small></button>`;}).join(''):'<div class="empty">本轮轨迹只记录到点作业。<button class="button small" data-behavior-run>载入动作演示 →</button></div>';
   const keyKinds=new Set(['cycle_completed','posts_occupied','intrusion_detected','intercepted','handover_start','handover_complete','map_initialised','coverage_reached','report_sent','all_staged','effect_applied','confirmed']);
   const jid=selectedJobId();
   $('#behavior-milestones').innerHTML=enabled?state.eventRows.filter(e=>e.kind==='behavior_event'&&keyKinds.has(e.event?.kind)&&(!jid||e.job_id===jid)).map(e=>`<button class="milestone ${e.sim_s>state.t?'future':'occurred'}" data-event-time="${e.sim_s}" data-event-job="${esc(e.job_id)}"><span>${e.sim_s} s${e.sim_s>state.t?' · 未发生':''}</span>${esc(e.job_id)} · ${esc(eventTitle(e))}</button>`).join(''):'';
@@ -105,7 +124,7 @@ function renderTime(){
   if(!state.run)return;const f=frame(),jobs=Object.values(f.jobs),done=jobs.filter(j=>j.status==='succeeded').length;
   $('#stat-done').textContent=done;$('#stat-total').textContent='/ '+jobs.length;$('#done-bar').style.width=100*done/jobs.length+'%';$('#done-note').textContent=done===jobs.length?'本轮全部完成':'按当前反馈统计';
   $('#stat-alive').textContent=state.run.replay.workers.length-f.lost.length;$('#stat-plans').textContent=state.run.report.recording?'未记录':f.plans;$('#plan-note').textContent=state.run.report.recording?'保存的专项串行记录':'已重试 '+f.retries+' 次 · 已超时 '+f.timeouts+' 次';$('#stat-clock').textContent=state.t.toFixed(1);$('#clock').textContent=(state.taskWindow?state.t-state.taskWindow.start:state.t).toFixed(1);$('#scrubber').value=state.t;
-  $('#task-list').innerHTML=state.run.report.jobs.map(j=>{const s=f.jobs[j.job_id],pct=Math.min(100,100*s.progress/j.work);return `<button class="task-row ${selectedJobId()===j.job_id?'selected':''}" style="--task-color:${taskColor(j.job_id)}" data-job="${esc(j.job_id)}"><div class="task-line"><span class="job-icon">${icons[j.jtype]||'◇'}</span><b>${esc(types[j.jtype]||j.jtype)}<span class="task-id">${esc(j.job_id)}</span></b><span class="task-status ${s.status}">${statuses[s.status]}</span></div><div class="task-progress"><div class="progress-track"><i style="width:${pct}%"></i></div><span>${Math.round(pct)}%</span></div><div class="task-assigned">${s.pids.length?s.pids.map(no).join(' · '):'等待可行分配'}${state.run.report.behavior?' · '+esc(phaseName(s.phase)):''}</div></button>`;}).join('');
+  $('#task-list').innerHTML=state.run.report.jobs.map(j=>{const s=f.jobs[j.job_id],pct=Math.min(100,100*s.progress/j.work);return `<button class="task-row ${selectedJobId()===j.job_id?'selected':''}" style="--task-color:${taskColor(j.job_id)}" data-job="${esc(j.job_id)}"><div class="task-line"><span class="job-icon">${icons[j.jtype]||'◇'}</span><b>${esc(taskLabel(j)||j.jtype)}<span class="task-id">${esc(j.job_id)}</span></b><span class="task-status ${s.status}">${statuses[s.status]}</span></div><div class="task-progress"><div class="progress-track"><i style="width:${pct}%"></i></div><span>${Math.round(pct)}%</span></div><div class="task-assigned">${s.pids.length?s.pids.map(no).join(' · '):'等待可行分配'}${state.run.report.behavior?' · '+esc(phaseName(s.phase)):''}</div></button>`;}).join('');
   renderInspector();renderEvents();renderBehaviors();renderStage();renderTheater();
   if(state.page==='tasks')renderTasks();if(state.page==='platforms')renderPlatforms();
 }
@@ -118,7 +137,7 @@ function renderInspector(){
     $('#inspector').innerHTML=`<div class="focus-title"><span style="color:${taskColor(activeWorkerJob(w))}">●</span> ${esc(w.pid)} · ${esc(w.kind_name)}</div><dl><div><dt>当前坐标</dt><dd>${num(p.x)}, ${num(p.y)}</dd></div><div><dt>高度 / 场景单位</dt><dd>${num(p.z)}</dd></div><div><dt>当前作业</dt><dd>${p.lost?'成员失联':active?esc(p.job):'空闲 / 最近反馈'}</dd></div><div><dt>当前动作阶段</dt><dd>${esc(phaseName(p.phase))}</dd></div><div><dt>模型电量</dt><dd>${num(p.battery)}</dd></div><div><dt>累计反馈路程</dt><dd>${num(p.distance)}</dd></div><div><dt>最近位置反馈</dt><dd>${p.t==null?'仅场景初始位':num(p.t,0)+' s'}</dd></div></dl>`;
   }else{
     const j=state.run.report.jobs.find(j=>j.job_id===f.id);if(!j)return;const s=frame().jobs[j.job_id];
-    $('#inspector').innerHTML=`<div class="focus-title">${esc(j.job_id)} · ${esc(types[j.jtype])}</div><dl><div><dt>当前状态</dt><dd>${statuses[s.status]}</dd></div><div><dt>工作量</dt><dd>${num(s.progress)} / ${j.work}</dd></div><div><dt>当前动作阶段</dt><dd>${esc(phaseName(s.phase))}</dd></div><div><dt>动作记录</dt><dd>${esc(behaviorSummary(j,s))}</dd></div><div><dt>当前指派</dt><dd>${s.pids.map(no).join(' · ')||'尚未分配'}</dd></div><div><dt>需求人数</dt><dd>${j.crew} 台</dd></div><div><dt>计划开工 / 完工</dt><dd>${s.start==null?'未排程':s.start+' / '+s.end+' s'}</dd></div><div><dt>目标坐标</dt><dd>${j.pos.map(x=>num(x)).join(', ')}</dd></div></dl>`;
+    $('#inspector').innerHTML=`<div class="focus-title">${esc(j.job_id)} · ${esc(taskLabel(j))}</div><dl><div><dt>当前状态</dt><dd>${statuses[s.status]}</dd></div><div><dt>工作量</dt><dd>${num(s.progress)} / ${j.work}</dd></div><div><dt>当前动作阶段</dt><dd>${esc(phaseName(s.phase))}</dd></div><div><dt>动作记录</dt><dd>${esc(behaviorSummary(j,s))}</dd></div><div><dt>当前指派</dt><dd>${s.pids.map(no).join(' · ')||'尚未分配'}</dd></div><div><dt>需求人数</dt><dd>${j.crew} 台</dd></div><div><dt>计划开工 / 完工</dt><dd>${s.start==null?'未排程':s.start+' / '+s.end+' s'}</dd></div><div><dt>目标坐标</dt><dd>${j.pos.map(x=>num(x)).join(', ')}</dd></div></dl>`;
   }
 }
 let lastEventKey='';
@@ -132,14 +151,14 @@ function renderEvents(){
   $('#events').innerHTML=list.map(e=>`<button class="event-item ${eventCategory(e)} ${e.sim_s>state.t?'future':''}" data-event-time="${e.sim_s}"><span class="event-time"><i></i>T + ${num(e.sim_s,0)} s${e.sim_s>state.t?' · 尚未发生':''}</span><strong>${e.job_id?esc(e.job_id)+' · ':''}${esc(eventTitle(e))}</strong><small title="${esc(eventDetail(e))}">${esc(eventDetail(e))}</small></button>`).join('')||'<div class="empty">当前筛选没有事件</div>';
 }
 function renderTasks(){
-  $('#task-table').innerHTML=state.run.report.jobs.map(j=>{const s=frame().jobs[j.job_id],pct=Math.min(100,100*s.progress/j.work);return `<tr class="${state.focus?.id===j.job_id?'selected':''}"><td><button class="text-button" data-job="${esc(j.job_id)}" data-locate>${esc(j.job_id)} · ${esc(types[j.jtype])}</button><small>协同需求 ${j.crew} 台 · ${esc(j.need_sensor||'无专属传感器')}</small></td><td>${j.pos.map(x=>num(x)).join(', ')}</td><td><span class="pill ${s.status==='failed'?'warning':''}">${statuses[s.status]}</span><small>${esc(phaseName(s.phase))}</small></td><td>${state.run.report.recording?'按记录阶段':num(s.progress)+' / '+j.work}<div class="progress-track table-progress"><i style="width:${pct}%"></i></div></td><td>${s.pids.map(no).join(' · ')||'—'}</td><td>${s.attempts}</td><td>${j.window.join(' – ')} s</td></tr>`;}).join('');
+  $('#task-table').innerHTML=state.run.report.jobs.map(j=>{const s=frame().jobs[j.job_id],pct=Math.min(100,100*s.progress/j.work);return `<tr class="${state.focus?.id===j.job_id?'selected':''}"><td><button class="text-button" data-job="${esc(j.job_id)}" data-locate>${esc(j.job_id)} · ${esc(taskLabel(j))}</button><small>协同需求 ${j.crew} 台 · ${esc(j.need_sensor||'无专属传感器')}</small></td><td>${j.pos.map(x=>num(x)).join(', ')}</td><td><span class="pill ${s.status==='failed'?'warning':''}">${statuses[s.status]}</span><small>${esc(phaseName(s.phase))}</small></td><td>${state.run.report.recording?'按记录阶段':num(s.progress)+' / '+j.work}<div class="progress-track table-progress"><i style="width:${pct}%"></i></div></td><td>${s.pids.map(no).join(' · ')||'—'}</td><td>${s.attempts}</td><td>${j.window.join(' – ')} s</td></tr>`;}).join('');
 }
 function renderPlatforms(){
   const filter=$('#platform-filter').value;
   $('#platform-grid').innerHTML=state.run.replay.workers.filter(w=>filter==='all'||w.kind===filter).map(w=>{const p=workerAt(w);return `<button class="platform-tile" data-worker="${esc(w.pid)}" data-locate><h3><i style="background:${taskColor(activeWorkerJob(w))}"></i>${esc(w.pid)}<span>${p.lost?'失联':'可用'}</span></h3><p>${esc(w.kind_name)} · ${esc(w.kind)}</p><dl><div><dt>位置</dt><dd>${num(p.x)}, ${num(p.y)}</dd></div><div><dt>高度</dt><dd>${num(p.z)}</dd></div><div><dt>模型电量</dt><dd>${num(p.battery)}</dd></div><div><dt>最近作业</dt><dd>${esc(p.job||'—')}</dd></div><div><dt>动作阶段</dt><dd>${esc(phaseName(p.phase))}</dd></div></dl></button>`;}).join('');
 }
 function renderRuns(){
-  $('#runs-table').innerHTML=state.catalog.runs.map(r=>`<tr class="${r.id===state.run?.id?'selected':''}"><td><button class="text-button" data-load-run="${esc(r.id)}">${esc(shortRun(r.id))}</button><small>${esc(r.objective)} · ${r.recording?'记录已保存':r.settled?'已结算':'达到步数上限，未结算'}</small></td><td>${modes[r.mode]||esc(r.mode)}<small>${r.motion==='real'?'逐步运动':'瞬移'}${r.avoid?' · 建筑绕障':''}${r.behavior?' · 到位行为':''}</small></td><td>${r.done} / ${r.total}</td><td>${r.end} s</td><td>${num(r.energy)}</td><td>${r.recording?'未记录':r.retries+' / '+r.timeouts}</td><td><button class="text-button" data-load-run="${esc(r.id)}">载入回放 ↗</button></td></tr>`).join('');
+  $('#runs-table').innerHTML=state.catalog.runs.map(r=>`<tr class="${r.id===state.run?.id?'selected':''}"><td><button class="text-button" data-load-run="${esc(r.id)}">${esc(shortRun(r.id))}</button><small>${esc(r.objective)} · ${r.recording?'记录已保存':r.settled?'已结算':'达到步数上限，未结算'}</small></td><td>${modes[r.mode]||esc(r.mode)}<small>${r.motion==='real'?'逐步运动':'瞬移'}${r.avoid?' · 建筑绕障':''}${r.behavior?' · 到位行为':''}${r.planner==='interop'?' · 融合规划':''}</small></td><td>${r.done} / ${r.total}</td><td>${r.end} s</td><td>${num(r.energy)}</td><td>${r.recording?'未记录':r.retries+' / '+r.timeouts}</td><td><button class="text-button" data-load-run="${esc(r.id)}">载入回放 ↗</button></td></tr>`).join('');
   if(!state.run)return;const r=state.run.report;
   $('#report-status').textContent=r.all_succeeded?'全部完成':r.settled?'本轮已结算':'未结算';$('#report-status').classList.toggle('warning',!r.all_succeeded);
   $('#report-summary').innerHTML=[[r.done+'/'+r.jobs.length,r.recording?'记录完成的片段':'工作量达标作业'],[r.simulated_until_s+' s','仿真运行终点'],[num(r.used_energy),'累计模型耗电'],[r.plans??'未记录','规划方案数'],[r.retries??'未记录','重试次数'],[r.timeouts??'未记录','超时次数']].map(([v,l])=>`<div><b>${esc(v)}</b><span>${l}</span></div>`).join('');
@@ -148,7 +167,7 @@ function renderRuns(){
   $('#download-report').href=artifact('report.json');$('#download-trace').href=artifact(r.recording?'behavior_trace.json':'trace.jsonl');$('#result-scope').textContent=r.recording?'本页为原始专项串行记录；未记录的规划、工作量与能耗指标不补造。':r.behavior?'本轮启用到位行为；作业终态来自已保存的模拟日志。':'本轮未启用到位行为；完成只表示原模型工作量达标。';
 }
 function artifact(name){return '/artifacts/'+encodeURIComponent(state.run.id)+'/'+name;}
-const fileDescriptions={'manifest.json':'运行配置、来源与环境','scenario.json':'本轮实际场景快照','report.json':'最终指标与状态','trace.jsonl':'逐条原始反馈与审计','summary.txt':'文本结果摘要','report.html':'原始可视化报告','trajectory.html':'原始轨迹播放器','request.json':'工作台请求参数','worker.log':'本轮运行日志'};
+const fileDescriptions={'manifest.json':'运行配置、来源与环境','scenario.json':'本轮实际场景快照','report.json':'最终指标与状态','trace.jsonl':'逐条原始反馈与审计','summary.txt':'文本结果摘要','report.html':'原始可视化报告','trajectory.html':'原始轨迹播放器','request.json':'工作台请求参数','worker.log':'本轮运行日志','plan.json':'4.2 计划层与执行层完整结构','assignments.csv':'槽位分配字段子集','commands.csv':'速度指令字段子集','report.md':'4.2 计划报告（路径/指令/未分配）','ros2_commands.txt':'可直接粘贴的 ros2 topic pub 命令'};
 function renderFiles(){
   $('#source-files').innerHTML=sourceFiles.map(([key,name,desc])=>`<button class="file-item" data-source="${key}"><span>↗</span><b>${name}</b><small>${desc}</small></button>`).join('');
   if(!state.run)return;$('#output-path').textContent='planning_middle_demo/outputs/'+state.run.id+'/';
@@ -162,13 +181,15 @@ async function loadRun(id,autoplay=false){
     $('#run-select').value=id;$('#run-mode').textContent=modes[data.report.mode]||data.report.mode;$('#run-semantic').textContent=data.report.recording?data.report.recording_source.note:(data.report.motion==='real'?'逐步运动':'瞬移')+(data.report.avoid?' · 静态建筑绕障':'')+(data.report.behavior?' · 到位行为':'')+' · '+(data.report.objective||'makespan');
     $('#stat-end').textContent=data.replay.end;$('#duration').textContent=data.replay.end;$('#scrubber').max=data.replay.end;$('#timeline-mid').textContent=stamp(data.replay.end/2);$('#timeline-end').textContent=stamp(data.replay.end);$('#task-count').textContent=data.report.jobs.length;$('#side-jobs').textContent=String(data.report.jobs.length).padStart(2,'0');
     $('#fleet-note').textContent=[...new Set(data.replay.workers.map(w=>w.kind_name))].join(' · ');
-    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(types[j.jtype])}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(autoplay)setPlaying(true);
+    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(taskLabel(j))}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(autoplay)setPlaying(true);
   }catch(e){toast('载入失败：'+e.message);}
 }
 async function refreshCatalog(selectId){
   const data=await api('/api/catalog');state.catalog=data;
-  $('#connection-text').textContent='本机已连接';$('#run-select').innerHTML=data.runs.map(r=>{const sc=r.scenario?((data.scenarios&&data.scenarios[r.scenario])||r.scenario):null;return `<option value="${esc(r.id)}">${sc?esc(sc)+' · ':''}${r.total} 个任务 · ${r.behavior_details?'动作与避障细节':r.behavior?'到位动作':'到点作业'} · ${modes[r.mode]||r.mode} · ${esc(shortRun(r.id))}</option>`;}).join('');
-  if(selectId||!state.run){const requested=new URLSearchParams(location.search).get('source');const id=selectId||(data.runs.some(r=>r.id===requested)?requested:null)||(data.runs.find(r=>r.id===data.default_run)||data.runs.find(r=>r.behavior)||data.runs[0])?.id;if(id){await loadRun(id);const task=new URLSearchParams(location.search).get('task');if(task&&state.run.report.jobs.some(j=>j.job_id===task)){openTask(task,false);const params=new URLSearchParams(location.search);if(params.get('view')==='spatial')state.taskView='spatial';if(params.has('t'))setTime(Number(params.get('t')));renderTheater();draw();}}else toast('还没有运行记录，点击新建演示开始。');}
+  $('#connection-text').textContent='本机已连接'+(data.version?' · '+data.version:'');
+  if(!(data.features&&data.features.planner))toast('工作台服务是旧版本：请关闭旧窗口后重新双击 启动工作台.cmd');
+  $('#run-select').innerHTML=data.runs.map(r=>{const sc=r.scenario?((data.scenarios&&data.scenarios[r.scenario])||r.scenario):null;return `<option value="${esc(r.id)}">${sc?esc(sc)+' · ':''}${r.total} 个任务 · ${r.behavior_details?'动作与避障细节':r.behavior?'到位动作':'到点作业'} · ${modes[r.mode]||r.mode} · ${esc(shortRun(r.id))}</option>`;}).join('');
+  if(selectId||!state.run){const requested=new URLSearchParams(location.search).get('source');const id=selectId||(data.runs.some(r=>r.id===requested)?requested:null)||(data.runs.find(r=>r.id===data.default_run)||data.runs.find(r=>r.behavior)||data.runs[0])?.id;if(id){await loadRun(id);const task=new URLSearchParams(location.search).get('task');if(task&&state.run.report.jobs.some(j=>j.job_id===task)){openTask(task,false);const params=new URLSearchParams(location.search);if(params.get('view')==='spatial')state.taskView='spatial';else if(params.get('view')==='process')state.taskView='process';if(params.has('t'))setTime(Number(params.get('t')));renderTheater();draw();}}else toast('还没有运行记录，点击新建演示开始。');}
   else{$('#run-select').value=state.run.id;renderRuns();}
   if(data.process?.state==='running')watchProcess(data.process.id);
 }
@@ -178,9 +199,16 @@ function watchProcess(id){
   async function poll(){try{const data=await api('/api/catalog');if(data.process?.id!==id){setBusy(false);return;}if(data.process.state==='running'){pollTimer=setTimeout(poll,800);return;}setBusy(false);await refreshCatalog();if(data.process.state==='complete'){await loadRun(id,true);setPage('overview');toast('本轮结果已保存，正在回放实际反馈。');}else{const log=await fetch('/artifacts/'+encodeURIComponent(id)+'/worker.log').then(r=>r.text());toast('运行失败：'+log.slice(-200));}}catch(e){setBusy(false);toast('状态读取失败：'+e.message);}}
   pollTimer=setTimeout(poll,800);
 }
-function updateConfig(){const allow=$('#config-scenario').value==='simple_city'&&$('#config-motion').value==='real';$('#config-avoid').disabled=!allow;if(!allow)$('#config-avoid').checked=false;$('#config-behavior').disabled=!allow||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;}
-function openConfig(){$('#config-error').hidden=true;$('#config-dialog').showModal();}
-$('#config-form').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),config={scenario:f.get('scenario'),mode:f.get('mode'),motion:f.get('motion'),objective:f.get('objective'),max_ticks:Number(f.get('max_ticks')),avoid:$('#config-avoid').checked&&!$('#config-avoid').disabled,behavior:$('#config-behavior').checked&&!$('#config-behavior').disabled};try{const result=await api('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});$('#config-dialog').close();watchProcess(result.id);}catch(err){$('#config-error').textContent=err.message;$('#config-error').hidden=false;}});
+function updateConfig(){const scenario=$('#config-scenario').value,neutral=scenario==='interop_neutral',allow=scenario==='asl_city';$('#config-avoid').disabled=!allow;if(!allow)$('#config-avoid').checked=false;$('#config-behavior').disabled=!allow||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;$('#config-effect').disabled=scenario!=='asl_city';$('#config-effect-field').hidden=$('#config-effect').disabled;for(const id of ['config-avoid','config-behavior'])$('#'+id).closest('label').hidden=neutral;$('#config-scope-note').textContent=neutral?'融合层中性任务：规划器固定为 interop，逐步运动；突击效果类型不适用。':'历史城市场景沿用基座规划器与原有行为链；可在运行记录中查看已保存的地图与回放。';
+  // 仿真步数跟随场景默认（asl_city 机动距离远，需要 620 步）；
+  // 用户改过自定义值时只保证 asl_city 不低于 620。
+  const ticks=$('#config-form [name=max_ticks]');ticks.max=700;
+  const defaults={asl_city:620,interop_neutral:260};
+  const untouched=Object.values(defaults).includes(Number(ticks.value));
+  if(untouched)ticks.value=defaults[$('#config-scenario').value]||200;
+  else if($('#config-scenario').value==='asl_city')ticks.value=Math.max(Number(ticks.value),620);}
+function openConfig(){updateConfig();$('#config-error').hidden=true;$('#config-dialog').showModal();}
+$('#config-form').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),scenario=f.get('scenario'),neutral=scenario==='interop_neutral',config={scenario,mode:f.get('mode'),motion:'real',objective:f.get('objective'),planner:neutral?'interop':'base',max_ticks:Number(f.get('max_ticks')),avoid:$('#config-avoid').checked&&!$('#config-avoid').disabled,behavior:$('#config-behavior').checked&&!$('#config-behavior').disabled,...(!$('#config-effect').disabled?{effect_kind:f.get('effect_kind')}:{})};try{const result=await api('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});$('#config-dialog').close();watchProcess(result.id);}catch(err){$('#config-error').textContent=err.message;$('#config-error').hidden=false;}});
 const theater=$('#task-theater'),mapCard=$('.map-card'),sceneHome=$('.overview-grid');
 function taskRange(jid){
   const rows=state.run.trace,dispatch=rows.find(e=>['job_dispatched','recording_start'].includes(e.kind)&&e.job_id===jid);
@@ -199,7 +227,7 @@ function updateTaskTimeline(){
 function openTask(jid,autoplay=true){
   if(!state.run||!state.run.report.jobs.some(j=>j.job_id===jid))return;
   setPlaying(false);setPage('overview');state.speed=1;$('#speed').value='1';state.taskWindow=taskRange(jid);state.taskView='spatial';state.focus={type:'job',id:jid};state.t=state.taskWindow.start;state.zoom=1;
-  $('#task-select').value=jid;$('#theater-task').value=jid;$('#theater-title').textContent=jid+' · '+types[state.run.report.jobs.find(j=>j.job_id===jid).jtype]+' · 执行回放';
+  $('#task-select').value=jid;$('#theater-task').value=jid;$('#theater-title').textContent=jid+' · '+taskLabel(state.run.report.jobs.find(j=>j.job_id===jid))+' · 执行回放';
   $('#theater-main').append(mapCard);if(!theater.open)theater.showModal();updateTaskTimeline();setBounds();renderTime();draw();
   if(autoplay)setPlaying(true);
 }
@@ -209,9 +237,54 @@ function closeTheater(){
   $('#scrubber').min=0;$('#scrubber').max=state.run.replay.end;$('#duration').textContent=state.run.replay.end;$('.timeline-labels>span').textContent='00:00';$('#timeline-mid').textContent=stamp(state.run.replay.end/2);$('#timeline-end').textContent=stamp(state.run.replay.end);
   state.zoom=1;setBounds();renderTime();draw();
 }
+function metricValue(v){
+  // 指标值可能是标量、区间数组或{平台: 余弹}字典，统一压成一行可读文本
+  if(v==null)return '—';
+  if(Array.isArray(v))return v.map(x=>metricValue(x)).join('–');
+  if(typeof v==='object')return Object.entries(v).map(([k,x])=>no(k)+':'+metricValue(x)).join('/');
+  return String(v);
+}
+function assaultResultHtml(jid){
+  // T-ASL 逐项结算区（规范 §7）：结果只认评估接口回传（behavior_result），
+  // 过程数据只作展示，不以预测冒充确认。
+  const structure=(state.run.replay.behaviors||[]).find(b=>b.job_id===jid);
+  if(!structure||structure.type!=='assault')return '';
+  const events=state.run.trace.filter(e=>e.kind==='behavior_event'&&e.event?.kind==='behavior_result'&&e.event.job_id===jid&&e.sim_s<=state.t);
+  // 评估回传可能早于"行为终态"落盘（确认发生在阶段结束前）。此时先用
+  // assessment_received 的逐项结果展示，不把已确认的结论压到结果事件之后。
+  const assess=state.run.trace.filter(e=>e.kind==='behavior_event'&&e.event?.kind==='assessment_received'&&e.event.job_id===jid&&e.sim_s<=state.t);
+  let result=events.length?events[events.length-1].event:null;
+  if(!result&&assess.length){
+    const ev=assess[assess.length-1].event,metricItem=(ev.items||[]).find(x=>x.id==='effect_metric');
+    result={items:ev.items||[],auxiliary:(metricItem&&metricItem.metric&&metricItem.metric.auxiliary)||[],
+            overall:ev.overall,adjudicator:ev.source,verified:ev.verified,
+            termination:null,role_check:null,awaiting_finish:true};
+  }
+  const roleSet=[...new Set(Object.values(structure.roles||{}))].join(' / ');
+  let html=`<div class="assault-result"><h4>效果判定 · ${esc(structure.effect||structure.effect_kind||'突击')}<span>${esc(structure.target_id||jid)} · 第 ${structure.attempt??1} 次执行${roleSet?' · '+esc(roleSet):''}</span></h4>`;
+  if(result){
+    // 辅助指标：先亮"能不能打、代价多大"，再列逐项结算。判定只认本任务/本版本。
+    const aux=result.auxiliary||[];
+    html+='<div class="aux-grid">'+aux.map(r=>{const verdict=String(r.verdict||'');const cls=verdict==='达标'?'ok':verdict==='未达标'?'bad':verdict==='需要'||verdict==='有损失'?'warn':'info';return `<div class="aux ${cls}"><small>${esc(r.label)}</small><b>${esc(metricValue(r.value))}<i>${esc(r.unit||'')}</i></b><span>${esc(verdict)}</span><em>${esc(r.note||'')}</em></div>`;}).join('')+'</div>';
+    const items=(result.items||[]).filter(it=>it.required);
+    html+='<ul class="result-items">'+items.map(it=>{
+      const metric=it.metric&&!['null'].includes(String(it.metric))?Object.entries(it.metric).map(([k,v])=>k+' '+metricValue(v)).join(' · '):'';
+      return `<li class="${esc(it.status)}"><b>${esc(resultStatusNames[it.status]||it.status)}</b><span>${esc(it.label||it.id)}${it.required?'':'（信息项）'}</span><small>${esc(metric)}${metric&&it.evidence?' · ':''}${esc(it.evidence||'')}</small></li>`;
+    }).join('')+'</ul>';
+    html+=`<p class="result-overall ${esc(result.overall||'')}">总体结论：<b>${esc(resultStatusNames[result.overall]||result.overall||'')}</b>${result.termination?' · 终止：'+esc(terminationNames[result.termination]||result.termination):''}${result.awaiting_finish?' · 任务终态尚未结算':''}</p>`;
+    if(result.role_check&&result.role_check.required>0)html+=`<p class="result-source">角色校核：突击组载荷≥${num(result.role_check.required)} ${result.role_check.ok?'· 通过':'· 未通过'}</p>`;
+    html+=`<p class="result-source">评估来源：${esc(result.adjudicator||'')}${result.verified?'':' · 桩判定 · 未验证'}</p>`;
+  }else{
+    const dbg=frame().jobs[jid]?.behavior?.detail?.debug||{};
+    const live=[dbg.damage_level?'毁伤等级 '+num(dbg.damage_level):null,dbg.suppression_s?'连续压制 '+num(dbg.suppression_s)+' s':null,dbg.control_s?'控制时长 '+num(dbg.control_s)+' s':null,dbg.hold_s?'坚守 '+num(dbg.hold_s)+' s':null,dbg.counterattacks?'反击 '+dbg.counterattacks+' 次':null,dbg.losses?'我方损失 '+dbg.losses+' 台':null,dbg.ammo?'剩余弹药 '+Object.values(dbg.ammo).filter(v=>v!=null).join('/')+' 发':null].filter(Boolean).join(' · ');
+    html+=`<p class="result-pending-note">评估结果尚未回传${live?' · 当前过程量：'+esc(live):''}；最终逐项结论以评估接口回传为准。</p>`;
+  }
+  return html+'</div>';
+}
 function renderTheater(){
   if(!state.taskWindow)return;const jid=state.taskWindow.jobId,j=state.run.report.jobs.find(j=>j.job_id===jid),s=frame().jobs[jid],b=(state.run.replay.behaviors||[]).find(b=>b.job_id===jid&&b.sim_s<=state.t);
-  const elapsed=Math.max(0,state.t-state.taskWindow.execution);$('#theater-details').innerHTML=`<div class="detail-phase" style="color:${taskColor(jid)}">${s.status==='succeeded'?'已完成':esc(phaseName(s.phase))}</div><div class="detail-metric">${esc(behaviorSummary(j,s))}</div><dl><div><dt>${state.run.report.recording?'进度依据':'任务工作量'}</dt><dd>${state.run.report.recording?'已记录阶段':num(s.progress)+' / '+j.work}</dd></div><div><dt>执行经过</dt><dd>${num(elapsed)} s</dd></div><div><dt>当前仿真时刻</dt><dd>${num(state.t)} s</dd></div><div><dt>${state.run.report.recording?'片段起点':'任务下发'}</dt><dd>${state.taskWindow.dispatch} s</dd></div></dl><p>画面只显示本任务的日志反馈。${b&&Math.hypot(b.site[0]-j.pos[0],b.site[1]-j.pos[1])>.1?'作业位置按现有避障结果吸附，原目标：'+j.pos.map(x=>num(x)).join(', ')+'。':''}</p>`;
+  const bh=j.behavior||{},order=state.run.report.behavior?`<div class="task-order"><div class="eyebrow">TASK ORDER · 任务指令</div><div class="order-head"><b>${esc(jid)} · ${esc(taskLabel(j))}</b><span>${esc(b?.effect||'')}${b?.target_id?' · 目标 '+esc(b.target_id):''}</span></div><div class="order-meta"><span>时间窗 ${j.window[0]}–${j.window[1]} s</span><span>执行截止 ${bh.execute_deadline??'—'} s</span><span>撤离截止 ${bh.withdraw_deadline??'—'} s</span><span>兵力 ${s.pids.length} 台</span></div>${bh.roe?`<p>规则：${esc(bh.roe)}</p>`:''}</div>`:'';
+  const elapsed=Math.max(0,state.t-state.taskWindow.execution);$('#theater-details').innerHTML=order+`<div class="detail-phase" style="color:${taskColor(jid)}">${s.status==='succeeded'?'已完成':esc(phaseName(s.phase))}</div><div class="detail-metric">${esc(behaviorSummary(j,s))}</div><dl><div><dt>${state.run.report.recording?'进度依据':'任务工作量'}</dt><dd>${state.run.report.recording?'已记录阶段':num(s.progress)+' / '+j.work}</dd></div><div><dt>执行经过</dt><dd>${num(elapsed)} s</dd></div><div><dt>当前仿真时刻</dt><dd>${num(state.t)} s</dd></div><div><dt>${state.run.report.recording?'片段起点':'任务下发'}</dt><dd>${state.taskWindow.dispatch} s</dd></div></dl><p>画面只显示本任务的日志反馈。${b&&Math.hypot(b.site[0]-j.pos[0],b.site[1]-j.pos[1])>.1?'作业位置按现有避障结果吸附，原目标：'+j.pos.map(x=>num(x)).join(', ')+'。':''}</p>`+assaultResultHtml(jid);
   $('#theater-members').innerHTML=s.pids.map(pid=>{const w=state.run.replay.workers.find(w=>w.pid===pid),p=w?workerAt(w):{};return `<button class="theater-member ${state.focus?.id===pid?'selected':''}" data-worker="${esc(pid)}"><b>${esc(pid)}<span>${esc(w?.kind_name||'')}</span></b><strong>${esc(phaseName(p.phase))}</strong><small>坐标 ${num(p.x,2)}, ${num(p.y,2)} · 高度 ${num(p.z)}</small></button>`;}).join('')||'<p class="empty">尚未下发成员</p>';
   const rows=state.eventRows.filter(e=>e.job_id===jid&&e.kind==='behavior_event'&&e.sim_s<=state.t&&e.event?.kind!=='phase');$('#theater-event-count').textContent=rows.length;
   $('#theater-events').innerHTML=rows.slice(-6).reverse().map(e=>`<button data-task-time="${e.sim_s}"><time>${e.sim_s} s</time><b>${esc(eventTitle(e))}</b><small>${esc(eventDetail(e))}</small></button>`).join('')||'<p>等待本任务的执行反馈</p>';
@@ -285,7 +358,22 @@ function setBounds(){
     if(frame().jobs[jid].status!=='succeeded')for(const w of r.workers){if(activeWorkerJob(w)===jid){const p=workerAt(w);points.push([p.x,p.y]);}}
   }else if(state.focus?.type==='worker'){
     const w=r.workers.find(w=>w.pid===state.focus.id),p=workerAt(w);points.push([p.x-4,p.y-4],[p.x+4,p.y+4]);
-  }else{points=[...r.workers.map(w=>w.start),...r.jobs.map(j=>j.pos),...r.workers.flatMap(w=>w.samples.map(s=>[s.x,s.y]))];}
+  }else{
+    // 总览以"任务区"取景：出发阵地在 150 m 外，若把起点也算进来自适应，
+    // 中间会拉出一大片空地，建筑群和任务点全被压成小点。起点与全场景
+    // 的关系放到右下角缩略图里看，主图专注任务区。
+    const jobs=r.jobs.map(j=>j.pos);points=[...jobs];
+    if(jobs.length){
+      const cx=jobs.reduce((s,p)=>s+p[0],0)/jobs.length,cy=jobs.reduce((s,p)=>s+p[1],0)/jobs.length;
+      const near=(p)=>Math.hypot(p[0]-cx,p[1]-cy)<=130;
+      // 只让"建筑级"占地参与取景：花坛/标识柱这类小构件离得远却会把视野拉空，
+      // 图上仍画它们，只是不再决定镜头。
+      const area=(poly)=>{let a=0;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length];a+=p[0]*q[1]-q[0]*p[1];}return Math.abs(a/2);};
+      if($('#show-obstacles').checked)for(const o of (state.run.obstacles||[]))if(area(o.polygon)>25&&o.polygon.some(near))points.push(...o.polygon);
+      for(const b of (r.behaviors||[])){for(const p of [...(b.staging||[]),...(b.objective||[]),...(b.posts||[]),...(b.standbys||[]),...(b.loop||[])])if(near(p))points.push(p);}
+      for(const w of r.workers)if(near(w.start))points.push(w.start);
+    }
+  }
   // Fit the current recorded chapter, rather than a whole approach journey.
   // This changes the camera only; actor coordinates are never displaced.
   if(j&&state.taskWindow&&state.taskView==='spatial'&&['assault','hold'].includes(j.type)){
@@ -293,7 +381,10 @@ function setBounds(){
     if(structure&&j.type==='assault'){
       const chapter=state.t<structure.sim_s?'approach':['完成','结果确认'].includes(phase)?'结果确认':phase;
       points=chapter==='approach'?[]:chapter==='机动'?[...(structure.staging||[])]:chapter==='到位'?[...(structure.staging||[])]:chapter==='执行'?[...(structure.staging||[]),...(structure.objective||[])]:[...(structure.objective||[])];
-      for(const worker of r.workers)for(const p of worker.samples)if(p.job===jid&&(chapter==='approach'?p.t>=state.taskWindow.dispatch&&p.t<structure.sim_s:p.phase===chapter))points.push([p.x,p.y]);
+      // 只取"最近 45 s"的成员位置：整段接近航迹（150 m）都算进取景会把
+      // 镜头拉到全图，当前动作反而缩成一个角。
+      const recent=(p)=>p.t>=Math.max(state.taskWindow.dispatch,state.t-45);
+      for(const worker of r.workers)for(const p of worker.samples)if(p.job===jid&&(chapter==='approach'?p.t>=state.taskWindow.dispatch&&p.t<structure.sim_s:p.phase===chapter&&recent(p)))points.push([p.x,p.y]);
     }else if(structure&&j.type==='hold'&&state.t>=(taskEventTime(jid,'on_post')??Infinity)){
       const on=taskEventTime(jid,'on_post');points=[structure.posts[0],structure.standbys?.[0]].filter(Boolean);
       for(const worker of r.workers)for(const p of worker.samples)if(p.job===jid&&p.t>=on)points.push([p.x,p.y]);
@@ -302,20 +393,23 @@ function setBounds(){
   points=points.filter(p=>p&&p.every(Number.isFinite));if(!points.length)points=[[0,0],[10,10]];
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),mx=(Math.min(...xs)+Math.max(...xs))/2,my=(Math.min(...ys)+Math.max(...ys))/2;
   const isHoldAction=state.taskWindow&&j?.type==='hold'&&state.taskWindow.start===state.taskWindow.execution;
-  const minSpan=isHoldAction?1.8:state.taskWindow?4:jid?9:15,width=Math.max(minSpan,Math.max(...xs)-Math.min(...xs)),height=Math.max(minSpan,Math.max(...ys)-Math.min(...ys)),pad=state.taskWindow?Math.max((isHoldAction ? 0.5 : 0.65),Math.max(width,height)*.07):jid?2.4:5;
+  // 突击任务固定给 38 单位的取景下限：镜头跟到集结/执行位时仍能看到周边建筑
+  // 和道路，否则一放大就只剩一块灰色楼顶，看不出"十字路口建筑群"。
+  const assaultChapter=state.taskWindow&&j?.type==='assault';
+  const minSpan=isHoldAction?1.8:state.taskWindow?(assaultChapter?95:4):jid?9:15,width=Math.max(minSpan,Math.max(...xs)-Math.min(...xs)),height=Math.max(minSpan,Math.max(...ys)-Math.min(...ys)),pad=state.taskWindow?Math.max((isHoldAction ? 0.5 : 0.65),Math.max(width,height)*.07):jid?2.4:5;
   bounds=[mx-width/2-pad,my-height/2-pad,mx+width/2+pad,my+height/2+pad];
 }
 function renderStage(){
   const jid=selectedJobId(),j=state.run.report.jobs.find(j=>j.job_id===jid),f=frame();
   $('#overview-view').classList.toggle('active',!state.focus);$('#view-badge').textContent=state.focus?'聚焦动作':'全局分配';
-  $('#scene-heading').textContent=j?j.job_id+' · '+types[j.jtype]:state.focus?'平台位置':'全局任务分布';
+  $('#scene-heading').textContent=j?j.job_id+' · '+taskLabel(j):state.focus?'平台位置':'全局任务分布';
   $('#focus-view').textContent=j?'仅突出当前任务 · 镜头保持固定':'点击右侧任务，查看成员与动作';
   const panel=$('#stage-panel');panel.classList.toggle('has-focus',!!j);panel.style.setProperty('--task-color',taskColor(jid));
   if(!j){panel.innerHTML='<div class="stage-empty"><span>◈</span><div><b>全局看分配</b><small>颜色对应任务；选中任务后查看具体动作。默认收起历史轨迹。</small></div></div>';return;}
   const s=f.jobs[jid],started=s.behavior.startedAt!=null||(!state.run.report.behavior&&s.phase&&s.phase!=='travel');
   const index=s.status==='succeeded'?3:started?2:s.phase?1:s.attempts?0:-1;
   const phase=s.status==='succeeded'?'已完成':s.status==='failed'?'执行失败':s.status==='cancelling'?'取消中':!s.attempts?'等待分配':started?phaseName(s.phase):s.phase==='work'?'等待成员到齐':'前往作业区';
-  panel.innerHTML=`<div class="stage-top"><div><span class="stage-dot"></span><b>${esc(jid)} · ${esc(types[j.jtype])}</b><span class="stage-phase">${esc(phase)}</span></div><button class="text-button" data-global>返回全局 ↗</button></div><div class="stage-steps">${['已分配','前往作业区','执行动作','已完成'].map((v,i)=>`<span class="${i<index?'done':i===index?'current':''}"><i>${i<index?'✓':i+1}</i>${v}</span>`).join('')}</div><div class="stage-detail"><span>${esc(behaviorSummary(j,s))}</span><div>${s.pids.map(pid=>`<button class="member-chip ${state.focus?.id===pid?'selected':''}" data-worker="${esc(pid)}">${no(pid)}</button>`).join('')||'<small>尚未分配成员</small>'}</div></div>`;
+  panel.innerHTML=`<div class="stage-top"><div><span class="stage-dot"></span><b>${esc(jid)} · ${esc(taskLabel(j))}</b><span class="stage-phase">${esc(phase)}</span></div><button class="text-button" data-global>返回全局 ↗</button></div><div class="stage-steps">${['已分配','前往作业区','执行动作','已完成'].map((v,i)=>`<span class="${i<index?'done':i===index?'current':''}"><i>${i<index?'✓':i+1}</i>${v}</span>`).join('')}</div><div class="stage-detail"><span>${esc(behaviorSummary(j,s))}</span><div class="force-chips">${s.pids.map(pid=>{const w=state.run.replay.workers.find(x=>x.pid===pid),role=(state.run.replay.behaviors||[]).find(x=>x.job_id===jid)?.roles?.[pid]||'';return `<button class="member-chip ${state.focus?.id===pid?'selected':''}" data-worker="${esc(pid)}" title="${esc((w?.kind_name||'')+(role?' · '+role:''))}">${no(pid)}<small>${esc(kindNames[w?.kind]||'')}${role?' · '+esc(role):''}</small></button>`;}).join('')||'<small>尚未分配成员</small>'}</div></div>`;
 }
 function trailsFor(w){
   const full=$('#full-trails').checked,jid=selectedJobId(),s=jid?frame().jobs[jid]:null;
@@ -336,11 +430,40 @@ function trailsFor(w){
   const current=workerAt(w);if(segment.length&&current.job===segment.at(-1).job&&current.command===segment.at(-1).command&&state.t>segment.at(-1).t)segment.push({...current,t:state.t});
   if(segment.length>1)segments.push(segment);return segments;
 }
+function fullBounds(){
+  // 全场景（含 150 m 外的出发阵地）的取景范围，缩略图与"看全图"都用它。
+  const r=state.run.replay,pts=[...r.workers.map(w=>w.start),...r.jobs.map(j=>j.pos)];
+  for(const o of state.run.obstacles||[])pts.push(...o.polygon);
+  for(const b of r.behaviors||[])for(const p of [...(b.staging||[]),...(b.objective||[]),...(b.loop||[]),...(b.posts||[]),...(b.standbys||[])])pts.push(p);
+  if(!pts.length)return [0,0,100,100];
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),pad=10;
+  return [Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)+pad,Math.max(...ys)+pad];
+}
+function drawMinimap(W,H){
+  if(!state.run||W<720||H<330)return;
+  const w=178,h=124,x0=W-w-14,y0=14;
+  const [bx0,by0,bx1,by1]=fullBounds();
+  const s=Math.min((w-16)/(bx1-bx0),(h-16)/(by1-by0)),cx=(bx0+bx1)/2,cy=(by0+by1)/2;
+  const M=p=>[x0+w/2+(p[0]-cx)*s,y0+h/2-(p[1]-cy)*s];
+  ctx.save();
+  ctx.beginPath();ctx.roundRect(x0,y0,w,h,8);ctx.fillStyle='#ffffffee';ctx.fill();ctx.strokeStyle='#d6e2da';ctx.lineWidth=1;ctx.stroke();
+  for(const rd of state.run.roads||[]){ctx.beginPath();rd.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#eef1ec';ctx.fill();}
+  for(const o of state.run.obstacles||[]){ctx.beginPath();o.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle=o.source==='mesh_aabb'?'#b9c8d5':'#d3dade';ctx.fill();}
+  for(const job of state.run.replay.jobs){const [mx,my]=M(job.pos);ctx.strokeStyle=taskColor(job.job_id);ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(mx,my,4,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(mx,my,1.4,0,Math.PI*2);ctx.fillStyle=taskColor(job.job_id);ctx.fill();}
+  for(const wk of state.run.replay.workers){const [mx,my]=M(wk.start);ctx.beginPath();ctx.arc(mx,my,1.9,0,Math.PI*2);ctx.fillStyle=state.taskWindow?teamColor(wk.pid):'#5d7f90';ctx.fill();}
+  const screen=canvas.getBoundingClientRect(),viewScale=mapScale(),centerX=(bounds[0]+bounds[2])/2,centerY=(bounds[1]+bounds[3])/2;
+  const a=M([centerX-screen.width/(2*viewScale),centerY+screen.height/(2*viewScale)]),b=M([centerX+screen.width/(2*viewScale),centerY-screen.height/(2*viewScale)]);
+  ctx.strokeStyle='#2f8f86';ctx.lineWidth=1.2;ctx.setLineDash([3,2]);ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.setLineDash([]);
+  ctx.fillStyle='#fffffff2';ctx.fillRect(x0+1,y0+h-16,w-2,15);
+  ctx.font='9px "Segoe UI","Microsoft YaHei"';ctx.fillStyle='#6d8778';ctx.fillText('全局态势 · 点击看全图',x0+8,y0+h-5);
+  ctx.restore();
+  state.hits.push({type:'fit',x:x0+w/2,y:y0+h/2,w:w,h:h});
+}
 function draw(){
   if(!state.run||state.page!=='overview')return;
   const rect=canvas.getBoundingClientRect();if(rect.width<1)return;const dpr=window.devicePixelRatio||1;
   if(canvas.width!==Math.round(rect.width*dpr)||canvas.height!==Math.round(rect.height*dpr)){canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);}
-  ctx.setTransform(dpr,0,0,dpr,0,0);const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);ctx.fillStyle='#f7f9f7';ctx.fillRect(0,0,W,H);
+  ctx.setTransform(dpr,0,0,dpr,0,0);const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);ctx.fillStyle='#edf0e9';ctx.fillRect(0,0,W,H);
   if(state.taskWindow&&state.taskView==='spatial'){
     const jid=state.taskWindow.jobId,type=state.run.report.jobs.find(j=>j.job_id===jid)?.jtype;
     if(['assault','hold'].includes(type)){const chapter=type==='hold'?(state.t>=(taskEventTime(jid,'on_post')??Infinity)?'onpost':'approach'):taskDetailModel(jid).preExecution?'approach':frame().jobs[jid].phase;const key=state.run.id+':'+jid+':'+chapter+':'+state.taskWindow.start;
@@ -351,58 +474,121 @@ function draw(){
   if(state.taskWindow&&['assault','hold'].includes(state.run.report.jobs.find(j=>j.job_id===jid)?.jtype)&&state.taskView==='process'){drawTaskExplanation(ctx,W,H,jid);return;}
   const inView=(x,y)=>x>=8&&x<=W-8&&y>=8&&y<=H-30;
   const line=(points,color,width=1,dash=[])=>{if(points.length<2)return;ctx.beginPath();points.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
+  const arrowAlong=(points,color)=>{if(!points||points.length<2)return;ctx.fillStyle=color;for(let i=1;i<points.length;i++){const a=P(points[i-1]),b=P(points[i]);if(Math.hypot(b[0]-a[0],b[1]-a[1])<34)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]);ctx.beginPath();ctx.moveTo(mx+Math.cos(ang)*5.5,my+Math.sin(ang)*5.5);ctx.lineTo(mx+Math.cos(ang+2.6)*6,my+Math.sin(ang+2.6)*6);ctx.lineTo(mx+Math.cos(ang-2.6)*6,my+Math.sin(ang-2.6)*6);ctx.closePath();ctx.fill();}};
   const circle=(p,r,color,fill=null,dash=[])=>{const a=P(p);ctx.beginPath();ctx.arc(...a,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}ctx.strokeStyle=color;ctx.lineWidth=1.4;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
   if($('#show-grid').checked){const step=(x1-x0)>35?5:2;ctx.font='9px "Segoe UI"';for(let x=Math.floor(x0/step)*step;x<=x1;x+=step){line([[x,y0],[x,y1]],'#e8eee7',.6);const a=P([x,y0]);ctx.fillStyle='#9aada1';ctx.fillText(x,a[0],H-30);}for(let y=Math.floor(y0/step)*step;y<=y1;y+=step)line([[x0,y],[x1,y]],'#e8eee7',.6);}
+  // 底图：道路/广场来自 SDF（env_road_*/env_city_road_*/env_city_square），
+  // 只作底图不参与避障；先画路再画建筑，建筑才压得住路口。
+  if($('#show-obstacles').checked&&(state.run.roads||[]).length){
+    for(const road of state.run.roads){ctx.beginPath();road.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
+      const plaza=String(road.id||'').includes('square');
+      ctx.fillStyle=plaza?'#f8f9f3':'#f4f6ef';ctx.fill();ctx.strokeStyle='#e6eae0';ctx.lineWidth=.8;ctx.stroke();}
+  }
+  // Assignment links are not routes; only recorded routes and traveled trails are drawn.
+  // 静态占地（建筑/花坛/围墙）在总览与任务视图都画：场景是"左侧十字路口建筑群"，
+  // 建筑图层看不见就看不出任务点周围是什么。
+  if($('#show-obstacles').checked)for(const obstacle of (state.run.obstacles||[])){
+    ctx.beginPath();obstacle.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
+    const building=obstacle.source==='mesh_aabb';
+    ctx.fillStyle=building?'#b9c8d6':'#ccd5d2';ctx.strokeStyle=building?'#7b90a3':'#9fadb4';ctx.lineWidth=1;ctx.fill();ctx.stroke();
+    if(building&&$('#show-labels').checked&&(state.taskWindow||scale>3.2)){const pts=obstacle.polygon.map(P);const w=Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0]));if(w>44){const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length;ctx.fillStyle='#43586ab8';ctx.font='9px "Segoe UI","Microsoft YaHei"';ctx.textAlign='center';ctx.fillText(buildingName(obstacle.label||obstacle.id),cx,cy+3);ctx.textAlign='left';}}
+  }
+  const annotationLabels=[];
   let plannedCount=0;if(state.taskWindow){
-    if($('#show-obstacles').checked)for(const obstacle of state.run.obstacles){ctx.beginPath();obstacle.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#dfe6ec66';ctx.strokeStyle='#bac7d1';ctx.lineWidth=1;ctx.fill();ctx.stroke();}
-    if($('#show-planned').checked)for(const route of currentTaskRoutes(jid)){const w=state.run.replay.workers.find(w=>w.pid===route.pid),pos=workerAt(w);let nearest=0;for(let i=1;i<route.path.length;i++)if(Math.hypot(route.path[i][0]-pos.x,route.path[i][1]-pos.y)<Math.hypot(route.path[nearest][0]-pos.x,route.path[nearest][1]-pos.y))nearest=i;line(route.path.slice(Math.max(0,nearest-1)),teamColor(route.pid,jid)+'88',2,[5,4]);if($('#show-blocked-line').checked&&!route.straight_line_ok)line([route.from_pose,route.to],'#ca8d6688',1.5,[4,5]);plannedCount++;}
+    if($('#show-planned').checked)for(const route of currentTaskRoutes(jid)){const w=state.run.replay.workers.find(w=>w.pid===route.pid),pos=workerAt(w);let nearest=0;for(let i=1;i<route.path.length;i++)if(Math.hypot(route.path[i][0]-pos.x,route.path[i][1]-pos.y)<Math.hypot(route.path[nearest][0]-pos.x,route.path[nearest][1]-pos.y))nearest=i;const seg=route.path.slice(Math.max(0,nearest-1));const air=route.mode==='air_direct';line(seg,teamColor(route.pid,jid)+(air?'99':'cc'),air?1.6:2.4,air?[8,5]:[]);arrowAlong(seg,teamColor(route.pid,jid)+(air?'99':'cc'));if($('#show-blocked-line').checked&&!route.straight_line_ok)line([route.from_pose,route.to],'#c4736a80',1.6,[5,5]);
+      // 绕障证据直接写在地图上：倍数 + 规划净空，避免"看起来像直线"的误读
+      if(route.straight_line_ok===false&&$('#show-blocked-line').checked){const mid=[(route.from_pose[0]+route.to[0])/2,(route.from_pose[1]+route.to[1])/2],a=P(mid);annotationLabels.push({text:'直线被挡 · 绕行 ×'+num(route.length/Math.max(route.straight,.01),2)+' · 净空 '+num(route.min_clearance,1),x:a[0],y:a[1],color:'#a5762f',priority:false});}
+      else if(air&&state.taskWindow){const mid=[(route.from_pose[0]+route.to[0])/2,(route.from_pose[1]+route.to[1])/2],a=P(mid);annotationLabels.push({text:'空中直飞 · 越障 '+num(route.altitude||0,0)+' m',x:a[0],y:a[1],color:'#2f8f86',priority:false});}
+      plannedCount++;}
   }
   const holdInfo=state.taskWindow&&state.run.report.jobs.find(j=>j.job_id===jid)?.jtype==='hold'?workbenchHold(jid):null;
-  const annotationLabels=[];const structures=visibleStructures();for(const b of structures){const c=taskColor(b.job_id);ctx.save();
+  const structures=visibleStructures();for(const b of structures){const c=taskColor(b.job_id);ctx.save();
     if(b.loop){line([...b.loop,b.loop[0]],c+'99',2,[7,5]);const visits=state.eventRows.filter(e=>e.job_id===b.job_id&&e.sim_s<=state.t&&e.event?.kind==='checkpoint_visited');b.loop.forEach((p,i)=>{const seen=visits.some(e=>e.event.index===i);circle(p,state.taskWindow?7:4,c,seen?c+'35':'#ffffff');const a=P(p);ctx.fillStyle=c;ctx.font=state.taskWindow?'12px "Microsoft YaHei"':'10px "Segoe UI"';ctx.fillText((state.taskWindow?'检查点 ':'')+String(i+1)+(seen?' ✓':''),a[0]+10,a[1]-10);});}
     if(b.ring_radius)circle(b.site,b.ring_radius*scale,c+'80',null,[5,5]);
     if(b.type==='recon'&&state.taskWindow){for(const target of Object.values(f.jobs[jid].behavior.detail?.debug?.targets||{}))circle(target,6,c+'bb');}
     if(b.area_radius){circle(b.site,b.area_radius*scale,c+'80',c+'07',[7,6]);if(state.taskWindow)for(const e of state.eventRows.filter(e=>e.job_id===b.job_id&&e.sim_s<=state.t&&e.event?.kind==='frontier_mapped'&&e.event.pos)){const center=P(e.event.pos),radius=(b.sensor_radius||2.6)*scale,gradient=ctx.createRadialGradient(center[0],center[1],1,center[0],center[1],radius);gradient.addColorStop(0,c+'1c');gradient.addColorStop(1,c+'02');ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(center[0],center[1],radius,0,Math.PI*2);ctx.fill();}}
     for(const [i,p]of (b.type==='hold'?(b.posts||[]).slice(0,frame().jobs[jid].pids.length>2?undefined:1):(b.posts||[])).entries()){circle(p,state.taskWindow?9:5,c,c+'25');if(state.taskWindow){const a=P(p);ctx.fillStyle=c;ctx.font='12px "Microsoft YaHei"';ctx.fillText(b.type==='hold'?'交接岗位':'岗位 '+(i+1),a[0]+12,a[1]-12);}}for(const [i,p]of (b.standbys||[]).slice(0,1).entries()){circle(p,state.taskWindow?7:4,c,null,[2,3]);if(state.taskWindow){const a=P(p);ctx.fillStyle=c;ctx.font='11px "Microsoft YaHei"';ctx.fillText('待命位 '+(i+1),a[0]+10,a[1]-10);}}
-    if(b.type==='assault'&&state.taskWindow){const m=taskDetailModel(jid),points=m.index<2?b.staging:b.objective,groups=new Map();(points||[]).forEach((point,i)=>{const key=point.map(v=>v.toFixed(2)).join(',');if(!groups.has(key))groups.set(key,{point,pids:[]});groups.get(key).pids.push(f.jobs[jid].pids[i]);});for(const group of groups.values()){const color=teamColor(group.pids[0],jid),a=P(group.point);circle(group.point,12,color,color+'10',[3,3]);annotationLabels.push({text:(m.index<2?'集结位':'执行位')+' · '+(group.pids.length>1?group.pids.length+'成员重合':no(group.pids[0])),x:a[0],y:a[1]+24,color,priority:false});}const lead=f.jobs[jid].pids[0],route=f.jobs[jid].behavior.routes?.[lead];if(m.index===3&&route?.to&&Math.hypot(route.to[0]-b.objective[0][0],route.to[1]-b.objective[0][1])>.7){circle(route.to,15,'#5d9c70','#5d9c7015',[3,3]);const a=P(route.to);annotationLabels.push({text:'确认点 · '+no(lead),x:a[0],y:a[1]+24,color:'#5d9c70'});}}else{for(const p of b.staging||[])circle(p,state.taskWindow?9:5,c,null,[2,3]);for(const p of b.objective||[])circle(p,state.taskWindow?6:3,c,c+'44');}ctx.restore();
+    if(b.type==='assault'&&state.taskWindow){const m=taskDetailModel(jid),points=m.index<2?b.staging:b.objective,groups=new Map();
+      // 执行/集结点位只对应"突击组"，不能拿全员 pids 按下标硬套（会把侦察/评估平台
+      // 标到突击位上）。assault_pids 由行为层随 structure 一起记下，旧记录退回角色过滤。
+      const assaultPids=b.assault_pids||f.jobs[jid].pids.filter(p=>(b.roles||{})[p]==='突击组');
+      (points||[]).forEach((point,i)=>{const key=point.map(v=>v.toFixed(2)).join(',');if(!groups.has(key))groups.set(key,{point,pids:[]});groups.get(key).pids.push(assaultPids[i]||assaultPids[0]);});
+      // 集结位只标一次"集结区"：逐个点位标字在 6 台时会把地图糊成一团
+      for(const group of groups.values()){const color=teamColor(group.pids[0],jid);circle(group.point,12,color,color+'10',[3,3]);if(m.index>=2)annotationLabels.push({text:'执行位 · '+(group.pids.length>1?group.pids.length+'成员重合':no(group.pids[0])),x:P(group.point)[0],y:P(group.point)[1]+24,color,priority:false});}
+      if(m.index<2&&b.staging?.length){const cx=b.staging.reduce((s,q)=>s+q[0],0)/b.staging.length,cy=b.staging.reduce((s,q)=>s+q[1],0)/b.staging.length,a=P([cx,cy]);annotationLabels.push({text:'集结区',x:a[0],y:a[1]+24,color:taskColor(jid),priority:false});}
+      // 目标点与集结/执行位分开标：十字路口中心才是效果对象，别让"执行位"
+      // 圆圈代替目标。目标标记在所有阶段都画。
+      const siteXY=P(b.site);circle(b.site,state.taskWindow?15:8,'#b34a3a','#b34a3a12',[3,3]);
+      ctx.strokeStyle='#b34a3a';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(siteXY[0]-5,siteXY[1]);ctx.lineTo(siteXY[0]+5,siteXY[1]);ctx.moveTo(siteXY[0],siteXY[1]-5);ctx.lineTo(siteXY[0],siteXY[1]+5);ctx.stroke();
+      annotationLabels.push({text:'目标 · '+(b.target_id||jid),x:siteXY[0],y:siteXY[1],color:'#a8442f',priority:true});const lead=(b.assault_pids||f.jobs[jid].pids)[0],route=f.jobs[jid].behavior.routes?.[lead];if(m.index===3&&route?.to&&Math.hypot(route.to[0]-b.objective[0][0],route.to[1]-b.objective[0][1])>.7){circle(route.to,15,'#5d9c70','#5d9c7015',[3,3]);const a=P(route.to);annotationLabels.push({text:'确认点 · '+no(lead),x:a[0],y:a[1]+24,color:'#5d9c70'});}}else{for(const p of b.staging||[])circle(p,state.taskWindow?9:5,c,null,[2,3]);for(const p of b.objective||[])circle(p,state.taskWindow?6:3,c,c+'44');}ctx.restore();
   }
   let traceCount=0;for(const w of state.run.replay.workers)for(const segment of trailsFor(w)){line(segment.map(p=>[p.x,p.y]),state.taskWindow?teamColor(w.pid,jid):taskColor(segment.at(-1).job),state.focus?.id===w.pid?2.6:1.8);traceCount++;}
   state.hits=[];const labels=[],placed=[];const showLabels=$('#show-labels').checked;
-  const placeLabel=(text,x,y,color,priority=false)=>{
-    ctx.font=priority?(state.taskWindow?'600 14px "Segoe UI","Microsoft YaHei"':'600 11px "Segoe UI","Microsoft YaHei"'):'11px "Segoe UI","Microsoft YaHei"';const width=ctx.measureText(text).width+12,height=20;
+  const placeLabel=(text,x,y,color,priority=false,small=false)=>{
+    ctx.font=small?'9px "Segoe UI","Microsoft YaHei"':priority?(state.taskWindow?'600 14px "Segoe UI","Microsoft YaHei"':'600 11px "Segoe UI","Microsoft YaHei"'):'11px "Segoe UI","Microsoft YaHei"';const width=ctx.measureText(text).width+12,height=small?16:20;
     const offsets=[...(holdInfo?[[-width/2,text.startsWith(no(holdInfo.primary))?-90:55]]:[]),[12,-24],[12,7],[-width-12,-24],[-width-12,7],[12,-47],[12,30],[-width/2,-49],[-width/2,35],[15,-70],[-width-15,52]];
     for(const [dx,dy]of offsets){const box={x:x+dx,y:y+dy,w:width,h:height};if(box.x<6||box.y<6||box.x+width>W-6||box.y+height>H-28||placed.some(b=>box.x<b.x+b.w+3&&box.x+width+3>b.x&&box.y<b.y+b.h+2&&box.y+height+2>b.y))continue;
-      placed.push(box);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(Math.max(box.x,Math.min(x,box.x+width)),box.y+height/2);ctx.strokeStyle=color+'65';ctx.lineWidth=.7;ctx.stroke();ctx.fillStyle='#fffffff0';ctx.fillRect(box.x,box.y,width,height);ctx.fillStyle=color;ctx.textAlign='left';ctx.fillText(text,box.x+6,box.y+14);labels.push({text,...box});return;
+      placed.push(box);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(Math.max(box.x,Math.min(x,box.x+width)),box.y+height/2);ctx.strokeStyle=color+'65';ctx.lineWidth=.7;ctx.stroke();ctx.fillStyle=small?'#ffffffd8':'#fffffff0';ctx.fillRect(box.x,box.y,width,height);ctx.fillStyle=color;ctx.textAlign='left';ctx.fillText(text,box.x+6,box.y+height-5);labels.push({text,...box});return;
     }
   };
   // Draw task markers first; completed tasks collapse to small confirmation marks.
   const jobLabels=[];
   for(const j of state.run.replay.jobs){const s=f.jobs[j.job_id],selected=j.job_id===jid;const structure=(state.run.replay.behaviors||[]).find(b=>b.job_id===jid),beforeStructure=state.taskWindow&&state.t<(structure?.sim_s??Infinity);if(state.taskWindow&&(!selected||(['hold','assault'].includes(j.type)&&!beforeStructure)))continue;const route=Object.values(f.jobs[j.job_id].behavior.routes||{})[0];const site=state.taskWindow?(beforeStructure?route?.to||j.pos:structure?.site||j.pos):j.pos;const [x,y]=P(site);if(!inView(x,y))continue;ctx.save();ctx.globalAlpha=focused&&!selected ? 0.18 : 1;const c=taskColor(j.job_id),done=s.status==='succeeded';
-    circle(site,done?6:selected?10:8,c,done?'#ffffff':c+'12',done?[]:[3,3]);ctx.fillStyle=c;ctx.font='11px "Segoe UI"';ctx.textAlign='center';ctx.fillText(done?'✓':j.job_id.slice(1),x,y+4);
-    if(showLabels&&(!focused||selected))jobLabels.push({text:j.job_id+(done?' · 已完成':''),x,y,color:c,priority:selected});
+    // 准星环：环内不再写任务号，文字交给 placeLabel，避免和成员标签叠成一团
+    const R=done?7:selected?13:10;ctx.strokeStyle=c;ctx.lineWidth=selected?2.2:1.6;ctx.setLineDash(done?[]:[4,3]);ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    ctx.lineWidth=1.4;for(const ang of [0,Math.PI/2,Math.PI,Math.PI*1.5]){ctx.beginPath();ctx.moveTo(x+Math.cos(ang)*(R+1),y+Math.sin(ang)*(R+1));ctx.lineTo(x+Math.cos(ang)*(R+5),y+Math.sin(ang)*(R+5));ctx.stroke();}
+    ctx.beginPath();ctx.arc(x,y,2.6,0,Math.PI*2);ctx.fillStyle=done?'#2e7d4f':c;ctx.fill();
+    if(showLabels&&(!focused||selected))jobLabels.push({text:j.job_id+' · '+taskLabel(j)+(done?' · 已完成':''),x,y,color:c,priority:selected});
     state.hits.push({x,y,type:'job',id:j.job_id,r:selected?17:13});ctx.restore();
   }
   const assaultInfo=state.taskWindow&&state.run.report.jobs.find(j=>j.job_id===jid)?.jtype==='assault';
+  const kindColor={UGV:'#3f6fa3',TANK:'#8a6b3d',PLANE:'#2f8f86',WING:'#7657a8'};
+  const structureFor=(jobId)=>(state.run.replay.behaviors||[]).find(b=>b.job_id===jobId);
   const workerLabels=[];let relevantWorkers=0;
   for(const w of state.run.replay.workers){const p=workerAt(w),[x,y]=P([p.x,p.y]);if(state.taskWindow&&p.job!==jid)continue;if(!inView(x,y))continue;
     const activeJob=state.taskWindow&&p.job===jid?jid:activeWorkerJob(w),relevant=state.taskWindow?f.jobs[jid].pids.includes(w.pid):state.focus?.type==='worker'?w.pid===state.focus.id:!!jid&&activeJob===jid;
-    const c=state.taskWindow?teamColor(w.pid,jid):taskColor(activeJob),alpha=focused&&!relevant ? 0.17 : activeJob ? 1 : 0.5;ctx.save();ctx.globalAlpha=alpha;
+    const c=state.taskWindow?teamColor(w.pid,jid):(kindColor[w.kind]||taskColor(activeJob)),alpha=focused&&!relevant ? 0.2 : activeJob ? 1 : 0.6;ctx.save();ctx.globalAlpha=alpha;
     if($('#show-starts').checked&&(!focused||relevant))circle(w.start,3,c,null,[2,2]);
-    circle([p.x,p.y],relevant?(state.taskWindow?13:9):6,p.lost?'#aab3ac':c,'#ffffff');ctx.fillStyle=p.lost?'#aab3ac':c;ctx.strokeStyle=c;ctx.lineWidth=1.8;
-    const r=relevant?(state.taskWindow?5:3.5):2.5;
-    if(w.shape==='square')ctx.fillRect(x-r,y-r,2*r,2*r);else if(w.shape==='diamond'){ctx.beginPath();ctx.moveTo(x,y-r-1);ctx.lineTo(x+r+1,y);ctx.lineTo(x,y+r+1);ctx.lineTo(x-r-1,y);ctx.closePath();ctx.fill();}else if(w.shape==='triangle'){ctx.beginPath();ctx.moveTo(x,y-r-1);ctx.lineTo(x+r+1,y+r);ctx.lineTo(x-r-1,y+r);ctx.closePath();ctx.fill();}else{ctx.beginPath();ctx.moveTo(x-r,y-r);ctx.lineTo(x+r,y+r);ctx.moveTo(x+r,y-r);ctx.lineTo(x-r,y+r);ctx.stroke();}
-    if(relevant&&p.yaw!=null){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+14*Math.cos(p.yaw),y-14*Math.sin(p.yaw));ctx.strokeStyle=c;ctx.lineWidth=1.1;ctx.stroke();}
-    if(p.lost){ctx.beginPath();ctx.moveTo(x-5,y-5);ctx.lineTo(x+5,y+5);ctx.stroke();}
-    if(relevant){relevantWorkers++;if(showLabels)workerLabels.push({text:no(w.pid)+(p.lost?' · 失联':holdInfo?' · '+holdInfo.roles[w.pid]:assaultInfo?' · '+assaultMemberEvidence(jid,w.pid).label:''),x,y,color:c,priority:true});}
+    const air=w.kind==='PLANE'||w.kind==='WING';
+    const R=relevant?(state.taskWindow?12:9):7;
+    // 空中平台：细虚线吊到地面 + 高度牌，地面平台不画
+    if(air&&p.z>0.5){const lift=Math.min(30,8+p.z*0.55);ctx.setLineDash([2,3]);ctx.strokeStyle=c+'88';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-lift);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(x,y-lift,1.8,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();if(showLabels&&state.focus?.type==='worker'&&state.focus.id===w.pid)workerLabels.push({text:'z '+num(p.z,0)+' m',x:x,y:y-lift-8,color:c,priority:false,small:true});}
+    // 底盘：白底圆 + 类型符号（形状即类目，颜色即任务/编组）
+    ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.fillStyle=p.lost?'#eef1ee':'#ffffff';ctx.fill();ctx.strokeStyle=p.lost?'#aab3ac':c;ctx.lineWidth=relevant?2:1.5;ctx.stroke();
+    drawPlatformIcon(ctx,w.kind,x,y,relevant?10:8,p.yaw||0,p.lost?'#aab3ac':c);
+    if(relevant&&!air&&p.yaw!=null){ctx.beginPath();ctx.moveTo(x+Math.cos(p.yaw)*(R+1),y-Math.sin(p.yaw)*(R+1));ctx.lineTo(x+Math.cos(p.yaw)*(R+9),y-Math.sin(p.yaw)*(R+9));ctx.strokeStyle=c;ctx.lineWidth=1.4;ctx.stroke();}
+    if(p.lost){ctx.beginPath();ctx.moveTo(x-5,y-5);ctx.lineTo(x+5,y+5);ctx.moveTo(x+5,y-5);ctx.lineTo(x-5,y+5);ctx.strokeStyle='#a04a3f';ctx.lineWidth=1.6;ctx.stroke();}
+    if(relevant){relevantWorkers++;if(showLabels){const st=structureFor(jid),role=st?.roles?.[w.pid]||'';const kindTxt=(w.kind_name||'').replace('无人','');workerLabels.push({text:no(w.pid)+(state.focus?.type==='worker'&&state.focus.id===w.pid?' '+kindTxt+(role?' · '+role:''):'')+(p.lost?' · 失联':''),x,y,color:c,priority:true});}}
+    else if(showLabels&&!focused&&scale>1.15){workerLabels.push({text:no(w.pid),x,y,color:c,priority:false,small:true});}
     ctx.restore();state.hits.push({x,y,type:'worker',id:w.pid,r:relevant?13:9});
   }
-  for(const l of workerLabels)placeLabel(l.text,l.x,l.y,l.color,true);for(const l of [...annotationLabels,...jobLabels])placeLabel(l.text,l.x,l.y,l.color,l.priority);
+  // 出发阵地：多台挤在 20×45 m 的列队里，逐台标字必然叠；标一次编成，放大后再拆开。
+  if(!state.taskWindow&&!focused&&showLabels&&state.run.replay.workers.length>1){
+    const starts=state.run.replay.workers.map(w=>P(w.start));
+    const pad=16,bx0=Math.min(...starts.map(p=>p[0]))-pad,by0=Math.min(...starts.map(p=>p[1]))-pad,bx1=Math.max(...starts.map(p=>p[0]))+pad,by1=Math.max(...starts.map(p=>p[1]))+pad;
+    const ccx=(bx0+bx1)/2,ccy=(by0+by1)/2,clusterInView=ccx>0&&ccx<W&&ccy>0&&ccy<H;
+    if(clusterInView&&bx1-bx0>18&&by1-by0>10){
+      ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#7f9b8b88';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx0,by0,bx1-bx0,by1-by0,7);ctx.stroke();ctx.setLineDash([]);
+      const kinds={};for(const w of state.run.replay.workers)kinds[w.kind_name]=(kinds[w.kind_name]||0)+1;
+      const summary='出发阵地 · '+state.run.replay.workers.length+' 台（'+Object.entries(kinds).map(([k,v])=>k+' '+v).join(' · ')+'）';
+      ctx.font='10px "Segoe UI","Microsoft YaHei"';const tw=ctx.measureText(summary).width+10,ly=Math.max(6,by0-18);
+      ctx.fillStyle='#ffffffec';ctx.fillRect(bx0,ly,tw,16);ctx.fillStyle='#4f6f5f';ctx.fillText(summary,bx0+5,ly+12);
+      ctx.restore();
+    }else{
+      ctx.font='10px "Segoe UI","Microsoft YaHei"';const hint='出发阵地在视图外 · '+state.run.replay.workers.length+' 台 · 见右上缩略图';
+      const tw=ctx.measureText(hint).width+12;ctx.fillStyle='#ffffffd8';ctx.fillRect(12,12,tw,18);ctx.fillStyle='#6d8778';ctx.fillText(hint,18,25);
+    }
+  }
+  for(const l of workerLabels)placeLabel(l.text,l.x,l.y,l.color,true,!!l.small);for(const l of [...annotationLabels,...jobLabels])placeLabel(l.text,l.x,l.y,l.color,l.priority,l.small);
   if(jid&&!holdInfo&&$('#show-landmarks').checked){const job=state.run.replay.jobs.find(j=>j.job_id===jid),[x,y]=P(job.pos);if(inView(x,y)){const label=(job.landmark||'').split('（')[0];if(label)placeLabel(label,x,y+20,'#8b9e8a');}}
-  ctx.textAlign='left';$('#map-scale').textContent=num(40/scale,1)+' 场景单位';
-  $('#map-caption').textContent=state.taskWindow?'本任务执行回放 · 仅显示参与成员与已记录动作':full?'完整历史轨迹 · 按所选任务筛选':!focused?'全局只显示当前位置与任务点 · 点击任务聚焦':f.jobs[jid]?.status==='succeeded'?'任务已完成 · 已收起动作结构与轨迹':'最近 10 秒尾迹 · 到位后仅保留动作轨迹 · 镜头固定';
+  ctx.textAlign='left';drawMinimap(W,H);$('#map-scale').textContent=num(40/scale,1)+' 场景单位';
+  $('#map-caption').textContent=state.taskWindow?'本任务执行回放 · 仅显示参与成员与已记录动作':full?'完整历史轨迹 · 按所选任务筛选':!focused?'全局态势 · 形状=平台类型，颜色=编组；建筑群即突击目标区，点击任务聚焦':f.jobs[jid]?.status==='succeeded'?'任务已完成 · 已收起动作结构与轨迹':'最近 10 秒尾迹 · 到位后仅保留动作轨迹 · 镜头固定';
   state.scene={jobId:jid,focused,plannedCount,traceCount,structureCount:structures.length,relevantWorkers,labels,bounds:[...bounds]};
 }
-canvas.addEventListener('click',e=>{const b=canvas.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;const chapter=state.hits.find(h=>h.type==='chapter'&&Math.abs(x-h.x)<=h.w/2&&Math.abs(y-h.y)<=h.h/2);if(chapter){setPlaying(false);setTime(chapter.t);return;}const hits=state.hits.filter(h=>Math.hypot(x-h.x,y-h.y)<=h.r).sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y));if(hits.length){const current=hits.findIndex(h=>h.id===state.focus?.id),h=hits[(current+1)%hits.length];if(h.type==='job'){if(!state.taskWindow)openTask(h.id);}else focus(h.type,h.id);}else if(!state.taskWindow)globalView();});
+canvas.addEventListener('click',e=>{if(mapDragMoved){mapDragMoved=false;return;}const b=canvas.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;
+  const fit=state.hits.find(h=>h.type==='fit'&&Math.abs(x-h.x)<=h.w/2&&Math.abs(y-h.y)<=h.h/2);
+  if(fit){bounds=fullBounds();state.zoom=1;draw();return;}
+  const chapter=state.hits.find(h=>h.type==='chapter'&&Math.abs(x-h.x)<=h.w/2&&Math.abs(y-h.y)<=h.h/2);if(chapter){setPlaying(false);setTime(chapter.t);return;}const hits=state.hits.filter(h=>h.type!=='fit'&&Math.hypot(x-h.x,y-h.y)<=h.r).sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y));if(hits.length){const current=hits.findIndex(h=>h.id===state.focus?.id),h=hits[(current+1)%hits.length];if(h.type==='job'){if(!state.taskWindow)openTask(h.id);}else focus(h.type,h.id);}else if(!state.taskWindow)globalView();});
 document.addEventListener('click',e=>{
   const nav=e.target.closest('[data-page]');if(nav)setPage(nav.dataset.page);
   const go=e.target.closest('[data-goto]');if(go)setPage(go.dataset.goto);
@@ -416,11 +602,49 @@ document.addEventListener('click',e=>{
 });
 $('#play').onclick=()=>{if(state.run)setPlaying(!state.playing);};$('#restart').onclick=()=>{setPlaying(false);if(state.taskWindow){state.taskWindow.start=state.taskWindow.dispatch;updateTaskTimeline();}setTime(state.taskWindow?.start??0);setBounds();draw();};$('#step-back').onclick=()=>{setPlaying(false);setTime(Math.floor(state.t)-1);};$('#step-next').onclick=()=>{setPlaying(false);setTime(Math.floor(state.t)+1);};$('#jump-end').onclick=()=>{setPlaying(false);setTime(state.taskWindow?.end??state.run.replay.end);};$('#scrubber').oninput=e=>{setPlaying(false);setTime(Number(e.target.value));};$('#speed').onchange=e=>state.speed=Number(e.target.value);
 for(const id of ['show-trails','show-labels','show-landmarks','show-behaviors','show-starts','show-grid','full-trails','show-obstacles','show-planned','show-blocked-line'])$('#'+id).onchange=draw;
-$('#fit-map').onclick=()=>{state.zoom=1;setBounds();draw();};$('#map-zoom-in').onclick=()=>{state.zoom=Math.min(3,state.zoom*1.2);draw();};$('#map-zoom-out').onclick=()=>{state.zoom=Math.max(.5,state.zoom/1.2);draw();};$('#clear-focus').onclick=globalView;$('#overview-view').onclick=globalView;$('#event-filter').onchange=()=>{lastEventKey='';renderEvents();};$('#platform-filter').onchange=renderPlatforms;
-$('#run-select').onchange=e=>loadRun(e.target.value);$('#refresh').onclick=()=>refreshCatalog().catch(e=>toast(e.message));for(const id of ['open-config','guide-run','runs-new'])$('#'+id).onclick=openConfig;$('#close-config').onclick=()=>$('#config-dialog').close();$('#close-source').onclick=()=>$('#source-dialog').close();$('#config-scenario').onchange=updateConfig;$('#config-motion').onchange=updateConfig;$('#config-avoid').onchange=updateConfig;
+$('#fit-map').onclick=()=>{state.zoom=1;setBounds();draw();};$('#map-zoom-in').onclick=()=>{state.zoom=Math.min(32,state.zoom*1.4);draw();};$('#map-zoom-out').onclick=()=>{state.zoom=Math.max(.25,state.zoom/1.4);draw();};$('#clear-focus').onclick=globalView;$('#overview-view').onclick=globalView;$('#event-filter').onchange=()=>{lastEventKey='';renderEvents();};$('#platform-filter').onchange=renderPlatforms;
+$('#run-select').onchange=e=>loadRun(e.target.value);$('#refresh').onclick=()=>refreshCatalog().catch(e=>toast(e.message));for(const id of ['open-config','guide-run','runs-new'])$('#'+id).onclick=openConfig;$('#close-config').onclick=()=>$('#config-dialog').close();$('#close-source').onclick=()=>$('#source-dialog').close();$('#config-scenario').onchange=()=>{if($('#config-scenario').value==='asl_city'){$('#config-avoid').checked=true;$('#config-behavior').checked=true;}updateConfig();};$('#config-avoid').onchange=updateConfig;
 $('#open-actions').onclick=()=>{setPage('overview');$('#behavior-panel').scrollIntoView({block:'start'});};$('#show-report').onclick=()=>{if(state.run)window.open(artifact('report.html'),'_blank','noopener');};$('#task-select').onchange=e=>{if(e.target.value)openTask(e.target.value);};
 document.addEventListener('keydown',e=>{if(!state.run||document.querySelector('dialog[open]:not(#task-theater)')||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();setPlaying(!state.playing);}if(e.code==='ArrowRight'){e.preventDefault();setPlaying(false);setTime(state.t+1);}if(e.code==='ArrowLeft'){e.preventDefault();setPlaying(false);setTime(state.t-1);}});
 new ResizeObserver(draw).observe(canvas);
 let last=performance.now(),lastRender=0;
 function animate(now){const dt=Math.min((now-last)/1000,.1);last=now;if(state.playing&&state.run){state.t=Math.min(state.taskWindow?.end??state.run.replay.end,state.t+dt*state.speed);draw();if(now-lastRender>110){renderTime();lastRender=now;}if(state.t>=(state.taskWindow?.end??state.run.replay.end)){setPlaying(false);renderTime();}}requestAnimationFrame(animate);}
-requestAnimationFrame(animate);renderFiles();refreshCatalog().catch(e=>{$('#connection-text').textContent='连接失败';toast('无法连接本地服务：'+e.message);});
+requestAnimationFrame(animate);renderFiles();refreshCatalog().then(()=>{if(new URLSearchParams(location.search).get('new')==='interop'){$('#config-scenario').value='interop_neutral';openConfig();}}).catch(e=>{$('#connection-text').textContent='连接失败';toast('无法连接本地服务：'+e.message);});
+
+// Map navigation uses world coordinates; icon sizes remain readable in screen pixels.
+function drawPlatformIcon(c,kind,x,y,r,yaw,color){
+  c.save();c.translate(x,y);c.rotate(-yaw);c.scale(r/10,r/10);c.fillStyle=color;c.strokeStyle=color;c.lineWidth=1.5;c.lineJoin='round';
+  if(kind==='UGV'){
+    for(const a of [-6,4])for(const b of [-9,5])c.fillRect(a,b,3,4);
+    c.beginPath();c.roundRect(-7,-5,14,10,2);c.fill();c.fillStyle='#fff';c.fillRect(2,-3,3,6);
+  }else if(kind==='TANK'){
+    c.beginPath();c.roundRect(-8,-9,16,5,2);c.roundRect(-8,4,16,5,2);c.fill();c.fillRect(-7,-4,13,8);
+    c.beginPath();c.arc(0,0,4,0,Math.PI*2);c.fill();c.lineWidth=3;c.beginPath();c.moveTo(0,0);c.lineTo(12,0);c.stroke();
+    c.strokeStyle='#fff';c.lineWidth=.7;c.strokeRect(-3,-3,6,6);
+  }else if(kind==='PLANE'){
+    c.beginPath();for(const [i,p] of [[11,0],[3,2],[-4,10],[-7,10],[-4,2],[-9,2],[-11,5],[-12,5],[-10,0],[-12,-5],[-11,-5],[-9,-2],[-4,-2],[-7,-10],[-4,-10],[3,-2]].entries())i?c.lineTo(...p):c.moveTo(...p);c.closePath();c.fill();
+  }else{
+    c.beginPath();c.moveTo(10,0);c.lineTo(-8,11);c.lineTo(-5,2);c.lineTo(-8,0);c.lineTo(-5,-2);c.lineTo(-8,-11);c.closePath();c.fill();c.strokeStyle='#fff';c.lineWidth=.8;c.beginPath();c.moveTo(6,0);c.lineTo(-4,0);c.stroke();
+  }c.restore();
+}
+let mapDrag=null,mapDragMoved=false;
+function mapScale(){const b=canvas.getBoundingClientRect();return Math.min((b.width-78)/(bounds[2]-bounds[0]),(b.height-78)/(bounds[3]-bounds[1]))*state.zoom;}
+function shiftMap(dx,dy){bounds=[bounds[0]+dx,bounds[1]+dy,bounds[2]+dx,bounds[3]+dy];}
+canvas.style.touchAction='none';canvas.style.cursor='grab';
+canvas.addEventListener('wheel',e=>{
+  if(!state.run||state.taskView==='process'&&state.taskWindow)return;
+  e.preventDefault();const b=canvas.getBoundingClientRect(),x=e.clientX-b.left-b.width/2,y=e.clientY-b.top-b.height/2,old=mapScale();
+  state.zoom=Math.max(.25,Math.min(32,state.zoom*Math.exp(-Math.max(-150,Math.min(150,e.deltaY))*.008)));
+  const next=mapScale();shiftMap(x/old-x/next,-y/old+y/next);draw();
+},{passive:false});
+canvas.addEventListener('pointerdown',e=>{
+  if(e.button!==0||!state.run||state.taskView==='process'&&state.taskWindow)return;
+  mapDrag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY};mapDragMoved=false;canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!mapDrag||e.pointerId!==mapDrag.id)return;
+  if(!mapDragMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<4)return;
+  mapDragMoved=true;const scale=mapScale();shiftMap(-(e.clientX-mapDrag.lastX)/scale,(e.clientY-mapDrag.lastY)/scale);mapDrag.lastX=e.clientX;mapDrag.lastY=e.clientY;canvas.style.cursor='grabbing';draw();
+});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>{mapDrag=null;canvas.style.cursor='grab';});
+canvas.title='滚轮缩放（以鼠标位置为中心） · 按住拖动平移 · 适应视图恢复';

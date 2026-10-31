@@ -1,0 +1,7 @@
+﻿unit_id,robot_id,topic,platform_class,subtask_id,parent_task_id,task_type,target,start_s,end_s,window_start_s,window_end_s,depends_on,coordination,status,path_length_m,waypoint_count,risk,energy,path
+U3,41,/container_00/robot_041,WING,T1-S1,T1,T-RCN,"{""area"": {""polygon"": [[-20.0, 10.0], [0.0, 10.0], [0.0, 40.0], [-20.0, 40.0]]}}",4.315,44.315,0.000,300.000,,simultaneous_arrival,ASSIGNED,48.541,2,0.000,14.369,"(-20.00,-22.50) | (-10.00,25.00)"
+U4,42,/container_00/robot_042,WING,T1-S2,T1,T-RCN,"{""area"": {""polygon"": [[0.0, 10.0], [20.0, 10.0], [20.0, 40.0], [0.0, 40.0]]}}",4.315,44.315,0.000,300.000,,simultaneous_arrival,ASSIGNED,52.022,2,0.000,14.682,"(-20.00,-17.50) | (10.00,25.00)"
+U2,31,/container_00/robot_031,PLANE,T1-S3,T1,T-RCN,"{""area"": {""polygon"": [[20.0, 10.0], [40.0, 10.0], [40.0, 40.0], [20.0, 40.0]]}}",4.315,44.315,0.000,300.000,,simultaneous_arrival,ASSIGNED,65.431,2,0.000,23.852,"(-15.00,-22.50) | (30.00,25.00)"
+U1,1,/container_00/robot_001,UGV,T2-S1,T2,T-RCN,"{""route"": [[60.0, 20.0], [100.0, 20.0]]}",10.341,55.341,0.000,400.000,,,ASSIGNED,73.747,3,0.000,12.687,"(0.00,-22.50) | (53.10,17.20) | (60.00,20.00)"
+U2,31,/container_00/robot_031,PLANE,T2-S2,T2,T-RCN,"{""route"": [[100.0, 20.0], [140.0, 20.0]]}",47.161,92.161,0.000,400.000,,,ASSIGNED,70.178,2,0.000,26.421,"(30.00,25.00) | (100.00,20.00)"
+U1,1,/container_00/robot_001,UGV,T3-S1,T3,T-HLD,"{""point"": [70.0, 10.0]}",63.617,183.617,0.000,500.000,,,ASSIGNED,32.013,3,0.000,25.601,"(100.00,20.00) | (81.10,11.20) | (70.00,10.00)"

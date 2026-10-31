@@ -1,0 +1,60 @@
+{
+  "scope": "Static source/package audit, parser-only tests, synthetic feedback checks. No planner, tactical task or robot execution.",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "parser_tests": {
+    "run": 11,
+    "failures": 0,
+    "errors": 0
+  },
+  "synthetic_feedback": {
+    "nan_progress_accepted": true,
+    "missing_attempt_accepted": true
+  },
+  "missing_example_8uav": true,
+  "missing_sdf_examples": [
+    "sdf_scene_message.json",
+    "sdf_scene_fleet.json"
+  ],
+  "test_definitions": {
+    "m2": {
+      "test_assignment.py": 3,
+      "test_city_asl.py": 7,
+      "test_coordinator.py": 4,
+      "test_feedback.py": 2,
+      "test_golden.py": 4,
+      "test_invariants.py": 4,
+      "test_message_contract.py": 14,
+      "test_motion.py": 5,
+      "test_objectives.py": 4,
+      "test_output_contract.py": 23,
+      "test_routing.py": 5,
+      "test_sdf_scene.py": 4
+    },
+    "ours": {
+      "test_avoidance_flow.py": 10,
+      "test_behaviors.py": 9,
+      "test_city_nav.py": 9,
+      "test_effect_adjudication.py": 12,
+      "test_flow_v2.py": 25,
+      "test_mixed_fleet.py": 11,
+      "test_task_schematics.py": 3,
+      "test_timeline_rules.py": 20,
+      "test_trajectory_v2.py": 9,
+      "test_workbench.py": 9,
+      "test_workbench_recording.py": 3
+    }
+  },
+  "sdf_hashes": {
+    "D:\\Desktop\\M2\\assets\\container_00_combined_scene.sdf": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf",
+    "D:\\Desktop\\MARL项目\\资料\\接口说明\\container_00_combined_scene.sdf": "68a3ff5e0d3762f047ae7683fc635c63226f2f73122add47fb0333ba56eacadf"
+  },
+  "source_hashes": {
+    "D:\\Desktop\\M2\\README.md": "b037db95b2f70d2de514be040d1a0e7e38376c5e23c79f5a0245438a24142123",
+    "D:\\Desktop\\M2\\formation_planner\\message.py": "613ef2cb90f7a0ca7a7f7c47fcc79dcfe968a2d8b9eace1b97b2750cbffaa663",
+    "D:\\Desktop\\M2\\formation_planner\\feedback.py": "33edad2e9278dbc046fba97ca452076fe6a04ed8a0e391b5655d662e5f3d1c8d",
+    "D:\\Desktop\\M2\\formation_planner\\coordinator.py": "de67ef524e07fac3338ed321efd79f722c9beac03fa780d07184a578235c25a4",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\contracts_v2.py": "61bf11b3883d61c06f57dcfafdfb372dfb2acf821379c57661cec9df89a32e8e",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\coordinator_v2.py": "71d4f507d37b553cc30daf0b9088b3bfd47c4f8b1f24aa55a67cb848952beaf4",
+    "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\asl_city.json": "47b55d90af9937c3c21f645378b7e4f9e813a22600346834a9e1daf7d3365399"
+  }
+}

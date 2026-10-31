@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<title>规划能力版中间层报告 demo-v2</title>
+<style>
+body{font-family:"Microsoft YaHei",sans-serif;margin:24px;color:#1f2328;
+     background:#fff;max-width:1100px}
+h1{font-size:20px}h2{font-size:16px;margin-top:28px}
+.cards{display:flex;gap:12px;flex-wrap:wrap}
+.card{border:1px solid #d0d7de;border-radius:8px;padding:12px 18px;
+      min-width:120px;text-align:center}
+.card .num{font-size:22px;font-weight:600}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}
+th,td{border:1px solid #d0d7de;padding:5px 8px;text-align:left}
+th{background:#f6f8fa}
+.bar{background:#eef1f4;border-radius:4px;height:10px;width:90px;
+     display:inline-block;margin-right:6px;vertical-align:middle}
+.fill{background:#0969da;height:10px;border-radius:4px}
+.tag{color:#fff;border-radius:10px;padding:1px 8px;font-size:12px}
+.chip{display:inline-block;border:1px solid #d0d7de;border-radius:14px;
+      padding:2px 10px;margin:2px;font-size:12px}
+.mono{font-family:Consolas,monospace}.small{font-size:12px}
+.warn{background:#fff8c5;border:1px solid #d4a72c;border-radius:6px;
+      padding:10px 14px}
+details{margin-top:10px}pre{background:#f6f8fa;padding:10px;
+      border-radius:6px;overflow:auto;font-size:12px}
+</style></head><body>
+<h1>任务规划中间层 · 规划能力版报告</h1>
+<p>目标 makespan · H=20 · 在途语义 瞬移 · 仿真至 t=29 · 重试 0 · 超时 0</p>
+<p><a href="trajectory.html" style="display:inline-block;background:#2563eb;color:white;
+padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动回放</a>
+<span class="small"> 播放 / 时间轴 / 单台追踪 / 实时位置与路程</span></p>
+<div class='cards'>
+      <div class='card'><div class='num'>5/6</div><div>完成作业</div></div>
+      <div class='card'><div class='num'>5</div><div>规划次数</div></div>
+      <div class='card'><div class='num'>29.34</div><div>每作业能耗</div></div>
+      <div class='card'><div class='num'>28</div><div>完成时刻</div></div>
+      <div class='card'><div class='num'>30.31</div><div>分散度</div></div>
+    </div>
+<h2>重规划触发源</h2><div><div class='chip'>init × 1</div><div class='chip'>periodic × 4</div></div>
+<h2>作业表</h2>
+<table><tr><th>作业</th><th>类型</th><th>工作量</th><th>进度</th><th>窗口</th><th>crew</th><th>尝试</th><th>状态</th></tr><tr><td>J1</td><td>巡逻警戒</td><td>12.0</td><td><div class='bar'><div class='fill' style='width:100.0%'></div></div>12.0</td><td>[0,60]</td><td>1</td><td>1</td><td><span class='tag' style='background:#1a7f37'>succeeded</span></td></tr><tr><td>J2</td><td>区域封控</td><td>18.0</td><td><div class='bar'><div class='fill' style='width:100.0%'></div></div>18.0</td><td>[0,80]</td><td>3</td><td>1</td><td><span class='tag' style='background:#1a7f37'>succeeded</span></td></tr><tr><td>J3</td><td>协同侦察</td><td>10.0</td><td><div class='bar'><div class='fill' style='width:100.0%'></div></div>10.0</td><td>[0,50]</td><td>2</td><td>1</td><td><span class='tag' style='background:#1a7f37'>succeeded</span></td></tr><tr><td>J4</td><td>要点坚守</td><td>15.0</td><td><div class='bar'><div class='fill' style='width:100.0%'></div></div>15.0</td><td>[0,70]</td><td>2</td><td>1</td><td><span class='tag' style='background:#1a7f37'>succeeded</span></td></tr><tr><td>J5</td><td>巡逻警戒</td><td>12.0</td><td><div class='bar'><div class='fill' style='width:100.0%'></div></div>12.0</td><td>[0,60]</td><td>1</td><td>1</td><td><span class='tag' style='background:#1a7f37'>succeeded</span></td></tr><tr><td>J6</td><td>机动突击</td><td>20.0</td><td><div class='bar'><div class='fill' style='width:0.0%'></div></div>0.0</td><td>[0,90]</td><td>4</td><td>0</td><td><span class='tag' style='background:#6e7781'>pending</span></td></tr></table>
+<h2>需上报上层</h2><ul><li>无</li></ul>
+<h2>派不出去的原因</h2><ul><li>载荷不足 × 28</li><li>目标高度不可达 × 18</li><li>超出规划视野 × 4</li></ul>
+<h2>事件时间线</h2>
+<table><tr><th>t</th><th>事件</th><th>详情</th></tr><tr><td>0</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 0, &quot;triggers&quot;: [&quot;首次规划:首次规划&quot;], &quot;n_assignments&quot;: 5, &quot;n_rejected&quot;: 13}</td></tr><tr><td>5</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 1, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=5)&quot;], &quot;n_assignments&quot;: 5, &quot;n_rejected&quot;: 13}</td></tr><tr><td>8</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;J3&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_31&quot;, &quot;rover_32&quot;], &quot;planned_start&quot;: 8, &quot;planned_end&quot;: 17}</td></tr><tr><td>8</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;J5&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_21&quot;], &quot;planned_start&quot;: 8, &quot;planned_end&quot;: 18}</td></tr><tr><td>10</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 2, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=5)&quot;], &quot;n_assignments&quot;: 5, &quot;n_rejected&quot;: 13}</td></tr><tr><td>14</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;J1&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_01&quot;], &quot;planned_start&quot;: 14, &quot;planned_end&quot;: 26}</td></tr><tr><td>17</td><td>job_succeeded</td><td class='mono small'>{&quot;job_id&quot;: &quot;J3&quot;}</td></tr><tr><td>18</td><td>job_succeeded</td><td class='mono small'>{&quot;job_id&quot;: &quot;J5&quot;}</td></tr><tr><td>18</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;J2&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_21&quot;, &quot;rover_22&quot;, &quot;rover_03&quot;], &quot;planned_start&quot;: 18, &quot;planned_end&quot;: 24}</td></tr><tr><td>20</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 3, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=5)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 7}</td></tr><tr><td>20</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;J4&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_02&quot;, &quot;rover_04&quot;], &quot;planned_start&quot;: 20, &quot;planned_end&quot;: 28}</td></tr><tr><td>24</td><td>job_succeeded</td><td class='mono small'>{&quot;job_id&quot;: &quot;J2&quot;}</td></tr><tr><td>25</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 4, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=5)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 4}</td></tr><tr><td>26</td><td>job_succeeded</td><td class='mono small'>{&quot;job_id&quot;: &quot;J1&quot;}</td></tr><tr><td>28</td><td>job_succeeded</td><td class='mono small'>{&quot;job_id&quot;: &quot;J4&quot;}</td></tr></table>
+<details><summary>本次输入 JSON</summary>
+<pre>{
+  &quot;protocol&quot;: &quot;middle-demo/v2&quot;,
+  &quot;objective&quot;: &quot;makespan&quot;,
+  &quot;H&quot;: 20,
+  &quot;K&quot;: 5,
+  &quot;max_attempts&quot;: 2,
+  &quot;grace_s&quot;: 1,
+  &quot;dev_threshold&quot;: 4.0,
+  &quot;platforms&quot;: [
+    {
+      &quot;robot_no&quot;: 1,
+      &quot;pos&quot;: [
+        10,
+        10
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 2,
+      &quot;pos&quot;: [
+        30,
+        10
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 3,
+      &quot;pos&quot;: [
+        50,
+        10
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 4,
+      &quot;pos&quot;: [
+        10,
+        30
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 21,
+      &quot;pos&quot;: [
+        70,
+        10
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 22,
+      &quot;pos&quot;: [
+        70,
+        30
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 31,
+      &quot;pos&quot;: [
+        30,
+        60
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 32,
+      &quot;pos&quot;: [
+        50,
+        60
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 41,
+      &quot;pos&quot;: [
+        30,
+        80
+      ]
+    },
+    {
+      &quot;robot_no&quot;: 42,
+      &quot;pos&quot;: [
+        50,
+        80
+      ]
+    }
+  ],
+  &quot;jobs&quot;: [
+    {
+      &quot;job_id&quot;: &quot;J1&quot;,
+      &quot;type&quot;: &quot;patrol&quot;,
+      &quot;pos&quot;: [
+        20,
+        15
+      ]
+    },
+    {
+      &quot;job_id&quot;: &quot;J2&quot;,
+      &quot;type&quot;: &quot;blockade&quot;,
+      &quot;pos&quot;: [
+        60,
+        20
+      ]
+    },
+    {
+      &quot;job_id&quot;: &quot;J3&quot;,
+      &quot;type&quot;: &quot;recon&quot;,
+      &quot;pos&quot;: [
+        40,
+        70
+      ]
+    },
+    {
+      &quot;job_id&quot;: &quot;J4&quot;,
+      &quot;type&quot;: &quot;hold&quot;,
+      &quot;pos&quot;: [
+        25,
+        25
+      ]
+    },
+    {
+      &quot;job_id&quot;: &quot;J5&quot;,
+      &quot;type&quot;: &quot;patrol&quot;,
+      &quot;pos&quot;: [
+        75,
+        15
+      ]
+    },
+    {
+      &quot;job_id&quot;: &quot;J6&quot;,
+      &quot;type&quot;: &quot;assault&quot;,
+      &quot;pos&quot;: [
+        40,
+        20
+      ]
+    }
+  ]
+}</pre></details>
+<p class='warn'>规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较</p>
+</body></html>

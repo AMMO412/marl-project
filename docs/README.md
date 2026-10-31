@@ -1,0 +1,10 @@
+# 工程文档
+
+- [项目结构与维护](项目结构.md)
+- [融合版代码讲解（按调用链条）](融合版代码讲解_20261030.md)
+- [融合接口与运行说明](../planning_middle_demo/interop/README.md)
+- [基座设计和接口文档](../planning_middle_demo/docs/)
+- [基座完整说明](../planning_middle_demo/README_v2.md)
+- [外部原始资料](../资料/README.md)
+
+新跨模块设计文档放在本目录；模块内部说明保留在对应代码目录，避免维护重复全文。

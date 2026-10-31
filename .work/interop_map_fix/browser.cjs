@@ -1,0 +1,21 @@
+const {chromium}=require('C:/Users/ammo/.codex/tmp/beijing-map-20261017-01a148de/node_modules/playwright');
+const assert=require('assert/strict');
+(async()=>{
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+const page=await browser.newPage({viewport:{width:1440,height:1080}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:8878/?source=workbench_20261030_194352_373134');
+await page.waitForFunction(()=>typeof state!=='undefined'&&state.run?.id==='workbench_20261030_194352_373134');
+const geometry=await page.evaluate(()=>({obstacles:state.run.obstacles.length,roads:state.run.roads.length,landmarks:state.run.landmarks.length}));
+assert.equal(geometry.obstacles,34);assert.equal(geometry.roads,5);
+await page.screenshot({path:'.work/interop_map_fix/map.png',fullPage:true});
+await page.locator('#open-config').click();
+assert.equal(await page.locator('#config-scenario').inputValue(),'interop_neutral');
+assert.equal(await page.locator('#config-planner').inputValue(),'interop');
+const response=page.waitForResponse(r=>r.url().endsWith('/api/runs')&&r.request().method()==='POST');
+await page.locator('#submit-run').click();const post=await response;assert.equal(post.status(),202);const run=await post.json();
+await page.waitForFunction(id=>state.run?.id===id,{...run}.id,{timeout:90000});
+const result=await page.evaluate(()=>({id:state.run.id,obstacles:state.run.obstacles.length,roads:state.run.roads.length,jobs:state.run.report.jobs.length}));
+assert.equal(result.obstacles,34);assert.equal(result.roads,5);assert.equal(result.jobs,4);
+assert.deepEqual(errors,[]);await page.screenshot({path:'.work/interop_map_fix/new-run.png',fullPage:true});
+console.log(JSON.stringify({historical:geometry,newRun:result,errors}));await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

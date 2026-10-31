@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(StampedPosePublisher)
+find_package(ignition-gazebo6 REQUIRED)
+add_library(StampedPosePublisher SHARED StampedPosePublisher.cc)
+target_link_libraries(StampedPosePublisher ignition-gazebo6::ignition-gazebo6)
+target_compile_features(StampedPosePublisher PRIVATE cxx_std_17)

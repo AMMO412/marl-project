@@ -1,0 +1,62 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-GAP",
+  "generated_at": "2026-10-30T17:52:15.230+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 4,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-GAP-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.message.json",
+      "sha256": "e20eaaa2d82afa6c5124aba4a0da838ce3fb30aec8db6cd7ac5a09d0320f8ac6"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.formation.json",
+      "sha256": "2e4e5b11ccf25ad6221b0fac36e3f34ed8bfd43d347933cd8b78d8c00fa459a9"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_gap\\plan.json",
+      "sha256": "a940c43979fab9aaee18983b7eaa07ab1c4436e8a9dde2a42d79362329d86ad9",
+      "bytes": 17198
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_gap\\assignments.csv",
+      "sha256": "001cd845e12a48a233c5ace5c5e951a277d93a893eab447af27002febcbdccd4",
+      "bytes": 1083
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_gap\\commands.csv",
+      "sha256": "71794ed6bfe4a3bb9b6a5ed95030e93d555aaf4a78ee2d4244f43c32df7af8ed",
+      "bytes": 2135
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_gap\\report.md",
+      "sha256": "ecf7631ca89c5a049dda9c84f30d2e4c4eafdd0b621cfb1719232f4cae4add43",
+      "bytes": 3552
+    }
+  },
+  "command": "demo --message interop/scenarios/capability_gap.message.json --formation interop/scenarios/capability_gap.formation.json --out ..\\outputs\\interop_demo\\runtime_gap --max-ticks 160",
+  "planner": "interop",
+  "runtime_report": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\runtime_gap\\run\\report.json"
+}

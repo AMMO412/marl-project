@@ -1,0 +1,60 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-PATROL",
+  "generated_at": "2026-10-30T16:18:52.555+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 3,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-PATROL-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.message.json",
+      "sha256": "3406c15c5ddf6fbc253df9cefb004e0b29fd96ef2f45389adc7995e169a54a48"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.formation.json",
+      "sha256": "aad797b033dcb517adba7696500abcbf5b6b5821b42fee215b75d614d85d8956"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\patrol\\plan.json",
+      "sha256": "8740b70d2ecae120016787b1704a41488c9b1c6a8a525d4c34992cdbc3f3c479",
+      "bytes": 21196
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\patrol\\assignments.csv",
+      "sha256": "dc6fdb025efabda5cd7294b0d01f009446fe7b5202c63a0e3a06e064f85c0e2e",
+      "bytes": 1110
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\patrol\\commands.csv",
+      "sha256": "b4f1b40c100854991e5dabfe09977a7bc0051a0e4d97224d319c24cdc7fa5da8",
+      "bytes": 3303
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\patrol\\report.md",
+      "sha256": "d887d858496eccdabcf6b9f868b3598fc8cde3670ca004b5244630943f584140",
+      "bytes": 2617
+    }
+  },
+  "command": "plan --message interop/scenarios/patrol_checkpoint.message.json --formation interop/scenarios/patrol_checkpoint.formation.json --out ..\\outputs\\interop_demo\\patrol --objective timeliness"
+}

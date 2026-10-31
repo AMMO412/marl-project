@@ -1,0 +1,202 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 619,
+  "objective": "makespan",
+  "planner": "base_v2",
+  "all_succeeded": false,
+  "settled": false,
+  "jobs": [
+    {
+      "job_id": "ASL-CITY-1",
+      "jtype": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "work": 20.0,
+      "window": [
+        0,
+        700
+      ],
+      "crew": 6,
+      "need_payload": 4.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 0.0,
+      "status": "pending",
+      "attempts": 0,
+      "started_at": null,
+      "planned_end": null,
+      "behavior": {
+        "staging_center": [
+          -62.0,
+          -124.0
+        ],
+        "staging_radius": 6.0,
+        "objective_radius": 14.0,
+        "confirm_radius": 18.0,
+        "arrive_tol": 0.8,
+        "sync_tol": 14.0,
+        "scout_pid": "rover_31",
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "designation_confidence": 0.9,
+        "assessor_pid": "rover_41",
+        "assessment_post": [
+          -95.0,
+          -120.0
+        ],
+        "air_altitude": {
+          "rover_31": 30.0,
+          "rover_41": 25.0
+        },
+        "role_payload": {
+          "assault": 4.0,
+          "support": 0.5
+        },
+        "assault_payload_required": 4.0,
+        "attack_window": [
+          0,
+          700
+        ],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 120.0,
+        "execute_deadline": 520.0,
+        "effect_kind": "damage",
+        "required_level": 6.0,
+        "damage_per_hit": 1.0,
+        "fire_interval": 3.0,
+        "rounds_per_salvo": 1,
+        "counterattack_interval": 6.0,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群（SDF env_city_square 及周边 House/Office 建筑）",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1,
+        "withdraw": true,
+        "withdraw_point": [
+          -75.0,
+          -130.0
+        ],
+        "withdraw_ring": 7.0,
+        "withdraw_deadline": 200.0,
+        "timeout_s": 900.0
+      }
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        0.0,
+        -22.5
+      ],
+      "battery": 100.0,
+      "alive": true,
+      "topic": "/container_00/robot_001"
+    },
+    {
+      "pid": "rover_11",
+      "kind": "UGV",
+      "robot_no": 11,
+      "pos": [
+        -5.0,
+        -22.5
+      ],
+      "battery": 100.0,
+      "alive": true,
+      "topic": "/container_00/robot_011"
+    },
+    {
+      "pid": "rover_21",
+      "kind": "TANK",
+      "robot_no": 21,
+      "pos": [
+        -10.0,
+        -22.5
+      ],
+      "battery": 120.0,
+      "alive": true,
+      "topic": "/container_00/robot_021"
+    },
+    {
+      "pid": "rover_22",
+      "kind": "TANK",
+      "robot_no": 22,
+      "pos": [
+        -10.0,
+        -17.5
+      ],
+      "battery": 120.0,
+      "alive": true,
+      "topic": "/container_00/robot_022"
+    },
+    {
+      "pid": "rover_31",
+      "kind": "PLANE",
+      "robot_no": 31,
+      "pos": [
+        -15.0,
+        -22.5
+      ],
+      "battery": 320.0,
+      "alive": true,
+      "topic": "/container_00/robot_031"
+    },
+    {
+      "pid": "rover_41",
+      "kind": "WING",
+      "robot_no": 41,
+      "pos": [
+        -20.0,
+        -22.5
+      ],
+      "battery": 280.0,
+      "alive": true,
+      "topic": "/container_00/robot_041"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 25,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 24
+  },
+  "done": 0,
+  "used_energy": 0.0,
+  "per_task_energy": null,
+  "makespan": null,
+  "spread": 5.87,
+  "need_report": [
+    "ASL-CITY-1"
+  ],
+  "solve_summary": null,
+  "rejected_reasons": {
+    "方案级越界（叠加超续航），本轮撤下": 20,
+    "超出时间窗": 5
+  },
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 620,
+  "H": 700,
+  "K": 25,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": false,
+  "behavior": false,
+  "behavior_details": false,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": true,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}

@@ -1,0 +1,36 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.message.json",
+  "inputs": {
+    "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.message.json",
+    "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.formation.json",
+    "message_sha256": "85da301ed0b213bc41985f5fcb28ff33b379004b527ff36870d56bba20b49ecd",
+    "formation_sha256": "a1f663f4084e24af52c41fc39c2d2508f3c480fd948a97246de00f98b3e36843"
+  },
+  "scenario_sha256": "a441a1de24ec9715e090eee69bc97a911fc20b41d10dce8a38e4d44ca402db7a",
+  "source_scenario_sha256": "85da301ed0b213bc41985f5fcb28ff33b379004b527ff36870d56bba20b49ecd",
+  "generated_at": "2026-10-30T19:48:27.627281+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false,
+  "planner": "interop",
+  "workbench_config": {
+    "scenario": "interop_neutral",
+    "mode": "normal",
+    "motion": "real",
+    "avoid": false,
+    "max_ticks": 260,
+    "objective": "makespan",
+    "behavior": false,
+    "effect_kind": "damage",
+    "planner": "interop"
+  },
+  "mode": "normal",
+  "motion": "real",
+  "avoid": false,
+  "behavior": false,
+  "max_ticks": 260,
+  "H": 710,
+  "K": 8,
+  "dev_threshold": 4.0
+}

@@ -1,0 +1,5325 @@
+{
+ "sections": [
+  {
+   "w_cm": 21.0,
+   "h_cm": 29.7,
+   "margins": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "header": [
+    ""
+   ],
+   "footer": [
+    ""
+   ],
+   "start_type": "NEW_PAGE (2)"
+  },
+  {
+   "w_cm": 29.7,
+   "h_cm": 21.0,
+   "margins": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "header": [
+    ""
+   ],
+   "footer": [
+    ""
+   ],
+   "start_type": "NEW_PAGE (2)"
+  }
+ ],
+ "styles": {
+  "Normal": {
+   "type": "PARAGRAPH (1)",
+   "base": null,
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": 12.0,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": 0.847,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.5,
+   "line_rule": "ONE_POINT_FIVE (1)"
+  },
+  "Heading 1": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 18.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 16.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 14.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 4": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": "4F81BD",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 5": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 6": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 7": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": "404040",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 8": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": "4F81BD",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Heading 9": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 13.0,
+   "bold": true,
+   "color": "404040",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Default Paragraph Font": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "Normal Table": {
+   "type": "TABLE (3)",
+   "base": null,
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "No List": {
+   "error": "'_NumberingStyle' object has no attribute 'font'"
+  },
+  "macro": {
+   "type": "PARAGRAPH (1)",
+   "base": null,
+   "font": "Courier",
+   "ascii": "Courier",
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 10.0,
+   "line": 1.15,
+   "line_rule": "MULTIPLE (5)"
+  },
+  "List 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": -0.635,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Number 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Number": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Caption": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": 9.0,
+   "bold": true,
+   "color": "4F81BD",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Bullet": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Body Text 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": 8.0,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Bullet 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Body Text": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Number 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": -0.635,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Continue": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Bullet 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Footer": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.0,
+   "line_rule": "SINGLE (0)"
+  },
+  "Header": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.0,
+   "line_rule": "SINGLE (0)"
+  },
+  "toc 1": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.1666666666666667,
+   "line_rule": "MULTIPLE (5)"
+  },
+  "Subtitle": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "4F81BD",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": -0.635,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "toc 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.1666666666666667,
+   "line_rule": "MULTIPLE (5)"
+  },
+  "Body Text 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": 2.0,
+   "line_rule": "DOUBLE (2)"
+  },
+  "List Continue 2": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "List Continue 3": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": 6.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Title": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": "黑体",
+   "ascii": "黑体",
+   "eastAsia": "黑体",
+   "size": 26.0,
+   "bold": true,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Table Grid": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "365F91",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "943634",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "76923C",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "5F497A",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "31849B",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Shading Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "E36C0A",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light List Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Light Grid Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 1 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Shading 2 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 1 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium List 2 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 1 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 2 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Medium Grid 3 Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Dark List Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "FFFFFF",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Shading Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful List Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 1": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 2": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 3": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 4": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 5": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Colorful Grid Accent 6": {
+   "type": "TABLE (3)",
+   "base": "Normal Table",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Strong": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "Emphasis": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "页眉 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "页脚 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "No Spacing": {
+   "type": "PARAGRAPH (1)",
+   "base": null,
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": 11.0,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "标题 1 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 2 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 3 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "副标题 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "List Paragraph": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "正文文本 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "正文文本 2 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "正文文本 3 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "宏文本 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "Quote": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "引用 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 4 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 5 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 6 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 7 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 8 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "标题 9 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "Intense Quote": {
+   "type": "PARAGRAPH (1)",
+   "base": "Normal",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": true,
+   "color": "4F81BD",
+   "first_indent_cm": null,
+   "space_before": 10.0,
+   "space_after": 14.0,
+   "line": null,
+   "line_rule": "None"
+  },
+  "明显引用 字符": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "不明显强调1": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "明显强调1": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "不明显参考1": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "明显参考1": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "书籍标题1": {
+   "error": "'CharacterStyle' object has no attribute 'paragraph_format'"
+  },
+  "TOC 标题1": {
+   "type": "PARAGRAPH (1)",
+   "base": "Heading 1",
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": null,
+   "bold": null,
+   "color": null,
+   "first_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "line_rule": "None"
+  },
+  "Table Text": {
+   "type": "PARAGRAPH (1)",
+   "base": null,
+   "font": "Calibri",
+   "ascii": "Calibri",
+   "eastAsia": null,
+   "size": 10.5,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": null,
+   "space_before": 2.0,
+   "space_after": 2.0,
+   "line": 1.1,
+   "line_rule": "MULTIPLE (5)"
+  },
+  "Code Block": {
+   "type": "PARAGRAPH (1)",
+   "base": null,
+   "font": null,
+   "ascii": null,
+   "eastAsia": null,
+   "size": 12.0,
+   "bold": null,
+   "color": "000000",
+   "first_indent_cm": 0.847,
+   "space_before": null,
+   "space_after": null,
+   "line": 1.5,
+   "line_rule": "ONE_POINT_FIVE (1)"
+  }
+ },
+ "tables": [
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "编码",
+     "任务",
+     "决策结构",
+     "主要功能"
+    ],
+    [
+     "T-RCN",
+     "协同侦察",
+     "覆盖搜索型",
+     "信息获取、目标发现与跟踪"
+    ],
+    [
+     "T-SEC",
+     "区域封控",
+     "边界控制型",
+     "区域控制、拒止、拦截"
+    ],
+    [
+     "T-PTL",
+     "巡逻警戒",
+     "周期巡查型",
+     "警戒、预警、异常报告"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "控制形态",
+     "含义",
+     "判定依据"
+    ],
+    [
+     "物理控制",
+     "平台或兵力占据要点、区域，敌方不能自由进入",
+     "阵位或占位是否保持，敌方是否进入"
+    ],
+    [
+     "火力控制",
+     "以火力覆盖使敌方不能自由行动",
+     "火力覆盖范围、响应时间、敌方行动是否被阻止"
+    ],
+    [
+     "信息控制",
+     "以持续观察、通信或电子手段保持对区域的主导权",
+     "观察连续性、通信可用性、信息优势"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 11,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "字段",
+     "含义"
+    ],
+    [
+     "任务编号",
+     "任务唯一标识"
+    ],
+    [
+     "任务类型",
+     "T-RCN / T-SEC / T-PTL / T-ASL "
+    ],
+    [
+     "优先级",
+     "1最高、5最低"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "项目",
+     "应明确的内容"
+    ],
+    [
+     "对象",
+     "检查哪些区域、检查点、信息项、对象或结果；评估时不得临时缩小"
+    ],
+    [
+     "时间",
+     "要求时段、执行期限、获取或回传期限、结果确认期限；按任务需要"
+    ],
+    [
+     "门槛",
+     "有效访问、观测、在位或结果达标条件；允许中断的时长、次数及例"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 7,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "状态",
+     "含义",
+     "记录要求"
+    ],
+    [
+     "未开始",
+     "等待时间或前置条件",
+     "保留任务、版本及未开始原因"
+    ],
+    [
+     "执行中",
+     "推进动作或维持状态",
+     "保留过程及状态变化记录"
+    ],
+    [
+     "结果待确认",
+     "动作结束或局部条件已满足，但必需证据未齐",
+     "保留缺失项、确认来源及截止时间"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "子型",
+     "主成功标准",
+     "辅助指标",
+     "判定依据"
+    ],
+    [
+     "区域侦察",
+     "有效覆盖率不低于规定值",
+     "发现概率、虚警率、重访间隔、回传时延",
+     "传感器模型或仿真真值"
+    ],
+    [
+     "路线侦察",
+     "全部规定航段完成，关键点重访间隔不超过规定值",
+     "航段覆盖率、回传成功率、跟踪连续性",
+     "航迹和接收回执"
+    ],
+    [
+     "点目标侦察",
+     "发现、识别并定位，定位误差和跟踪时长满足规定",
+     "识别置信度、重捕时间、回传时延",
+     "传感器模型或人工判读"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "维度",
+     "要求"
+    ],
+    [
+     "作用对象",
+     "区域、路线或点目标列表，三者择一"
+    ],
+    [
+     "区域",
+     "二维或三维，含高度层和边界缓冲；城市、山地应给出遮挡模型"
+    ],
+    [
+     "时间",
+     "最早开始、最晚结束、回传间隔、重访间隔"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 8,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "要素",
+     "决策内容"
+    ],
+    [
+     "任务分配",
+     "扇区、网格、航段或目标到平台的分配；负载均衡；关键目标交叉确"
+    ],
+    [
+     "编队队形",
+     "平行扫描、蛇形、扇区、梯队；间距按传感器幅宽和重叠率确定"
+    ],
+    [
+     "协同关系",
+     "分区并行、接力、中继、跟踪交接、交叉识别"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "相邻任务",
+     "区别"
+    ],
+    [
+     "巡逻警戒",
+     "协同侦察是有限时间的信息获取，以覆盖率、发现概率和回传时效为"
+    ],
+    [
+     "机动突击",
+     "协同侦察的终点是信息送达；机动突击的终点是目标产生规定效果。"
+    ],
+    [
+     "区域封控",
+     "协同侦察发现目标后报告或跟踪，不实施拦截；区域封控承担阻止进"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "类别",
+     "内容"
+    ],
+    [
+     "输入",
+     "区域、路线或目标；传感器；时间窗；覆盖率；平台能力；固定覆盖"
+    ],
+    [
+     "决策变量",
+     "扇区、航段或目标分配；航路；高度；中继位置；开始时间"
+    ],
+    [
+     "约束",
+     "覆盖率；时间窗；续航；通信；禁飞区；最小间隔"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "控制目标",
+     "主判据",
+     "辅助指标",
+     "适用情形"
+    ],
+    [
+     "拒止进入",
+     "未授权进入事件数、漏控率不超过规定值",
+     "拦截成功率、响应时间、边界监视覆盖率",
+     "以“不让进”为主"
+    ],
+    [
+     "控制通行",
+     "未授权穿越数、授权放行率满足规定",
+     "核验时间、排队长度、误拦率",
+     "以“可授权进出”为主"
+    ],
+    [
+     "关键通道监视",
+     "通道有效监视时间比例、持续占位时间满足规定",
+     "发现时延、识别置信度、通信可用性",
+     "以监视和威慑为主"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "维度",
+     "要求"
+    ],
+    [
+     "作用对象",
+     "区域边界、入口和出口、通道、关键点位"
+    ],
+    [
+     "区域",
+     "二维或三维，含高度层，边界可监视；空中封控应给出高度层"
+    ],
+    [
+     "时间",
+     "封控开始和结束时间、轮换间隔、警告和拦截窗口"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 10,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "要素",
+     "决策内容"
+    ],
+    [
+     "控制等级",
+     "监视、警告、拦阻、火力拦阻，四级逐级增强"
+    ],
+    [
+     "交战授权",
+     "无火力授权、仅自卫、按令火力拦阻，三级独立配置"
+    ],
+    [
+     "任务分配",
+     "边界段、入口或通道到平台的分配；占位组与机动组分工"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "相邻任务",
+     "区别"
+    ],
+    [
+     "要点坚守",
+     "区域封控控制敌方可能使用的区域、通道和入口，目的是不让敌方进"
+    ],
+    [
+     "巡逻警戒",
+     "巡逻警戒以周期存在、发现和报告为主，不保证阻止；区域封控以持"
+    ],
+    [
+     "机动突击",
+     "区域封控以区域进出控制为目的；机动突击以目标毁伤、压制或夺占"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "类别",
+     "内容"
+    ],
+    [
+     "输入",
+     "区域、入口、时长、控制等级、交战授权、交战规则；对象类别、方"
+    ],
+    [
+     "决策变量",
+     "占位点、边界段分配、拦截航线、轮换、预备队位置"
+    ],
+    [
+     "约束",
+     "边界监视覆盖率、响应时间、间距、续航、交战规则"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 7,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "成功标准",
+     "指标",
+     "判定依据"
+    ],
+    [
+     "完成巡逻计划",
+     "完成规定圈数或时长；航点到达偏差不超过规定值",
+     "平台航迹和任务状态"
+    ],
+    [
+     "保持存在",
+     "存在度不低于规定值",
+     "巡逻路线或区域处于有效监视下的时间比例"
+    ],
+    [
+     "及时报告",
+     "报告时延不超过规定值",
+     "从异常进入监视范围到报告送达"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "维度",
+     "要求"
+    ],
+    [
+     "作用对象",
+     "路线、巡逻区域、设施外围、边境或海岸线"
+    ],
+    [
+     "时间",
+     "总时长、巡逻周期、交接时刻、报告间隔"
+    ],
+    [
+     "兵力",
+     "一个至多个平台；有交接或中继要求时不少于两个"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 8,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "要素",
+     "决策内容"
+    ],
+    [
+     "任务分配",
+     "航段、扇区或圈次到平台的分配；接力顺序"
+    ],
+    [
+     "编队队形",
+     "纵队、横队、楔形、环形；间距按传感器和相互支援确定"
+    ],
+    [
+     "协同关系",
+     "交接、交叉覆盖、中继、异常移交；交接点应在通信覆盖内"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "相邻任务",
+     "区别"
+    ],
+    [
+     "协同侦察",
+     "协同侦察是有限时间的信息获取，成功标准是覆盖率、发现概率和回"
+    ],
+    [
+     "区域封控",
+     "巡逻警戒不保证阻止，发现异常后报告、跟踪或移交；区域封控承担"
+    ],
+    [
+     "要点坚守",
+     "巡逻警戒是移动巡逻，不承担“不失守”的责任；要点坚守是阵位防"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "类别",
+     "内容"
+    ],
+    [
+     "输入",
+     "路线或巡逻区域；圈数和时长；速度和高度；传感器；交接点；报告"
+    ],
+    [
+     "决策变量",
+     "航段、扇区分配；圈次和接力顺序；巡逻方向；队形；交接时刻"
+    ],
+    [
+     "约束",
+     "续航；交接通信；时间窗；禁飞区；最小间隔；报告时延"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "期望效果",
+     "主成功标准",
+     "辅助指标",
+     "判定依据"
+    ],
+    [
+     "毁伤",
+     "目标毁伤等级不低于规定值",
+     "命中率、弹药消耗、二次打击需求",
+     "仿真裁决、战损评估或评估接口"
+    ],
+    [
+     "压制",
+     "目标在规定时段内不能有效行动",
+     "火力覆盖时间、目标恢复时间、我方损失",
+     "目标行动能力是否被抑制"
+    ],
+    [
+     "夺占",
+     "夺取指定点或区域并保持控制不少于规定时间",
+     "控制时长、敌方反击次数、移交时间",
+     "控制权判定或仿真裁决"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "维度",
+     "要求"
+    ],
+    [
+     "作用对象",
+     "点目标、区域目标、单位或编队目标；应给出类型、机动性、防御、"
+    ],
+    [
+     "区域",
+     "集结区、接近路线、攻击阵位、撤离路线"
+    ],
+    [
+     "时间",
+     "攻击窗口、到达时刻、打击时长、战损评估时延、撤离时限"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 8,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "要素",
+     "决策内容"
+    ],
+    [
+     "任务分配",
+     "目标与平台配对；角色分配；波次"
+    ],
+    [
+     "编队队形",
+     "横队、纵队、楔形、梯队；攻击轴线"
+    ],
+    [
+     "协同关系",
+     "同时到达、先后顺序、间隔、牵制、压制、突击分工、目标指示"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "相邻任务",
+     "区别"
+    ],
+    [
+     "区域封控",
+     "机动突击以目标毁伤、压制或夺占为目的，有明确的攻击窗口和兵力"
+    ],
+    [
+     "要点坚守",
+     "机动突击是夺取或打击；要点坚守是保持控制。夺占突击夺取并保持"
+    ],
+    [
+     "协同侦察",
+     "协同侦察提供目标信息，不产生毁伤；机动突击以目标效果为终点"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "类别",
+     "内容"
+    ],
+    [
+     "输入",
+     "目标、效果、兵力包、攻击窗口、交战规则、附带损伤限制；结果确"
+    ],
+    [
+     "决策变量",
+     "目标分配、角色、波次、接近航线、攻击阵位、武器与目标配对"
+    ],
+    [
+     "约束",
+     "最少兵力、能力、续航、时间窗、交战规则、正识别、附带损伤"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "成功标准",
+     "指标",
+     "判定依据"
+    ],
+    [
+     "保持控制",
+     "坚守时段内要点未被敌方控制",
+     "控制权、占位或火力覆盖"
+    ],
+    [
+     "保持观察",
+     "观察中断时间不超过规定值",
+     "传感器覆盖和通信可用性"
+    ],
+    [
+     "击退进攻",
+     "敌方进攻被击退或未能恢复使用",
+     "敌方是否达成夺取或恢复控制"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "维度",
+     "要求"
+    ],
+    [
+     "作用对象",
+     "要点、防御区域、设施或基地、关键地形"
+    ],
+    [
+     "区域",
+     "二维或三维，含威胁方向、阵位和纵深；空中要点应给出高度层"
+    ],
+    [
+     "时间",
+     "坚守时长、增援时间、轮换间隔、撤离窗口"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 8,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "要素",
+     "决策内容"
+    ],
+    [
+     "任务分配",
+     "阵位、扇区或威胁方向到平台的分配；预备队"
+    ],
+    [
+     "编队队形",
+     "环形、扇形、纵深、要点式；间距按火力和传感器覆盖确定"
+    ],
+    [
+     "协同关系",
+     "相互支援、交叉火力、增援、交接、中继"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "相邻任务",
+     "区别"
+    ],
+    [
+     "区域封控",
+     "要点坚守保持己方必须控制的要点或区域，目的是不让敌方夺取或恢"
+    ],
+    [
+     "机动突击",
+     "要点坚守是保持控制；机动突击是夺取或打击。夺占突击夺取并保持"
+    ],
+    [
+     "巡逻警戒",
+     "要点坚守是阵位防御，承担保持控制的责任；巡逻警戒是移动巡逻，"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 2,
+   "rows_sample": [
+    [
+     "类别",
+     "内容"
+    ],
+    [
+     "输入",
+     "要点或区域、威胁方向、预设阵位、坚守时长、增援触发、撤离位置"
+    ],
+    [
+     "决策变量",
+     "阵位分配、预备队、观察扇区、增援路线、轮换、撤离时机"
+    ],
+    [
+     "约束",
+     "阵位容量、支援距离、续航、通信、交战规则"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "平台类",
+     "编号",
+     "典型角色",
+     "说明"
+    ],
+    [
+     "UGV",
+     "1–20",
+     "侦察、巡逻、封控、坚守",
+     "轮式或差速，地面"
+    ],
+    [
+     "TANK",
+     "21–30",
+     "突击、坚守",
+     "履带式或差速代理，地面"
+    ],
+    [
+     "PLANE",
+     "31–40",
+     "侦察、巡逻、通信中继",
+     "常规布局固定翼"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 11,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "组",
+     "关键参数",
+     "用途"
+    ],
+    [
+     "标识",
+     "平台编号、平台类、角色、型号",
+     "编成、台账、仿真映射"
+    ],
+    [
+     "运动",
+     "最大速度、巡航速度、最大爬升率、最大转弯率、最小转弯半径、高",
+     "航路可行性、到达时间、队形"
+    ],
+    [
+     "续航",
+     "续航时间、航程、续航余量比例",
+     "时间窗、往返、轮换"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "等级",
+     "含义",
+     "参考判据"
+    ],
+    [
+     "0",
+     "不具备",
+     "无相应载荷、武器或持续能力"
+    ],
+    [
+     "1",
+     "有限",
+     "单一传感器、短射程、短续航，只能在有利条件下执行"
+    ],
+    [
+     "2",
+     "具备",
+     "传感器、武器或续航达到典型任务的基本要求"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 14,
+   "cols": 5,
+   "rows_sample": [
+    [
+     "参数",
+     "UGV",
+     "TANK",
+     "PLANE",
+     "WING"
+    ],
+    [
+     "编号",
+     "1–20",
+     "21–30",
+     "31–40",
+     "41–50"
+    ],
+    [
+     "典型角色",
+     "多用途",
+     "突击/坚守",
+     "侦察",
+     "察打/巡逻"
+    ],
+    [
+     "最大速度（米/秒）",
+     "20",
+     "18",
+     "50",
+     "38"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "任务",
+     "关键参数",
+     "原因"
+    ],
+    [
+     "协同侦察",
+     "侦察等级、探测和识别距离、视场、分辨率、续航、通信",
+     "覆盖率和发现概率取决于传感器与续航"
+    ],
+    [
+     "区域封控",
+     "巡逻/坚守/打击等级、续航、传感器覆盖、武器射程、通信",
+     "持续占位和拦截取决于续航、火力和通信"
+    ],
+    [
+     "巡逻警戒",
+     "巡逻等级、续航、巡航速度、传感器、交接和通信",
+     "周期巡逻取决于续航和速度"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 6,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "字段",
+     "类型",
+     "说明"
+    ],
+    [
+     "版本号",
+     "字符串",
+     "消息版本，当前为0.3"
+    ],
+    [
+     "消息编号",
+     "字符串",
+     "消息唯一编号，用于追溯和去重"
+    ],
+    [
+     "下发时间",
+     "字符串",
+     "ISO 8601时间"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 5,
+   "cols": 4,
+   "rows_sample": [
+    [
+     "类型",
+     "编号",
+     "话题",
+     "垂直速度"
+    ],
+    [
+     "UGV",
+     "1–20",
+     "/rover_01/cmd_vel至/rover_20/cm",
+     "不支持"
+    ],
+    [
+     "TANK",
+     "21–30",
+     "/rover_21/cmd_vel至/rover_30/cm",
+     "不支持"
+    ],
+    [
+     "PLANE",
+     "31–40",
+     "/rover_31/cmd_vel至/rover_40/cm",
+     "支持"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 9,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "字段",
+     "含义",
+     "要求"
+    ],
+    [
+     "种类",
+     "有效访问、有效观测、在位、事件、结果、回传等",
+     "区分动作事实与效果事实"
+    ],
+    [
+     "时刻",
+     "事实发生或生效时间",
+     "统一时间基准，明确单位"
+    ],
+    [
+     "来源",
+     "平台、传感器、接收方或评估模块",
+     "来源可追溯"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 4,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "来源层次",
+     "典型内容",
+     "使用边界"
+    ],
+    [
+     "观测或仿真真值",
+     "轨迹、有效传感覆盖、事件流、评估结果",
+     "按任务约定的来源和有效性使用"
+    ],
+    [
+     "执行过程回传",
+     "指令接收、实际执行、结束、实际在位",
+     "证明过程事实，不自动证明目标效果"
+    ],
+    [
+     "派生或构造数据",
+     "由工作量推算访问、覆盖，或演示构造接收和结果",
+     "仅支持已说明的原型演示，不冒充已接入的观测或评估能力"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 7,
+   "cols": 3,
+   "rows_sample": [
+    [
+     "中文",
+     "英文",
+     "说明"
+    ],
+    [
+     "协同侦察",
+     "cooperative reconnaissance",
+     "与多平台协同侦察的学术用法一致；侦察是信息获取活动，不产生毁"
+    ],
+    [
+     "区域封控",
+     "area control；area denial作拒止子模式",
+     "不使用area security直译，不使用blockade"
+    ],
+    [
+     "巡逻警戒",
+     "security patrol；patrol and sur",
+     "采用窄口径，不包含破坏、袭扰、抓捕等战斗巡逻。[9][16]"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  },
+  {
+   "style": "Normal Table",
+   "rows": 22,
+   "cols": 6,
+   "rows_sample": [
+    [
+     "序号",
+     "来源名称",
+     "发布机构或作者",
+     "文号、标准号或DOI",
+     "日期",
+     "关键依据"
+    ],
+    [
+     "[1]",
+     "NASA Systems Engineering Handb",
+     "NASA；Hirshorn S R等",
+     "NASA/SP-2016-6105 Rev 2",
+     "2017-02-17",
+     "第5.3节及第6章：按需求基线验证，保留证据、偏差和追溯关系"
+    ],
+    [
+     "[2]",
+     "GB/T 38152-2019《无人驾驶航空器系统术语》",
+     "国家市场监督管理总局、国家标准化管理委员会",
+     "GB/T 38152-2019",
+     "2019-10-18",
+     "无人驾驶航空器系统、任务载荷、控制站、数据链术语"
+    ],
+    [
+     "[3]",
+     "《无人驾驶航空器飞行管理暂行条例》",
+     "国务院、中央军事委员会",
+     "国令第761号",
+     "2023-06-28",
+     "无人驾驶航空器定义、分类和空域管理"
+    ]
+   ],
+   "width": null,
+   "jc": "center"
+  }
+ ],
+ "images": [
+  {
+   "w_cm": 14.22,
+   "h_cm": 9.48
+  },
+  {
+   "w_cm": 8.37,
+   "h_cm": 5.58
+  },
+  {
+   "w_cm": 13.09,
+   "h_cm": 7.36
+  },
+  {
+   "w_cm": 14.22,
+   "h_cm": 8.0
+  },
+  {
+   "w_cm": 14.22,
+   "h_cm": 8.0
+  }
+ ],
+ "body": [
+  {
+   "kind": "p",
+   "style": "Title",
+   "text": "无人集群编队五类任务定义",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 165.0,
+   "space_after": null,
+   "line": 1.3333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "2026年10月28日",
+   "align": "CENTER (1)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 90.0,
+   "space_after": null,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 1",
+   "text": "1 总则",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 9.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": true,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.1 目的与范围",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "本文件规定无人集群编队协同侦察、区域封控、巡逻警戒、机动突击、要点坚守五类任务的定义、目标、成功标准、作用对象、编队决策要素、外延、边界、平台参数和输入输出契约。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "本文件规定五类任务的建模语义及验证口径。项目实际纳入的任务范围、必需条件和验收阈值，以任务下达方确认的需求基线为准。[1]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.2 任务分类",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "分类说明：五类任务按“决策问题结构”划分，不按单一作战功能划分。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.3 共同约定",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "编队。本文件所称编队，指在统一任务指挥下、由两个及以上无人平台组成、能够进行任务分配与协同的作战单元。无人驾驶航空器系统、任务载荷、控制站和数据链的术语按GB/T 38152-2019和国令第761号执行。[2][3]",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "任务与子任务。任务分两级：父任务描述作战意图，子任务为单个平台可执行的最小单元。父任务可分解为若干子任务；子任务不再向下分解。",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "指令关系。编队决策模型负责任务分配、编队队形、航路、通信组织和时序生成，向平台下达任务指令；平台按指令执行，并回传位置、状态、传感器信息和任务完成情况。任务执行中的局部调整由平台按预设规则处理，超出预设规则的事项报编队决策模型重新决策。",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "任务分配、路径规划和通信组织的建模方法可参考集群协同感知、任务调度和轨迹规划的公开综述。[4][5][6]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "完成与成功。本文件将动作执行结束与任务结果分开记录。“执行结束”不自动等于“成功”；成功须有证据满足任务事先规定的全部必需条件。平台返航、弹药耗尽、时间窗结束可导致结束或终止；需要外部结果而证据未齐时，记为“结果待确认”，不得默认成功。状态及结算见1.5。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "控制形态。本文件所称控制，按以下三种形态之一或组合实施：",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "任务描述字段。五类任务共用以下字段；类型差异放在“任务参数”中。",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.4 统一判定规则",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "判据与优化：成功条件用于判断是否达标，优化指标用于比较方案优劣。未被任务明确列为必需条件的辅助指标，不单独作为失败依据；不得要求先证明时间、重复率或能耗达到全局最优，才能结束一项已经达标的任务。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "判据完整性：每项判据均应明确以下五项，并与任务编号及规则版本关联。需求验证应基于已定义的要求和可追溯证据；以下字段组织方式为本文件的工程约定。[1]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "全过程核验：巡逻、封控和坚守应核验整个要求时段，包含开始、结束、离位、接替及状态变化时刻。最终状态或平均值不能替代全过程记录。中断和恢复分别保留，恢复不抹去此前记录；是否违规按任务允许的时长、次数和例外判定。严格禁止事件与允许阈值的条件分别配置，评估后不得临时放宽。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "采样与结论范围：采用离散记录时，应报告采样间隔与验证精度，不据此无条件声称连续时间内从未中断。测试数据、指标、工具及适用条件应有记录，结论不超出证据和模型能支持的范围。[7]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "统计口径：跨次任务的成功率应同时报告执行次数、成功次数和分母范围，并在试验前明确未完成、取消、待确认是否纳入。事件总数为零时，标注“本次未触发相关事件”，不将事件成功率直接记为100%；任务本身是否成功仍按其全部适用判据判断。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.5 任务状态与结束结算",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "以下状态名称为本文件的工程约定，用于区分过程、证据和结算结果，不宣称为公开条令规定的统一状态机。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "执行期限与确认期限：二者由任务分别明确；允许确认在执行结束后完成时，应给出确认截止时间。超过确认期限仍无有效结果时，按预定规则记超时或失败，不无限等待，也不补记成功。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "解除与撤离：有效解除、取消、控制权移交及撤离均应留有记录。过程安全结束不替代原任务效果达成；要求时段结束前解除或取消时，按既定规则单独结算。需求发生变更时保留版本与生效时间，不用新规则追溯性地掩盖旧规则下已发生的偏差。[1]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "1.6 参数来源与确认状态",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "平台性能与任务阈值分别维护：本文3.7小节管理平台性能数据；任务还应登记覆盖门槛、重访上限、报告时限、允许中断、结果确认期限等数值的单位、来源、确认状态、适用范围及版本。数据来源与确认状态是两类信息，不相互替代。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "确认状态分为任务下达方已确认、开发方暂定和尚未确定：开发方暂定值仅用于联调、演示或相对比较，不直接作为验收依据。未确定的门槛应明确缺项，不臆造缺省值；五类任务中已有典型场景数值均作说明性示例，不是通用推荐阈值。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "公开文献提供定义、模型及验证原则，不统一规定本项目的台数、时间、漏控率或允许空窗：各项实际门槛应进入已确认的任务配置；严格全程要求与允许中断要求不得同时作相互矛盾的解释。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 1",
+   "text": "2 五类任务定义",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 9.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "2.1 T-RCN 协同侦察",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.1 定义",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "协同侦察是指编队为获取指定区域、路线或目标集合的敌情、目标与环境信息，在规定时间窗内以两个及以上具备侦察能力的平台，按统一的任务分配、覆盖策略与协同规则实施搜索、识别、定位和跟踪，并将满足精度、时效与格式要求的情报回传至指定节点的任务。[8][9]",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "四个要件：两个及以上平台；统一的任务分配、覆盖策略与协同规则；搜索、识别、定位和跟踪；情报回传满足精度、时效和格式要求。缺任一要件，不构成本文件所称协同侦察。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.2 任务目标与成功标准",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "任务目标：在规定时间窗内使指定对象达到规定的信息完备度，并将情报在规定时限内回传至指定节点。",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "注：覆盖率应按传感器有效幅宽、遮挡、气象、地形和目标伪装折算，不以航迹覆盖率代替。发现概率由传感器模型、试验数据或评估接口给出，任务层不自行估算。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": "666666"
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "合并覆盖：多平台有效观测集合取并集，重叠单元只计一次；不等面积单元按面积统计。采用加权覆盖时，预先说明权重并与普通覆盖率区分。任务覆盖范围和必需信息清单在评估前固定，总量达标不能替代必查位置和信息项的逐项合格。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "质量与交付：任务要求识别、定位、复核或时效时，分别核验。需要回传的成果以指定节点的接收确认为交付依据，记录获取、发送和接收确认时间，分别检查约定期限。覆盖已达标但交付证据未齐时，按1.5记为结果待确认。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "模型适用范围：协调探索研究支持分工获取信息及共享成果的理解，但探索地图不等于已识别目标，也不替代质量与交付要求。必要的多视角复核或时效更新不视为无效重复。[10]",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.3 作用对象、区域、时间与兵力",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.4 编队决策要素",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.5 外延",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "区域搜索侦察；路线侦察；点目标核查；目标指示与跟踪；战损评估侦察；多传感器协同侦察；中继辅助侦察。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.6 边界与排除项",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "本任务不包含：单平台侦察；火力打击、压制和毁伤；周期巡逻和持续警戒；区域边界进出管制与拦截；要点或区域的长期控制；电子攻击和网络攻击；非军事侦察。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "与相邻任务的区别：",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.7 典型场景",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "2千米 × 1千米区域，要求有效覆盖率不低于90%、30分钟内完成、发现目标后10秒内回传。编队3架固定翼侦察无人机，按3个扇区并行蛇形扫描；1架发现目标后保持跟踪，另2架担任通信中继。全程不实施打击；需要打击时，另行下达机动突击任务。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "CENTER (1)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": 1.0,
+   "keep_with_next": true,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Caption",
+   "text": "图1 多平台探索成果合入共享地图",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 2.0,
+   "space_after": null,
+   "line": 1.0,
+   "keep_with_next": true,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": 10.5,
+     "bold": false,
+     "italic": null,
+     "color": "000000"
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": 10.5,
+     "bold": false,
+     "italic": null,
+     "color": "000000"
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": 10.5,
+     "bold": false,
+     "italic": null,
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.1.8 可建模接口",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  },
+  {
+   "kind": "p",
+   "style": "Heading 2",
+   "text": "2.2 T-SEC 区域封控",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.2.1 定义",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "区域封控是指编队为限制敌方对指定区域的使用，在规定时段内对区域边界、通道和关键点位实施持续监视、占位与拦截，按授权等级阻止未经许可的目标进入、离开或在区域内机动，使该区域保持“进出可控”状态的任务。[9][11][12][13]",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "公开文献没有“区域封控”的直接军语定义；本定义以“外围封控”的封锁控制语义为基础，结合security、area security和interdiction的保护、拒止含义，取“限制敌方使用、保持进出可控”为核心。",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Heading 3",
+   "text": "2.2.2 任务目标与成功标准",
+   "align": null,
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": 6.0,
+   "space_after": 4.0,
+   "line": 1.25,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "任务目标：在封控时段内使指定区域达到规定的控制状态：未经许可的目标不能进入、离开或在区域内自由机动；对已进入的目标，按授权实施警告、拦阻或火力拦阻。",
+   "align": null,
+   "first_indent_cm": 0.85,
+   "left_indent_cm": null,
+   "space_before": 4.0,
+   "space_after": null,
+   "line": null,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": [
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": true,
+     "italic": null,
+     "color": null
+    },
+    {
+     "name": null,
+     "eastAsia": null,
+     "size": null,
+     "bold": null,
+     "italic": null,
+     "color": null
+    }
+   ]
+  },
+  {
+   "kind": "tbl"
+  },
+  {
+   "kind": "p",
+   "style": "Normal",
+   "text": "",
+   "align": "LEFT (0)",
+   "first_indent_cm": null,
+   "left_indent_cm": null,
+   "space_before": null,
+   "space_after": null,
+   "line": 0.08333333333333333,
+   "keep_with_next": null,
+   "page_break_before": null,
+   "runs": []
+  }
+ ]
+}

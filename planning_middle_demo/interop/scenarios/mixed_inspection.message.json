@@ -1,0 +1,168 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-MIXED-001",
+  "issued_at": "2026-10-30T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-SEC",
+      "priority": 1,
+      "target": {
+        "defense_area": [
+          [
+            95,
+            -95
+          ],
+          [
+            130,
+            -95
+          ],
+          [
+            130,
+            -65
+          ],
+          [
+            95,
+            -65
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 500
+      },
+      "required_capabilities": {
+        "HLD": 2
+      },
+      "min_units": 2,
+      "max_units": 2,
+      "params": {
+        "hold_duration_s": 120,
+        "entry_points": [
+          [
+            100,
+            -60
+          ],
+          [
+            125,
+            -60
+          ]
+        ],
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "description": "围墙区域封控，两个入口点"
+    },
+    {
+      "task_id": "T2",
+      "task_type": "T-RCN",
+      "priority": 2,
+      "target": {
+        "target_list": [
+          [
+            -100,
+            -60
+          ],
+          [
+            -100,
+            20
+          ],
+          [
+            -40,
+            60
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 600
+      },
+      "required_capabilities": {
+        "RCN": 2
+      },
+      "min_units": 1,
+      "max_units": 3,
+      "params": {
+        "duration_s": 30
+      },
+      "description": "西侧三个检查点侦察"
+    },
+    {
+      "task_id": "T3",
+      "task_type": "T-HLD",
+      "priority": 2,
+      "target": {
+        "key_point": [
+          60,
+          60
+        ]
+      },
+      "window": {
+        "start_s": 60,
+        "end_s": 700
+      },
+      "required_capabilities": {
+        "HLD": 2
+      },
+      "min_units": 1,
+      "max_units": 2,
+      "params": {
+        "hold_duration_s": 150,
+        "defense_positions": [
+          [
+            56,
+            60
+          ],
+          [
+            64,
+            60
+          ]
+        ],
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "description": "东北路口两个坚守阵位"
+    },
+    {
+      "task_id": "T4",
+      "task_type": "T-PTL",
+      "priority": 3,
+      "target": {
+        "route": [
+          [
+            0,
+            60
+          ],
+          [
+            20,
+            80
+          ],
+          [
+            0,
+            100
+          ],
+          [
+            -20,
+            80
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 700
+      },
+      "required_capabilities": {
+        "PTL": 2
+      },
+      "min_units": 1,
+      "max_units": 2,
+      "params": {
+        "duration_s": 60
+      },
+      "description": "北侧环形巡逻"
+    }
+  ]
+}

@@ -115,11 +115,21 @@ class MockFleet:
                       active=False, dead=False))
 
     def deactivate(self, pid):
-        """模拟平台失联（成员损失）：不再贡献进度、不再回任何反馈。"""
+        """模拟平台失联（成员损失）：不再贡献进度、不再回任何反馈。
+
+        若该平台正在执行带行为状态机的作业，同时通知行为层记"我方损失"，
+        否则行为层会继续把失联平台算在位/可开火，辅助指标就对不上事实。
+        """
         st = self.platforms.get(pid)
         if st is not None:
             st["dead"] = True
             st["active"] = False
+        for job in self.jobs.values():
+            runner = job.get("bh_runner")
+            if runner is None:
+                continue
+            if pid in runner.agents:
+                runner.behavior.report_loss(pid, runner.time)
 
     # ---------------- 绝对步时间线事件 ----------------
     def _apply_timed_events(self, now, events):
@@ -344,19 +354,31 @@ class MockFleet:
         behavior = make_behavior(bh_job, self.nav, pids)
         starts = {}
         speeds = {}
+        caps = {}
         for m in members.values():
             pid = m["wire"]["command"]["worker_id"]
             st = self.platforms.get(pid, {})
             pos = st.get("pos", (0.0, 0.0))
             starts[pid] = (pos[0], pos[1], st.get("yaw", 0.0))
-            caps = m["wire"]["command"]["delivery"].get("motion_caps") or {}
-            speeds[pid] = float(caps.get("max_linear", 0.8))
+            delivery = m["wire"]["command"]["delivery"]
+            speed_caps = delivery.get("motion_caps") or {}
+            speeds[pid] = float(speed_caps.get("max_linear", 0.8))
+            # 平台画像：地面/空中分流、初始高度、载荷。行为层据此决定
+            # 绕障还是直飞、爬升到多少，以及"突击组载荷是否达标"的第二道闸门。
+            caps[pid] = dict(kind=delivery.get("kind"),
+                             can_climb=bool(delivery.get("can_climb")),
+                             start_z=float(st.get("z") or 0.0),
+                             payload=delivery.get("payload"),
+                             sensor=delivery.get("sensor"),
+                             speed=float(delivery.get("speed") or speeds[pid]))
         job["bh_job"] = bh_job
         job["bh_runner"] = BehaviorRunner(self.nav, behavior, starts,
-                                          speeds=speeds)
+                                          speeds=speeds, caps=caps)
         job["bh_started"] = True
         job["bh_seen_events"] = 0
         job["bh_seen_routes"] = 0
+        if hasattr(behavior, "set_platform_caps"):
+            behavior.set_platform_caps(caps)
         # 平台级弹药基数注入（编成参数 PLANNING_PARAMS.ammo → delivery）：
         # 行为层的齐射消耗以平台实际弹药为准；无弹药数据的旧指令保持
         # 行为默认（ammo_per_platform），不强行清零。
@@ -395,6 +417,22 @@ class MockFleet:
                                 for p in behavior.staging]
                 r['objective'] = [[round(p[0], 2), round(p[1], 2)]
                                   for p in behavior.objective]
+                # T-ASL 效果判定要素：角色/效果分类/目标绑定/逐项结果初值
+                r['roles'] = dict(getattr(behavior, 'roles', {}))
+                r['assault_pids'] = list(getattr(behavior, 'assault_pids',
+                                                 behavior.pids))
+                r['pids'] = list(behavior.pids)
+                r['effect_kind'] = behavior.effect_kind
+                r['effect'] = behavior.effect_label
+                r['target_id'] = behavior.target_id
+                r['attempt'] = behavior.attempt
+                r['result_items'] = [dict(x) for x in behavior.result_items]
+                r['assessment_post'] = (
+                    [round(v, 2) for v in behavior.assessment_post]
+                    if getattr(behavior, 'assessment_post', None) else None)
+                r['air_altitude'] = dict(behavior.params.get('air_altitude') or {})
+                r['climb_rate'] = behavior.params.get('climb_rate')
+                r['platform_caps'] = dict(getattr(behavior, 'platform_caps', {}) or {})
             elif behavior.kind == 'hold':
                 r['posts'] = [[round(p[0], 2), round(p[1], 2)]
                               for p in behavior.posts]
@@ -430,12 +468,12 @@ class MockFleet:
                       debug=behavior.debug() if hasattr(behavior, 'debug') else {},
                       params=dict(behavior.params), routes=new_routes)
         self.behavior_events.append(json.loads(json.dumps(detail)))
-        # 位姿写回（行为层在场景坐标推进，z 地面平台恒 0）
+        # 位姿写回（行为层在场景坐标推进；空中平台 z 为当前高度）
         for pid, agent in runner.agents.items():
             st = self.platforms.get(pid)
             if st is not None:
                 st["pos"] = (agent.x, agent.y)
-                st["z"] = 0.0
+                st["z"] = float(agent.z)
                 st["yaw"] = agent.yaw
         # 弹药写回：突击行为的齐射消耗同步到平台状态（反馈里可见）
         if hasattr(behavior, "ammo"):
@@ -486,7 +524,12 @@ class MockFleet:
         return done
 
     def _poll_behavior(self, job, now, events):
-        """行为模式下的一步推进 + 反馈（复用 progress/succeeded 反馈语义）。"""
+        """行为模式下的一步推进 + 反馈（复用 progress/succeeded 反馈语义）。
+
+        作业结算：行为给出 result（T-ASL 效果判定）时按 overall 结算——
+        "行为走完"不冒充"任务成功"，弹药耗尽/超时/评估未达成都按 failed
+        回给 coordinator，由其重试或终审。
+        """
         job_id = job["bh_job"]["job_id"]
         members = job["members"]
         behavior = job["bh_runner"].behavior
@@ -494,14 +537,32 @@ class MockFleet:
         # 行为阶段作为 phase；作业级进度 = progress_frac 映射值
         phase = job.get("_phase") or behavior.phase
         progress = job["progress"]
+        status, note = "succeeded", None
+        result = getattr(behavior, "result", None)
+        if done and result is not None:
+            verified = "已验证" if result.get("verified") else "桩判定·未验证"
+            adjudicator = result.get("adjudicator")
+            if result.get("overall") == "succeeded":
+                note = "效果判定:成功（%s·%s）" % (adjudicator, verified)
+            else:
+                status = "failed"
+                note = "效果判定:%s；终止:%s（%s·%s）" % (
+                    result.get("overall"),
+                    result.get("termination") or "评估未达成",
+                    adjudicator, verified)
+            payload = dict(t=round(job["bh_runner"].time, 2),
+                           recorded_at_sim_s=now,
+                           kind="behavior_result", job_id=job_id)
+            payload.update(json.loads(json.dumps(result)))
+            self.behavior_events.append(payload)
         for key, m in list(members.items()):
             command = m["wire"]["command"]
             st = self.platforms.get(command["worker_id"])
             if st is None or st["dead"]:
                 continue
             if done:
-                events.append(self._event(m["wire"], now, "succeeded",
-                                          job["work"], phase=phase))
+                events.append(self._event(m["wire"], now, status,
+                                          job["work"], phase=phase, note=note))
                 st["active"] = False
                 members.pop(key, None)
             else:

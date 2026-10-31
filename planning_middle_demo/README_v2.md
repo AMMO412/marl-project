@@ -4,9 +4,30 @@
 
 - **消息骨架**（来自 v1）：中间层是运行状态唯一写入者、独立消息替身、反馈身份/去重/时间/进度核对、超时只请求取消、失败可重试。
 - **规划能力**（来自 `planning/planner.py`）：能力过滤 → 代价打分 → 分配求解（含匈牙利）→ 时序排程 → 冲突消解 → 方案级校验，再加滚动重规划与五类独立触发源。
-- **项目贴近**（来自《机器人移动话题说明》与《四类平台参数指标》）：下游 50 台编成、四类平台、每台一个 `/rover_XX/cmd_vel` 话题、只有空中平台支持 `linear.z`；能力参数与公开参考参数**分表、不混用**。
+- **项目贴近**（来自《机器人移动话题说明》与《四类平台参数指标》）：下游 50 台编成、四类平台、每台一个 `/container_00/robot_XXX` 移动话题（2026-10-30 起替换旧 `/rover_XX/cmd_vel`），只有空中平台支持 `linear.z`；能力参数与公开参考参数**分表、不混用**。
 
 本目录是**个人练手与能力建设**的演示，不用于具体作战决策，不连接真实 ROS/Gazebo，也不是已完成的真实交付版本。
+
+## 统一接口融合层（2026-10-30，interop/）
+
+新增 `interop/`：把 M2 的 4.1/4.2 契约、任务分解、能力闸门、协同组匈牙利、三目标与风险 A* 并入本工程，形成一条**只做中性任务**的统一链路：
+
+```powershell
+cd planning_middle_demo
+python -m interop.cli plan --message interop/scenarios/patrol_checkpoint.message.json `
+  --formation interop/scenarios/patrol_checkpoint.formation.json --out ..\outputs\interop_demo\patrol
+
+# 4.1 输入直接驱动基座运行链（规划→下发→反馈→报告/回放）
+python -m interop.cli demo --message interop/scenarios/mixed_inspection.message.json `
+  --formation interop/scenarios/mixed_inspection.formation.json `
+  --out ..\outputs\interop_demo\runtime_mixed --max-ticks 260
+```
+
+- 输入：1028 4.1 消息（`schema_version` 严格 0.3）+ 编成表；输出：4.2 `plan.json` / `assignments.csv` / `commands.csv` / `report.md` / `manifest.json`。
+- 只覆盖 T-RCN/T-SEC/T-PTL/T-HLD；T-ASL 明确拒绝，不含攻击阵位、`fires`、毁伤判定。
+- `interop.runtime` 已接进 `CoordinatorV2`：`run_demo_v2 --planner auto` 对中性场景优先用统一层，含突击/效果判定的场景自动回退基座；工作台“新建演示”可选 `interop_neutral` + `融合统一层`。
+- `to-v2` 按已确认规则拒绝无法无损转换的输入，列出任务、参数、约束和时钟缺口，不生成或覆盖场景。运行对接不走有损转换，而是内存中的 `_meta.interop` 运行视图（保留原始 4.1 作为权威输入）。`compare` 是离线规划对比，基座归一化实验条件会单独披露，不能当作同参数执行验证。
+- 协调器、反馈、行为层、工作台的行为语义未改；只新增了可插拔规划器入口。说明见 [interop/README.md](interop/README.md)。
 
 ## 可视化工作台（2026-10-28）
 
@@ -239,6 +260,9 @@ py -3.14 planning_middle_demo/trajectory_v2.py planning_middle_demo/outputs/<运
 | `reporting_v2.py` | 文本 + HTML 报告 |
 | `scenarios/fleet_demo.json` | 10 台四类平台 + 6 作业（覆盖高度/载荷/传感器/协同），手编坐标 |
 | `scenarios/simple_city.json` | 真实城市场景（OSRF citysim `simple_city.world`）：作业点/平台位取自真实建筑与道路坐标，`_meta` 记录缩放因子与原始米坐标 |
+| `sdf_state.py` | 从甲方 SDF 提取规划初始状态（50 台平台位姿/尺寸、障碍、道路、地标），生成 `scenarios/sdf_initial_state.json` |
+| `scenarios/sdf_initial_state.json` | 生成物：SDF 初始位姿与三维尺寸；工作台也读它画道路/建筑标签，改 SDF 后需重跑 `sdf_state.py` |
+| `tests/test_mixed_fleet.py` | SDF 提取值、角色级载荷校核、空地面分流、辅助指标逐项结算 |
 | `tests/test_flow_v2.py` | 消息骨架纪律 + 规划器不变量 + 真实运动语义 + 真实场景 |
 | `tests/test_timeline_rules.py` | timeline 数据驱动事件 + rules 可配置参数的校验与行为（缺省一致/配置生效/错误拒绝/顺序/重复/隔离） |
 
@@ -311,9 +335,9 @@ py -3.14 planning_middle_demo/behavior_demo.py --scenario planning_middle_demo/s
 
 ### 城市十字路口建筑群突击（asl_city）
 
-场景最初按 16 台（1 侦察 + 15 突击）验证容量，2026-10-29 收到反馈"一个任务安排太多智能体、太乱"后编成降为 **6 台（1 侦察 + 5 突击）**——16 台时标签互相遮挡、轨迹线过密，6 台能一眼看清分进路线与阶段推进。要恢复 16 台：把 `platforms` 加回 16 行、`crew` 改 16 即可（16 台容量验证另见 `asl_container_16` 一节）。
+场景最初按 16 台（1 侦察 + 15 突击）验证容量，2026-10-29 收到反馈"一个任务安排太多智能体、太乱"后编成降为 **6 台**——16 台时标签互相遮挡、轨迹线过密，6 台能一眼看清分进路线与阶段推进。同日按《T-ASL 效果判定与逐项结算实现规范》调成侦察/突击/评估三组；**2026-10-29 晚再按"兵力包按角色编成"改成多类型混编**：`rover_31` 固定翼（侦察指示组，巡航 30 m）、`rover_41` 飞翼（评估组，巡航 25 m）、`rover_21/22` 履带与 `rover_01/11` 轮式（突击组）。当时 6 台全为轮式车，工作台上只看得出"一堆方块"，看不出编成差异，这是本轮返工的直接原因。要恢复 16 台：把 `platforms` 加回 16 行、`crew` 改 16 即可（16 台容量验证另见 `asl_container_16` 一节）。
 
-任务点改为 SDF 里左侧带十字路口的建筑群：`env_city_square` 广场（34×34 m，位于 (-95,-145)）与南北/东西两条城市道路的交叉口，四角是 4 栋 `House`（x=-137/-53，y=-185/-105）和 2 栋 `Office Building`（x=-165/-25，y=-145）。目标点取广场中心 (-95,-145)；集结区在出发列到路口的斜向接近路线上 (-57,-82.5)，撤离点是目标西南 25 m 的收拢点 (-75,-130)。
+任务点改为 SDF 里左侧带十字路口的建筑群：`env_city_square` 广场（34×34 m，位于 (-95,-145)）与南北/东西两条城市道路的交叉口，四角是 4 栋 `House`（x=-137/-53，y=-185/-105）和 2 栋 `Office Building`（x=-165/-25，y=-145）。目标点取广场中心 (-95,-145)；集结区在目标东北、被 House 4 遮挡的背敌一侧 **(-62,-124)、半径 6 m**，4 台地面平台从出发列到集结区的直线全部被 House 4 挡住（绕行比 1.03–1.05），空中平台直飞；撤离点是目标西南 25 m 的收拢点 (-75,-130)。
 
 集结区一开始放在办公楼东侧的道路上 (-5,-145)，路线确实绕楼、避障证据最足，但全程约 300 m（起点→集结 123 m、集结→路口 90 m、撤离 ~90 m），需要 130–144 电量，而 UGV 只有 100（续航≈250 m）——16 台没有一台够。按"把行为段里程纳入规划估算"的口径处理时，那版几何会被闸门整单拒收，因此把集结区移到了斜向接近线上（仍是场景输入，不是让程序自动选点）。代价是绕行段数减少（46 段里 5 段被建筑挡住，而非 25 段），避障能力本身仍由 `test_city_nav` 里"直线穿办公楼→绕行"的用例保障。
 
@@ -331,9 +355,31 @@ py -3.14 behavior_demo.py --scenario scenarios/asl_city.json --out outputs/asl_c
 
 **删替身路线连带暴露的搁浅坑（2026-10-29 已修）**：行为层改为从平台**原始位姿**直接起跑后，simple_city 的 rover_01 出生点本身落在建筑膨胀圈内，A* 报 `start_in_obstacle`，J6 巡逻永久 0 进度、rover_01 一直占着不放，连带 J5 每轮都因"成员忙"派不出去（旧实现由替身 approach 路线的 `nearest_free` 吸附兜底，删路线后兜底没了）。修法是 `behavior_runtime._plan_leg` 在起点落障碍时吸附到最近可通行点再试，吸附位移用 `start_snapped` 事件显式记录（不悄悄挪点、不计里程），事件名已进工作台与 `trajectory_v2` 词表；`test_simple_city_behavior_run_completes` 回归锁定"六作业必须全部收尾、不得留 start_in_obstacle"。
 
-口径与限制：绕行来自静态地图的膨胀栅格 A*，不是调参调出来的；建筑占地是轴对齐包围盒近似，斜置构件偏保守，不等于精确轮廓；评估仍是 `constructed_assessment_stub` 构造桩；`planner` 的 plan_start/plan_end 仍不含评估与撤离。地面/空中的分叉只在替身那段（`can_climb` 为真才允许 `altitude>0`、空中直飞不查障碍），**行为层对所有平台一律走 A***，没有空中直飞分支；且现有场景（fleet_demo/simple_city/asl_container/asl_city）全是 robot_no 1–30 的地面平台，空中作业这条分支没有端到端运行证据。
+口径与限制：绕行来自静态地图的膨胀栅格 A*，不是调参调出来的；建筑占地是轴对齐包围盒近似，斜置构件偏保守，不等于精确轮廓；评估仍是 `constructed_assessment_stub` 构造桩；`planner` 的 plan_start/plan_end 仍不含评估与撤离。**空地面分流（2026-10-29 晚补齐）**：`behavior_runtime` 对 `can_climb` 平台改走直飞航路并爬升到 `_behavior.air_altitude`（30/25 m），`z` 写入反馈与回放；地面平台仍走 A*。空中越障是"建筑高度低于巡航高度"的假设，不是三维低空突防；`nav` 仍只有二维障碍，空中平台不参与地面绕障证据。
 
 **电量口径（2026-10-29 已加续航闸门）**：移动电按行为层实际行程记账（行程 / 速度 × move_cost），不再"到达即一次记清"。早期规划期只按"到作业点"的直线距离估电，于是行为段（集结→执行环→撤离）的电量完全没算进去，那版 300 m 几何下 16 台有 15 台在 t≈318–364 s 电量归零而作业仍判成功。现在 `planner_v2` 的行为模式改用全程里程估电：`_behavior_mileage` = 当前位→集结环 + 集结→执行环 + 目标→撤离环（撤离开关关闭时不计返程），assault 直接读场景 `_behavior` 的几何，其余四类用保守经验里程兜底；`feasible` 的续航检查与方案级叠加检查都用它，所以"派不出去"会明确写成"续航不足(全程…需…剩…)"。机动时间 `_approach_time` 也改为算到集结区，规划里的 start 与行为层实际到位时刻对得上（此前少 27 s）。回归用例 `EnduranceGateTests` 三条：里程口径含撤离、旧几何必被拒、当前几何 16 台全过。
+
+### 效果判定与逐项结算（2026-10-29）
+
+按《T-ASL 效果判定与逐项结算实现规范》补齐"任务目标=对指定目标产生规定效果并在时间窗内完成，效果由评估接口判定"这一层。此前的实现只有一个构造桩，且只要行为走完就判成功——弹药耗尽、超时、评估未回传都不影响结论，等于把"动作结束"冒充"效果达成"。
+
+- **事实分离**：`command_received`（受领）/ `all_staged`（到位）/ `assault_started` + `effect_applied`（动作）/ `effect_achieved`（效果达成）各自独立事件与时间戳；评估是第五个事实：`assessment_requested` → `assessment_received` → `confirmed`。事件词表在工作台与 `trajectory_v2` 同步扩到 20 余项（`salvo_fired`/`ammo_depleted`/`restrike_needed`/`control_established`/`suppression_gap`/`handover`/`deadline_exceeded`/`terminate` 等）。
+- **新模块 `assessment.py`**：`Adjudicator.adjudicate(task_ref, evidence) -> Adjudication`；`task_ref` 带 `{job_id, target_id, attempt, effect_kind, params}`，评估结果绑定"本任务+本对象+当前执行版本"。默认实现 `StubAdjudicator` 按开火日志/覆盖区间/控制区间的**确定性规则**判定，`verified=false`，输出一律标注"桩判定·未验证"；接真实裁决只需换同协议实现（HTTP 回调本轮只留说明）。
+- **效果三分类**（`effect_kind`，接受 `damage/suppress/seize` 或中文）：毁伤按齐射累计等级（每轮 `rounds_per_salvo` 发、每平台 `ammo` 发、占位在目标环内即命中，另有 `restrike_needed`）；压制要求**连续**覆盖达 `required_duration`，中断超过 `recovery_gap` 则时段断开、连续时长重计；夺占要求控制权保持 `required_control_s`，且**移交后坚守 `hold_required_s` 单列一项**，夺占成功不自动使坚守成功。
+- **终止条件**：全体可开火平台弹药为 0 且效果未达成 → `ammo_exhausted`；执行截止 `execute_deadline` 到而未达成 → `deadline_exceeded`；效果达成但评估未在 `confirmation_deadline` 前回传 → 确认项未达成。目标消失、被迫撤离只留配置字段与事件接口，本轮不触发判定。
+- **逐项结算**：`result.items[]` 每项 `{id,label,required,status,t,evidence,metric}`，`status ∈ achieved|failed|pending`（信息项 `info`）；overall 规则为"必需项全达成才 succeeded、任一 failed 即 failed、确认截止后仍 pending 按 failed"。终止时按已发生事实结算（效果已达成则该项记 achieved 并注明"未经评估确认"），**部分达成不冒充全部成功**。
+- **平台弹药**：`fleet.PLANNING_PARAMS` 增加 `ammo`（UGV 6 / TANK 8 / 空中 2），经 `delivery.ammo` 下发进替身，行为层齐射消耗写回平台状态并出现在反馈里。
+- **工作台**：默认运行优先最新 `asl_city` 行为运行；新建演示增加"突击效果类型"下拉（毁伤/压制/夺占），经 `validate_config` 注入场景 `effect.kind`；任务面板新增逐项结果区（达成/未达成/待确认 + 时间与证据 + 终止原因 + 评估来源"桩判定·未验证"）。
+
+本轮工作台运行 `workbench_20261029_162314_901547`（asl_city、6 台按新编成、real+avoid+behavior、620 步上限）：349 s 结算，`ASL-CITY-1` succeeded。逐项结果为 毁伤等级 8.0 ≥ 6.0 达成、时间窗（效果达成 t=285 s，窗 [0,520]）达成、结果确认达成，信息项为 8 发 8 中（命中率 1.0）、二次打击 1 次、四台突击各余弹 4 发；`assessment_requested.by = rover_06`（评估组），`adjudicator = constructed_assessment_stub`、`verified = false`。单次运行，不是统计。
+
+```powershell
+cd planning_middle_demo
+py -3.14 run_demo_v2.py --scenario scenarios/asl_city.json --motion real --avoid --behavior --max-ticks 620 --out outputs/asl_city
+py -3.14 -m unittest discover -s tests -q
+```
+
+口径与限制：桩判定只是"按开火/占位日志的确定性规则"；命中率、弹药消耗、二次打击已在辅助指标里给出（2026-10-29 晚补齐），我方损失按失联注入统计，敌方反击是按周期注入的演示事件（默认被击退、不打断控制，可用 `counterattack_break_s` 演示打断），均不是交战模型；"命中即占位在环内"是演示口径，不是弹道或毁伤模型；单次成功不证明长期成功率，本层也不做概率型分配。
 
 ### 工作台接入现状（2026-10-29 核验）
 
@@ -341,8 +387,37 @@ py -3.14 behavior_demo.py --scenario scenarios/asl_city.json --out outputs/asl_c
 - **启动侧已接**：`workbench_server.SCENARIOS` 增加 `asl_city`（城市十字路口机动突击），新增 `AVOID_SCENARIOS` 集合（`simple_city/asl_city`）替代原来只允许 `simple_city` 的判断；`max_ticks` 上限放宽到 700，`asl_city` 未指定时默认 620 步。从工作台勾选「真实运动 + 建筑绕障 + 到位行为」可一键启动。
 - **`_behavior` 已透传**：场景 → `run_demo_v2` → `MockFleet(behavior_params)` → `_behavior_job_dict` → `make_behavior`。侦察组、攻击窗口、评估延迟、撤离点这些任务级参数不再丢在场景文件里；指令契约里仍不带它们，避免把任务模板塞进每台平台的消息。
 - **行为层从下发时刻接管**：`MockFleet._ensure_behavior` 在指令下发当步就建 runner，不再等"全员到达"才起表；机动/集结/突击/撤离全部由行为层推进，替身不另算一条不会执行的路线。
-- **运行列表带场景标签（2026-10-29）**：catalog 每条记录标注"场景名 · 任务数 · 细节类型 · 模式"（`_scenario_label` 读工作台请求里的场景键，退回 manifest 的场景文件名）；旧的下拉只有时间戳，看不出哪条是 J1–J6 多任务、哪条是单突击，用户以为"以前的任务没了"。多任务记录没消失，选 `simple_city` 的 6 任务运行（如 `workbench_20261029_150444_820307`，111 s 六作业全部收尾）即可回到五类任务齐全的画面；默认载入的就是最新含行为细节的运行。注意：改 `workbench_server.py` 后必须重启服务，运行中的旧进程不会热加载新代码。
-- **已验证一次完整工作台运行**：`workbench_20261029_145325_801085`（asl_city、6 台、13 处障碍、real+avoid+behavior），350 s、`settled=true`、无 `energy_depleted`；T-ASL 事件齐全；任务面板步骤条为五段：机动集结 0 s / 全员到位 183 s / 执行动作 184 s / 结果确认 291 s / 撤离收拢 354 s（以受领时刻为 0 的相对时间）。16 台版运行 `workbench_20261029_140712_509952` 保留作容量对照。
-- **回放底图同源**：`trajectory_v2.load_sdf_background` 用与寻路同一套 `load_sdf_obstacles` 把 13 处占地画进 `trajectory.html`，取景范围也把障碍算进去，图上所见即规划避开的那几块。
-- **测试**：97 项通过，含"机动不是瞬移"、三条续航闸门用例与 simple_city 六作业收尾回归。两条校验历史混合录制（J1–J6、累计换班）的用例改为固定 `workbench_20261028_213551_310530`，该目录缺失时 skip，不再随默认运行漂移。
+- **运行列表带场景标签（2026-10-29）**：catalog 每条记录标注"场景名 · 任务数 · 细节类型 · 模式"（`_scenario_label` 读工作台请求里的场景键，退回 manifest 的场景文件名）；旧的下拉只有时间戳，看不出哪条是 J1–J6 多任务、哪条是单突击，用户以为"以前的任务没了"。多任务记录没消失，选 `simple_city` 的 6 任务运行（如 `workbench_20261029_150444_820307`，111 s 六作业全部收尾）即可回到五类任务齐全的画面；默认载入优先最新 `asl_city` 行为运行（效果判定演示主场），没有时退回最新含行为细节的运行。注意：改 `workbench_server.py` 后必须重启服务，运行中的旧进程不会热加载新代码。
+- **已验证一次完整工作台运行**：`workbench_20261029_145325_801085`（asl_city、6 台、13 处障碍、real+avoid+behavior），350 s、`settled=true`、无 `energy_depleted`；T-ASL 事件齐全；任务面板步骤条为五段：机动集结 0 s / 全员到位 183 s / 执行动作 184 s / 结果确认 291 s / 撤离收拢 354 s（以受领时刻为 0 的相对时间）。16 台版运行 `workbench_20261029_140712_509952` 保留作容量对照。**当前默认运行**为新编成版 `workbench_20261029_162314_901547`（349 s，含评估组与逐项结算）。
+- **回放底图同源**：`trajectory_v2.load_sdf_background` 用与寻路同一套 `load_sdf_obstacles` 把 13 处占地画进 `trajectory.html`，取景范围也把障碍算进去，图上所见即规划避开的那几块。工作台画布上的建筑/花坛属"显示障碍"图层（`#show-obstacles`），取消勾选即隐藏。
+- **测试**：109 项通过（原 97 项 + 效果判定 12 项，2026-10-29 晚增至 120 项，见文末多类型兵力包一节），含"机动不是瞬移"、三条续航闸门用例、simple_city 六作业收尾回归，以及规范 §8 的十条验收（毁伤成功/弹药耗尽/执行超时/确认超时/压制中断重计/夺占与坚守分算/部分达成不冒充/评估组归属与桩标注/默认运行为 asl_city）。两条校验历史混合录制（J1–J6、累计换班）的用例改为固定 `workbench_20261028_213551_310530`，该目录缺失时 skip，不再随默认运行漂移。
 - **仍未接**：`behavior_trace.json`（`behavior_demo.py` 的独立产物）不是工作台要求的 `report.json + trace.jsonl`，`asl_city_behavior` 这类目录不会出现在 catalog；要么加只读 adapter，要么统一走主链。
+
+### 2026-10-29 晚：多类型兵力包、空地面分流与辅助指标
+
+用户反馈原演示"不够直观、部分指标没完成、不能全用轮式车一种、看着太乱、避障演示不到位"。本轮针对这五条逐项改：
+
+1. **"全用轮式车"** → `asl_city` 改成 2 轮式 + 2 履带 + 1 固定翼 + 1 飞翼的兵力包（编成见前文表格）。平台起点、底盘/包络尺寸全部取自 `scenarios/sdf_initial_state.json`（由 `sdf_state.py` 从甲方 SDF 生成），不是手填。为让飞翼（载荷 1.5）进得了 4.0 载荷的突击作业，`planner_v2` 增加**角色级载荷校核**：`_behavior.role_payload={"assault":4.0,"support":0.5}`，突击组按 4.0、侦察/评估组按 0.5；行为层再用 `set_platform_caps` 复核一次，不达标终止为 `role_infeasible`。
+2. **"避障演示不到位"** → 地面 4 台的接近路线全部被 House 4 挡住（`straight_line_ok=false`，绕行比 1.016–1.052），空中两台直飞越障；工作台把"被挡直线"默认打开，红虚线 + "直线被挡 · 绕行 ×1.05 · 净空 1.9"直接写在地图上，路径带箭头；"空间与避障"侧栏同时给路径长度/直线长度/规划净空。
+3. **"看着太乱"** → 主图改为任务区取景（不再把 150 m 外的出发列拉进来把中间拉空），右上角加全场景缩略图（含出发阵地与当前视窗框），出发列只画一次"出发阵地 · 6 台（轮式2 · 履带2 · 固定翼1 · 飞翼1）"摘要；建筑按类型着色并标"民居 1–4 / 办公楼 1–2"，道路/广场作浅色底图；任务点用准星，目标点单列"目标 · JUNCTION-CROSS-01"。
+4. **"不够直观"** → 平台图标按类目区分（轮式圆角方、履带菱形、固定翼三角、飞翼箭头），空中平台带 `z 30 m` 高度牌与地面吊线；成员标签带"类型 · 角色"（如 `#31 固定翼 · 侦察指示组`）；阶段面板的成员 chip 同样带类型；动作详解的阶段卡片从 4 段扩到实际 5 段（机动/到位/执行/结果确认/撤离），不再把"撤离"挤出画布。
+5. **"部分指标没完成"** → 三类效果的辅助指标补齐并逐项落盘（见前文"效果判定的辅助指标"表）。工作台在"效果判定"区先显示辅助指标卡（值 + 单位 + 判定 + 口径），再列必需项结算；评估回传早于行为终态时先用 `assessment_received` 展示，不把已确认结论压到结果事件之后。
+
+**本轮结果（单次运行，非统计）**：
+
+| 运行 | 效果 | 完成 | 过程指标 |
+| --- | --- | --- | --- |
+| `workbench_20261029_181813_611337` | 毁伤 | 299 s | 受领 1 s / 全员到位 165 s / 突击开始 166 s / 动作结束 237 s / 评估回传 258 s / 撤离 299 s；命中率 1.0（8 发 8 中）、弹药消耗 8、二次打击 1 次、我方损失 0；机动 16 段路径 4 段直线被挡（全为地面接近段） |
+| `asl_city_suppress` | 压制 | 308 s | 火力覆盖 12 s、最长连续 12 s、目标恢复时间 3 s（模型参数）、压制中断 0、我方损失 0 |
+| `asl_city_seize` | 夺占 | 316 s | 控制 10 s、控制区间 1 段、敌方反击 1 次（已击退）、移交 243 s、移交后坚守 10 s、我方损失 0 |
+
+以上评估源均为 `constructed_assessment_stub`（桩判定·未验证），单次运行不代表概率成功率；空中越障是"建筑低于巡航高度"的假设；敌方反击是按周期注入的演示事件，不是交战模型；静态地图 A* 没有动态障碍与 SLAM。
+
+```powershell
+cd planning_middle_demo
+py -3.14 sdf_state.py                       # 重新提取 SDF 初始状态
+py -3.14 run_demo_v2.py --scenario scenarios/asl_city.json --motion real --avoid --behavior --max-ticks 640 --out outputs/asl_city_mixed
+py -3.14 -m unittest discover -s tests -q   # 120 项
+```
+
+本轮新增 `tests/test_mixed_fleet.py` 11 项：SDF 提取值、场景起点与 SDF 一致、支援组载荷放宽只对支援位生效、突击组仍按 4.0 卡、空地面分流（`air_direct` + 爬升 / `ground_astar`）、角色闸门、毁伤/损失/夺占辅助指标。测试总数 109 → 120，全部通过。

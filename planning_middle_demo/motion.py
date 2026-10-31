@@ -21,7 +21,7 @@ motion.py —— 目标点 → Twist 的闭环运动控制层（自 planning/bri
 单位口径（与 fleet.py 一致，别混）：
   * 本层纯几何，坐标无量纲、速度=场景单位/步。
   * 真实对接时，把本层的输出按 fleet.M_PER_SCENE_UNIT / SEC_PER_STEP
-    换算成 m/s、rad/s 后发布到 /rover_XX/cmd_vel 即可；
+    换算成 m/s、rad/s 后发布到 /container_00/robot_XXX 即可；
     控制逻辑本身不随单位变化。
 """
 import math

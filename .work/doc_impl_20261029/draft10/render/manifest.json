@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "backend": "native",
+  "rasterEngine": "libreoffice",
+  "source": "saved",
+  "inputPath": "D:\\Desktop\\MARL项目\\资料\\需求与任务\\机动突击任务规划与效果判定实现说明_20261029.docx",
+  "sourceSha256": "7d2a33963edb5b20807d3f82be68b3392daf75c98a1c459f8132342d63e11a87",
+  "dpi": 144,
+  "pageCount": 21,
+  "images": [
+    {
+      "index": 1,
+      "page": 1,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft10\\render\\page-0001.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 54237
+    },
+    {
+      "index": 2,
+      "page": 2,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft10\\render\\page-0002.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 131948
+    },
+    {
+      "index": 3,
+      "page": 3,
+      "path": "D:\\Desktop\\MARL项目\\.work\\doc_impl_20261029\\draft10\\render\\page-0003.png",
+      "width": 1191,
+      "height": 1684,
+      "rectangle": {
+        "x": 0,
+        "y": 0,
+        "width": 793.7333333333333,
+        "height": 1122.5333333333333
+      },
+      "byteLength": 298565
+    }
+  ],
+  "missingFonts": [
+    "Courier"
+  ]
+}

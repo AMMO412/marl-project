@@ -1,0 +1,50 @@
+== 任务规划中间层 · 规划能力版（middle-demo/v2） ==
+目标：makespan   H=700   在途语义：真实运动（GoalController 闭环）   仿真推进到 t=619
+
+作业：共 1，完成 0，失败 0，未结束 1
+规划：共 25 次；重试 0 次；超时 0 次
+重规划触发源（各自独立，同一轮可多条）：{'init': 1, 'periodic': 24}
+成绩单：总能耗 0.0，每作业能耗 无完成作业，完成时刻 未完成，分散度 5.87
+（比总能耗会被"干得少"骗到；完成数不一致时先看完成数）
+派不出去的原因分布：{'方案级越界（叠加超续航），本轮撤下': 20, '超出时间窗': 5}
+需上报上层（本层穷尽手段仍无解）：['ASL-CITY-1']
+
+作业 类型 工作量 进度 窗口 crew 尝试 状态
+ASL-CI 机动突击       20.0      0.0/20.0    [0,700]     6         0         pending  
+
+平台（能力参数为我方暂定，非下游实测）：
+  rover_01 UGV 号01  pos(0.0,-22.5) 电量100.0 存活 话题 /container_00/robot_001
+  rover_11 UGV 号11  pos(-5.0,-22.5) 电量100.0 存活 话题 /container_00/robot_011
+  rover_21 TANK 号21  pos(-10.0,-22.5) 电量120.0 存活 话题 /container_00/robot_021
+  rover_22 TANK 号22  pos(-10.0,-17.5) 电量120.0 存活 话题 /container_00/robot_022
+  rover_31 PLANE 号31  pos(-15.0,-22.5) 电量320.0 存活 话题 /container_00/robot_031
+  rover_41 WING 号41  pos(-20.0,-22.5) 电量280.0 存活 话题 /container_00/robot_041
+
+事件（25 条，完整轨迹见 trace.jsonl）：
+  [t=0] plan_emitted {"plan_id": 0, "triggers": ["首次规划:首次规划"], "n_assignments": 0, "n_rejected": 1}
+  [t=25] plan_emitted {"plan_id": 1, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=50] plan_emitted {"plan_id": 2, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=75] plan_emitted {"plan_id": 3, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=100] plan_emitted {"plan_id": 4, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=125] plan_emitted {"plan_id": 5, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=150] plan_emitted {"plan_id": 6, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=175] plan_emitted {"plan_id": 7, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=200] plan_emitted {"plan_id": 8, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=225] plan_emitted {"plan_id": 9, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=250] plan_emitted {"plan_id": 10, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=275] plan_emitted {"plan_id": 11, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=300] plan_emitted {"plan_id": 12, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=325] plan_emitted {"plan_id": 13, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=350] plan_emitted {"plan_id": 14, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=375] plan_emitted {"plan_id": 15, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=400] plan_emitted {"plan_id": 16, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=425] plan_emitted {"plan_id": 17, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=450] plan_emitted {"plan_id": 18, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=475] plan_emitted {"plan_id": 19, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=500] plan_emitted {"plan_id": 20, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=525] plan_emitted {"plan_id": 21, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=550] plan_emitted {"plan_id": 22, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=575] plan_emitted {"plan_id": 23, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+  [t=600] plan_emitted {"plan_id": 24, "triggers": ["滚动周期:滚动周期(K=25)"], "n_assignments": 0, "n_rejected": 1}
+
+边界：规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较

@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<title>规划能力版中间层报告 demo-v2</title>
+<style>
+body{font-family:"Microsoft YaHei",sans-serif;margin:24px;color:#1f2328;
+     background:#fff;max-width:1100px}
+h1{font-size:20px}h2{font-size:16px;margin-top:28px}
+.cards{display:flex;gap:12px;flex-wrap:wrap}
+.card{border:1px solid #d0d7de;border-radius:8px;padding:12px 18px;
+      min-width:120px;text-align:center}
+.card .num{font-size:22px;font-weight:600}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}
+th,td{border:1px solid #d0d7de;padding:5px 8px;text-align:left}
+th{background:#f6f8fa}
+.bar{background:#eef1f4;border-radius:4px;height:10px;width:90px;
+     display:inline-block;margin-right:6px;vertical-align:middle}
+.fill{background:#0969da;height:10px;border-radius:4px}
+.tag{color:#fff;border-radius:10px;padding:1px 8px;font-size:12px}
+.chip{display:inline-block;border:1px solid #d0d7de;border-radius:14px;
+      padding:2px 10px;margin:2px;font-size:12px}
+.mono{font-family:Consolas,monospace}.small{font-size:12px}
+.warn{background:#fff8c5;border:1px solid #d4a72c;border-radius:6px;
+      padding:10px 14px}
+details{margin-top:10px}pre{background:#f6f8fa;padding:10px;
+      border-radius:6px;overflow:auto;font-size:12px}
+</style></head><body>
+<h1>任务规划中间层 · 规划能力版报告</h1>
+<p>目标 makespan · H=710 · 在途语义 瞬移 · 仿真至 t=19 · 重试 0 · 超时 0</p>
+<p><a href="trajectory.html" style="display:inline-block;background:#2563eb;color:white;
+padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动回放</a>
+<span class="small"> 播放 / 时间轴 / 单台追踪 / 实时位置与路程</span></p>
+<div class='cards'>
+      <div class='card'><div class='num'>0/4</div><div>完成作业</div></div>
+      <div class='card'><div class='num'>13</div><div>规划次数</div></div>
+      <div class='card'><div class='num'>—</div><div>每作业能耗</div></div>
+      <div class='card'><div class='num'>—</div><div>完成时刻</div></div>
+      <div class='card'><div class='num'>83.73</div><div>分散度</div></div>
+    </div>
+<h2>重规划触发源</h2><div><div class='chip'>init × 1</div><div class='chip'>deviation × 11</div><div class='chip'>periodic × 2</div></div>
+<h2>作业表</h2>
+<table><tr><th>作业</th><th>类型</th><th>工作量</th><th>进度</th><th>窗口</th><th>crew</th><th>尝试</th><th>状态</th></tr><tr><td>T1</td><td>custom</td><td>240.0</td><td><div class='bar'><div class='fill' style='width:1.7%'></div></div>4.0</td><td>[0,500]</td><td>2</td><td>1</td><td><span class='tag' style='background:#0969da'>running</span></td></tr><tr><td>T2</td><td>custom</td><td>100.5</td><td><div class='bar'><div class='fill' style='width:20.7%'></div></div>20.8</td><td>[0,600]</td><td>1</td><td>1</td><td><span class='tag' style='background:#0969da'>running</span></td></tr><tr><td>T3</td><td>custom</td><td>300.0</td><td><div class='bar'><div class='fill' style='width:0.0%'></div></div>0.0</td><td>[60,700]</td><td>1</td><td>0</td><td><span class='tag' style='background:#6e7781'>pending</span></td></tr><tr><td>T4</td><td>custom</td><td>120.0</td><td><div class='bar'><div class='fill' style='width:0.0%'></div></div>0.0</td><td>[0,700]</td><td>1</td><td>0</td><td><span class='tag' style='background:#6e7781'>pending</span></td></tr></table>
+<h2>需上报上层</h2><ul><li>无</li></ul>
+<h2>派不出去的原因</h2><ul><li>无</li></ul>
+<h2>事件时间线</h2>
+<table><tr><th>t</th><th>事件</th><th>详情</th></tr><tr><td>0</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 0, &quot;triggers&quot;: [&quot;首次规划:首次规划&quot;], &quot;n_assignments&quot;: 4, &quot;n_rejected&quot;: 0}</td></tr><tr><td>6</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_42&quot;, &quot;rover_31&quot;, &quot;rover_41&quot;], &quot;planned_start&quot;: 6, &quot;planned_end&quot;: 40}</td></tr><tr><td>8</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 1, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=8)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>9</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 4.06}</td></tr><tr><td>9</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 2, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,4.1)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>10</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 5.42}</td></tr><tr><td>10</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 3, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,5.4)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>11</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 6.77}</td></tr><tr><td>11</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 4, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,6.8)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>12</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 8.13}</td></tr><tr><td>12</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 5, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,8.1)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>13</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 9.48}</td></tr><tr><td>13</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 6, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,9.5)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>14</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 10.84}</td></tr><tr><td>14</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 7, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,10.8)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>15</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 12.19}</td></tr><tr><td>15</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 8, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,12.2)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>16</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 13.54}</td></tr><tr><td>16</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 9, &quot;triggers&quot;: [&quot;滚动周期:滚动周期(K=8)&quot;, &quot;偏差超阈值:偏差超阈值(T2,13.5)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>17</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 14.9}</td></tr><tr><td>17</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 10, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,14.9)&quot;], &quot;n_assignments&quot;: 3, &quot;n_rejected&quot;: 0}</td></tr><tr><td>17</td><td>job_dispatched</td><td class='mono small'>{&quot;job_id&quot;: &quot;T1&quot;, &quot;attempt&quot;: 1, &quot;pids&quot;: [&quot;rover_02&quot;, &quot;rover_01&quot;], &quot;planned_start&quot;: 17, &quot;planned_end&quot;: 137}</td></tr><tr><td>18</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 16.25}</td></tr><tr><td>18</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 11, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,16.3)&quot;], &quot;n_assignments&quot;: 2, &quot;n_rejected&quot;: 0}</td></tr><tr><td>19</td><td>deviation</td><td class='mono small'>{&quot;job_id&quot;: &quot;T2&quot;, &quot;lag&quot;: 17.61}</td></tr><tr><td>19</td><td>plan_emitted</td><td class='mono small'>{&quot;plan_id&quot;: 12, &quot;triggers&quot;: [&quot;偏差超阈值:偏差超阈值(T2,17.6)&quot;], &quot;n_assignments&quot;: 2, &quot;n_rejected&quot;: 0}</td></tr></table>
+<details><summary>本次输入 JSON</summary>
+<pre>{
+  &quot;protocol&quot;: &quot;middle-demo/v2&quot;,
+  &quot;objective&quot;: &quot;makespan&quot;,
+  &quot;H&quot;: 710,
+  &quot;K&quot;: 8,
+  &quot;_meta&quot;: {
+    &quot;source&quot;: &quot;interop 4.1 运行视图（不是无损旧场景转换）&quot;,
+    &quot;message&quot;: {
+      &quot;schema_version&quot;: &quot;0.3&quot;,
+      &quot;message_id&quot;: &quot;MSG-INTEROP-MIXED-001&quot;,
+      &quot;issued_at&quot;: &quot;2026-10-30T08:00:00Z&quot;,
+      &quot;source&quot;: &quot;UPPER&quot;
+    },
+    &quot;cell_size_m&quot;: 1.0,
+    &quot;formula&quot;: &quot;job.work=duration_s×crew；统一层负责规划，基座负责运行&quot;,
+    &quot;interop&quot;: {
+      &quot;schema_version&quot;: &quot;0.3&quot;,
+      &quot;authoritative&quot;: false,
+      &quot;role&quot;: &quot;runtime-view&quot;,
+      &quot;note&quot;: &quot;v2 字段是运行替身视图；能力/障碍/阵位语义以 bundle 内原始 4.1 消息与编成表为准&quot;,
+      &quot;message&quot;: {
+        &quot;schema_version&quot;: &quot;0.3&quot;,
+        &quot;message_id&quot;: &quot;MSG-INTEROP-MIXED-001&quot;,
+        &quot;issued_at&quot;: &quot;2026-10-30T08:00:00Z&quot;,
+        &quot;source&quot;: &quot;UPPER&quot;,
+        &quot;tasks&quot;: [
+          {
+            &quot;task_id&quot;: &quot;T1&quot;,
+            &quot;task_type&quot;: &quot;T-SEC&quot;,
+            &quot;priority&quot;: 1,
+            &quot;target&quot;: {
+              &quot;defense_area&quot;: [
+                [
+                  95,
+                  -95
+                ],
+                [
+                  130,
+                  -95
+                ],
+                [
+                  130,
+                  -65
+                ],
+                [
+                  95,
+                  -65
+                ]
+              ]
+            },
+            &quot;window&quot;: {
+              &quot;start_s&quot;: 0,
+              &quot;end_s&quot;: 500
+            },
+            &quot;required_capabilities&quot;: {
+              &quot;HLD&quot;: 2
+            },
+            &quot;min_units&quot;: 2,
+            &quot;max_units&quot;: 2,
+            &quot;params&quot;: {
+              &quot;hold_duration_s&quot;: 120,
+              &quot;entry_points&quot;: [
+                [
+                  100,
+                  -60
+                ],
+                [
+                  125,
+                  -60
+                ]
+              ],
+              &quot;coordination&quot;: [
+                &quot;simultaneous_arrival&quot;
+              ]
+            },
+            &quot;description&quot;: &quot;围墙区域封控，两个入口点&quot;
+          },
+          {
+            &quot;task_id&quot;: &quot;T2&quot;,
+            &quot;task_type&quot;: &quot;T-RCN&quot;,
+            &quot;priority&quot;: 2,
+            &quot;target&quot;: {
+              &quot;target_list&quot;: [
+                [
+                  -100,
+                  -60
+                ],
+                [
+                  -100,
+                  20
+                ],
+                [
+                  -40,
+                  60
+                ]
+              ]
+            },
+            &quot;window&quot;: {
+              &quot;start_s&quot;: 0,
+              &quot;end_s&quot;: 600
+            },
+            &quot;required_capabilities&quot;: {
+              &quot;RCN&quot;: 2
+            },
+            &quot;min_units&quot;: 1,
+            &quot;max_units&quot;: 3,
+            &quot;params&quot;: {
+              &quot;duration_s&quot;: 30
+            },
+            &quot;description&quot;: &quot;西侧三个检查点侦察&quot;
+          },
+          {
+            &quot;task_id&quot;: &quot;T3&quot;,
+            &quot;task_type&quot;: &quot;T-HLD&quot;,
+            &quot;priority&quot;: 2,
+            &quot;target&quot;: {
+              &quot;key_point&quot;: [
+                60,
+                60
+              ]
+            },
+            &quot;window&quot;: {
+              &quot;start_s&quot;: 60,
+              &quot;end_s&quot;: 700
+            },
+            &quot;required_capabilities&quot;: {
+              &quot;HLD&quot;: 2
+            },
+            &quot;min_units&quot;: 1,
+            &quot;max_units&quot;: 2,
+            &quot;params&quot;: {
+              &quot;hold_duration_s&quot;: 150,
+              &quot;defense_positions&quot;: [
+                [
+                  56,
+                  60
+                ],
+                [
+                  64,
+                  60
+                ]
+              ],
+              &quot;coordination&quot;: [
+                &quot;simultaneous_arrival&quot;
+              ]
+            },
+            &quot;description&quot;: &quot;东北路口两个坚守阵位&quot;
+          },
+          {
+            &quot;task_id&quot;: &quot;T4&quot;,
+            &quot;task_type&quot;: &quot;T-PTL&quot;,
+            &quot;priority&quot;: 3,
+            &quot;target&quot;: {
+              &quot;route&quot;: [
+                [
+                  0,
+                  60
+                ],
+                [
+                  20,
+                  80
+                ],
+                [
+                  0,
+                  100
+                ],
+                [
+                  -20,
+                  80
+                ]
+              ]
+            },
+            &quot;window&quot;: {
+              &quot;start_s&quot;: 0,
+              &quot;end_s&quot;: 700
+            },
+            &quot;required_capabilities&quot;: {
+              &quot;PTL&quot;: 2
+            },
+            &quot;min_units&quot;: 1,
+            &quot;max_units&quot;: 2,
+            &quot;params&quot;: {
+              &quot;duration_s&quot;: 60
+            },
+            &quot;description&quot;: &quot;北侧环形巡逻&quot;
+          }
+        ]
+      },
+      &quot;formation&quot;: {
+        &quot;formation&quot;: {
+          &quot;formation_id&quot;: &quot;INTEROP-container_00&quot;,
+          &quot;units&quot;: [
+            {
+              &quot;unit_id&quot;: &quot;U1&quot;,
+              &quot;platform_type&quot;: &quot;ifv&quot;,
+              &quot;platform_class&quot;: &quot;UGV&quot;,
+              &quot;robot_id&quot;: 1,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 2,
+                &quot;STK&quot;: 1,
+                &quot;PTL&quot;: 2,
+                &quot;HLD&quot;: 2
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: 0.0,
+                &quot;y&quot;: -22.5
+              },
+              &quot;altitude_m&quot;: 0.35,
+              &quot;vertical_speed_mps&quot;: 0.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 8.0,
+              &quot;endurance_s&quot;: 21600.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U2&quot;,
+              &quot;platform_type&quot;: &quot;ifv&quot;,
+              &quot;platform_class&quot;: &quot;UGV&quot;,
+              &quot;robot_id&quot;: 2,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 2,
+                &quot;STK&quot;: 1,
+                &quot;PTL&quot;: 2,
+                &quot;HLD&quot;: 2
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: 0.0,
+                &quot;y&quot;: -17.5
+              },
+              &quot;altitude_m&quot;: 0.35,
+              &quot;vertical_speed_mps&quot;: 0.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 8.0,
+              &quot;endurance_s&quot;: 21600.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U3&quot;,
+              &quot;platform_type&quot;: &quot;tank&quot;,
+              &quot;platform_class&quot;: &quot;TANK&quot;,
+              &quot;robot_id&quot;: 21,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 1,
+                &quot;STK&quot;: 3,
+                &quot;PTL&quot;: 1,
+                &quot;HLD&quot;: 3
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: -10.0,
+                &quot;y&quot;: -22.5
+              },
+              &quot;altitude_m&quot;: 0.35,
+              &quot;vertical_speed_mps&quot;: 0.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 8.0,
+              &quot;endurance_s&quot;: 28800.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U4&quot;,
+              &quot;platform_type&quot;: &quot;tank&quot;,
+              &quot;platform_class&quot;: &quot;TANK&quot;,
+              &quot;robot_id&quot;: 22,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 1,
+                &quot;STK&quot;: 3,
+                &quot;PTL&quot;: 1,
+                &quot;HLD&quot;: 3
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: -10.0,
+                &quot;y&quot;: -17.5
+              },
+              &quot;altitude_m&quot;: 0.35,
+              &quot;vertical_speed_mps&quot;: 0.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 8.0,
+              &quot;endurance_s&quot;: 28800.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U5&quot;,
+              &quot;platform_type&quot;: &quot;uav_recon&quot;,
+              &quot;platform_class&quot;: &quot;PLANE&quot;,
+              &quot;robot_id&quot;: 31,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 3,
+                &quot;STK&quot;: 0,
+                &quot;PTL&quot;: 2,
+                &quot;HLD&quot;: 0
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: -15.0,
+                &quot;y&quot;: -22.5
+              },
+              &quot;altitude_m&quot;: 6.0,
+              &quot;vertical_speed_mps&quot;: 3.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 30.0,
+              &quot;endurance_s&quot;: 36000.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U6&quot;,
+              &quot;platform_type&quot;: &quot;uav_strike&quot;,
+              &quot;platform_class&quot;: &quot;WING&quot;,
+              &quot;robot_id&quot;: 41,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 2,
+                &quot;STK&quot;: 2,
+                &quot;PTL&quot;: 2,
+                &quot;HLD&quot;: 0
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: -20.0,
+                &quot;y&quot;: -22.5
+              },
+              &quot;altitude_m&quot;: 10.0,
+              &quot;vertical_speed_mps&quot;: 3.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 25.0,
+              &quot;endurance_s&quot;: 21600.0,
+              &quot;status&quot;: &quot;READY&quot;
+            },
+            {
+              &quot;unit_id&quot;: &quot;U7&quot;,
+              &quot;platform_type&quot;: &quot;uav_strike&quot;,
+              &quot;platform_class&quot;: &quot;WING&quot;,
+              &quot;robot_id&quot;: 42,
+              &quot;capabilities&quot;: {
+                &quot;RCN&quot;: 2,
+                &quot;STK&quot;: 2,
+                &quot;PTL&quot;: 2,
+                &quot;HLD&quot;: 0
+              },
+              &quot;position&quot;: {
+                &quot;x&quot;: -20.0,
+                &quot;y&quot;: -17.5
+              },
+              &quot;altitude_m&quot;: 10.0,
+              &quot;vertical_speed_mps&quot;: 3.0,
+              &quot;heading_rad&quot;: 0.0,
+              &quot;speed_mps&quot;: 25.0,
+              &quot;endurance_s&quot;: 21600.0,
+              &quot;status&quot;: &quot;READY&quot;
+            }
+          ]
+        },
+        &quot;constraints&quot;: [
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_01-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  53.8,
+                  12.8
+                ],
+                [
+                  56.2,
+                  12.8
+                ],
+                [
+                  56.2,
+                  15.2
+                ],
+                [
+                  53.8,
+                  15.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_01&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_02-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  53.8,
+                  -15.2
+                ],
+                [
+                  56.2,
+                  -15.2
+                ],
+                [
+                  56.2,
+                  -12.8
+                ],
+                [
+                  53.8,
+                  -12.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_02&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_03-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  78.8,
+                  12.8
+                ],
+                [
+                  81.2,
+                  12.8
+                ],
+                [
+                  81.2,
+                  15.2
+                ],
+                [
+                  78.8,
+                  15.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_03&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_04-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  78.8,
+                  -15.2
+                ],
+                [
+                  81.2,
+                  -15.2
+                ],
+                [
+                  81.2,
+                  -12.8
+                ],
+                [
+                  78.8,
+                  -12.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_04&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_05-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  103.8,
+                  12.8
+                ],
+                [
+                  106.2,
+                  12.8
+                ],
+                [
+                  106.2,
+                  15.2
+                ],
+                [
+                  103.8,
+                  15.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_05&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_06-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  103.8,
+                  -15.2
+                ],
+                [
+                  106.2,
+                  -15.2
+                ],
+                [
+                  106.2,
+                  -12.8
+                ],
+                [
+                  103.8,
+                  -12.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_06&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_07-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  128.8,
+                  12.8
+                ],
+                [
+                  131.2,
+                  12.8
+                ],
+                [
+                  131.2,
+                  15.2
+                ],
+                [
+                  128.8,
+                  15.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_07&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_08-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  128.8,
+                  -15.2
+                ],
+                [
+                  131.2,
+                  -15.2
+                ],
+                [
+                  131.2,
+                  -12.8
+                ],
+                [
+                  128.8,
+                  -12.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_08&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_09-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  53.8
+                ],
+                [
+                  15.2,
+                  53.8
+                ],
+                [
+                  15.2,
+                  56.2
+                ],
+                [
+                  12.8,
+                  56.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_09&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_10-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  53.8
+                ],
+                [
+                  -12.8,
+                  53.8
+                ],
+                [
+                  -12.8,
+                  56.2
+                ],
+                [
+                  -15.2,
+                  56.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_10&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_11-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  78.8
+                ],
+                [
+                  15.2,
+                  78.8
+                ],
+                [
+                  15.2,
+                  81.2
+                ],
+                [
+                  12.8,
+                  81.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_11&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_12-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  78.8
+                ],
+                [
+                  -12.8,
+                  78.8
+                ],
+                [
+                  -12.8,
+                  81.2
+                ],
+                [
+                  -15.2,
+                  81.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_12&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_13-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  103.8
+                ],
+                [
+                  15.2,
+                  103.8
+                ],
+                [
+                  15.2,
+                  106.2
+                ],
+                [
+                  12.8,
+                  106.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_13&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_14-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  103.8
+                ],
+                [
+                  -12.8,
+                  103.8
+                ],
+                [
+                  -12.8,
+                  106.2
+                ],
+                [
+                  -15.2,
+                  106.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_14&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_15-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  -56.2
+                ],
+                [
+                  15.2,
+                  -56.2
+                ],
+                [
+                  15.2,
+                  -53.8
+                ],
+                [
+                  12.8,
+                  -53.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_15&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_16-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  -56.2
+                ],
+                [
+                  -12.8,
+                  -56.2
+                ],
+                [
+                  -12.8,
+                  -53.8
+                ],
+                [
+                  -15.2,
+                  -53.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_16&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_17-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  -81.2
+                ],
+                [
+                  15.2,
+                  -81.2
+                ],
+                [
+                  15.2,
+                  -78.8
+                ],
+                [
+                  12.8,
+                  -78.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_17&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_18-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  -81.2
+                ],
+                [
+                  -12.8,
+                  -81.2
+                ],
+                [
+                  -12.8,
+                  -78.8
+                ],
+                [
+                  -15.2,
+                  -78.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_18&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_19-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  12.8,
+                  -106.2
+                ],
+                [
+                  15.2,
+                  -106.2
+                ],
+                [
+                  15.2,
+                  -103.8
+                ],
+                [
+                  12.8,
+                  -103.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_19&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_roadside_planter_20-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -15.2,
+                  -106.2
+                ],
+                [
+                  -12.8,
+                  -106.2
+                ],
+                [
+                  -12.8,
+                  -103.8
+                ],
+                [
+                  -15.2,
+                  -103.8
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_roadside_planter_20&quot;,
+            &quot;height_m&quot;: 1.2
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_north-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  109.5,
+                  -92.0
+                ],
+                [
+                  110.5,
+                  -92.0
+                ],
+                [
+                  110.5,
+                  -72.0
+                ],
+                [
+                  109.5,
+                  -72.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_north&quot;,
+            &quot;height_m&quot;: 15.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_west-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  97.0,
+                  -77.5
+                ],
+                [
+                  107.0,
+                  -77.5
+                ],
+                [
+                  107.0,
+                  -76.5
+                ],
+                [
+                  97.0,
+                  -76.5
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_west&quot;,
+            &quot;height_m&quot;: 15.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_south-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  109.5,
+                  -92.5
+                ],
+                [
+                  126.5,
+                  -92.5
+                ],
+                [
+                  126.5,
+                  -91.5
+                ],
+                [
+                  109.5,
+                  -91.5
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_south&quot;,
+            &quot;height_m&quot;: 15.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_east-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  116.5,
+                  -92.0
+                ],
+                [
+                  117.5,
+                  -92.0
+                ],
+                [
+                  117.5,
+                  -72.0
+                ],
+                [
+                  116.5,
+                  -72.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_east&quot;,
+            &quot;height_m&quot;: 15.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_low_1-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  76.0,
+                  -107.0
+                ],
+                [
+                  84.0,
+                  -107.0
+                ],
+                [
+                  84.0,
+                  -105.0
+                ],
+                [
+                  76.0,
+                  -105.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_low_1&quot;,
+            &quot;height_m&quot;: 2.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_low_2-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  89.0,
+                  -65.0
+                ],
+                [
+                  91.0,
+                  -65.0
+                ],
+                [
+                  91.0,
+                  -55.0
+                ],
+                [
+                  89.0,
+                  -55.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_low_2&quot;,
+            &quot;height_m&quot;: 2.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_low_3-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  114.0,
+                  -58.0
+                ],
+                [
+                  126.0,
+                  -58.0
+                ],
+                [
+                  126.0,
+                  -56.0
+                ],
+                [
+                  114.0,
+                  -56.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_low_3&quot;,
+            &quot;height_m&quot;: 2.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;SDF-env_walls_low_4-collision&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  134.0,
+                  -107.0
+                ],
+                [
+                  136.0,
+                  -107.0
+                ],
+                [
+                  136.0,
+                  -93.0
+                ],
+                [
+                  134.0,
+                  -93.0
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;env_walls_low_4&quot;,
+            &quot;height_m&quot;: 2.0
+          },
+          {
+            &quot;constraint_id&quot;: &quot;HOUSE-01&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -145.6,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -178.9
+                ],
+                [
+                  -145.6,
+                  -178.9
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 7.69
+          },
+          {
+            &quot;constraint_id&quot;: &quot;HOUSE-02&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -60.6,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -180.9
+                ],
+                [
+                  -60.6,
+                  -180.9
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 7.23
+          },
+          {
+            &quot;constraint_id&quot;: &quot;HOUSE-03&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -144.1,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -100.7
+                ],
+                [
+                  -144.1,
+                  -100.7
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 9.17
+          },
+          {
+            &quot;constraint_id&quot;: &quot;HOUSE-04&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -60.9,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -98.2
+                ],
+                [
+                  -60.9,
+                  -98.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 7.69
+          },
+          {
+            &quot;constraint_id&quot;: &quot;OFFICE-01&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -173.9,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -136.2
+                ],
+                [
+                  -173.9,
+                  -136.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 18.66
+          },
+          {
+            &quot;constraint_id&quot;: &quot;OFFICE-02&quot;,
+            &quot;type&quot;: &quot;no_go&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  -33.9,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -136.2
+                ],
+                [
+                  -33.9,
+                  -136.2
+                ]
+              ]
+            },
+            &quot;source&quot;: &quot;city_buildings.csv&quot;,
+            &quot;height_m&quot;: 18.66
+          },
+          {
+            &quot;constraint_id&quot;: &quot;THREAT-DEMO&quot;,
+            &quot;type&quot;: &quot;threat&quot;,
+            &quot;applies_to&quot;: &quot;ground&quot;,
+            &quot;intensity&quot;: 0.7,
+            &quot;area&quot;: {
+              &quot;polygon&quot;: [
+                [
+                  25,
+                  -40
+                ],
+                [
+                  65,
+                  -40
+                ],
+                [
+                  65,
+                  -10
+                ],
+                [
+                  25,
+                  -10
+                ]
+              ]
+            },
+            &quot;note&quot;: &quot;演示威胁区；真实威胁数据到位后替换&quot;
+          }
+        ],
+        &quot;meta&quot;: {
+          &quot;cell_size_m&quot;: 1,
+          &quot;grid_cell_m&quot;: 2.0,
+          &quot;grid_margin_m&quot;: 1.5,
+          &quot;plan_id&quot;: &quot;PLAN-INTEROP-MIXED&quot;,
+          &quot;scene&quot;: &quot;container_00&quot;,
+          &quot;scene_bounds&quot;: [
+            -290.0,
+            -230.0,
+            290.0,
+            230.0
+          ],
+          &quot;source_sdf&quot;: &quot;container_00_combined_scene.sdf&quot;,
+          &quot;obstacle_sources&quot;: {
+            &quot;sdf_boxes&quot;: 28,
+            &quot;city_buildings_csv&quot;: 6,
+            &quot;threat_demo&quot;: 1
+          }
+        }
+      }
+    }
+  },
+  &quot;platforms&quot;: [
+    {
+      &quot;robot_no&quot;: 1,
+      &quot;pos&quot;: [
+        0.0,
+        -22.5
+      ],
+      &quot;_platform_class&quot;: &quot;UGV&quot;
+    },
+    {
+      &quot;robot_no&quot;: 2,
+      &quot;pos&quot;: [
+        0.0,
+        -17.5
+      ],
+      &quot;_platform_class&quot;: &quot;UGV&quot;
+    },
+    {
+      &quot;robot_no&quot;: 21,
+      &quot;pos&quot;: [
+        -10.0,
+        -22.5
+      ],
+      &quot;_platform_class&quot;: &quot;TANK&quot;
+    },
+    {
+      &quot;robot_no&quot;: 22,
+      &quot;pos&quot;: [
+        -10.0,
+        -17.5
+      ],
+      &quot;_platform_class&quot;: &quot;TANK&quot;
+    },
+    {
+      &quot;robot_no&quot;: 31,
+      &quot;pos&quot;: [
+        -15.0,
+        -22.5
+      ],
+      &quot;_platform_class&quot;: &quot;PLANE&quot;
+    },
+    {
+      &quot;robot_no&quot;: 41,
+      &quot;pos&quot;: [
+        -20.0,
+        -22.5
+      ],
+      &quot;_platform_class&quot;: &quot;WING&quot;
+    },
+    {
+      &quot;robot_no&quot;: 42,
+      &quot;pos&quot;: [
+        -20.0,
+        -17.5
+      ],
+      &quot;_platform_class&quot;: &quot;WING&quot;
+    }
+  ],
+  &quot;jobs&quot;: [
+    {
+      &quot;job_id&quot;: &quot;T1&quot;,
+      &quot;pos&quot;: [
+        112.5,
+        -80.0
+      ],
+      &quot;work&quot;: 240.0,
+      &quot;window&quot;: [
+        0,
+        500
+      ],
+      &quot;crew&quot;: 2,
+      &quot;need_payload&quot;: 0.0,
+      &quot;need_sensor&quot;: null,
+      &quot;altitude&quot;: 0.0,
+      &quot;_task_type&quot;: &quot;T-SEC&quot;,
+      &quot;_target&quot;: {
+        &quot;defense_area&quot;: [
+          [
+            95,
+            -95
+          ],
+          [
+            130,
+            -95
+          ],
+          [
+            130,
+            -65
+          ],
+          [
+            95,
+            -65
+          ]
+        ]
+      }
+    },
+    {
+      &quot;job_id&quot;: &quot;T2&quot;,
+      &quot;pos&quot;: [
+        -100.0,
+        -60.0
+      ],
+      &quot;work&quot;: 30.0,
+      &quot;window&quot;: [
+        0,
+        600
+      ],
+      &quot;crew&quot;: 1,
+      &quot;need_payload&quot;: 0.0,
+      &quot;need_sensor&quot;: null,
+      &quot;altitude&quot;: 0.0,
+      &quot;_task_type&quot;: &quot;T-RCN&quot;,
+      &quot;_target&quot;: {
+        &quot;target_list&quot;: [
+          [
+            -100,
+            -60
+          ],
+          [
+            -100,
+            20
+          ],
+          [
+            -40,
+            60
+          ]
+        ]
+      }
+    },
+    {
+      &quot;job_id&quot;: &quot;T3&quot;,
+      &quot;pos&quot;: [
+        60.0,
+        60.0
+      ],
+      &quot;work&quot;: 150.0,
+      &quot;window&quot;: [
+        60,
+        700
+      ],
+      &quot;crew&quot;: 1,
+      &quot;need_payload&quot;: 0.0,
+      &quot;need_sensor&quot;: null,
+      &quot;altitude&quot;: 0.0,
+      &quot;_task_type&quot;: &quot;T-HLD&quot;,
+      &quot;_target&quot;: {
+        &quot;key_point&quot;: [
+          60,
+          60
+        ]
+      }
+    },
+    {
+      &quot;job_id&quot;: &quot;T4&quot;,
+      &quot;pos&quot;: [
+        0.0,
+        60.0
+      ],
+      &quot;work&quot;: 60.0,
+      &quot;window&quot;: [
+        0,
+        700
+      ],
+      &quot;crew&quot;: 1,
+      &quot;need_payload&quot;: 0.0,
+      &quot;need_sensor&quot;: null,
+      &quot;altitude&quot;: 0.0,
+      &quot;_task_type&quot;: &quot;T-PTL&quot;,
+      &quot;_target&quot;: {
+        &quot;route&quot;: [
+          [
+            0,
+            60
+          ],
+          [
+            20,
+            80
+          ],
+          [
+            0,
+            100
+          ],
+          [
+            -20,
+            80
+          ]
+        ]
+      }
+    }
+  ]
+}</pre></details>
+<p class='warn'>规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较</p>
+</body></html>

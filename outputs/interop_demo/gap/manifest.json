@@ -1,0 +1,60 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-GAP",
+  "generated_at": "2026-10-30T16:19:05.510+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 4,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-GAP-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.message.json",
+      "sha256": "17a95381982ad3ff180fb564693b6bc1e5d4ecc364d836581fdf7376313305b2"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.formation.json",
+      "sha256": "2e4e5b11ccf25ad6221b0fac36e3f34ed8bfd43d347933cd8b78d8c00fa459a9"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\gap\\plan.json",
+      "sha256": "56fa30ac66baafdb9d5dde5d6607d46da9f661205450c302082ec42e348db41c",
+      "bytes": 14130
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\gap\\assignments.csv",
+      "sha256": "9a702ff6de616a7e274a83ff73720d1dae84b1c3f3ae730055297643d0128999",
+      "bytes": 895
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\gap\\commands.csv",
+      "sha256": "0ede2dce7e13da82d68a5cdb01d41480b9cb611449ee2fdd370876c8cf8dbe76",
+      "bytes": 1715
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\gap\\report.md",
+      "sha256": "9ba1a126492d81c17c0f6817743e401fafed633ab713f8ac48b2ce0b39aadbb4",
+      "bytes": 3305
+    }
+  },
+  "command": "plan --message interop/scenarios/capability_gap.message.json --formation interop/scenarios/capability_gap.formation.json --out ..\\outputs\\interop_demo\\gap --objective timeliness"
+}

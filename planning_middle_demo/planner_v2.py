@@ -179,7 +179,12 @@ def _approach_time(p: Platform, t: Job) -> int:
 
 
 def _behavior_mileage(p: Platform, t: Job) -> float:
-    """行为模式下一次任务的全程里程（含集结、区内机动与撤离）。"""
+    """行为模式下一次任务的全程里程（含集结、区内机动与撤离）。
+
+    角色口径（T-ASL 规范 §6）：评估组走 起点→集结→评估观察位→撤离；
+    其余成员（突击/侦察）按 集结→目标→撤离 估算，侦察位的直线偏移
+    并入余量，不做单独折算。
+    """
     bh = getattr(t, "behavior", None) or {}
     if t.jtype not in BEHAVIOR_DURATION:
         return dist(p.pos, t.pos)
@@ -187,11 +192,20 @@ def _behavior_mileage(p: Platform, t: Job) -> float:
         site = t.pos
         staging = bh.get("staging_center") or site
         first = _approach_mileage(p, t)
-        mid = dist(staging, site) + float(bh.get("objective_radius", 1.4))
         last = 0.0
-        if bh.get("withdraw") and bh.get("withdraw_point"):
-            last = (dist(site, [float(v) for v in bh["withdraw_point"]])
-                    + float(bh.get("withdraw_ring", 2.0)))
+        if (bh.get("assessor_pid") == p.pid
+                and bh.get("assessment_post")):
+            # 评估组：集结→评估观察位→撤离
+            post = [float(v) for v in bh["assessment_post"]]
+            mid = dist(staging, post)
+            if bh.get("withdraw") and bh.get("withdraw_point"):
+                last = (dist(post, [float(v) for v in bh["withdraw_point"]])
+                        + float(bh.get("withdraw_ring", 2.0)))
+        else:
+            mid = dist(staging, site) + float(bh.get("objective_radius", 1.4))
+            if bh.get("withdraw") and bh.get("withdraw_point"):
+                last = (dist(site, [float(v) for v in bh["withdraw_point"]])
+                        + float(bh.get("withdraw_ring", 2.0)))
         return first + mid + last
     return dist(p.pos, t.pos) + BEHAVIOR_MILEAGE.get(t.jtype, 0.0)
 
@@ -214,6 +228,27 @@ def _work_time(p: Platform, t: Job) -> int:
     return int(math.ceil(_remain(t) / max(p.work_rate, 1e-6)))
 
 
+def _payload_need(p: Platform, t: Job):
+    """按角色核载荷：突击组要打得动，侦察/评估组只带传感器。
+
+    背景（T-ASL 2.4.3 "兵力包按角色编成"）：一个突击作业里，突击组才需要
+    战斗载荷；侦察指示组/评估组带的是传感器，不能因为全作业统一按
+    need_payload 过滤而把无人机挡在门外，也不能为了放飞机把突击组的要求
+    一起降低。场景 `_behavior.role_payload` 给出两组下限：
+        {"assault": 4.0, "support": 0.5}
+    并可用 scout_pid / assessor_pid 指明谁占支援岗。没有该字段时完全沿用
+    原来的任务级 need_payload，行为不变。
+    """
+    behavior = getattr(t, 'behavior', None) or {}
+    roles = behavior.get('role_payload') or {}
+    if not roles:
+        return float(t.need_payload), None
+    support = {behavior.get('scout_pid'), behavior.get('assessor_pid')} - {None}
+    if p.pid in support:
+        return float(roles.get('support', 0.5)), '支援组'
+    return float(roles.get('assault', t.need_payload)), '突击组'
+
+
 def feasible(p: Platform, t: Job):
     """能力闸门。返回 (可行否, 不可行原因)。"""
     if not p.alive:
@@ -228,8 +263,10 @@ def feasible(p: Platform, t: Job):
                                % (_behavior_mileage(p, t), need, p.battery))
             return False, "续航不足(需%.1f剩%.1f)" % (need, p.battery)
     if "payload" in ENABLED_CHECKS:
-        if p.payload < t.need_payload:
-            return False, "载荷不足(需%.1f剩%.1f)" % (t.need_payload, p.payload)
+        need, role = _payload_need(p, t)
+        if p.payload < need:
+            return False, ("载荷不足(%s需%.1f剩%.1f)"
+                           % (role or '任务', need, p.payload))
     if "sensor" in ENABLED_CHECKS:
         if t.need_sensor and p.sensor != t.need_sensor:
             return False, "传感器不匹配(需%s有%s)" % (t.need_sensor, p.sensor)

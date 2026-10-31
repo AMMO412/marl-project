@@ -1,0 +1,65 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-GAP",
+  "generated_at": "2026-10-30T19:04:05.619+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 4,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-GAP-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.message.json",
+      "sha256": "e20eaaa2d82afa6c5124aba4a0da838ce3fb30aec8db6cd7ac5a09d0320f8ac6"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\capability_gap.formation.json",
+      "sha256": "2e4e5b11ccf25ad6221b0fac36e3f34ed8bfd43d347933cd8b78d8c00fa459a9"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\capability_gap\\plan.json",
+      "sha256": "583e8c5921a8170c28ab16eadab38c1ef951fae5353f5ed87411ac8c82019ea9",
+      "bytes": 17344
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\capability_gap\\assignments.csv",
+      "sha256": "4ee690a7de88a50338f869002c51a2a62f27fd20428dddb28ccfaf2a2cba3728",
+      "bytes": 1113
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\capability_gap\\commands.csv",
+      "sha256": "edd2817709721f33480d49841ee31925ac3b64c9bc37192e8c857def4dc20338",
+      "bytes": 2249
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\capability_gap\\report.md",
+      "sha256": "b9e66abda728fbca9f7a6bc9ec7d0e66a8d1f87f384897aeeb6e16658c1d0fc3",
+      "bytes": 3693
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\capability_gap\\ros2_commands.txt",
+      "sha256": "ea2648856cc774b371e9c9309c2714cf56299b19aa68a05bd088c173b618ae16",
+      "bytes": 4259
+    }
+  },
+  "command": "plan --message interop/scenarios/capability_gap.message.json --formation interop/scenarios/capability_gap.formation.json --out ..\\outputs\\interop_demo\\plans\\capability_gap --objective timeliness"
+}

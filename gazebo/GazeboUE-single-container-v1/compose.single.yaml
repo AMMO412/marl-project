@@ -1,0 +1,42 @@
+name: gazeboue
+
+services:
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.jazzy
+    image: gazeboue:jazzy-harmonic
+    container_name: gazeboue-simulator
+    init: true
+    restart: unless-stopped
+    env_file:
+      - domain-randomization.env
+    cpus: "${CPU_LIMIT:-4.0}"
+    mem_limit: "${MEMORY_LIMIT:-16g}"
+    environment:
+      ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-118}"
+      ROS_LOCALHOST_ONLY: "1"
+      GAZEBO_INSTANCE_ID: "container_00"
+      GZ_PARTITION: "${GZ_PARTITION:-gazeboue_container_00}"
+      GAZEBO_UE_ENVIRONMENT: "combined"
+      GAZEBO_UE_GZ_GENERATION: "harmonic"
+      GAZEBO_UE_MAX_STEP_SIZE: "0.005"
+      GAZEBO_UE_REAL_TIME_FACTOR: "2.0"
+      GAZEBO_UE_SENSOR_ALLOWLIST: ""
+      GAZEBO_UE_SENSOR_RENDER_ENGINE: "ogre2"
+      GZ_SIM_RESOURCE_PATH: "/opt/gazebo_ue/assets/environment/models"
+      POSE_SERVER_HOST: "0.0.0.0"
+      POSE_SERVER_PORT: "8765"
+      CLOCK_SERVER_PORT: "8766"
+      GAZEBO_UE_RUNTIME_DIR: "/opt/gazebo_ue/runtime"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8765'"]
+      interval: 10s
+      timeout: 3s
+      retries: 18
+      start_period: 60s
+    ports:
+      - "${POSE_PORT:-18765}:8765"
+      - "${CLOCK_PORT:-18766}:8766"
+    volumes:
+      - "./runtime/container_00:/opt/gazebo_ue/runtime"

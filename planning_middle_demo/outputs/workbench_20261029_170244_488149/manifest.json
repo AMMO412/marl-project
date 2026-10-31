@@ -1,0 +1,28 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "D:\\Desktop\\MARL项目\\planning_middle_demo\\scenarios\\asl_city.json",
+  "scenario_sha256": "5a441e17e2f15adbf4a550158c3337cd14e516a3fb8fc7d392bc361f897c3926",
+  "source_scenario_sha256": "dcebe97034393a484461907af32afb085d66094fca6e99efc9333994af478af7",
+  "generated_at": "2026-10-29T17:02:52.972867+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false,
+  "workbench_config": {
+    "scenario": "asl_city",
+    "mode": "normal",
+    "motion": "real",
+    "avoid": true,
+    "max_ticks": 620,
+    "objective": "makespan",
+    "behavior": true,
+    "effect_kind": "damage"
+  },
+  "mode": "normal",
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "max_ticks": 620,
+  "H": 600,
+  "K": 25,
+  "dev_threshold": 4.0
+}

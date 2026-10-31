@@ -125,37 +125,49 @@ class AssaultTests(unittest.TestCase):
         self.assertIn('confirmed', kinds)
 
     def test_tasl_roles_designation_assessment_and_withdraw(self):
-        """T-ASL：侦察指示组先指示目标；效果由外部评估判定；成功后撤离。"""
+        """T-ASL：侦察指示→齐射→效果达成→评估回传→确认→撤离；逐项结算。"""
         scene = scenario()
         nav, _ = build_nav(scene)
         job = next(j for j in scene['jobs'] if j['job_id'] == 'J4')
         site = job['pos']
         job = dict(job, _behavior=dict(
             scout_pid='rover_21', observe_radius=12.0, observe_angle=0.0,
+            assessor_pid='rover_02',
             staging_center=site, staging_radius=3.0, objective_radius=2.0,
-            execute_dwell=1.0, assessment_delay=1.0,
-            confirmation_deadline=10.0,
-            result_items=[{'id': '目标设施失效', 'required': True}],
+            effect_kind='damage', required_level=2.0, damage_per_hit=1.0,
+            fire_interval=1.0, rounds_per_salvo=1, ammo_per_platform=2,
+            assessment_delay=1.0, confirmation_deadline=10.0,
+            execute_deadline=30.0,
             withdraw=True, withdraw_point=[site[0] - 10.0, site[1]],
             withdraw_ring=2.0, withdraw_deadline=10.0, timeout_s=120.0))
         pids = ['rover_21', 'rover_22', 'rover_04', 'rover_02']
         behavior = make_behavior(job, nav, pids)
         self.assertEqual(behavior.roles['rover_21'], '侦察指示组')
+        self.assertEqual(behavior.roles['rover_02'], '评估组')
         self.assertNotIn('rover_21', behavior.assault_pids)
-        starts = {pid: behavior.staging[min(i, 2)] for i, pid in enumerate(pids)}
+        self.assertNotIn('rover_02', behavior.assault_pids)
+        starts = {pid: behavior.staging[i % len(behavior.staging)]
+                  for i, pid in enumerate(pids)}
         done, _ = run(behavior, starts, max_steps=60)
         self.assertTrue(done)
         kinds = [e['kind'] for e in behavior.history]
         order = ['command_received', 'target_designated', 'all_staged',
                  'assault_started', 'all_in_position', 'effect_started',
-                 'effect_applied', 'result_pending', 'assessment_received',
-                 'confirmed', 'withdraw_started', 'withdrawn',
-                 'behavior_complete']
+                 'salvo_fired', 'effect_achieved', 'effect_applied',
+                 'result_pending', 'assessment_requested',
+                 'assessment_received', 'confirmed', 'withdraw_started',
+                 'withdrawn', 'behavior_complete']
         index = {k: kinds.index(k) for k in order}
         self.assertEqual([index[k] for k in order],
                          sorted(index[k] for k in order))
+        result = behavior.metrics['result']
+        self.assertEqual(result['overall'], 'succeeded')
+        self.assertEqual(result['adjudicator'], 'constructed_assessment_stub')
+        self.assertFalse(result['verified'])
+        required = [x for x in result['items'] if x['required']]
+        self.assertTrue(required)
+        self.assertTrue(all(x['status'] == 'achieved' for x in required))
         self.assertEqual(behavior.metrics['overall_status'], '成功')
-        self.assertEqual(behavior.metrics['result_items'][0]['status'], '达成')
         self.assertTrue(behavior.metrics['withdraw_ok'])
         self.assertEqual([p['phase'] for p in behavior.metrics['phases']],
                          ['机动', '到位', '执行', '结果确认', '撤离'])

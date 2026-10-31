@@ -1,0 +1,60 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-MIXED",
+  "generated_at": "2026-10-30T16:14:08.129+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 7,
+    "tasks": 4,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-MIXED-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.message.json",
+      "sha256": "85da301ed0b213bc41985f5fcb28ff33b379004b527ff36870d56bba20b49ecd"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\mixed_inspection.formation.json",
+      "sha256": "a1f663f4084e24af52c41fc39c2d2508f3c480fd948a97246de00f98b3e36843"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\mixed\\plan.json",
+      "sha256": "7f51c237d5830a13eebc800356dccfce5ba432a31d210f87791a4cc2b0ce0dc0",
+      "bytes": 30750
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\mixed\\assignments.csv",
+      "sha256": "6944e83ef27c3d10ac285e6841d7466f3c9188ee260b4f178909cb41393a6844",
+      "bytes": 1898
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\mixed\\commands.csv",
+      "sha256": "e0b872e8d44782df70403c35a35f5aebe130a3bcc182234c927f322ab1017c2e",
+      "bytes": 4347
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\mixed\\report.md",
+      "sha256": "a9b224ecca36b9c195f71d695c378dbd164c10eafa6ab21658bff910db27e52b",
+      "bytes": 3550
+    }
+  },
+  "command": "plan --message interop/scenarios/mixed_inspection.message.json --formation interop/scenarios/mixed_inspection.formation.json --out ..\\outputs\\interop_demo\\mixed --objective timeliness"
+}

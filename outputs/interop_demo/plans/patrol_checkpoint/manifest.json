@@ -1,0 +1,65 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-PATROL",
+  "generated_at": "2026-10-30T19:03:59.308+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 3,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-PATROL-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.message.json",
+      "sha256": "3406c15c5ddf6fbc253df9cefb004e0b29fd96ef2f45389adc7995e169a54a48"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\patrol_checkpoint.formation.json",
+      "sha256": "aad797b033dcb517adba7696500abcbf5b6b5821b42fee215b75d614d85d8956"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\patrol_checkpoint\\plan.json",
+      "sha256": "be2af57ef22b51dc68e94cede53cdc166082ffa88c43a469e0e51cbc19bbdedc",
+      "bytes": 21400
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\patrol_checkpoint\\assignments.csv",
+      "sha256": "823c5a404e2942bac97ffbde8464ba6c5194bb903baa788bec47e2200ecb27af",
+      "bytes": 1134
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\patrol_checkpoint\\commands.csv",
+      "sha256": "e7699eb3b0e1d607f42bbedb92a525a550a9c2bf13e01a80e4b49bb246c4f01b",
+      "bytes": 3483
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\patrol_checkpoint\\report.md",
+      "sha256": "9842bdc7cb66d549b9453e5c3c37f1807d4feeb3e0c6c6c3e16fdebf90c3b652",
+      "bytes": 2756
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\patrol_checkpoint\\ros2_commands.txt",
+      "sha256": "d97270ef18c050532a3e1cd90e36f0f13bdcdc42a71e3a6f207d213282525167",
+      "bytes": 6626
+    }
+  },
+  "command": "plan --message interop/scenarios/patrol_checkpoint.message.json --formation interop/scenarios/patrol_checkpoint.formation.json --out ..\\outputs\\interop_demo\\plans\\patrol_checkpoint --objective timeliness"
+}

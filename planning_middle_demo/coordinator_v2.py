@@ -37,7 +37,7 @@ _EPS = 1e-6
 class CoordinatorV2:
     def __init__(self, scenario, run_id="demo-v2", max_attempts=2,
                  grace_s=1, H=20, K=5, dev_threshold=4.0, motion="teleport",
-                 behavior=False):
+                 behavior=False, planner=None):
         self.run_id = run_id
         self.max_attempts = max_attempts
         self.grace_s = grace_s
@@ -46,6 +46,10 @@ class CoordinatorV2:
         self.dev_threshold = dev_threshold
         self.motion = motion
         self.behavior = bool(behavior)
+        # 可插拔规划引擎：None=基座 planner_v2；否则为
+        # callable(coord, now) -> (planner_v2.Plan, events)。
+        self.custom_planner = planner
+        self.planner_name = getattr(planner, "name", "base_v2") if planner else "base_v2"
         self.objective = scenario.get("objective", "makespan")
 
         from contracts_v2 import build_jobs, build_platforms
@@ -293,10 +297,13 @@ class CoordinatorV2:
     def _replan(self, now):
         jobs_visible = [j for j in self.jobs.values()
                         if j.status != "cancelling"]
-        self.plan, events = planner_v2.plan(
-            list(self.platforms.values()), jobs_visible, now, H=self.H,
-            plan_id=self.plan_id, objective=self.objective,
-            prev_plan=self.plan, motion=self.motion, behavior=self.behavior)
+        if self.custom_planner is not None:
+            self.plan, events = self.custom_planner(self, now)
+        else:
+            self.plan, events = planner_v2.plan(
+                list(self.platforms.values()), jobs_visible, now, H=self.H,
+                plan_id=self.plan_id, objective=self.objective,
+                prev_plan=self.plan, motion=self.motion, behavior=self.behavior)
         self.plan_id += 1
         self.dispatched = set()
         labels = []
@@ -450,6 +457,7 @@ class CoordinatorV2:
             protocol=PROTOCOL_V2, run_id=self.run_id,
             simulated_until_s=self.now,
             objective=self.objective,
+            planner=self.planner_name,
             all_succeeded=all(j.status == "succeeded"
                               for j in self.jobs.values()),
             settled=self.settled(),

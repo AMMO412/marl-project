@@ -1,0 +1,52 @@
+FROM ros:jazzy-ros-base-noble
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN sed -i \
+      -e 's|http://archive.ubuntu.com/ubuntu/|https://mirrors.ustc.edu.cn/ubuntu/|g' \
+      -e 's|http://security.ubuntu.com/ubuntu/|https://mirrors.ustc.edu.cn/ubuntu/|g' \
+      /etc/apt/sources.list.d/ubuntu.sources \
+    && sed -i \
+      -e 's|http://packages.ros.org/ros2/ubuntu|https://mirrors.ustc.edu.cn/ros2/ubuntu|g' \
+      -e 's|^Types: deb deb-src$|Types: deb|' \
+      /etc/apt/sources.list.d/ros2.sources
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
+      cmake \
+      ros-jazzy-gz-sim-vendor \
+      ros-jazzy-ros-gz-bridge \
+      ros-jazzy-ros-gz-sim \
+      ros-jazzy-tf2-msgs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/gazebo_ue
+COPY linux/latency_plugin_harmonic/ /tmp/latency_plugin/
+RUN source /opt/ros/jazzy/setup.bash \
+    && cmake -S /tmp/latency_plugin -B /tmp/latency_plugin/build \
+    && cmake --build /tmp/latency_plugin/build --parallel \
+    && install -D /tmp/latency_plugin/build/libStampedPosePublisher.so /opt/gazebo_ue/lib/libStampedPosePublisher.so
+
+COPY linux/ /opt/gazebo_ue/linux/
+COPY assets/converted/ /opt/gazebo_ue/assets/converted/
+COPY assets/environment/models/ /opt/gazebo_ue/assets/environment/models/
+COPY fleet-roster.json /opt/gazebo_ue/fleet-roster.json
+RUN sed -i 's/\r$//' /opt/gazebo_ue/linux/run_gazebo_harmonic.sh \
+    && chmod +x /opt/gazebo_ue/linux/run_gazebo_harmonic.sh
+
+ENV GAZEBO_UE_BASE_SCENE=/opt/gazebo_ue/linux/rover_ue.sdf \
+    GAZEBO_UE_PLUGIN_PATH=/opt/gazebo_ue/lib/libStampedPosePublisher.so \
+    GAZEBO_UE_ENVIRONMENT=combined \
+    GAZEBO_UE_GZ_GENERATION=harmonic \
+    GZ_SIM_RESOURCE_PATH=/opt/gazebo_ue/assets/environment/models \
+    POSE_SERVER_HOST=0.0.0.0 \
+    POSE_SERVER_PORT=8765 \
+    CLOCK_SERVER_PORT=8766 \
+    GAZEBO_UE_RUNTIME_DIR=/opt/gazebo_ue/runtime \
+    ROS_DOMAIN_ID=118 \
+    ROS_LOCALHOST_ONLY=1 \
+    GZ_PARTITION=wangdazhe_container_00
+
+EXPOSE 8765 8766
+CMD ["/opt/gazebo_ue/linux/run_gazebo_harmonic.sh"]

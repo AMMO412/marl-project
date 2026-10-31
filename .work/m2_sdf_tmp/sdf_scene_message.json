@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-M2-SDF-001",
+  "issued_at": "2026-10-28T10:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -20,
+            10
+          ],
+          [
+            40,
+            10
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            -20,
+            40
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 120
+      },
+      "required_capabilities": {
+        "RCN": 2
+      },
+      "min_units": 2,
+      "max_units": 3,
+      "params": {
+        "duration_s": 40,
+        "sensor": "EO",
+        "coverage_required": 0.8,
+        "sensor_swath_m": 20,
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "description": "SDF 草坪北侧直前区域侦察"
+    },
+    {
+      "task_id": "T2",
+      "task_type": "T-ASL",
+      "priority": 2,
+      "target": {
+        "point": [
+          80.0,
+          -45.0
+        ]
+      },
+      "window": {
+        "start_s": 120,
+        "end_s": 180
+      },
+      "required_capabilities": {
+        "STK": 2
+      },
+      "min_units": 2,
+      "max_units": 2,
+      "params": {
+        "duration_s": 30,
+        "attack_window": {
+          "start_s": 120,
+          "end_s": 180
+        },
+        "desired_effect": "DESTROY",
+        "standoff_m": 100
+      },
+      "prerequisites": [
+        "T1"
+      ],
+      "description": "SDF 围墙 beacon 方向突击"
+    },
+    {
+      "task_id": "T3",
+      "task_type": "T-HLD",
+      "priority": 2,
+      "target": {
+        "key_point": [
+          80.0,
+          -45.0
+        ]
+      },
+      "window": {
+        "start_s": 180,
+        "end_s": 360
+      },
+      "required_capabilities": {
+        "HLD": 2
+      },
+      "min_units": 2,
+      "max_units": 2,
+      "params": {
+        "hold_duration_s": 180,
+        "defense_positions": [
+          [
+            70.0,
+            -45.0
+          ],
+          [
+            90.0,
+            -45.0
+          ]
+        ],
+        "coordination": [
+          "simultaneous_arrival"
+        ]
+      },
+      "prerequisites": [
+        "T2"
+      ],
+      "description": "目标附近两个阵位坚守"
+    }
+  ]
+}

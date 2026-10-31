@@ -1,0 +1,65 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-RECON",
+  "generated_at": "2026-10-30T19:03:46.328+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 4,
+    "tasks": 3,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-RECON-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_recon.message.json",
+      "sha256": "6fd159afeef9c0a1bbf804c53a93e69ad4bafab0678a8190e062979e47042653"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_recon.formation.json",
+      "sha256": "d5857d0f62eceeb86176a74dab45d114b5b55d9248a01716be6b43ffd87d5f33"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\area_recon\\plan.json",
+      "sha256": "e410321a0c5b86b65e5ab0fb5bdf4cd7d46149085277f1578dd871278ee579a9",
+      "bytes": 21733
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\area_recon\\assignments.csv",
+      "sha256": "4c0024ec8df433b2fe2d25f20b9940ce34ef729765509035a953e1bcc7764614",
+      "bytes": 1540
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\area_recon\\commands.csv",
+      "sha256": "24c2de617b738266ca3073040d4c3d3708ff795b653f0ad6d557188669440421",
+      "bytes": 3021
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\area_recon\\report.md",
+      "sha256": "a786e1f63b7d7c859e1ed209f7e41a07eec276c732d6d7de906ebf6ae7dc493b",
+      "bytes": 3076
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\plans\\area_recon\\ros2_commands.txt",
+      "sha256": "0ea4b3c3fa961f7ba48c94b66be57ca8f5d4d240177fdcc7ae3a5c8e273cd2e5",
+      "bytes": 5749
+    }
+  },
+  "command": "plan --message interop/scenarios/area_recon.message.json --formation interop/scenarios/area_recon.formation.json --out ..\\outputs\\interop_demo\\plans\\area_recon --objective timeliness"
+}

@@ -1,0 +1,302 @@
+[
+  {
+    "number": 1,
+    "id": "rover_01",
+    "type": "ugv",
+    "cmd_vel": "/rover_01/cmd_vel"
+  },
+  {
+    "number": 2,
+    "id": "rover_02",
+    "type": "ugv",
+    "cmd_vel": "/rover_02/cmd_vel"
+  },
+  {
+    "number": 3,
+    "id": "rover_03",
+    "type": "ugv",
+    "cmd_vel": "/rover_03/cmd_vel"
+  },
+  {
+    "number": 4,
+    "id": "rover_04",
+    "type": "ugv",
+    "cmd_vel": "/rover_04/cmd_vel"
+  },
+  {
+    "number": 5,
+    "id": "rover_05",
+    "type": "ugv",
+    "cmd_vel": "/rover_05/cmd_vel"
+  },
+  {
+    "number": 6,
+    "id": "rover_06",
+    "type": "ugv",
+    "cmd_vel": "/rover_06/cmd_vel"
+  },
+  {
+    "number": 7,
+    "id": "rover_07",
+    "type": "ugv",
+    "cmd_vel": "/rover_07/cmd_vel"
+  },
+  {
+    "number": 8,
+    "id": "rover_08",
+    "type": "ugv",
+    "cmd_vel": "/rover_08/cmd_vel"
+  },
+  {
+    "number": 9,
+    "id": "rover_09",
+    "type": "ugv",
+    "cmd_vel": "/rover_09/cmd_vel"
+  },
+  {
+    "number": 10,
+    "id": "rover_10",
+    "type": "ugv",
+    "cmd_vel": "/rover_10/cmd_vel"
+  },
+  {
+    "number": 11,
+    "id": "rover_11",
+    "type": "ugv",
+    "cmd_vel": "/rover_11/cmd_vel"
+  },
+  {
+    "number": 12,
+    "id": "rover_12",
+    "type": "ugv",
+    "cmd_vel": "/rover_12/cmd_vel"
+  },
+  {
+    "number": 13,
+    "id": "rover_13",
+    "type": "ugv",
+    "cmd_vel": "/rover_13/cmd_vel"
+  },
+  {
+    "number": 14,
+    "id": "rover_14",
+    "type": "ugv",
+    "cmd_vel": "/rover_14/cmd_vel"
+  },
+  {
+    "number": 15,
+    "id": "rover_15",
+    "type": "ugv",
+    "cmd_vel": "/rover_15/cmd_vel"
+  },
+  {
+    "number": 16,
+    "id": "rover_16",
+    "type": "ugv",
+    "cmd_vel": "/rover_16/cmd_vel"
+  },
+  {
+    "number": 17,
+    "id": "rover_17",
+    "type": "ugv",
+    "cmd_vel": "/rover_17/cmd_vel"
+  },
+  {
+    "number": 18,
+    "id": "rover_18",
+    "type": "ugv",
+    "cmd_vel": "/rover_18/cmd_vel"
+  },
+  {
+    "number": 19,
+    "id": "rover_19",
+    "type": "ugv",
+    "cmd_vel": "/rover_19/cmd_vel"
+  },
+  {
+    "number": 20,
+    "id": "rover_20",
+    "type": "ugv",
+    "cmd_vel": "/rover_20/cmd_vel"
+  },
+  {
+    "number": 21,
+    "id": "rover_21",
+    "type": "tank",
+    "cmd_vel": "/rover_21/cmd_vel"
+  },
+  {
+    "number": 22,
+    "id": "rover_22",
+    "type": "tank",
+    "cmd_vel": "/rover_22/cmd_vel"
+  },
+  {
+    "number": 23,
+    "id": "rover_23",
+    "type": "tank",
+    "cmd_vel": "/rover_23/cmd_vel"
+  },
+  {
+    "number": 24,
+    "id": "rover_24",
+    "type": "tank",
+    "cmd_vel": "/rover_24/cmd_vel"
+  },
+  {
+    "number": 25,
+    "id": "rover_25",
+    "type": "tank",
+    "cmd_vel": "/rover_25/cmd_vel"
+  },
+  {
+    "number": 26,
+    "id": "rover_26",
+    "type": "tank",
+    "cmd_vel": "/rover_26/cmd_vel"
+  },
+  {
+    "number": 27,
+    "id": "rover_27",
+    "type": "tank",
+    "cmd_vel": "/rover_27/cmd_vel"
+  },
+  {
+    "number": 28,
+    "id": "rover_28",
+    "type": "tank",
+    "cmd_vel": "/rover_28/cmd_vel"
+  },
+  {
+    "number": 29,
+    "id": "rover_29",
+    "type": "tank",
+    "cmd_vel": "/rover_29/cmd_vel"
+  },
+  {
+    "number": 30,
+    "id": "rover_30",
+    "type": "tank",
+    "cmd_vel": "/rover_30/cmd_vel"
+  },
+  {
+    "number": 31,
+    "id": "rover_31",
+    "type": "plane",
+    "cmd_vel": "/rover_31/cmd_vel"
+  },
+  {
+    "number": 32,
+    "id": "rover_32",
+    "type": "plane",
+    "cmd_vel": "/rover_32/cmd_vel"
+  },
+  {
+    "number": 33,
+    "id": "rover_33",
+    "type": "plane",
+    "cmd_vel": "/rover_33/cmd_vel"
+  },
+  {
+    "number": 34,
+    "id": "rover_34",
+    "type": "plane",
+    "cmd_vel": "/rover_34/cmd_vel"
+  },
+  {
+    "number": 35,
+    "id": "rover_35",
+    "type": "plane",
+    "cmd_vel": "/rover_35/cmd_vel"
+  },
+  {
+    "number": 36,
+    "id": "rover_36",
+    "type": "plane",
+    "cmd_vel": "/rover_36/cmd_vel"
+  },
+  {
+    "number": 37,
+    "id": "rover_37",
+    "type": "plane",
+    "cmd_vel": "/rover_37/cmd_vel"
+  },
+  {
+    "number": 38,
+    "id": "rover_38",
+    "type": "plane",
+    "cmd_vel": "/rover_38/cmd_vel"
+  },
+  {
+    "number": 39,
+    "id": "rover_39",
+    "type": "plane",
+    "cmd_vel": "/rover_39/cmd_vel"
+  },
+  {
+    "number": 40,
+    "id": "rover_40",
+    "type": "plane",
+    "cmd_vel": "/rover_40/cmd_vel"
+  },
+  {
+    "number": 41,
+    "id": "rover_41",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_41/cmd_vel"
+  },
+  {
+    "number": 42,
+    "id": "rover_42",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_42/cmd_vel"
+  },
+  {
+    "number": 43,
+    "id": "rover_43",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_43/cmd_vel"
+  },
+  {
+    "number": 44,
+    "id": "rover_44",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_44/cmd_vel"
+  },
+  {
+    "number": 45,
+    "id": "rover_45",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_45/cmd_vel"
+  },
+  {
+    "number": 46,
+    "id": "rover_46",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_46/cmd_vel"
+  },
+  {
+    "number": 47,
+    "id": "rover_47",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_47/cmd_vel"
+  },
+  {
+    "number": 48,
+    "id": "rover_48",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_48/cmd_vel"
+  },
+  {
+    "number": 49,
+    "id": "rover_49",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_49/cmd_vel"
+  },
+  {
+    "number": 50,
+    "id": "rover_50",
+    "type": "flying_wing",
+    "cmd_vel": "/rover_50/cmd_vel"
+  }
+]

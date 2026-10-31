@@ -1,0 +1,142 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 700,
+  "K": 25,
+  "_meta": {
+    "sdf": "资料/接口说明/container_00_combined_scene.sdf",
+    "models": "资料/接口说明/models",
+    "initial_state": "scenarios/sdf_initial_state.json",
+    "scale": 1.0,
+    "offset_x": 0.0,
+    "offset_y": 0.0,
+    "bounds": [
+      -185,
+      -210,
+      20,
+      30
+    ],
+    "radius": 1.75,
+    "resolution": 0.5,
+    "unit": "米",
+    "demo_max_steps": 640,
+    "demo_only": true,
+    "_task": "T-ASL 机动突击：城市场景十字路口建筑群（多类型兵力包·效果判定逐项结算）",
+    "_source_note": "平台起点、主路/城市道路/广场/花坛/围墙/标识柱、4 栋 House 与 2 栋 Office Building 均来自 container_00_combined_scene.sdf；平台初始位姿与外包络尺寸由 sdf_state.py 提取到 scenarios/sdf_initial_state.json（车体 2.011×1×0.569 m、含轮外包络 2.011×1.85×0.875 m、包络半径 1.37 m；固定翼/飞翼 1×2×0.2 m）。兵力包：rover_31 固定翼（侦察指示组，巡航 30 m）、rover_41 飞翼（评估组，25 m）、rover_01/11 轮式与 rover_21/22 履带（突击组）。集结区在目标东北、被 House 4 遮挡的背敌一侧，地面分队须绕建筑接近；空中分队直飞越障。效果默认毁伤（required_level=6），评估走可插拔接口默认桩（constructed_assessment_stub，输出标注未验证）。"
+  },
+  "platforms": [
+    {
+      "robot_no": 1,
+      "pos": [
+        0.0,
+        -22.5
+      ]
+    },
+    {
+      "robot_no": 11,
+      "pos": [
+        -5.0,
+        -22.5
+      ]
+    },
+    {
+      "robot_no": 21,
+      "pos": [
+        -10.0,
+        -22.5
+      ]
+    },
+    {
+      "robot_no": 22,
+      "pos": [
+        -10.0,
+        -17.5
+      ]
+    },
+    {
+      "robot_no": 31,
+      "pos": [
+        -15.0,
+        -22.5
+      ]
+    },
+    {
+      "robot_no": 41,
+      "pos": [
+        -20.0,
+        -22.5
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "ASL-CITY-1",
+      "type": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "window": [
+        0,
+        700
+      ],
+      "crew": 6,
+      "_behavior": {
+        "staging_center": [
+          -62.0,
+          -124.0
+        ],
+        "staging_radius": 6.0,
+        "objective_radius": 14.0,
+        "confirm_radius": 18.0,
+        "arrive_tol": 0.8,
+        "sync_tol": 14.0,
+        "scout_pid": "rover_31",
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "designation_confidence": 0.9,
+        "assessor_pid": "rover_41",
+        "assessment_post": [
+          -95.0,
+          -120.0
+        ],
+        "air_altitude": {
+          "rover_31": 30.0,
+          "rover_41": 25.0
+        },
+        "role_payload": {
+          "assault": 4.0,
+          "support": 0.5
+        },
+        "assault_payload_required": 4.0,
+        "attack_window": [
+          0,
+          700
+        ],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 120.0,
+        "execute_deadline": 520.0,
+        "effect_kind": "seize",
+        "required_level": 6.0,
+        "damage_per_hit": 1.0,
+        "fire_interval": 3.0,
+        "rounds_per_salvo": 1,
+        "counterattack_interval": 6.0,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群（SDF env_city_square 及周边 House/Office 建筑）",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1,
+        "withdraw": true,
+        "withdraw_point": [
+          -75.0,
+          -130.0
+        ],
+        "withdraw_ring": 7.0,
+        "withdraw_deadline": 200.0,
+        "timeout_s": 900.0
+      }
+    }
+  ]
+}

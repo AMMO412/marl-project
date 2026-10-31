@@ -1,0 +1,5 @@
+﻿unit_id,robot_id,topic,platform_class,subtask_id,parent_task_id,task_type,target,start_s,end_s,window_start_s,window_end_s,depends_on,coordination,status,path_length_m,waypoint_count,risk,energy,path
+U4,22,/rover_22/cmd_vel,TANK,T1-S1,T1,T-HLD,"{""point"": [0.0, 40.0]}",9.044,129.044,0.000,300.000,,simultaneous_arrival,ASSIGNED,58.363,2,0.000,40.669,"(-10.00,-17.50) | (0.00,40.00)"
+U5,31,/rover_31/cmd_vel,PLANE,T3-S1,T3,T-RCN,"{""point"": [-40.0, 70.0]}",6.490,36.490,0.000,70.000,,,ASSIGNED,95.819,2,0.000,23.498,"(-15.00,-22.50) | (-40.00,70.00)"
+U5,31,/rover_31/cmd_vel,PLANE,T3-S3,T3,T-RCN,"{""point"": [-50.0, 90.0]}",37.240,67.240,0.000,70.000,,,ASSIGNED,22.361,2,0.000,14.683,"(-40.00,70.00) | (-50.00,90.00)"
+U6,41,/rover_41/cmd_vel,WING,T4-S1,T4,T-PTL,"{""point"": [40.0, 40.0]}",3.726,63.726,0.000,400.000,,,ASSIGNED,86.639,2,0.000,22.797,"(-20.00,-22.50) | (40.00,40.00)"

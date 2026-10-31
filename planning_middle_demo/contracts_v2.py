@@ -6,8 +6,8 @@ contracts_v2.py —— 规划能力版消息契约（middle-demo/v2）
 取消-确认-重试）不变的前提下，把指令内容从"工单时长"升级为
 planning/ 的通用任务语义：
 
-  * 平台：编号对应下游 50 台编成（rover_XX / /rover_XX/cmd_vel），
-    带能力参数（速度/效率/续航/载荷/传感器/能否爬升）
+  * 平台：编号对应下游 50 台编成（内部 ID rover_XX，移动话题
+    /container_00/robot_XXX），带能力参数（速度/效率/续航/载荷/传感器/能否爬升）
   * 作业：工作量 + 时间窗 + 协同人数 + 载荷/传感器需求 + 目标高度
   * 指令：携带作业参数与投递信息（真实话题），下层可以独立执行
   * 反馈：accepted / progress / succeeded / failed / cancelled，
@@ -82,6 +82,7 @@ class Platform:
     can_climb: bool
     move_cost: float
     work_cost: float
+    ammo: int = 0             # 弹药基数（发），T-ASL 齐射消耗上限
     alive: bool = True
     pos_topic: str = ""
     yaw: float = 0.0        # 当前朝向（真实运动下由反馈更新，用于 travel 估算）
@@ -186,7 +187,9 @@ def delivery_block(p: Platform) -> dict:
                 can_climb=p.can_climb,
                 pos=[p.pos[0], p.pos[1]], battery=p.battery,
                 speed=p.speed, work_rate=p.work_rate,
+                payload=p.payload, sensor=p.sensor,
                 move_cost=p.move_cost, work_cost=p.work_cost,
+                ammo=p.ammo,
                 motion_caps=dict(max_linear=p.speed, max_angular=0.5,
                                  tol_pos=0.5, tol_yaw=0.15,
                                  can_climb=p.can_climb),
@@ -453,7 +456,8 @@ def build_platforms(data) -> List[Platform]:
             speed=s["speed"], work_rate=s["work_rate"], battery=s["battery"],
             payload=s["payload"], sensor=s["sensor"],
             can_climb=s["can_climb"], move_cost=s["move_cost"],
-            work_cost=s["work_cost"], pos_topic=fleet.pose_topic_of(no)))
+            work_cost=s["work_cost"], ammo=int(s.get("ammo", 0)),
+            pos_topic=fleet.pose_topic_of(no)))
     return out
 
 

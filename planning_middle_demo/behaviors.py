@@ -64,6 +64,7 @@ class Behavior:
         self.t = 0.0
         self._events = []
         self.history = []          # 全量事件（drain 不清空，供测试/复盘）
+        self.platform_caps = {}    # 平台画像（类目/爬升/载荷），第二道能力闸门用
         self.metrics = dict(site=[round(v, 2) for v in self.site],
                             site_snap_offset=self.site_snap)
 
@@ -77,6 +78,18 @@ class Behavior:
     def drain(self):
         out, self._events = self._events, []
         return out
+
+    def set_platform_caps(self, caps):
+        """注入平台画像（类目/爬升/载荷/速度）。
+
+        规划器已按角色核过载荷，但"能力约束必须在下发后也有闸门"是本层
+        的既定纪律：真实对接时指令可能被上层改写，行为层仍要能自己拒绝
+        "让侦察无人机去扛 4 吨弹药"这种不合理编成。默认只登记、不改决策，
+        子类（突击）据此做角色校核。
+        """
+        self.platform_caps = {k: dict(v) for k, v in (caps or {}).items()}
+        self.metrics['platform_caps'] = {
+            pid: dict(cap) for pid, cap in self.platform_caps.items()}
 
     def set_phase(self, phase):
         if phase != self.phase:
@@ -522,6 +535,11 @@ class AssaultBehavior(Behavior):
         rounds_per_salvo=1, ammo_per_platform=1,
         required_duration=10.0, recovery_gap=3.0,
         required_control_s=10.0, min_occupants=2, hold_required_s=10.0,
+        # 辅助指标的可仿真部分：敌方反击（夺占期按周期发生）、角色载荷下限
+        counterattack_interval=0.0, counterattack_break_s=0.0,
+        assault_payload_required=0.0,
+        # 空中分队高度（pid → 巡航高度）与爬升率；未列出的空中平台用初始高度
+        air_altitude=None, climb_rate=8.0,
         # 终止条件（弹药耗尽/执行截止；目标消失/被迫撤离仅预留接口字段）
         execute_deadline=None, target_vanish=False, forced_withdraw=False,
         # 任务输入（2.4.8）：交战规则、附带损伤、正识别、波次、作用对象
@@ -656,6 +674,16 @@ class AssaultBehavior(Behavior):
         self.release_at = {}
         self.withdraw_started_t = None
         self.status = '执行中'
+        # ---- 辅助指标状态（规范 2.4.3：逐项可核验，不拿过程量冒充结果） ----
+        self.losses = []             # 执行期我方损失（pid + 时刻）
+        self.lost_pids = set()
+        self.role_violations = []    # 角色载荷校核未通过项
+        self.role_blocked = False
+        self.counterattacks = []     # 夺占期敌方反击（时刻）
+        self.control_interruptions = 0
+        self._next_counter_t = None
+        self.recovery_s = None       # 压制结束后到任务结束的实测恢复时延
+        self.max_gap_s = 0.0         # 实测最大压制中断
         self._build_result_items()
         self.metrics.update(
             staging=[[round(v, 2) for v in q] for q in self.staging],
@@ -700,6 +728,47 @@ class AssaultBehavior(Behavior):
         self.set_phase('机动')
 
     # ---- 弹药与效果引擎 ----
+    def set_platform_caps(self, caps):
+        """角色级能力校核（第二道闸门）：突击组必须扛得动战斗载荷。
+
+        规划器已按 role_payload 做过一次过滤；这里再核一次，因为行为层
+        收到的成员可能来自旧方案或人工改写。支援组（侦察/评估）只带传感器，
+        不参与这条校核。
+        """
+        super().set_platform_caps(caps)
+        required = float(self.params.get('assault_payload_required') or 0.0)
+        self.role_violations = []
+        if required > 0:
+            for pid in self.assault_pids:
+                payload = (caps.get(pid) or {}).get('payload')
+                if payload is not None and float(payload) < required:
+                    self.role_violations.append(
+                        dict(pid=pid, role=self.roles.get(pid, '突击组'),
+                             payload=round(float(payload), 2),
+                             required=required))
+        self.metrics['role_check'] = dict(
+            required=required, ok=not self.role_violations,
+            violations=[dict(x) for x in self.role_violations],
+            note='突击组载荷下限；支援组只带传感器，不参与该下限')
+        if self.role_violations:
+            self.role_blocked = True
+            self.emit('role_check_failed', required=required,
+                      violations=[dict(x) for x in self.role_violations])
+
+    def report_loss(self, pid, t):
+        """记录执行期我方损失；损失成员不再计入在位/开火/控制人数。"""
+        if pid in self.lost_pids:
+            return
+        self.lost_pids.add(pid)
+        self.losses.append(dict(pid=pid, t=round(t, 2),
+                                role=self.roles.get(pid, '突击组')))
+        self.metrics['our_losses'] = len(self.losses)
+        self.emit('loss', pid=pid, role=self.roles.get(pid, '突击组'),
+                  at=round(t, 2), total=len(self.losses))
+
+    def _alive(self, pid):
+        return pid not in self.lost_pids
+
     def set_platform_ammo(self, values):
         """注入平台级弹药基数（编成参数 PLANNING_PARAMS.ammo，经替身透传）。"""
         for pid in self.assault_pids:
@@ -727,7 +796,8 @@ class AssaultBehavior(Behavior):
         rounds = max(1, int(p['rounds_per_salvo']))
         fired, hits = [], 0
         for pid in self.assault_pids:
-            if (self.ammo.get(pid, 0) >= rounds
+            if (self._alive(pid)
+                    and self.ammo.get(pid, 0) >= rounds
                     and self._in_objective(poses[pid])):
                 self.ammo[pid] -= rounds
                 fired.append(pid)
@@ -764,6 +834,7 @@ class AssaultBehavior(Behavior):
         p = self.params
         if (self._last_fire_t is not None
                 and t - self._last_fire_t > float(p['recovery_gap'])):
+            self.max_gap_s = max(self.max_gap_s, t - self._last_fire_t)
             self._close_coverage()
             self.suppression_gaps += 1
             self.emit('suppression_gap',
@@ -785,14 +856,26 @@ class AssaultBehavior(Behavior):
             self._run_start_t = None
 
     def _step_seize(self, poses, t):
-        """夺占：≥min_occupants 在目标环内 → 控制建立；跌破 → 控制丢失。"""
+        """夺占：≥min_occupants 在目标环内 → 控制建立；跌破 → 控制丢失。
+
+        敌方反击（辅助指标"敌方反击次数"）：控制期内按 `counterattack_interval`
+        周期发生，默认被在位兵力击退、不打断连续控制；若配置
+        `counterattack_break_s`，则每次反击造成该时长的控制中断（连续控制
+        计时重计，用于演示"反击确实能打断夺占"）。
+        """
         p = self.params
         occupants = [pid for pid in self.assault_pids
-                     if self._in_objective(poses[pid])]
+                     if self._alive(pid) and self._in_objective(poses[pid])]
         if not self._control_on:
+            pause_until = getattr(self, '_control_pause_until', None)
+            if pause_until is not None and t < pause_until:
+                return                      # 反击造成的中断尚未解除
             if len(occupants) >= int(p['min_occupants']):
                 self._control_on = True
                 self._control_start = t
+                self._control_pause_until = None
+                interval = float(p.get('counterattack_interval') or 0.0)
+                self._next_counter_t = (t + interval) if interval > 0 else None
                 self.emit('control_established', occupants=occupants,
                           min_occupants=int(p['min_occupants']))
             return
@@ -810,6 +893,25 @@ class AssaultBehavior(Behavior):
             self.control_intervals.append(
                 [round(self._control_start, 2), round(t, 2)])
             self._effect_achieved(t)
+            return
+        # 敌方反击（只记事实；是否打断控制由参数决定）
+        if self._next_counter_t is not None and t >= self._next_counter_t:
+            interval = max(0.1, float(p.get('counterattack_interval') or 0.0))
+            self._next_counter_t = t + interval
+            self.counterattacks.append(round(t, 2))
+            break_s = max(0.0, float(p.get('counterattack_break_s') or 0.0))
+            self.emit('counterattack', n=len(self.counterattacks),
+                      held_s=round(run, 2), occupants=len(occupants),
+                      repelled=break_s <= 0)
+            if break_s > 0:
+                self.control_intervals.append(
+                    [round(self._control_start, 2), round(t, 2)])
+                self.control_interruptions += 1
+                self._control_on = False
+                self._control_pause_until = t + break_s
+                self.emit('control_interrupted',
+                          break_s=round(break_s, 2),
+                          n=self.control_interruptions)
 
     def _step_hold(self, poses, t):
         """移交后坚守：独立于夺占单独结算，夺占成功不自动使坚守成功。"""
@@ -834,7 +936,7 @@ class AssaultBehavior(Behavior):
             fields = dict(suppression_s=round(self.longest_suppression_s, 2))
         else:
             fields = dict(control_s=round(self.longest_control_s, 2))
-        self.emit('effect_achieved', kind=self.effect_kind,
+        self.emit('effect_achieved', effect_kind=self.effect_kind,
                   at=round(t, 2), **fields)
         if self.effect_kind == 'seize':
             # 夺占与移交后坚守分别结算：达成即移交，坚守独立计时
@@ -867,6 +969,12 @@ class AssaultBehavior(Behavior):
             self.metrics['confirmation_deadline_t'] = round(
                 self.confirm_deadline_t, 2)
         self.phase_times.append(dict(phase='结果确认', t=round(t, 2)))
+        self.emit('result_pending', source=self.adjudicator.name,
+                  deadline_t=round(self.confirm_deadline_t, 2)
+                  if self.confirm_deadline_t is not None else None,
+                  items=[dict(x) for x in self.result_items],
+                  missing=[x['id'] for x in self.result_items
+                           if x.get('required')])
 
     # ---- 逐项结算（规范 §5） ----
     def _build_result_items(self):
@@ -888,12 +996,16 @@ class AssaultBehavior(Behavior):
                 label=self.RESULT_LABELS['hold_after_handover'],
                 required=True, status='pending', t=None, evidence=None,
                 metric=None))
+        auxiliary_labels = {
+            'damage': '命中率 / 弹药消耗 / 二次打击需求',
+            'suppress': '火力覆盖时间 / 目标恢复时间 / 我方损失',
+            'seize': '控制时长 / 敌方反击次数 / 移交时间'}
         self.result_items.extend([
             dict(id='ammo_used', label='弹药消耗', required=False,
                  status='info', t=None, evidence=None, metric=None),
-            dict(id='effect_metric', label='命中率 / 覆盖时长 / 控制时长',
-                 required=False, status='info', t=None, evidence=None,
-                 metric=None),
+            dict(id='effect_metric',
+                 label=auxiliary_labels[self.effect_kind], required=False,
+                 status='info', t=None, evidence=None, metric=None),
             dict(id='restrikes', label='二次打击次数', required=False,
                  status='info', t=None, evidence=None, metric=None)])
 
@@ -920,50 +1032,183 @@ class AssaultBehavior(Behavior):
             return 'succeeded'
         return 'pending'
 
-    def _fill_info_items(self):
+    def _auxiliary(self, total_suppression):
+        """辅助指标（规范 §7 表格里的"辅助指标"列）。
+
+        口径：只报**本次运行记录到的事实**；没建模的量明确标注"仅登记"，
+        不写成已测量。判定口径写在 verdict 里，供工作台逐项显示。
+        """
+        our_losses = len(self.losses)
+        rows = []
         if self.effect_kind == 'damage':
             rate = (self.shots_hit / self.shots_fired
                     if self.shots_fired else None)
-            metric = dict(hit_rate=round(rate, 2) if rate is not None else None,
-                          shots_fired=self.shots_fired,
-                          shots_hit=self.shots_hit)
+            rows = [
+                dict(key='hit_rate', label='命中率',
+                     value=(round(rate, 2) if rate is not None else None),
+                     unit='', verdict=('达标' if rate is not None and rate >= 0.8
+                                       else '未达标' if rate is not None else '未开始'),
+                     note='命中/发射（桩判定：在目标环内且有弹即命中）'),
+                dict(key='ammo_used', label='弹药消耗',
+                     value=self.shots_fired, unit='发',
+                     verdict='已记录', note='逐发记录，含各平台余弹'),
+                dict(key='restrikes', label='二次打击需求',
+                     value=self.restrikes, unit='次',
+                     verdict=('需要' if self.restrikes else '不需要'),
+                     note='未达规定等级时的补射次数'),
+                dict(key='our_losses', label='我方损失',
+                     value=our_losses, unit='台',
+                     verdict=('有损失' if our_losses else '无损失'),
+                     note='执行期失联/被击毁的平台数（本层只统计失联注入）'),
+            ]
         elif self.effect_kind == 'suppress':
-            total = sum(b - a for a, b in self.coverage_intervals)
-            if self._run_start_t is not None and self._last_fire_t is not None:
-                total += max(0.0, self._last_fire_t - self._run_start_t)
-            metric = dict(longest_suppression_s=round(
-                              self.longest_suppression_s, 2),
+            gap_model = float(self.params.get('recovery_gap') or 0.0)
+            rows = [
+                dict(key='coverage_total', label='火力覆盖时间',
+                     value=round(total_suppression, 2), unit='s',
+                     verdict=('达标' if total_suppression >= float(
+                         self.params.get('required_duration') or 0) else '未达标'),
+                     note='各覆盖区间累计；中断后重新计时'),
+                dict(key='coverage_longest', label='最长连续压制',
+                     value=round(self.longest_suppression_s, 2), unit='s',
+                     verdict=('达标' if self.longest_suppression_s >= float(
+                         self.params.get('required_duration') or 0) else '未达标'),
+                     note='连续段最长值，决定效果是否达成'),
+                dict(key='recovery_gap', label='目标恢复时间',
+                     value=round(gap_model, 2), unit='s',
+                     verdict='模型参数',
+                     note='无人开火超过该时长即视为目标恢复行动能力'),
+                dict(key='gaps', label='压制中断',
+                     value=self.suppression_gaps, unit='次',
+                     verdict=('有中断' if self.suppression_gaps else '无中断'),
+                     note='实测最大中断 %.1f s' % self.max_gap_s),
+                dict(key='our_losses', label='我方损失',
+                     value=our_losses, unit='台',
+                     verdict=('有损失' if our_losses else '无损失'),
+                     note='执行期失联平台数'),
+            ]
+        else:
+            rows = [
+                dict(key='control_longest', label='控制时长',
+                     value=round(self.longest_control_s, 2), unit='s',
+                     verdict=('达标' if self.longest_control_s >= float(
+                         self.params.get('required_control_s') or 0) else '未达标'),
+                     note='连续控制最长区间；中断后重新计时'),
+                dict(key='control_intervals', label='控制区间',
+                     value=len(self.control_intervals), unit='段',
+                     verdict='已记录', note=str(self.control_intervals)),
+                dict(key='counterattacks', label='敌方反击次数',
+                     value=len(self.counterattacks), unit='次',
+                     verdict=('已击退' if self.counterattacks else '未发生'),
+                     note='反击时刻 %s；打断控制 %d 次' % (
+                         self.counterattacks or '—', self.control_interruptions)),
+                dict(key='handover_t', label='移交时间',
+                     value=(round(self.handover_t, 2)
+                            if self.handover_t is not None else None),
+                     unit='s',
+                     verdict=('已移交' if self.handover_t is not None else '未移交'),
+                     note='控制达成即移交，之后单独结算坚守'),
+                dict(key='hold_s', label='移交后坚守',
+                     value=round(self.hold_s, 2), unit='s',
+                     verdict=('达标' if self.hold_s >= float(
+                         self.params.get('hold_required_s') or 0) else '未达标'),
+                     note='与夺占分开结算'),
+                dict(key='our_losses', label='我方损失',
+                     value=our_losses, unit='台',
+                     verdict=('有损失' if our_losses else '无损失'),
+                     note='执行期失联平台数'),
+            ]
+        self.auxiliary = rows
+        return rows
+
+    def _fill_info_items(self):
+        total = sum(b - a for a, b in self.coverage_intervals)
+        if self._run_start_t is not None and self._last_fire_t is not None:
+            total += max(0.0, self._last_fire_t - self._run_start_t)
+        rows = self._auxiliary(total)
+        if self.effect_kind == 'damage':
+            metric = dict(hit_rate=next((r['value'] for r in rows
+                                         if r['key'] == 'hit_rate'), None),
+                          shots_fired=self.shots_fired,
+                          shots_hit=self.shots_hit,
+                          damage_level=round(self.damage_level, 2))
+        elif self.effect_kind == 'suppress':
+            metric = dict(longest_suppression_s=round(self.longest_suppression_s, 2),
                           total_suppression_s=round(total, 2),
-                          suppression_gaps=self.suppression_gaps)
+                          suppression_gaps=self.suppression_gaps,
+                          max_gap_s=round(self.max_gap_s, 2))
         else:
             metric = dict(longest_control_s=round(self.longest_control_s, 2),
                           hold_s=round(self.hold_s, 2),
-                          enemy_counterattacks=0)   # 桩：不模拟敌方反击
+                          enemy_counterattacks=len(self.counterattacks),
+                          control_interruptions=self.control_interruptions,
+                          handover_t=(round(self.handover_t, 2)
+                                      if self.handover_t is not None else None))
+        metric['our_losses'] = len(self.losses)
+        metric['auxiliary'] = rows
         self._set_item('ammo_used', 'info',
                        metric=dict(shots_fired=self.shots_fired,
                                    ammo_left=dict(self.ammo)),
                        evidence='fire_log')
         self._set_item('effect_metric', 'info', metric=metric,
-                       evidence='fire_log / coverage / control 区间')
+                       evidence='fire_log / coverage / control 区间 / 损失与反击记录')
         self._set_item('restrikes', 'info',
                        metric=dict(restrikes=self.restrikes),
                        evidence='restrike_needed 事件计数')
+        self.metrics['auxiliary'] = rows
+        self.metrics['our_losses'] = len(self.losses)
 
     def _ammo_exhausted(self):
-        """全体可开火成员弹药=0 且效果未达成 → 终止（夺占不消耗弹药）。"""
+        """全体可开火成员弹药=0 且效果未达成 → 终止（夺占不消耗弹药）。
+
+        已损失成员不再计入：都打光了还留着它的弹药份额，会让作业一直
+        拖到执行截止，而不是按"弹药耗尽"如实终止。
+        """
         if self.effect_kind == 'seize':
             return False
-        return bool(self.assault_pids) and all(
-            self.ammo.get(pid, 0) <= 0 for pid in self.assault_pids)
+        alive = [pid for pid in self.assault_pids if self._alive(pid)]
+        if not alive:
+            return True
+        return all(self.ammo.get(pid, 0) <= 0 for pid in alive)
 
-    def _terminate(self, t, reason, status='失败'):
-        """终止：只有达到规定效果才计成功；未评估的必需项按事实记未达成。"""
-        self.termination = reason
-        self._fill_info_items()
+    def _settle_items_by_fact(self, t, reason):
+        """终止/确认截止时按已发生事实结算各必需项（规范 §5）。
+
+        效果达成是独立事实：effect_achieved 已发生则该项记 achieved
+        （证据注明"未经评估确认"）；未发生则 failed。其余 pending 项
+        一律 failed——确认截止后仍 pending 按未达成处理，不冒充。
+        """
+        if self.effect_achieved_t is not None:
+            self._set_item(
+                'effect', 'achieved', t=self.effect_achieved_t,
+                evidence='effect_achieved 事件（终止前已达成，未经评估确认）')
+            if self.window:
+                ok = self._window_ok(self.effect_achieved_t)
+                self._set_item(
+                    'window', 'achieved' if ok else 'failed',
+                    t=self.effect_achieved_t,
+                    evidence='effect_achieved@%.1f，window=%s' % (
+                        self.effect_achieved_t, self.window))
+            if (self.effect_kind == 'seize'
+                    and self.handover_t is not None):
+                need = float(self.params['hold_required_s'])
+                self._set_item(
+                    'hold_after_handover',
+                    'achieved' if self.hold_s >= need else 'failed', t=t,
+                    evidence='坚守%.1fs / 要求%.1fs（移交@%.1f）' % (
+                        self.hold_s, need, self.handover_t))
+        self._set_item('confirmation', 'failed', t=t,
+                       evidence='terminate:%s（评估未回传）' % reason)
         for item in self.result_items:
             if item.get('required') and item['status'] == 'pending':
                 item.update(status='failed', t=round(t, 2),
                             evidence='terminate:%s' % reason)
+
+    def _terminate(self, t, reason, status='失败'):
+        """终止：只有达到规定效果才计成功；结果项按事实逐项结算。"""
+        self.termination = reason
+        self._fill_info_items()
+        self._settle_items_by_fact(t, reason)
         self._set_status(status)
         if reason == 'ammo_exhausted':
             self.emit('ammo_exhausted', ammo_left=dict(self.ammo),
@@ -981,12 +1226,9 @@ class AssaultBehavior(Behavior):
         """确认截止：效果达成但评估未回传 → 确认项未达成，整体不计成功。"""
         self.termination = 'confirmation_timeout'
         self._fill_info_items()
+        self._settle_items_by_fact(t, 'confirmation_timeout')
         self._set_item('confirmation', 'failed', t=t,
                        evidence='confirmation_timeout:评估未在确认截止前回传')
-        for item in self.result_items:
-            if item.get('required') and item['status'] == 'pending':
-                item.update(status='failed', t=round(t, 2),
-                            evidence='confirmation_timeout:确认截止后仍未确认')
         self.emit('confirmation_timeout',
                   deadline_t=round(self.confirm_deadline_t, 2))
         self.emit('terminate', reason='confirmation_timeout',
@@ -1020,6 +1262,9 @@ class AssaultBehavior(Behavior):
                                          for pid, v in self.arrivals.items()}
         self.metrics['result_items'] = [dict(x) for x in self.result_items]
         self.metrics['overall_status'] = self.status
+        self.metrics['losses'] = [dict(x) for x in self.losses]
+        self.metrics['counterattacks'] = list(self.counterattacks)
+        self.metrics['control_interruptions'] = self.control_interruptions
         overall = self._overall()
         if overall == 'pending':
             overall = 'failed'      # 结束态不允许 pending（确认截止/终止已核验）
@@ -1027,6 +1272,11 @@ class AssaultBehavior(Behavior):
             job_id=self.job_id, target_id=self.target_id,
             attempt=self.attempt, effect_kind=self.effect_kind,
             items=[dict(x) for x in self.result_items],
+            auxiliary=[dict(x) for x in getattr(self, 'auxiliary', [])],
+            losses=[dict(x) for x in self.losses],
+            counterattacks=list(self.counterattacks),
+            control_interruptions=self.control_interruptions,
+            role_check=self.metrics.get('role_check'),
             overall=overall, termination=self.termination,
             adjudicator=self._last_adjudicator or self.adjudicator.name,
             verified=self._last_verified,
@@ -1118,6 +1368,11 @@ class AssaultBehavior(Behavior):
                         if self.handover_t is not None else None),
             restrikes=self.restrikes,
             suppression_gaps=self.suppression_gaps,
+            max_gap_s=round(self.max_gap_s, 2),
+            losses=[dict(x) for x in self.losses],
+            counterattacks=list(self.counterattacks),
+            control_interruptions=self.control_interruptions,
+            role_check=self.metrics.get('role_check'),
             members=members,
             events=[dict(kind=e['kind'], t=e['t'])
                     for e in self.history
@@ -1190,6 +1445,10 @@ class AssaultBehavior(Behavior):
         self.t = t
         self._poses = poses
         p = self.params
+        # 第二道角色闸门：突击组载荷不达标时，不接受"让无人机扛弹"的编成。
+        if self.role_blocked and not self.done:
+            self._terminate(t, 'role_infeasible', status='失败')
+            return dict(targets={}, phase=self.phase, done=True)
         tol = p['arrive_tol']
         targets = {}
         if self.phase == '机动':
@@ -1317,12 +1576,6 @@ class AssaultBehavior(Behavior):
                                     if self.assessment_post else None),
                               source=self.adjudicator.name,
                               delay_s=max(0.0, float(p['assessment_delay'])))
-                    self.emit('result_pending', source=self.adjudicator.name,
-                              deadline_t=round(self.confirm_deadline_t, 2)
-                              if self.confirm_deadline_t is not None else None,
-                              items=[dict(x) for x in self.result_items],
-                              missing=[x['id'] for x in self.result_items
-                                       if x.get('required')])
             if not self.assessed:
                 if (self.confirm_deadline_t is not None
                         and t > self.confirm_deadline_t):
@@ -1384,7 +1637,9 @@ class AssaultBehavior(Behavior):
                     damage_level=round(self.damage_level, 2),
                     suppression_s=round(self.longest_suppression_s, 2),
                     control_s=round(self.longest_control_s, 2),
-                    hold_s=round(self.hold_s, 2))
+                    hold_s=round(self.hold_s, 2),
+                    counterattacks=len(self.counterattacks),
+                    losses=len(self.losses))
 
 
 # ------------------------------------------------------------------
