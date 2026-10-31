@@ -27,7 +27,7 @@
 
 ## 本地 Git 与并行协作（2026-10-29）
 
-- 工程根目录已建立本地 Git；当前不连接远程，署名仅本项目为 ammo <ammo@localhost>。开发快照标签为 baseline-20261029，不代表功能已验证。
+- 工程根目录已建立本地 Git；2026-10-31已按用户授权连接公开远程 origin=https://github.com/AMMO412/marl-project.git，main跟踪origin/main；署名仅本项目为 ammo <ammo@localhost>。开发快照标签为 baseline-20261029，不代表功能已验证。
 - 开始工作先查看 git status；共享目录中有其他 agent 修改时，不擅自切换分支、恢复文件、清理历史或改写他人的暂存区。
 - 只有本轮授权的独立修改才选择性暂存和提交；提交前核对整个暂存区，不能自动 git add . 混入其他 agent 的改动。验证状态写清，不把开发快照称为发布版。
 - 历史查看优先 git show 或独立 worktree；当前未提交的修改不在历史中，需要另行保存。项目 Git 与 Obsidian Git 各自独立。

@@ -32,3 +32,12 @@
 ## 更多
 
 [项目结构与维护](docs/项目结构.md) · [配置导航](configs/README.md) · [成果目录](outputs/README.md) · [外部资料](资料/README.md)
+
+## 下载与版本同步
+
+公开仓库：[AMMO412/marl-project](https://github.com/AMMO412/marl-project)。
+
+- 只下载当前文件：[下载 main 分支 ZIP](https://github.com/AMMO412/marl-project/archive/refs/heads/main.zip)，解压后阅读本入口并按“启动”操作。仿真素材较大，下载可能需要一些时间。
+- 需要保留版本历史：`git clone https://github.com/AMMO412/marl-project.git`。
+- 本地修改、检查并提交后，用 `git push` 同步到 GitHub；GitHub不会自动获取尚未提交的本地文件。
+- ZIP不含Git历史，也不等于完整运行环境；Windows/WSL、Python、Gazebo等依赖按相关说明配置。当前仓库快照不表示已完成真实平台联调或完整验收。
