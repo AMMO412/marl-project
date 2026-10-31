@@ -373,6 +373,11 @@ class InteropPlanner(object):
                 # 运动的到达时刻才与计划同源。
                 live.speed = float(item.speed_mps)
                 live.work_rate = float(item.work_rate)
+                # 载荷/传感器也以 4.1 编成表为准：基座行为层的“突击组载荷
+                # 下限”读的是指令投递块，不改这两项会出现“计划按编成表、
+                # 执行按 fleet 默认”的两套参数。
+                live.payload = float(item.payload)
+                live.sensor = str(item.sensor)
                 live.battery = max(float(live.battery), 1.0e6)
                 live.can_climb = bool(item.is_air)
             # 在途指令把平台占到 expected_end；重规划必须把它当“最早可用时刻”，
