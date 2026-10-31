@@ -44,6 +44,11 @@ def gate_platform(platform: Platform, subtask: Subtask,
     if not has_capabilities(platform, subtask.required_capabilities):
         return False, "NO_CAPABILITY", "能力不满足 %s" % (
             subtask.required_capabilities,)
+    if subtask.pinned_unit and platform.unit_id != subtask.pinned_unit:
+        return False, "PINNED", "该席位固定给 %s" % subtask.pinned_unit
+    if subtask.min_payload > 0 and float(platform.payload) + EPS < subtask.min_payload:
+        return False, "PAYLOAD", "载荷 %.2f 低于席位下限 %.2f" % (
+            float(platform.payload), subtask.min_payload)
     window_length = subtask.window_end_s - subtask.window_start_s
     if subtask.duration_s > window_length + EPS:
         return False, "WINDOW", "作业时长 %.1fs 超过时间窗长度 %.1fs" % (
@@ -60,6 +65,8 @@ def reason_to_conflict_type(reason: str) -> str:
     return {
         "NO_CAPABILITY": "CAPABILITY",
         "STATUS": "CAPABILITY",
+        "PAYLOAD": "CAPABILITY",
+        "PINNED": "COORDINATION",
         "NO_GO": "CONSTRAINT",
         "NO_ROUTE": "ROUTE",
         "WINDOW": "WINDOW",

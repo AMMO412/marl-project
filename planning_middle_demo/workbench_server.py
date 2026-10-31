@@ -21,14 +21,17 @@ STATIC = ROOT / 'workbench'
 OUTPUTS = ROOT / 'outputs'
 SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场景',
              'asl_city': '城市十字路口机动突击',
-             'interop_neutral': '融合版中性任务（4.1 统一接口）'}
-# 融合统一层只能跑中性任务；含突击/效果判定的场景继续用基座规划器。
-INTEROP_SCENARIOS = {'interop_neutral'}
+             'interop_neutral': '融合版中性任务（4.1 统一接口）',
+             'interop_asl': '融合版机动突击（4.1 样例）'}
+# 融合统一层覆盖五类任务：中性四类 + T-ASL（打击/判定仍由基座行为层执行）。
+INTEROP_SCENARIOS = {'interop_neutral', 'interop_asl'}
 # 4.1 原生场景：工作台直接读消息+编成表，规划走 interop，运行时用派生 v2 视图。
 INTEROP_PAIRS = {'interop_neutral': ('mixed_inspection.message.json',
-                                     'mixed_inspection.formation.json')}
+                                     'mixed_inspection.formation.json'),
+                 'interop_asl': ('asl_junction.message.json',
+                                 'asl_junction.formation.json')}
 # 带静态障碍地图、可以开绕障的场景（其余场景没有真实障碍，绕障无意义）
-AVOID_SCENARIOS = {'simple_city', 'asl_city'}
+AVOID_SCENARIOS = {'simple_city', 'asl_city', 'interop_asl'}
 MODES = {'normal': '正常执行', 'failure': '失败重试', 'timeout': '超时恢复',
          'kill': '成员失联', 'deviation': '进度偏差'}
 ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
@@ -77,9 +80,8 @@ def validate_config(data):
         if not isinstance(result[key], str) or result[key] not in choices:
             raise ValueError('无效参数：' + key)
     if result['planner'] == 'interop' and result['scenario'] not in INTEROP_SCENARIOS:
-        raise ValueError('融合统一层只支持中性任务场景（%s）；突击/效果判定'
-                         '场景请选基座规划器'
-                         % '/'.join(sorted(INTEROP_SCENARIOS)))
+        raise ValueError('融合统一层支持五类任务样例（%s）；其它历史场景请选基座'
+                         '规划器' % '/'.join(sorted(INTEROP_SCENARIOS)))
     if result['scenario'] in INTEROP_PAIRS and result['planner'] != 'interop':
         raise ValueError('该场景是 4.1 原生输入，只能用融合统一层规划器（避免'
                          '有损转换后交给基座规划器）')
@@ -96,8 +98,16 @@ def validate_config(data):
         result['max_ticks'] = 620
     if 'max_ticks' not in data and result['scenario'] == 'interop_neutral':
         result['max_ticks'] = 260
+    if 'max_ticks' not in data and result['scenario'] == 'interop_asl':
+        result['max_ticks'] = 700
     if 'avoid' not in data and result['scenario'] in INTEROP_PAIRS:
-        result['avoid'] = False
+        result['avoid'] = result['scenario'] == 'interop_asl'
+    if result['scenario'] == 'interop_asl':
+        # 4.1 原生突击样例：行为与效果判定必须开，且只能逐步运动 + 城市避障。
+        if result['motion'] != 'real':
+            raise ValueError('融合版机动突击需要逐步运动（motion=real）')
+        result['avoid'] = True
+        result['behavior'] = True
     if type(result['avoid']) is not bool:
         raise ValueError('avoid 必须是布尔值')
     if type(result['behavior']) is not bool:
@@ -150,10 +160,12 @@ def run_worker(out):
                   'scenario_sha256': hashlib.sha256(source.read_bytes()).hexdigest()}
     # 效果类型注入（T-ASL 规范 §7）：新建演示选择的效果分类写进突击作业
     # 的 _behavior.effect_kind，行为层与评估接口据此走对应判定分支。
-    for job in scenario.get('jobs', []):
-        if job.get('type') == 'assault':
-            bh = job.setdefault('_behavior', {})
-            bh['effect_kind'] = config['effect_kind']
+    # 4.1 原生突击样例以消息里的 effect 为权威，工作台不覆盖。
+    if config['scenario'] != 'interop_asl':
+        for job in scenario.get('jobs', []):
+            if job.get('type') == 'assault':
+                bh = job.setdefault('_behavior', {})
+                bh['effect_kind'] = config['effect_kind']
     content = json.dumps(scenario, ensure_ascii=False, indent=2)
     if custom is None and config['planner'] == 'interop':
         from interop.runtime import planner_from_v2

@@ -1,4 +1,4 @@
-# interop · 1028 4.1/4.2 统一接口与中性任务规划（融合层）
+# interop · 1028 4.1/4.2 统一接口与五类任务规划（融合层）
 
 `interop` 是本工程（`planning_middle_demo`，基座）与 M2 编队规划器融合后的
 统一入口。它不是把 M2 整体搬过来，而是把两边**通用**的长处合成一条可运行
@@ -16,14 +16,15 @@ plan.json / assignments.csv / commands.csv / report.md / manifest.json
 
 边界写在代码里，不靠口头约定：
 
-- **只做四类中性任务**：`T-RCN`（协同侦察）、`T-SEC`（区域封控）、
-  `T-PTL`（巡逻警戒）、`T-HLD`（要点坚守）。`T-ASL` 在解析阶段报
-  `UNSUPPORTED_TASK_TYPE`，不降级、不静默丢字段。
-- **不含**攻击阵位、`fires`、武器/毁伤/效果判定。
+- **做五类任务**：`T-RCN`（协同侦察）、`T-SEC`（区域封控）、`T-PTL`（巡逻警戒）、
+  `T-HLD`（要点坚守）、`T-ASL`（机动突击）。T-ASL 只规划侦察/突击/评估席位、
+  时序与机动；打击动作、弹药消耗和毁伤/压制/夺占判定由基座行为层与评估接口执行。
 - 不发布 ROS、不启动 Gazebo、不写运行终态；`result_status=PLAN_ONLY`、
   `evidence_source=NO_EXECUTION_EVIDENCE` 表示“只有计划，没有执行证据”。
-- 本层只输出 TRANSIT/HOLD/STOP。任务段动作尚未与基座行为层完成无损对接，
-  不能把 HOLD 计划或输入可解析当作行为已执行。
+- 本层只输出 TRANSIT/HOLD/STOP；任务段动作由基座行为层接管。T-ASL 的
+  `assignments` 带 `role`，但 4.2 指令契约不新增火力动作。
+- 计划报告只证明“谁、何时、走哪条路”，不把计划当成效果已达成；效果结论以
+  运行记录里的 `assessment_received` / `behavior_result` 为准（默认桩判定）。
 
 ## 1 快速开始
 
@@ -80,12 +81,13 @@ python run_demo_v2.py --scenario <场景.json> --planner auto
 python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统一层
 ```
 
-工作台：`启动工作台.cmd` 现在直接打开“融合版中性任务”的新建演示；场景下拉只保留
-该样例与 `asl_city` 历史入口，规划器与运动模式不再让用户选择（中性样例固定
-`interop` + 逐步运动）。运行完成后，4.2 的 `plan.json` / `assignments.csv` /
+工作台：`启动工作台.cmd` 打开“融合版中性任务”的新建演示；场景下拉现有三个入口：
+融合版中性任务（`interop_neutral`）、融合版机动突击（`interop_asl`，4.1 T-ASL 样例）、
+以及 `asl_city` 历史入口。两个融合样例固定 `interop` + 逐步运动，`interop_asl`
+自动开行为与城市避障。运行完成后，4.2 的 `plan.json` / `assignments.csv` /
 `commands.csv` / `report.md` / `ros2_commands.txt` 会和反馈轨迹一起保存在
-`planning_middle_demo/outputs/workbench_*/`，可在“项目文件”页直接下载。其它含
-突击/效果判定的场景继续用基座 `planner_v2`，不会被有损转换或错误语义接管。
+`planning_middle_demo/outputs/workbench_*/`，可在“项目文件”页直接下载。
+`asl_city` 继续用基座 `planner_v2` 作历史对照。
 
 对接实现（`interop/runtime.py`）：
 
@@ -99,7 +101,30 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
 | 运动口径 | 4.1 编成表的速度/续航同步给协调器，逐步运动的到达时刻才与计划同源；否则会退回 fleet 默认的 0.8 m/s |
 | 计划留存 | 工作台运行后把 4.2 计划产物复制到运行目录，路径/指令/发布命令可追溯 |
 | 槽位同步 | 基座没有“同作业多段串行槽位”的表达，运行适配器把所有槽位对齐为同时开始 |
-| 拒绝边界 | 含 `assault` 的 v2 场景明确拒绝/回退，不做降级或猜测 |
+| T-ASL 对接 | 4.1 T-ASL → `type=assault` 基座作业 + `_behavior`；侦察/突击/评估席位与出发时刻由统一层定，打击与判定归行为层 |
+
+### 1.2 机动突击（T-ASL）
+
+- **4.1 输入**：`task_type=T-ASL`，目标是单点（`point`/`key_point`/`target_list` 单点）；
+  `params` 至少给 `effect`（`damage`/`suppress`/`seize`，接受中文标签），
+  阈值 `required_level` / `required_duration` / `required_control_s`，
+  突击载荷下限 `payload_required`，侦察/评估席位 `scout` / `assessor`
+  （`count` + `capabilities` + 可选 `unit`），以及 `attack_window`、`staging_center`、
+  `assessment_post`、`assessment_delay`、`confirmation_deadline`、`execute_deadline`、
+  `withdraw*`、`roe` 等；`duration_s` 默认 140。
+- **分解**：侦察席（观察位，先行）→ 突击席（目标环，带载荷下限，等侦察席完成后
+  开始）→ 评估席（评估观察位，与突击同时段机动）。显式 `scout_unit` /
+  `assessor_unit` 时固定到指定平台；缺省按编成能力选（RCN 高者侦察、次高者评估）。
+- **计划**：`assignments[].role` 为 `scout` / `assault` / `assessor`，
+  `assignments.csv` 增列 `role`；`commands` 仍只产 TRANSIT/HOLD/STOP，
+  打击段不在 4.2 表达。报告 §2.1 列出效果参数与席位，但只代表计划要求。
+- **运行**：`to_v2_dict` 生成 `type=assault` 的基座作业与 `_behavior`
+  （效果、几何、时序、侦察/评估 pid），`InteropPlanner` 只回写 pids/start/end/travel，
+  不改写突击作业的 `work`（进度按行为阶段计）。行为层执行打击与评估，
+  `assessment.py` 出逐项结论。
+- **样例**：`interop/scenarios/asl_junction.message.json` +
+  `asl_junction.formation.json`；命令行 `python -m interop.cli demo --message ...`
+  会自动开行为/城市避障/逐步运动（`--max-ticks 700`）。
 
 `to-v2` 仍是**无损性检查**：缺能力就拒绝并不写文件。运行对接不走它，
 而是在内存里生成带 `_meta.interop` 的 v2 运行视图；该视图只用于基座
@@ -163,7 +188,7 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
 
 | M2 的做法 | 在 interop 中的落点 | 是否改动语义 |
 | --- | --- | --- |
-| 4.1 消息与编成表分离、严格校验 | `message.py` | 收紧：只接受 0.3，拒绝 T-ASL |
+| 4.1 消息与编成表分离、严格校验 | `message.py` | 收紧：只接受 0.3；五类任务均校验，T-ASL 额外校验效果参数与角色席位 |
 | 父任务→子任务→分配→指令分层 | `templates.py` / `scheduler.py` / `model.py` | 保留，便于追溯 |
 | 能力闸门与拒绝原因 | `gate.py`、`unassigned[].reason` | 保留 |
 | 协同组匈牙利匹配 | `assignment.py`、`scheduler._solve_group` | **修**：统一开始时刻，组内平台预留 |
@@ -223,7 +248,7 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
 python -m unittest discover -s tests -p "test_interop*.py" -v
 ```
 
-覆盖：schema 0.3 严格性、source 别名、T-ASL 拒绝、字段/依赖/目标校验、
+覆盖：schema 0.3 严格性、source 别名、T-ASL 解析/角色分解/载荷闸门/运行视图、字段/依赖/目标校验、
 robot_id 分配、能力等级、分解上限、匈牙利、避障 A*、协同对齐、命令阶段与
 STOP、确定性、窗口/能力/禁入区拒绝、审计（窗口/穿障碍/兵力上限）、
 输出与 manifest、离线CLI端到端、`to-v2`拒绝有损转换且保护已有输出、

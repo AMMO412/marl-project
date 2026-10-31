@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-"""四类中性任务的分解规则（T-RCN / T-SEC / T-PTL / T-HLD）。
+"""五类任务的分解规则（T-RCN / T-SEC / T-PTL / T-HLD / T-ASL）。
 
 沿用 M2 的槽位思路：一个父任务按“区域竖条 / 路线分段 / 入口点 / 阵位点”
 拆成若干可独立执行的单平台子任务；父任务依赖在末尾展开为子任务之间的
-完成到开始依赖。T-ASL 不在本层范围，解析阶段已经拒绝。
+完成到开始依赖。T-ASL 额外按侦察/突击/评估三类角色拆槽位，打击与效果
+判定仍由执行层承担。
 """
 
 import copy
+import math
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from .errors import PlanningError
 from .geometry import bbox, polygon_centroid
-from .message import target_points
+from .message import target_point, target_points
 from .model import Platform, Scenario, Subtask, Task
 
 Point = Tuple[float, float]
@@ -280,11 +282,95 @@ def _decompose_hld(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
                         % task.task_id)
 
 
+def _asl_ring_point(center: Point, radius: float, angle: float) -> Point:
+    return (float(center[0]) + float(radius) * math.cos(angle),
+            float(center[1]) + float(radius) * math.sin(angle))
+
+
+def _decompose_asl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
+    """T-ASL：按侦察 / 突击 / 评估三类角色拆槽位。
+
+    - 侦察席在观察位，先到位；突击席依赖侦察席完成（指示后才发起冲击）；
+    - 突击席按 ``assault_units`` 数量围绕目标均匀展开，带载荷下限；
+    - 评估席前出评估观察位，与突击同时段机动，不等待突击结束；
+    - 显式 ``scout_unit`` / ``assessor_unit`` 时把该槽位固定到指定平台。
+    打击动作、弹药与效果判定不在本层，由执行层行为与评估接口接管。
+    """
+    params = task.params
+    site = target_point(task.target)
+    duration = float(params.get("duration_s", 140.0))
+    if duration <= 0:
+        raise PlanningError("%s.duration_s 必须大于 0" % task.task_id)
+
+    scout = params.get("scout") or {"count": 1, "capabilities": {"RCN": 2},
+                                    "unit": params.get("scout_unit")}
+    assessor = params.get("assessor") or {"count": 1, "capabilities": {"RCN": 1},
+                                          "unit": params.get("assessor_unit")}
+    scout_count = int(scout.get("count", 1))
+    assessor_count = int(assessor.get("count", 1))
+    assault_units = int(params.get("assault_units")
+                        or max(1, int(task.min_units) - scout_count - assessor_count))
+    payload_required = float(params.get("payload_required", 4.0))
+    objective_radius = float(params.get("objective_radius", 14.0))
+    observe_radius = float(params.get("observe_radius", 25.0))
+    observe_angle = float(params.get("observe_angle", 0.0))
+    scout_duration = float(params.get("scout_duration_s", 10.0))
+    assess_duration = float(params.get("assess_duration_s", 10.0))
+
+    observation = _asl_ring_point(site, observe_radius, observe_angle)
+    assessment_post = params.get("assessment_post")
+    if assessment_post is None:
+        assessment_post = _asl_ring_point(site, observe_radius, math.pi / 2.0)
+    assessment_post = (float(assessment_post[0]), float(assessment_post[1]))
+
+    items: List[Subtask] = []
+    scout_ids: List[str] = []
+    index = 1
+    for _ in range(scout_count):
+        subtask = _make_subtask(task, index, {"point": list(observation)},
+                                scout_duration, coordination=_coordination(task))
+        subtask.role = "scout"
+        subtask.required_capabilities = dict(scout.get("capabilities") or {})
+        if scout_count == 1 and scout.get("unit"):
+            subtask.pinned_unit = str(scout["unit"])
+        items.append(subtask)
+        scout_ids.append(subtask.subtask_id)
+        index += 1
+
+    for i in range(assault_units):
+        angle = 2.0 * math.pi * i / max(1, assault_units)
+        target = _asl_ring_point(site, objective_radius, angle)
+        subtask = _make_subtask(
+            task, index, {"point": list(target)}, duration,
+            coordination=list(dict.fromkeys(_coordination(task)
+                                            + ["simultaneous_arrival"])))
+        subtask.role = "assault"
+        subtask.min_payload = payload_required
+        subtask.depends_on = list(scout_ids)
+        items.append(subtask)
+        index += 1
+
+    for _ in range(assessor_count):
+        subtask = _make_subtask(task, index, {"point": list(assessment_post)},
+                                assess_duration, coordination=_coordination(task))
+        subtask.role = "assessor"
+        subtask.required_capabilities = dict(assessor.get("capabilities") or {})
+        if assessor_count == 1 and assessor.get("unit"):
+            subtask.pinned_unit = str(assessor["unit"])
+        items.append(subtask)
+        index += 1
+
+    if not items:
+        raise PlanningError("%s（T-ASL）没有可执行席位" % task.task_id)
+    return items
+
+
 _DECOMPOSERS = {
     "T-RCN": _decompose_rcn,
     "T-SEC": _decompose_sec,
     "T-PTL": _decompose_ptl,
     "T-HLD": _decompose_hld,
+    "T-ASL": _decompose_asl,
 }
 
 

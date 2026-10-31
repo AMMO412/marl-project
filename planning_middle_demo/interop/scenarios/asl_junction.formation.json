@@ -1,0 +1,142 @@
+{
+  "formation": {
+    "formation_id": "INTEROP-ASL-JUNCTION",
+    "units": [
+      {
+        "unit_id": "UGV-01",
+        "platform_type": "rover",
+        "platform_class": "UGV",
+        "robot_id": 1,
+        "capabilities": {"RCN": 2, "STK": 1, "PTL": 2, "HLD": 2},
+        "position": {"x": 0.0, "y": -22.5},
+        "speed_mps": 0.8,
+        "endurance_s": 36000.0,
+        "payload": 6.0,
+        "sensor": "eo",
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-11",
+        "platform_type": "rover",
+        "platform_class": "UGV",
+        "robot_id": 11,
+        "capabilities": {"RCN": 2, "STK": 1, "PTL": 2, "HLD": 2},
+        "position": {"x": -5.0, "y": -22.5},
+        "speed_mps": 0.8,
+        "endurance_s": 36000.0,
+        "payload": 6.0,
+        "sensor": "eo",
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-21",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 21,
+        "capabilities": {"RCN": 1, "STK": 3, "PTL": 1, "HLD": 3},
+        "position": {"x": -10.0, "y": -22.5},
+        "speed_mps": 1.0,
+        "endurance_s": 36000.0,
+        "payload": 8.0,
+        "sensor": "eo",
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-22",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 22,
+        "capabilities": {"RCN": 1, "STK": 3, "PTL": 1, "HLD": 3},
+        "position": {"x": -10.0, "y": -17.5},
+        "speed_mps": 1.0,
+        "endurance_s": 36000.0,
+        "payload": 8.0,
+        "sensor": "eo",
+        "status": "READY"
+      },
+      {
+        "unit_id": "UAV-31",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 31,
+        "capabilities": {"RCN": 3, "STK": 0, "PTL": 2, "HLD": 0},
+        "position": {"x": -15.0, "y": -22.5},
+        "altitude_m": 30.0,
+        "vertical_speed_mps": 3.0,
+        "speed_mps": 2.0,
+        "endurance_s": 36000.0,
+        "payload": 2.0,
+        "sensor": "sar",
+        "status": "READY"
+      },
+      {
+        "unit_id": "UAV-41",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 41,
+        "capabilities": {"RCN": 2, "STK": 2, "PTL": 2, "HLD": 0},
+        "position": {"x": -20.0, "y": -22.5},
+        "altitude_m": 25.0,
+        "vertical_speed_mps": 3.0,
+        "speed_mps": 1.6,
+        "endurance_s": 36000.0,
+        "payload": 1.5,
+        "sensor": "ir",
+        "status": "READY"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "constraint_id": "HOUSE-01",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-145.6, -191.8], [-129.2, -191.8], [-129.2, -178.9], [-145.6, -178.9]]},
+      "height_m": 7.69
+    },
+    {
+      "constraint_id": "HOUSE-02",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-60.6, -190.7], [-47.9, -190.7], [-47.9, -180.9], [-60.6, -180.9]]},
+      "height_m": 7.23
+    },
+    {
+      "constraint_id": "HOUSE-03",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-144.1, -109.4], [-130.9, -109.4], [-130.9, -100.7], [-144.1, -100.7]]},
+      "height_m": 9.17
+    },
+    {
+      "constraint_id": "HOUSE-04",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-60.9, -111.1], [-44.4, -111.1], [-44.4, -98.2], [-60.9, -98.2]]},
+      "height_m": 7.69
+    },
+    {
+      "constraint_id": "OFFICE-01",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-173.9, -153.9], [-156.2, -153.9], [-156.2, -136.2], [-173.9, -136.2]]},
+      "height_m": 18.66
+    },
+    {
+      "constraint_id": "OFFICE-02",
+      "type": "no_go",
+      "applies_to": "ground",
+      "area": {"polygon": [[-33.9, -153.9], [-16.2, -153.9], [-16.2, -136.2], [-33.9, -136.2]]},
+      "height_m": 18.66
+    }
+  ],
+  "meta": {
+    "cell_size_m": 1.0,
+    "grid_cell_m": 2.0,
+    "grid_margin_m": 1.5,
+    "plan_id": "PLAN-ASL-JUNCTION",
+    "scene": "container_00",
+    "scene_bounds": [-290.0, -230.0, 290.0, 230.0],
+    "source_sdf": "container_00_combined_scene.sdf"
+  }
+}

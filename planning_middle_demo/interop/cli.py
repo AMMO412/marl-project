@@ -153,8 +153,13 @@ def cmd_demo(args) -> int:
     v2["objective"] = ("energy" if args.objective == "energy" else "makespan")
     engine = InteropPlanner(scenario, objective=args.objective, data=v2)
     from run_demo_v2 import simulate
+    # T-ASL 的打击与效果判定在基座行为层，运行必须开行为、避障和逐步运动；
+    # 其余任务沿用命令行参数，不改变既有 demo 语义。
+    has_asl = any(task.task_type == "T-ASL" for task in scenario.tasks)
     report, audit = simulate(v2, mode=args.mode, max_ticks=args.max_ticks,
-                             motion=args.motion, planner=engine)
+                             motion=("real" if has_asl else args.motion),
+                             avoid=bool(has_asl), behavior=bool(has_asl),
+                             planner=engine)
     # 同一份 4.1 输入的计划层产物（4.2），与运行报告分开放
     plan = Planner(scenario, objective=args.objective).plan()
     paths = write_outputs(

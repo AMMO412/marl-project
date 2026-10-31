@@ -4,8 +4,9 @@
 与 M2 的差异（有意的收紧）：
   * ``schema_version`` 只接受 ``"0.3"``；0.1/0.2 明确拒绝（已确认的外部
     接口规则），不做静默兼容。
-  * 任务类型只接受四类中性任务；``T-ASL`` 报 ``UNSUPPORTED_TASK_TYPE``，
-    不静默降级成别的模板。
+  * 任务类型接受五类：四类中性任务 + ``T-ASL``。T-ASL 的目标只允许单点，
+    效果参数（effect/required_*）在本层校验并归一化；打击动作和效果判定
+    仍由执行层承担，本层不判成败。
   * 编成表单位在 M2 字段基础上增加基座画像字段（payload / sensor /
     battery / work_rate / move_cost / work_cost），两边字段都保留，不合并
     成同一个数值。
@@ -34,10 +35,13 @@ SOURCE_ALIASES = {
     "AUTONOMOUS": "AUTONOMOUS", "自主": "AUTONOMOUS",
 }
 
-TASK_TYPES = ("T-RCN", "T-SEC", "T-PTL", "T-HLD")
-REJECTED_TASK_TYPES = {"T-ASL": "T-ASL（机动突击）不在本层融合范围；本层只做"
-                               "侦察/封控/巡逻/坚守四类中性任务，遇到突击、"
-                               "攻击阵位或 fires 请回到原工程，不在统一接口里降级。"}
+TASK_TYPES = ("T-RCN", "T-SEC", "T-PTL", "T-HLD", "T-ASL")
+# 效果三分类：中文标签与 token 都接受，进入 params 后统一为 token。
+ASL_EFFECTS = {"damage": "damage", "毁伤": "damage",
+               "suppress": "suppress", "压制": "suppress",
+               "seize": "seize", "夺占": "seize"}
+ASL_POINT_TARGETS = ("point", "key_point", "target_list")
+ASL_ROLE_DEFAULT_CAPS = {"scout": {"RCN": 2}, "assessor": {"RCN": 1}}
 
 TARGET_KINDS = ("area", "sector", "patrol_area", "defense_area",
                 "route", "point", "key_point", "target_list")
@@ -230,6 +234,129 @@ def _validate_target(target: Any, task_id: str) -> None:
         _as_point(value, "%s.target.%s" % (task_id, kind))
 
 
+def _asl_role(params: Dict[str, Any], key: str,
+              task_id: str) -> Dict[str, Any]:
+    """归一化侦察/评估角色：``{count, capabilities, unit}``，缺省各 1 台。"""
+    raw = params.get(key)
+    if raw is None:
+        return {"count": 1, "capabilities": dict(ASL_ROLE_DEFAULT_CAPS[key]),
+                "unit": None}
+    if not isinstance(raw, dict):
+        raise WireError("%s.params.%s 必须是对象" % (task_id, key))
+    unknown = [item for item in raw
+               if item not in ("count", "capabilities", "unit")]
+    if unknown:
+        raise WireError("%s.params.%s 含未约定字段: %s"
+                        % (task_id, key, ", ".join(sorted(unknown))))
+    count = _integer(raw.get("count", 1), "%s.params.%s.count" % (task_id, key))
+    if count < 0:
+        raise WireError("%s.params.%s.count 不能为负" % (task_id, key))
+    caps = _as_capabilities(raw.get("capabilities") or {},
+                            "%s.params.%s.capabilities" % (task_id, key))
+    unit = raw.get("unit")
+    if unit is not None and (not isinstance(unit, str) or not unit):
+        raise WireError("%s.params.%s.unit 必须是非空字符串" % (task_id, key))
+    return {"count": count,
+            "capabilities": caps or dict(ASL_ROLE_DEFAULT_CAPS[key]),
+            "unit": unit}
+
+
+def _validate_asl(task: Dict[str, Any]) -> None:
+    """T-ASL 字段校验与默认值归一化（就地写入 task.params）。
+
+    只校验规划层需要的部分：单点目标、效果参数、角色席位、时序与几何。
+    打击动作、弹药消耗和效果判定不在本层，交给执行层行为与评估接口。
+    """
+    task_id = task["task_id"]
+    target = task["target"]
+    params = task["params"]
+
+    kinds = [key for key in target if key in TARGET_KINDS]
+    if len(kinds) != 1 or kinds[0] not in ASL_POINT_TARGETS:
+        raise WireError("%s（T-ASL）target 必须是 point / key_point / "
+                        "target_list 之一，实际为: %s"
+                        % (task_id, ", ".join(kinds) if kinds else "无"))
+    if kinds[0] == "target_list" and len(target["target_list"]) != 1:
+        raise WireError("%s（T-ASL）target_list 只能给出一个目标点" % task_id)
+
+    effect = params.get("effect", "damage")
+    if not isinstance(effect, str) or effect.strip() not in ASL_EFFECTS:
+        raise WireError("%s.params.effect 必须是 damage/suppress/seize"
+                        "（或毁伤/压制/夺占），实际为 %r" % (task_id, effect))
+    params["effect"] = ASL_EFFECTS[effect.strip()]
+
+    for key, default in (("required_level", 6.0),
+                         ("required_duration", 10.0),
+                         ("required_control_s", 10.0),
+                         ("payload_required", 4.0),
+                         ("duration_s", 140.0)):
+        params[key] = _positive(params.get(key, default),
+                                "%s.params.%s" % (task_id, key))
+    for key, default in (("assessment_delay", 0.0),
+                         ("confirmation_deadline", 120.0),
+                         ("execute_deadline", 0.0),
+                         ("withdraw_deadline", 0.0),
+                         ("withdraw_ring", 2.0),
+                         ("observe_radius", 25.0),
+                         ("observe_angle", 0.0),
+                         ("objective_radius", 14.0)):
+        value = _number(params.get(key, default), "%s.params.%s" % (task_id, key))
+        if key != "observe_angle" and value < 0:
+            raise WireError("%s.params.%s 不能为负" % (task_id, key))
+        params[key] = value
+
+    start, end = _as_window(params.get("attack_window", task["window"]),
+                            "%s.params.attack_window" % task_id)
+    params["attack_window"] = [start, end]
+
+    scout = _asl_role(params, "scout", task_id)
+    assessor = _asl_role(params, "assessor", task_id)
+    for key, role in (("scout", scout), ("assessor", assessor)):
+        explicit = params.get(key + "_unit")
+        if explicit is not None and role["unit"] is not None \
+                and explicit != role["unit"]:
+            raise WireError("%s.params.%s_unit 与 params.%s.unit 冲突"
+                            % (task_id, key, key))
+        unit = explicit if explicit is not None else role["unit"]
+        if unit is not None and (not isinstance(unit, str) or not unit):
+            raise WireError("%s.params.%s_unit 必须是非空字符串" % (task_id, key))
+        role["unit"] = unit
+        params[key + "_unit"] = unit
+    if scout["unit"] and scout["unit"] == assessor["unit"]:
+        raise WireError("%s.params 中侦察与评估不能是同一台平台: %s"
+                        % (task_id, scout["unit"]))
+    params["scout"], params["assessor"] = scout, assessor
+
+    min_units = _integer(task["min_units"], "%s.min_units" % task_id)
+    slots = scout["count"] + assessor["count"]
+    if slots >= min_units:
+        raise WireError("%s（T-ASL）侦察+评估共 %d 席，min_units=%d，"
+                        "至少需要 1 个突击席位" % (task_id, slots, min_units))
+    params["assault_units"] = min_units - slots
+
+    for key in ("staging_center", "assessment_post", "withdraw_point"):
+        if key in params:
+            params[key] = list(_as_point(params[key],
+                                         "%s.params.%s" % (task_id, key)))
+    for key in ("withdraw", "positive_id_required"):
+        if key in params and not isinstance(params[key], bool):
+            raise WireError("%s.params.%s 必须是布尔值" % (task_id, key))
+    for key in ("roe", "collateral_limit", "target_id", "object_label"):
+        if key in params and not isinstance(params[key], str):
+            raise WireError("%s.params.%s 必须是字符串" % (task_id, key))
+    if "waves" in params:
+        waves = _integer(params["waves"], "%s.params.waves" % task_id)
+        if waves < 1:
+            raise WireError("%s.params.waves 必须大于等于 1" % task_id)
+        params["waves"] = waves
+    if "ammo_per_platform" in params:
+        ammo = _integer(params["ammo_per_platform"],
+                        "%s.params.ammo_per_platform" % task_id)
+        if ammo < 0:
+            raise WireError("%s.params.ammo_per_platform 不能为负" % task_id)
+        params["ammo_per_platform"] = ammo
+
+
 def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
     if not isinstance(raw, dict):
         raise WireError("tasks[%d] 必须是对象" % index)
@@ -245,9 +372,6 @@ def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
     if unknown:
         raise WireError("%s 含未约定字段: %s" % (task_id, ", ".join(sorted(unknown))))
 
-    if raw["task_type"] in REJECTED_TASK_TYPES:
-        raise UnsupportedFeature("UNSUPPORTED_TASK_TYPE %s: %s" % (
-            task_id, REJECTED_TASK_TYPES[raw["task_type"]]))
     if raw["task_type"] not in TASK_TYPES:
         raise WireError("%s.task_type 必须是 %s 之一，实际为 %r"
                         % (task_id, "/".join(TASK_TYPES), raw["task_type"]))
@@ -274,6 +398,8 @@ def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
             raise WireError("%s.max_units 不能小于 min_units" % task_id)
     if not isinstance(raw["params"], dict):
         raise WireError("%s.params 必须是对象" % task_id)
+    if task["task_type"] == "T-ASL":
+        _validate_asl(task)
     depends = task.get("depends_on", [])
     if not isinstance(depends, list) or any(not isinstance(d, str) for d in depends):
         raise WireError("%s.depends_on/prerequisites 必须是字符串数组" % task_id)
@@ -512,6 +638,15 @@ def parse_message(data: Any, formation: Any) -> Scenario:
                                 % (task["task_id"], dep))
 
     platforms, constraints, groups, meta = parse_formation(formation)
+    unit_ids = {platform.unit_id for platform in platforms}
+    for raw in normalized:
+        if raw["task_type"] != "T-ASL":
+            continue
+        for key in ("scout_unit", "assessor_unit"):
+            unit = raw["params"].get(key)
+            if unit and unit not in unit_ids:
+                raise WireError("%s.params.%s=%r 不在编成表中"
+                                % (raw["task_id"], key, unit))
 
     tasks = []
     for raw in normalized:
