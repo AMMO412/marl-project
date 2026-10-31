@@ -17,10 +17,10 @@ InteropPlanner 每次滚动规划时：
 
 职责边界：
   * 只接管**规划**；指令下发、反馈核对、取消/重试、工作台仍是基座的；
-  * 含 T-ASL/突击/效果判定的场景会被明确拒绝（`UnsupportedFeature`），
-    不降级、不猜语义；
+  * T-ASL 由本层分配侦察/突击/评估席位与出发时刻，打击动作、弹药和效果
+    判定仍由基座 `behaviors.py` 与评估接口执行；
   * 基座 job 的 work/work_rate 进度模型保持不变，统一层只负责“谁、何时、
-    从哪条路去”。
+    从哪条路去”；T-ASL 的进度按行为阶段计，不改写 work。
 """
 
 import math
@@ -90,16 +90,68 @@ def _platform_from_v2(item) -> Platform:
     )
 
 
+def _asl_task_from_v2_job(job) -> Task:
+    """基座 assault 作业 → 4.1 T-ASL 任务（供 interop 规划快照使用）。
+
+    基座 `_behavior` 是执行层的权威参数；这里只抽取规划层需要的部分：
+    目标点、兵力、效果参数、侦察/评估席位、几何与时序。打击与判定仍由
+    执行层按 `_behavior` 运行。
+    """
+    bh = dict(getattr(job, "behavior", None) or {})
+    job_id = job.job_id if hasattr(job, "job_id") else job["job_id"]
+    pos = job.pos if hasattr(job, "pos") else job["pos"]
+    window = job.window if hasattr(job, "window") else job["window"]
+    crew = max(1, int(job.crew if hasattr(job, "crew") else job["crew"]))
+    scout_pid = bh.get("scout_pid")
+    assessor_pid = bh.get("assessor_pid")
+    params = dict(
+        effect=bh.get("effect_kind") or bh.get("effect") or "damage",
+        required_level=float(bh.get("required_level", 6.0)),
+        required_duration=float(bh.get("required_duration", 10.0)),
+        required_control_s=float(bh.get("required_control_s", 10.0)),
+        payload_required=float((bh.get("role_payload") or {}).get(
+            "assault", bh.get("assault_payload_required", 4.0))),
+        duration_s=float(bh.get("duration_s", 140.0)),
+        attack_window=list(bh.get("attack_window") or window),
+        scout={"count": 1 if scout_pid else 0,
+               "capabilities": {"RCN": 2}, "unit": scout_pid},
+        assessor={"count": 1 if assessor_pid else 0,
+                  "capabilities": {"RCN": 1}, "unit": assessor_pid},
+        staging_center=bh.get("staging_center"),
+        objective_radius=float(bh.get("objective_radius", 14.0)),
+        observe_radius=float(bh.get("observe_radius", 25.0)),
+        observe_angle=float(bh.get("observe_angle", 0.0)),
+        assessment_post=bh.get("assessment_post"),
+        assessment_delay=float(bh.get("assessment_delay", 0.0)),
+        confirmation_deadline=float(bh.get("confirmation_deadline", 120.0)),
+        execute_deadline=float(bh.get("execute_deadline", 0.0)),
+        withdraw=bool(bh.get("withdraw", False)),
+        withdraw_point=bh.get("withdraw_point"),
+        withdraw_ring=float(bh.get("withdraw_ring", 2.0)),
+        withdraw_deadline=float(bh.get("withdraw_deadline", 0.0)),
+        target_id=bh.get("target_id") or job_id,
+        roe=bh.get("roe"),
+        collateral_limit=bh.get("collateral_limit"),
+        waves=int(bh.get("waves", 1)),
+    )
+    params["assault_units"] = max(1, crew - params["scout"]["count"]
+                                  - params["assessor"]["count"])
+    return Task(
+        task_id=job_id, task_type="T-ASL", priority=1,
+        target={"point": [float(pos[0]), float(pos[1])]},
+        window_start_s=float(window[0]), window_end_s=float(window[1]),
+        required_capabilities={}, min_units=crew, max_units=crew,
+        params=params, description="由基座 assault 作业映射",
+    )
+
+
 def _task_from_v2_job(job) -> Task:
     jtype = job.jtype if hasattr(job, "jtype") else job.get("jtype")
     if jtype in ASSAULT_JOB_TYPES:
-        raise UnsupportedFeature(
-            "基座作业 %s 是 assault（机动突击/效果判定），统一层不含 T-ASL、"
-            "攻击阵位与 fires；请继续用 base 规划器，或改用中性任务场景。"
-            % (job.job_id if hasattr(job, "job_id") else job.get("job_id")))
+        return _asl_task_from_v2_job(job)
     task_type = V2_JOB_TO_TASK.get(jtype)
     if task_type is None:
-        raise UnsupportedFeature("无法把基座作业类型 %r 映射到 4.1 中性任务" % jtype)
+        raise UnsupportedFeature("无法把基座作业类型 %r 映射到 4.1 任务" % jtype)
     job_id = job.job_id if hasattr(job, "job_id") else job["job_id"]
     pos = job.pos if hasattr(job, "pos") else job["pos"]
     window = job.window if hasattr(job, "window") else job["window"]
@@ -122,7 +174,8 @@ def scenario_from_v2(data: Dict[str, Any]) -> Scenario:
     """把 middle-demo/v2 场景转成统一 Scenario。
 
     优先读 `_meta.interop`（由 `to-v2` 写入的原始 4.1 消息/编成表）；
-    没有时按 job.type 做中性映射，遇到 assault 直接拒绝。
+    没有时按 job.type 映射；assault 映射为 T-ASL（只取规划需要的参数），
+    其余类型映射为对应的中性任务。
     """
     meta = data.get("_meta") or {}
     bundle = meta.get("interop") if isinstance(meta, dict) else None
@@ -169,7 +222,9 @@ def _sec_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
                 "control_objective", "sensor_radius_m", "standoff_m",
                 "warn_range_m", "intercept_standoff_m", "intercept_post",
                 "reserve_post", "intruders", "max_leak_rate", "rotation_s",
-                "occupancy_tolerance_s", "boundary_sample_m"):
+                "occupancy_tolerance_s", "boundary_sample_m",
+                "air_altitude_m", "air_orbit_radius_m", "air_orbit_period_s",
+                "air_speed_mps", "air_capabilities", "air_unit"):
         if key in params:
             out[key] = params[key]
     out["roles"] = params.get("roles") or {}
@@ -177,6 +232,83 @@ def _sec_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
         "hold_duration_s", params.get("duration_s", 600.0)))
     out["site"] = list(target_point(task.target))
     return out
+
+
+def _unit_pid(scenario: Scenario, unit_id: Optional[str]) -> Optional[str]:
+    if not unit_id:
+        return None
+    import fleet
+    for platform in scenario.platforms:
+        if platform.unit_id == unit_id:
+            return fleet.pid_of(int(platform.robot_id))
+    return None
+
+
+def _asl_job(task: Task, scenario: Scenario) -> Dict[str, Any]:
+    """4.1 T-ASL 任务 → 基座 assault 作业（含执行层 `_behavior`）。
+
+    规划层只提供目标、兵力、角色席位、效果参数与几何；打击动作、弹药和
+    效果判定由基座行为层与评估接口执行。
+    """
+    from .message import target_point
+    import fleet
+    params = task.params
+    site = list(target_point(task.target))
+    scout_pid = _unit_pid(scenario, params.get("scout_unit"))
+    assessor_pid = _unit_pid(scenario, params.get("assessor_unit"))
+    payload_required = float(params.get("payload_required", 4.0))
+    air_altitude = {fleet.pid_of(int(p.robot_id)): float(p.altitude_m)
+                    for p in scenario.platforms
+                    if p.is_air and float(p.altitude_m) > 0}
+    behavior = dict(
+        staging_center=params.get("staging_center"),
+        staging_radius=float(params.get("staging_radius", 6.0)),
+        objective_radius=float(params.get("objective_radius", 14.0)),
+        confirm_radius=float(params.get("confirm_radius", 18.0)),
+        arrive_tol=float(params.get("arrive_tol", 0.8)),
+        sync_tol=float(params.get("sync_tol", 14.0)),
+        scout_pid=scout_pid,
+        observe_radius=float(params.get("observe_radius", 25.0)),
+        observe_angle=float(params.get("observe_angle", 0.0)),
+        assessor_pid=assessor_pid,
+        assessment_post=params.get("assessment_post"),
+        attack_window=list(params.get("attack_window") or []),
+        assessment_delay=float(params.get("assessment_delay", 0.0)),
+        confirmation_deadline=float(params.get("confirmation_deadline", 120.0)),
+        execute_deadline=float(params.get("execute_deadline", 0.0)),
+        effect_kind=params.get("effect", "damage"),
+        required_level=float(params.get("required_level", 6.0)),
+        required_duration=float(params.get("required_duration", 10.0)),
+        required_control_s=float(params.get("required_control_s", 10.0)),
+        damage_per_hit=1.0,
+        fire_interval=float(params.get("fire_interval", 3.0)),
+        rounds_per_salvo=int(params.get("rounds_per_salvo", 1)),
+        counterattack_interval=float(params.get("counterattack_interval", 0.0)),
+        target_id=params.get("target_id") or task.task_id,
+        object_label=params.get("object_label"),
+        roe=params.get("roe"),
+        collateral_limit=params.get("collateral_limit"),
+        positive_id_required=bool(params.get("positive_id_required", False)),
+        waves=int(params.get("waves", 1)),
+        role_payload={"assault": payload_required, "support": 0.5},
+        assault_payload_required=payload_required,
+        withdraw=bool(params.get("withdraw", False)),
+        withdraw_point=params.get("withdraw_point"),
+        withdraw_ring=float(params.get("withdraw_ring", 2.0)),
+        withdraw_deadline=float(params.get("withdraw_deadline", 0.0)),
+        timeout_s=float(params.get("timeout_s", 900.0)),
+    )
+    if air_altitude:
+        behavior["air_altitude"] = air_altitude
+    return dict(
+        job_id=task.task_id, type="assault", pos=site,
+        window=[int(round(task.window_start_s)),
+                int(round(task.window_end_s))],
+        crew=int(task.min_units),
+        _task_type="T-ASL",
+        _target=dict(task.target),
+        _behavior=behavior,
+    )
 
 
 def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
@@ -188,6 +320,9 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
     """
     jobs = []
     for task in scenario.tasks:
+        if task.task_type == "T-ASL":
+            jobs.append(_asl_job(task, scenario))
+            continue
         from .message import target_point
         duration = float(task.params.get("duration_s",
                                          task.params.get("hold_duration_s", 120.0)))
@@ -218,18 +353,29 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
         interop_meta["message"] = raw_message
     if raw_formation is not None:
         interop_meta["formation"] = raw_formation
+    meta = {
+        "source": "interop 4.1 运行视图（不是无损旧场景转换）",
+        "message": dict(scenario.message or {}),
+        "cell_size_m": scenario.cell_size_m,
+        "formula": "job.work=duration_s×crew；统一层负责规划，基座负责运行",
+        "interop": interop_meta,
+    }
+    if any(task.task_type == "T-ASL" for task in scenario.tasks):
+        # 突击任务要跑基座行为层，必须给 city_nav 一张真地图；用与 asl_city
+        # 相同的 SDF/包围盒，不把中性样例的 simple_city 变换套到城市坐标上。
+        meta.update({
+            "sdf": "资料/接口说明/container_00_combined_scene.sdf",
+            "models": "资料/接口说明/models",
+            "scale": 1.0, "offset_x": 0.0, "offset_y": 0.0,
+            "bounds": [-185, -210, 20, 30],
+            "radius": 1.75, "resolution": 0.5,
+        })
     return {
         "protocol": "middle-demo/v2",
         "objective": "makespan",
         "H": horizon,
         "K": 8,
-        "_meta": {
-            "source": "interop 4.1 运行视图（不是无损旧场景转换）",
-            "message": dict(scenario.message or {}),
-            "cell_size_m": scenario.cell_size_m,
-            "formula": "job.work=duration_s×crew；统一层负责规划，基座负责运行",
-            "interop": interop_meta,
-        },
+        "_meta": meta,
         "platforms": [dict(robot_no=p.robot_id,
                            pos=[p.position[0], p.position[1]],
                            _platform_class=p.platform_class)
@@ -333,6 +479,11 @@ class InteropPlanner(object):
                 # 运动的到达时刻才与计划同源。
                 live.speed = float(item.speed_mps)
                 live.work_rate = float(item.work_rate)
+                # 载荷/传感器也以 4.1 编成表为准：基座行为层的“突击组载荷
+                # 下限”读的是指令投递块，不改这两项会出现“计划按编成表、
+                # 执行按 fleet 默认”的两套参数。
+                live.payload = float(item.payload)
+                live.sensor = str(item.sensor)
                 live.battery = max(float(live.battery), 1.0e6)
                 live.can_climb = bool(item.is_air)
             # 在途指令把平台占到 expected_end；重规划必须把它当“最早可用时刻”，
@@ -361,18 +512,23 @@ class InteropPlanner(object):
             total = float(getattr(job, "_interop_total", job.work)) or 1.0
             scale = max(0.0, min(1.0, (total - float(job.progress)) / total))
             params = dict(task.params)
-            for key in ("duration_s", "hold_duration_s"):
-                if key in params:
-                    params[key] = max(1.0, float(params[key]) * scale)
+            if task.task_type != "T-ASL":
+                # 行为任务（T-ASL）的执行时长由行为状态机决定，不按剩余
+                # 工作量折减；其余任务沿用槽位时长口径。
+                for key in ("duration_s", "hold_duration_s"):
+                    if key in params:
+                        params[key] = max(1.0, float(params[key]) * scale)
             # 基座作业是“一台次 crew 同时干一个活”，没有“同一作业拆成多段
             # 串行槽位”的表达。运行适配器因此把所有槽位对齐为同时开始：
             # 分组后的 start/end 才是一个真实作业区间，而不是把先后几段
-            # 拼成一段超长作业。
-            coordination = params.get("coordination") or []
-            if isinstance(coordination, str):
-                coordination = [coordination]
-            params["coordination"] = list(dict.fromkeys(
-                list(coordination) + ["simultaneous_arrival"]))
+            # 拼成一段超长作业。T-ASL 的同时到达由模板只作用于突击席，
+            # 这里不再给整任务加协同标记。
+            if task.task_type != "T-ASL":
+                coordination = params.get("coordination") or []
+                if isinstance(coordination, str):
+                    coordination = [coordination]
+                params["coordination"] = list(dict.fromkeys(
+                    list(coordination) + ["simultaneous_arrival"]))
             tasks.append(Task(
                 task_id=task.task_id, task_type=task.task_type,
                 priority=task.priority, target=task.target,
@@ -427,7 +583,13 @@ class InteropPlanner(object):
                               ("：" + reasons[0]) if reasons else "")))
                 continue
             orig_start = min(item.start_s for item in items)
-            duration = max(item.end_s for item in items) - orig_start
+            is_asl = task.task_type == "T-ASL"
+            if is_asl:
+                # 突击作业的时长取执行段参数（默认 140 s），不从槽位跨度
+                # 反推；侦察/评估席的 10 s 机动不能把整个作业压缩成 10 s。
+                duration = float(task.params.get("duration_s", 140.0))
+            else:
+                duration = max(item.end_s for item in items) - orig_start
             travel = max(item.travel_s for item in items)
             start_task = max(float(coord.now), orig_start)
             if coord.motion == "real":
@@ -437,13 +599,18 @@ class InteropPlanner(object):
             else:
                 start = start_task
             end = start_task + duration
-            # 基座的进度模型按“每台成员每步 work_rate 工作量”累计；统一层按
-            # 槽位时长排程。让 work = 时长 × 成员 work_rate 之和，运行时进度
-            # 速度与计划时长同口径，不会出现“计划 150 s、实际 75 s 完成”或
-            # 偏差检测反复触发重规划。
-            rate = sum(float(coord.platforms[pid].work_rate) for pid in pids)
-            job._interop_total = max(1.0, duration * max(rate, 1e-6))
-            job.work = max(float(job.progress) + 1e-6, job._interop_total)
+            if is_asl:
+                # T-ASL 进度按行为阶段计（progress_frac），改写 work 会让
+                # 进度与阶段脱节；只登记本层总量，保持基座 work 不变。
+                job._interop_total = max(1.0, float(job.work))
+            else:
+                # 基座的进度模型按“每台成员每步 work_rate 工作量”累计；统一层按
+                # 槽位时长排程。让 work = 时长 × 成员 work_rate 之和，运行时进度
+                # 速度与计划时长同口径，不会出现“计划 150 s、实际 75 s 完成”或
+                # 偏差检测反复触发重规划。
+                rate = sum(float(coord.platforms[pid].work_rate) for pid in pids)
+                job._interop_total = max(1.0, duration * max(rate, 1e-6))
+                job.work = max(float(job.progress) + 1e-6, job._interop_total)
             # 计划角色随指令下发到执行层（边界段/门哨/机动组），使"守哪一段"
             # 在计划与执行两份数据里对得上；执行层只把角色当建议，仍按在位
             # 几何自行复核。

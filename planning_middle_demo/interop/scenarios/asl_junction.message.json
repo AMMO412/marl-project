@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-ASL-JUNCTION-001",
+  "issued_at": "2026-10-31T07:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "ASL-JUNCTION-1",
+      "task_type": "T-ASL",
+      "priority": 1,
+      "target": {
+        "point": [-95.0, -145.0]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 700
+      },
+      "required_capabilities": {},
+      "min_units": 6,
+      "max_units": 6,
+      "params": {
+        "effect": "damage",
+        "required_level": 6.0,
+        "payload_required": 4.0,
+        "duration_s": 140.0,
+        "attack_window": [0, 700],
+        "scout": {
+          "count": 1,
+          "capabilities": {"RCN": 3},
+          "unit": "UAV-31"
+        },
+        "assessor": {
+          "count": 1,
+          "capabilities": {"RCN": 2},
+          "unit": "UAV-41"
+        },
+        "staging_center": [-62.0, -124.0],
+        "staging_radius": 6.0,
+        "objective_radius": 14.0,
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "assessment_post": [-95.0, -120.0],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 120.0,
+        "execute_deadline": 520.0,
+        "withdraw": true,
+        "withdraw_point": [-75.0, -130.0],
+        "withdraw_ring": 7.0,
+        "withdraw_deadline": 200.0,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1
+      }
+    }
+  ]
+}

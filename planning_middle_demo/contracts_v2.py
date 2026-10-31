@@ -66,7 +66,8 @@ JOB_TYPE_LABELS = {
 # 只在 build_jobs 派生 jtype 时使用（场景文件本身仍写显式 work/window/crew，
 # 不塞 "type"，否则 check_scenario_v2 会按模板参数校验而拒绝）。
 TASK_TYPE_TO_JOB = {"T-PTL": "patrol", "T-RCN": "recon",
-                    "T-SEC": "blockade", "T-HLD": "hold"}
+                    "T-SEC": "blockade", "T-HLD": "hold",
+                    "T-ASL": "assault"}
 
 
 def dist(a, b):

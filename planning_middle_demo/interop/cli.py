@@ -153,15 +153,18 @@ def cmd_demo(args) -> int:
     v2["objective"] = ("energy" if args.objective == "energy" else "makespan")
     engine = InteropPlanner(scenario, objective=args.objective, data=v2)
     from run_demo_v2 import simulate
+    # T-ASL 的打击与效果判定在基座行为层，运行必须开行为、城市避障和逐步运动；
+    # 其余任务沿用命令行参数（--behavior 时用编成表 no_go 约束现造 NavMap）。
+    has_asl = any(task.task_type == "T-ASL" for task in scenario.tasks)
     nav = None
-    if args.behavior:
-        # 到位行为需要静态地图；融合层样例没有 _meta.sdf，用编成表的 no_go
-        # 约束现造 NavMap，避免退回 simple_city 世界坐标。
+    if args.behavior and not has_asl:
         from .runtime import nav_from_scenario
         nav = nav_from_scenario(scenario)
     report, audit = simulate(v2, mode=args.mode, max_ticks=args.max_ticks,
-                             motion=args.motion, avoid=nav is not None,
-                             behavior=args.behavior and nav is not None,
+                             motion=("real" if has_asl else args.motion),
+                             avoid=(True if has_asl else nav is not None),
+                             behavior=(True if has_asl else
+                                       (args.behavior and nav is not None)),
                              planner=engine, nav=nav)
     # 同一份 4.1 输入的计划层产物（4.2），与运行报告分开放
     plan = Planner(scenario, objective=args.objective).plan()

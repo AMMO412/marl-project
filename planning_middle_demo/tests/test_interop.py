@@ -94,10 +94,22 @@ class MessageTests(unittest.TestCase):
             self.assertIn("0.3", str(ctx.exception))
             self.assertIn("拒绝", str(ctx.exception))
 
-    def test_rejects_asl(self):
+    def test_parses_asl(self):
         tasks = [dict(message()["tasks"][0], task_type="T-ASL",
-                      target={"point": [0, 0]})]
-        with self.assertRaises(UnsupportedFeature):
+                      target={"point": [0, 0]}, min_units=4, max_units=4,
+                      params={"effect": "毁伤"})]
+        scenario = parse_message(message(tasks=tasks), formation())
+        task = scenario.tasks[0]
+        self.assertEqual(task.task_type, "T-ASL")
+        self.assertEqual(task.params["effect"], "damage")
+        self.assertEqual(task.params["assault_units"], 2)
+        self.assertEqual(task.params["required_level"], 6.0)
+
+    def test_asl_needs_assault_slot(self):
+        tasks = [dict(message()["tasks"][0], task_type="T-ASL",
+                      target={"point": [0, 0]}, min_units=2, max_units=2,
+                      params={})]
+        with self.assertRaises(WireError):
             parse_message(message(tasks=tasks), formation())
 
     def test_source_aliases(self):
@@ -428,15 +440,17 @@ class RuntimeIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(report["makespan"], 20)
         self.assertTrue(any(e["kind"] == "job_succeeded" for e in audit))
 
-    def test_planner_from_v2_rejects_assault(self):
+    def test_planner_from_v2_maps_assault(self):
         from interop.runtime import planner_from_v2
         scenario_path = os.path.join(BASE_DIR, "scenarios", "fleet_demo.json")
         if not os.path.exists(scenario_path):
             self.skipTest("缺少 fleet_demo 场景")
         with open(scenario_path, encoding="utf-8-sig") as stream:
             data = json.load(stream)
-        with self.assertRaises(UnsupportedFeature):
-            planner_from_v2(data)
+        planner = planner_from_v2(data)
+        asl = [t for t in planner.scenario.tasks if t.task_type == "T-ASL"]
+        self.assertEqual(len(asl), 1)
+        self.assertEqual(asl[0].task_id, "J6")
 
     def test_workbench_accepts_interop_neutral_only(self):
         import workbench_server
@@ -449,6 +463,81 @@ class RuntimeIntegrationTests(unittest.TestCase):
             workbench_server.validate_config(dict(
                 scenario="asl_city", planner="interop", motion="real",
                 avoid=True, behavior=False, max_ticks=620))
+
+
+class AslIntegrationTests(unittest.TestCase):
+    """T-ASL：五类任务里的行为型任务，规划槽位与运行视图。"""
+
+    @staticmethod
+    def scenario():
+        from interop.message import load_scenario
+        root = os.path.join(BASE_DIR, "interop", "scenarios")
+        return load_scenario(
+            os.path.join(root, "asl_junction.message.json"),
+            os.path.join(root, "asl_junction.formation.json"))
+
+    def test_plan_has_three_roles(self):
+        plan = Planner(self.scenario()).plan()
+        self.assertEqual(len(plan.assignments), 6)
+        self.assertFalse(plan.unassigned)
+        roles = {item.role for item in plan.assignments}
+        self.assertEqual(roles, {"scout", "assault", "assessor"})
+        scout = [item for item in plan.assignments if item.role == "scout"][0]
+        self.assertEqual(scout.unit_id, "UAV-31")
+        assessor = [item for item in plan.assignments if item.role == "assessor"][0]
+        self.assertEqual(assessor.unit_id, "UAV-41")
+        assault = [item for item in plan.assignments if item.role == "assault"]
+        self.assertEqual(len(assault), 4)
+        for item in assault:
+            self.assertGreaterEqual(item.end_s, item.start_s)
+
+    def test_to_v2_assault_job(self):
+        from contracts_v2 import check_scenario_v2
+        from interop.runtime import to_v2_dict
+        v2 = to_v2_dict(self.scenario())
+        check_scenario_v2(v2)
+        job = v2["jobs"][0]
+        self.assertEqual(job["type"], "assault")
+        self.assertEqual(job["crew"], 6)
+        behavior = job["_behavior"]
+        self.assertEqual(behavior["effect_kind"], "damage")
+        self.assertEqual(behavior["required_level"], 6.0)
+        self.assertEqual(behavior["scout_pid"], "rover_31")
+        self.assertEqual(behavior["assessor_pid"], "rover_41")
+        self.assertEqual(behavior["target_id"], "JUNCTION-CROSS-01")
+        self.assertIn("sdf", v2["_meta"])
+
+    def test_runtime_assault_end_to_end(self):
+        from interop.runtime import InteropPlanner, to_v2_dict
+        from run_demo_v2 import simulate
+        scenario = self.scenario()
+        v2 = to_v2_dict(scenario)
+        engine = InteropPlanner(scenario, objective="timeliness", data=v2)
+        report, audit = simulate(v2, mode="normal", max_ticks=320,
+                                 motion="real", avoid=True, behavior=True,
+                                 planner=engine)
+        self.assertTrue(report["all_succeeded"], report.get("need_report"))
+        results = [event.get("event") for event in audit
+                   if event.get("kind") == "behavior_event"
+                   and (event.get("event") or {}).get("kind") == "behavior_result"]
+        self.assertTrue(results)
+        items = {item["id"]: item["status"]
+                 for item in results[-1]["items"] if item.get("required")}
+        self.assertEqual(items.get("effect"), "achieved")
+        self.assertEqual(items.get("confirmation"), "achieved")
+
+    def test_workbench_config_interop_asl(self):
+        import workbench_server
+        config = workbench_server.validate_config(dict(
+            scenario="interop_asl", planner="interop", motion="real",
+            avoid=True, behavior=True, max_ticks=700))
+        self.assertEqual(config["planner"], "interop")
+        self.assertTrue(config["behavior"])
+        self.assertTrue(config["avoid"])
+        with self.assertRaises(ValueError):
+            workbench_server.validate_config(dict(
+                scenario="interop_asl", planner="base", motion="teleport",
+                avoid=False, behavior=False, max_ticks=700))
 
 
 if __name__ == "__main__":

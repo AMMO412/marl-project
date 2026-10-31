@@ -98,18 +98,45 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
     lines.append("## 2 分配")
     lines.append("")
     if plan.assignments:
-        lines.append("| 槽位 | 父任务 | 平台 | 机器人 | 开始–结束 / s | 移动 / s "
+        lines.append("| 槽位 | 父任务 | 角色 | 平台 | 机器人 | 开始–结束 / s | 移动 / s "
                      "| 路径 / m | 风险 | 能耗 |")
-        lines.append("| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |")
+        lines.append("| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |")
         for a in plan.assignments:
-            lines.append("| %s | %s | %s | %s | %.1f–%.1f | %.1f | %.1f | %.3f | %.2f |"
-                         % (a.subtask_id, a.parent_task_id, a.unit_id,
+            lines.append("| %s | %s | %s | %s | %s | %.1f–%.1f | %.1f | %.1f | %.3f | %.2f |"
+                         % (a.subtask_id, a.parent_task_id, a.role or "-",
+                            a.unit_id,
                             a.robot_id if a.robot_id is not None else "-",
                             a.start_s, a.end_s, a.travel_s, a.path_length_m,
                             a.risk, a.energy))
     else:
         lines.append("（无已分配子任务）")
     lines.append("")
+
+    asl_tasks = [t for t in scenario.tasks if t.task_type == "T-ASL"]
+    if asl_tasks:
+        lines.append("## 2.1 突击效果参数（T-ASL）")
+        lines.append("")
+        lines.append("| 任务 | 目标 | 效果 | 阈值 | 突击/侦察/评估席位 | 载荷下限 |")
+        lines.append("| --- | --- | --- | ---: | --- | ---: |")
+        for task in asl_tasks:
+            params = task.params
+            effect = params.get("effect", "damage")
+            threshold = {"damage": params.get("required_level"),
+                         "suppress": params.get("required_duration"),
+                         "seize": params.get("required_control_s")}.get(effect)
+            scout = (params.get("scout") or {}).get("count", 0)
+            assessor = (params.get("assessor") or {}).get("count", 0)
+            assault = params.get("assault_units",
+                                 max(0, int(task.min_units) - scout - assessor))
+            lines.append("| %s | %s | %s | %s | %d/%d/%d | %s |"
+                         % (task.task_id, _target_text(task.target), effect,
+                            _fmt(threshold), assault, scout, assessor,
+                            _fmt(params.get("payload_required"))))
+        lines.append("")
+        lines.append("- 本层只排侦察/突击/评估席位与机动；打击动作、弹药消耗和"
+                     "毁伤/压制/夺占判定由基座行为层与评估接口执行，"
+                     "报告不把计划当成效果已达成。")
+        lines.append("")
 
     lines.append("## 3 执行层")
     lines.append("")
@@ -167,7 +194,9 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
                  "不能拿不同后端的绝对值排名。")
     lines.append("- 本层只做计划；commands 是计划指令，不表示已发布、已执行或已确认。")
     lines.append("- 任务段动作不在本层实现，由基座行为层/导航控制模块接管。")
-    lines.append("- 不含 T-ASL、攻击阵位、fires、毁伤/效果判定。")
+    lines.append("- 五类任务（含 T-ASL）都在本层规划；T-ASL 只规划侦察/突击/"
+                 "评估席位与机动，打击动作和毁伤/压制/夺占判定由基座行为层与"
+                 "评估接口完成，计划层不判成败。")
     lines.append("")
     return "\n".join(lines)
 
@@ -186,7 +215,7 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
         writer = csv.writer(fh)
         writer.writerow([
             "unit_id", "robot_id", "topic", "platform_class",
-            "subtask_id", "parent_task_id", "task_type",
+            "subtask_id", "parent_task_id", "task_type", "role",
             "target", "start_s", "end_s", "window_start_s", "window_end_s",
             "depends_on", "coordination", "status",
             "path_length_m", "waypoint_count", "risk", "energy", "path",
@@ -196,7 +225,7 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
             writer.writerow([
                 a.unit_id, a.robot_id, a.topic,
                 platform.platform_class if platform else "",
-                a.subtask_id, a.parent_task_id, a.task_type,
+                a.subtask_id, a.parent_task_id, a.task_type, a.role,
                 _target_text(a.target), "%.3f" % a.start_s, "%.3f" % a.end_s,
                 "%.3f" % a.window_start_s, "%.3f" % a.window_end_s,
                 ";".join(a.depends_on), ";".join(a.coordination), a.status,
