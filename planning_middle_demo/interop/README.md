@@ -126,6 +126,19 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
   `asl_junction.formation.json`；命令行 `python -m interop.cli demo --message ...`
   会自动开行为/城市避障/逐步运动（`--max-ticks 700`）。
 
+### 1.3 五类任务支持矩阵
+
+| 任务 | 4.1 分解 | 计划层可见 | 执行层 | 结论来源 |
+| --- | --- | --- | --- | --- |
+| T-RCN 协同侦察 | 区域竖条 / 路线分段 / 目标点 | assignments / commands | `recon` 行为 | 覆盖率、任务反馈 |
+| T-SEC 区域封控 | 边界段 / 门哨 / 机动组 | `role=boundary/gate/...` | `blockade` 行为 | 封控运行结果 |
+| T-PTL 巡逻警戒 | 路线分段 / 巡逻区 / 点 | assignments / commands | `patrol` 行为 | 圈数、任务反馈 |
+| T-HLD 要点坚守 | 阵位点 | assignments / commands | `hold` 行为 | 换班、在位记录 |
+| T-ASL 机动突击 | 侦察 / 突击 / 评估席位 | `role` + 效果参数 | `assault` 行为 + `assessment` | `assessment_received` 逐项结算 |
+
+前四类的“是否完成”由基座任务状态与行为反馈给出；T-ASL 的效果结论只看
+评估回传（默认桩判定），计划报告不代替它。
+
 `to-v2` 仍是**无损性检查**：缺能力就拒绝并不写文件。运行对接不走它，
 而是在内存里生成带 `_meta.interop` 的 v2 运行视图；该视图只用于基座
 协调/进度/回放，不冒充等价旧场景。
