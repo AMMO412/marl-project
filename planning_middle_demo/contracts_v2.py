@@ -62,6 +62,11 @@ JOB_TYPE_LABELS = {
     "patrol": "巡逻警戒", "blockade": "区域封控", "recon": "协同侦察",
     "assault": "机动突击", "hold": "要点坚守",
 }
+# 融合层运行视图里的作业类型：4.1 任务类型 → 基座作业模板。
+# 只在 build_jobs 派生 jtype 时使用（场景文件本身仍写显式 work/window/crew，
+# 不塞 "type"，否则 check_scenario_v2 会按模板参数校验而拒绝）。
+TASK_TYPE_TO_JOB = {"T-PTL": "patrol", "T-RCN": "recon",
+                    "T-SEC": "blockade", "T-HLD": "hold"}
 
 
 def dist(a, b):
@@ -165,6 +170,9 @@ def task_block(job: Job, members: List[str], now: int) -> dict:
                 goal=dict(x=job.pos[0], y=job.pos[1], z=job.altitude, yaw=0.0),
                 work=job.work, window=[job.window[0], job.window[1]],
                 crew=job.crew, members=list(members),
+                # 融合层计划给出的角色（边界段/门哨/机动组）；基座场景没有
+                # 该字段时为 {}，行为层自行按几何分工。
+                roles=dict(getattr(job, "_interop_roles", {}) or {}),
                 window_deadline=job.window[1])
 
 
@@ -480,7 +488,10 @@ def build_jobs(data) -> List[Job]:
             need_payload = float(item["need_payload"])
             need_sensor = item.get("need_sensor")
             altitude = float(item.get("altitude", 0))
-            jtype = "custom"
+            # 4.1 运行视图：job 不带 "type" 模板，只带 _task_type；
+            # 派生出可被行为层识别的 jtype，未知任务仍记 custom。
+            jtype = TASK_TYPE_TO_JOB.get(str(item.get("_task_type") or ""),
+                                         "custom")
         out.append(Job(job_id=item["job_id"], jtype=jtype, pos=pos,
                        work=work, window=window, crew=crew,
                        need_payload=need_payload, need_sensor=need_sensor,

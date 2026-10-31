@@ -11,11 +11,11 @@ const kindNames = {UGV:'轮式车',TANK:'履带车',PLANE:'固定翼',WING:'飞�
 function buildingName(id){const k=String(id||'').replace(/^env[ _]city[ _]/,'').replace(/#\d+$/,'').replace(/_/g,' ').trim();const h=k.match(/^house\s*(\d+)/i);if(h)return '民居 '+Number(h[1]);const o=k.match(/^office\s*(\d+)/i);if(o)return '办公楼 '+Number(o[1]);return k;}
 const taskPalette=['#288d79','#bd8534','#7264cb','#c27158','#478cac','#9a6b99'];
 const events = {recording_start:'专项片段开始',recording_end:'专项片段结束',plan_emitted:'生成规划方案',job_dispatched:'下发作业',job_succeeded:'作业完成',job_requeued:'作业重新排队',job_failed:'作业失败',member_lost:'平台失联',timeout:'作业超时',deviation:'进度偏差',cancel_sent:'发出取消请求',command_abandoned:'终止失联成员指令',feedback_ignored:'反馈未采纳',behavior_event:'到位行为'};
-const behaviorEvents = {phase:'行为阶段切换',checkpoint_visited:'到达检查点',cycle_completed:'完成一圈巡逻',posts_occupied:'封控占位就绪',intrusion_detected:'发现入侵',interceptor_assigned:'指派拦截',intercepted:'拦截成功',breach:'越界',map_initialised:'地图初始化',frontier_mapped:'前沿测绘',coverage_reached:'覆盖达标',report_sent:'成果回传',map_shared:'共享地图更新',all_staged:'全员到位',assault_started:'突击开始',effect_started:'效果施加开始',effect_applied:'动作结束',confirmed:'结果确认',salvo_fired:'齐射',ammo_depleted:'平台弹药耗尽',ammo_exhausted:'弹药耗尽终止',restrike_needed:'需要二次打击',control_established:'控制建立',control_lost:'控制丢失',suppression_gap:'压制中断',handover:'移交',assessment_requested:'评估发起',assessment_received:'评估回传',effect_achieved:'效果达成',deadline_exceeded:'执行超时',terminate:'任务终止',behavior_result:'效果判定结果',result_failed:'结果未达成',result_pending:'结果待评估',on_post:'上岗',handover_start:'接替开始',handover_complete:'接替完成',relief:'换班',behavior_complete:'行为完成',arrived_area:'进入作业区',route_failed:'路径失败',command_received:'受领任务',target_designated:'目标指示',all_in_position:'全员到位执行位',withdraw_started:'撤离开始',withdrawn:'撤离完成',withdraw_timeout:'撤离超时',confirmation_timeout:'确认超时',attack_window_missed:'错过攻击窗口',task_timeout:'任务超时',arrived:'到达点位',energy_depleted:'电量耗尽',start_snapped:'出发点吸附'};
+const behaviorEvents = {phase:'行为阶段切换',checkpoint_visited:'到达检查点',cycle_completed:'完成一圈巡逻',posts_occupied:'封控占位就绪',intrusion_detected:'发现入侵',interceptor_assigned:'指派拦截',intercepted:'拦截成功',breach:'越界',map_initialised:'地图初始化',frontier_mapped:'前沿测绘',coverage_reached:'覆盖达标',report_sent:'成果回传',map_shared:'共享地图更新',all_staged:'全员到位',assault_started:'突击开始',effect_started:'效果施加开始',effect_applied:'动作结束',confirmed:'结果确认',salvo_fired:'齐射',ammo_depleted:'平台弹药耗尽',ammo_exhausted:'弹药耗尽终止',restrike_needed:'需要二次打击',control_established:'控制建立',control_lost:'控制丢失',suppression_gap:'压制中断',handover:'移交',assessment_requested:'评估发起',assessment_received:'评估回传',effect_achieved:'效果达成',deadline_exceeded:'执行超时',terminate:'任务终止',behavior_result:'效果判定结果',result_failed:'结果未达成',result_pending:'结果待评估',on_post:'上岗',handover_start:'接替开始',handover_complete:'接替完成',relief:'换班',behavior_complete:'行为完成',arrived_area:'进入作业区',route_failed:'路径失败',command_received:'受领任务',target_designated:'目标指示',all_in_position:'全员到位执行位',withdraw_started:'撤离开始',withdrawn:'撤离完成',withdraw_timeout:'撤离超时',confirmation_timeout:'确认超时',attack_window_missed:'错过攻击窗口',task_timeout:'任务超时',arrived:'到达点位',energy_depleted:'电量耗尽',start_snapped:'出发点吸附',target_appeared:'目标出现',target_detected:'发现目标',target_authorized:'识别为已授权',target_unauthorized:'识别为未授权',warning_issued:'发出警告',warning_effective:'警告有效·目标撤离',intercept_assigned:'指派拦阻',intercept_denied:'授权不足未拦阻',intercepted:'拦阻到位',breach:'未授权进入',authorized_pass:'授权放行',control_established:'控制建立',control_interrupted:'控制中断',control_restored:'控制恢复',containment_result:'封控结果'};
 const triggerNames = {init:'首次规划',periodic:'周期更新',member_change:'成员变化',exec_fail:'执行失败',timeout:'超时',deviation:'进度偏差'};
 const titles = {overview:'演示总览',tasks:'任务与分配',platforms:'平台状态',runs:'实验与报告',files:'项目文件'};
 const sourceFiles = [['readme','README_v2.md','项目说明与运行方式'],['planner','planner_v2.py','六步规则规划器'],['coordinator','coordinator_v2.py','反馈、调度与重规划'],['fleet','mock_fleet.py','本地执行与反馈替身'],['contracts','contracts_v2.py','场景与消息数据契约']];
-const state = {catalog:null,run:null,t:0,playing:false,speed:2,focus:null,page:'overview',zoom:1,frames:[],eventRows:[],hits:[],loadToken:0,busy:false};
+const state = {catalog:null,run:null,t:0,playing:false,speed:2,focus:null,page:'overview',zoom:1,frames:[],eventRows:[],hits:[],loadToken:0,busy:false,ckView:false};
 let toastTimer, pollTimer;
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,5000);}
 async function api(url, options){const r=await fetch(url,options);const data=await r.json();if(!r.ok)throw Error(data.error||'读取失败');return data;}
@@ -23,7 +23,51 @@ function num(value,d=1){return value==null?'未知':Number(value).toFixed(d);}
 function no(pid){return '#'+String(pid||'').replace('rover_','');}
 function stamp(t){return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0');}
 function shortRun(id){if(id==='behavior_20261028_verify')return '专项验证记录 · 2026-10-28';if(id==='workbench_behavior_20261028')return '城市到位动作 · 2026-10-28';if(id==='avoid_run')return '旧版城市绕障 · 无到位动作';return id.replace('workbench_','').replace(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_.*$/,'$1-$2-$3 $4:$5:$6');}
-function setPage(page){state.page=page;$$('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#crumb').textContent=titles[page];$('#page-title').innerHTML=(page==='overview'?'把规划过程，看清楚。':esc(titles[page]))+'<span class="version">V2</span>';renderTime();draw();window.scrollTo(0,0);}
+function setPage(page){state.page=page;$$('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#crumb').textContent=titles[page];$('#page-title').innerHTML=(page==='overview'?'把规划过程，看清楚。':esc(titles[page]))+'<span class="version">V2</span>';renderTime();draw();if(page==='overview')applyOverviewMode();window.scrollTo(0,0);}
+// 演示总览有两个视图：全局分配（多任务）与区域封控（单个封控区）。它们共用
+// 同一个页面与顶部运行选择，不再各自是一个独立路由，避免"换数据源才看到
+// 其它任务"这种两套口径。
+function hasContainment(){return !!(state.run&&state.run.replay&&state.run.replay.containment);}
+function applyOverviewMode(){
+  const ck=state.page==='overview'&&state.ckView&&hasContainment();
+  const mapView=$('#overview-map-view'),ckView=$('#overview-ck-view'),tabs=$('#overview-tabs');
+  if(mapView)mapView.hidden=ck;
+  if(ckView)ckView.hidden=!ck;
+  if(tabs)tabs.hidden=!hasContainment();
+  $$('.ov-tab').forEach(b=>b.classList.toggle('active',(b.dataset.ov==='containment')===ck));
+  $('#overview-view')?.classList.toggle('active',!ck);
+  const badge=$('#view-badge');if(badge&&state.page==='overview')badge.textContent=ck?'区域封控':'全局分配';
+  if(window.ContainmentPage){
+    if(ck){
+      // 切进封控视图时沿用主时间轴的时刻；切回全局分配时把时刻带回去。
+      if(!state.ckViewApplied)window.ContainmentPage.syncTime(state.t);
+      window.ContainmentPage.show();
+    }else{
+      if(state.ckViewApplied){const t=window.ContainmentPage.time();if(Number.isFinite(t))setTime(t);}
+      window.ContainmentPage.hide();
+    }
+  }
+  state.ckViewApplied=ck;
+  if(!ck){state.zoom=1;setBounds();draw();}
+}
+function showOverviewMode(mode){
+  state.ckView=mode==='containment';
+  if(state.page!=='overview')setPage('overview');
+  else applyOverviewMode();
+}
+// 没有封控动作记录时，明确说明"为什么看不到"，并给一键入口；
+// 否则用户会以为 T1 这个封控作业也应该画出边界和探测圈。
+function updateCkHint(){
+  const box=$('#ck-hint');if(!box)return;
+  if(hasContainment()){box.hidden=true;box.innerHTML='';return;}
+  const runs=(state.catalog&&state.catalog.runs)||[];
+  const candidate=runs.find(r=>r.scenario==='interop_containment'&&r.id!==state.run?.id);
+  if(!candidate){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  box.innerHTML='<span>当前运行没有区域封控的动作记录：这里的 T1 只是历史样例的封控作业（按到点作业执行），'+
+    '边界、探测圈、警告与拦阻只在“区域封控”演示运行里生成。</span>'+
+    '<button class="button small primary" data-ck-run="'+esc(candidate.id)+'">打开最近一次区域封控演示 →</button>';
+}
 function eventCategory(e){if(e.kind==='plan_emitted')return 'planning';if(e.kind==='behavior_event')return 'behavior';if(['member_lost','timeout','deviation','job_requeued','job_failed','cancel_sent','command_abandoned','feedback_ignored'].includes(e.kind))return 'exception';return 'task';}
 function eventDetail(e){if(e.kind==='plan_emitted')return (e.triggers||[]).map(x=>x.split(':')[0]).join(' / ')+' · '+e.n_assignments+' 项指派';if(e.kind==='behavior_event'){const ev=e.event||{},sub=ev.kind;let d=behaviorEvents[sub]||sub||'';if(ev.phase)d+=' · '+ev.phase;if(ev.pid)d+=' · '+ev.pid;if(ev.cycle!=null)d+=' · 第'+ev.cycle+'圈';if(ev.coverage!=null)d+=' · 覆盖'+Math.round(ev.coverage*100)+'%';
   // T-ASL 效果判定事件的摘要字段
@@ -177,38 +221,59 @@ async function loadRun(id,autoplay=false){
   const token=++state.loadToken;closeTheater();setPlaying(false);
   try{
     const data=await api('/api/runs/'+encodeURIComponent(id));if(token!==state.loadToken)return;
-    state.run=data;document.body.classList.toggle('recording-data',!!data.report.recording);state.t=0;state.focus=null;state.zoom=1;state.frames=makeFrames(data);state.eventRows=data.trace.map((e,index)=>{if(e.kind==='behavior_event'&&e.event&&e.event.job_id&&!e.job_id)e={...e,job_id:e.event.job_id};return {...e,index};}).filter(e=>events[e.kind]&&!(e.kind==='behavior_event'&&['behavior_structure','behavior_detail','approach_route'].includes(e.event?.kind)));lastEventKey='';
+    state.run=data;
+    let mapNote=$('#scene-map-note');if(!mapNote){mapNote=document.createElement('div');mapNote.id='scene-map-note';mapNote.className='scene-map-note';document.querySelector('.map-legend').after(mapNote);}
+    mapNote.textContent=data.scene_map?.note||data.geometry_note||'';
+document.body.classList.toggle('recording-data',!!data.report.recording);state.t=0;state.focus=null;state.zoom=1;state.frames=makeFrames(data);state.eventRows=data.trace.map((e,index)=>{if(e.kind==='behavior_event'&&e.event&&e.event.job_id&&!e.job_id)e={...e,job_id:e.event.job_id};return {...e,index};}).filter(e=>events[e.kind]&&!(e.kind==='behavior_event'&&['behavior_structure','behavior_detail','approach_route'].includes(e.event?.kind)));lastEventKey='';
     $('#run-select').value=id;$('#run-mode').textContent=modes[data.report.mode]||data.report.mode;$('#run-semantic').textContent=data.report.recording?data.report.recording_source.note:(data.report.motion==='real'?'逐步运动':'瞬移')+(data.report.avoid?' · 静态建筑绕障':'')+(data.report.behavior?' · 到位行为':'')+' · '+(data.report.objective||'makespan');
     $('#stat-end').textContent=data.replay.end;$('#duration').textContent=data.replay.end;$('#scrubber').max=data.replay.end;$('#timeline-mid').textContent=stamp(data.replay.end/2);$('#timeline-end').textContent=stamp(data.replay.end);$('#task-count').textContent=data.report.jobs.length;$('#side-jobs').textContent=String(data.report.jobs.length).padStart(2,'0');
     $('#fleet-note').textContent=[...new Set(data.replay.workers.map(w=>w.kind_name))].join(' · ');
-    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(taskLabel(j))}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(autoplay)setPlaying(true);
-  }catch(e){toast('载入失败：'+e.message);}
+    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(taskLabel(j))}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(window.ContainmentPage)window.ContainmentPage.load(data);
+    const ckBtn=$('#open-containment');if(ckBtn)ckBtn.hidden=!data.replay.containment;
+    // 只含区域封控一个作业的运行，默认就站在封控视图：这个运行本身就是
+    // 一次封控演示，"全局分配"只用来对照机动与任务位置。
+    state.ckView=!!(data.replay.containment&&data.report.jobs.length===1);
+    applyOverviewMode();
+    updateCkHint();
+    if(autoplay)setPlaying(true);  }catch(e){toast('载入失败：'+e.message);}
 }
 async function refreshCatalog(selectId){
   const data=await api('/api/catalog');state.catalog=data;
   $('#connection-text').textContent='本机已连接'+(data.version?' · '+data.version:'');
-  if(!(data.features&&data.features.planner))toast('工作台服务是旧版本：请关闭旧窗口后重新双击 启动工作台.cmd');
+  const caps=data.features||{};
+  if(!caps.planner)toast('工作台服务是旧版本：请关闭旧窗口后重新双击 启动工作台.cmd');
+  // 旧服务不认 interop_containment，也不返回封控回放数据：直接禁用该场景并说明，
+  // 否则用户只会看到"无效参数"，以为是新场景坏了。
+  if(!caps.containment){
+    const opt=[...document.querySelectorAll('#config-scenario option')].find(o=>o.value==='interop_containment');
+    if(opt){opt.disabled=true;opt.textContent='区域封控 · 需要重启工作台服务（当前服务版本 '+esc(data.version||'未知')+'）';}
+    toast('当前工作台服务（'+ (data.version||'未知版本') +'）不含区域封控：请关闭运行中的工作台窗口后重新双击 启动工作台.cmd。');
+  }
   $('#run-select').innerHTML=data.runs.map(r=>{const sc=r.scenario?((data.scenarios&&data.scenarios[r.scenario])||r.scenario):null;return `<option value="${esc(r.id)}">${sc?esc(sc)+' · ':''}${r.total} 个任务 · ${r.behavior_details?'动作与避障细节':r.behavior?'到位动作':'到点作业'} · ${modes[r.mode]||r.mode} · ${esc(shortRun(r.id))}</option>`;}).join('');
   if(selectId||!state.run){const requested=new URLSearchParams(location.search).get('source');const id=selectId||(data.runs.some(r=>r.id===requested)?requested:null)||(data.runs.find(r=>r.id===data.default_run)||data.runs.find(r=>r.behavior)||data.runs[0])?.id;if(id){await loadRun(id);const task=new URLSearchParams(location.search).get('task');if(task&&state.run.report.jobs.some(j=>j.job_id===task)){openTask(task,false);const params=new URLSearchParams(location.search);if(params.get('view')==='spatial')state.taskView='spatial';else if(params.get('view')==='process')state.taskView='process';if(params.has('t'))setTime(Number(params.get('t')));renderTheater();draw();}}else toast('还没有运行记录，点击新建演示开始。');}
   else{$('#run-select').value=state.run.id;renderRuns();}
   if(data.process?.state==='running')watchProcess(data.process.id);
+  updateCkHint();
+  const pageParam=new URLSearchParams(location.search).get('page');
+  if(pageParam==='containment')showOverviewMode('containment');
+  else if(pageParam&&titles[pageParam]&&pageParam!==state.page)setPage(pageParam);
 }
 function setBusy(b){state.busy=b;$('#busy-banner').hidden=!b;$('#submit-run').disabled=b;$('#submit-run').textContent=b?'仿真运行中…':'运行演示 →';}
 function watchProcess(id){
   setBusy(true);clearTimeout(pollTimer);
-  async function poll(){try{const data=await api('/api/catalog');if(data.process?.id!==id){setBusy(false);return;}if(data.process.state==='running'){pollTimer=setTimeout(poll,800);return;}setBusy(false);await refreshCatalog();if(data.process.state==='complete'){await loadRun(id,true);setPage('overview');toast('本轮结果已保存，正在回放实际反馈。');}else{const log=await fetch('/artifacts/'+encodeURIComponent(id)+'/worker.log').then(r=>r.text());toast('运行失败：'+log.slice(-200));}}catch(e){setBusy(false);toast('状态读取失败：'+e.message);}}
+  async function poll(){try{const data=await api('/api/catalog');if(data.process?.id!==id){setBusy(false);return;}if(data.process.state==='running'){pollTimer=setTimeout(poll,800);return;}setBusy(false);await refreshCatalog();if(data.process.state==='complete'){await loadRun(id,true);setPage('overview');const hasCk=!!(state.run&&state.run.replay&&state.run.replay.containment);toast(hasCk?'本轮结果已保存，已打开“区域封控”视图；可切到“全局分配”对照机动与任务位置。':'本轮结果已保存，正在回放实际反馈。');}else{const log=await fetch('/artifacts/'+encodeURIComponent(id)+'/worker.log').then(r=>r.text());toast('运行失败：'+log.slice(-200));}}catch(e){setBusy(false);toast('状态读取失败：'+e.message);}}
   pollTimer=setTimeout(poll,800);
 }
-function updateConfig(){const scenario=$('#config-scenario').value,neutral=scenario==='interop_neutral',allow=scenario==='asl_city';$('#config-avoid').disabled=!allow;if(!allow)$('#config-avoid').checked=false;$('#config-behavior').disabled=!allow||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;$('#config-effect').disabled=scenario!=='asl_city';$('#config-effect-field').hidden=$('#config-effect').disabled;for(const id of ['config-avoid','config-behavior'])$('#'+id).closest('label').hidden=neutral;$('#config-scope-note').textContent=neutral?'融合层中性任务：规划器固定为 interop，逐步运动；突击效果类型不适用。':'历史城市场景沿用基座规划器与原有行为链；可在运行记录中查看已保存的地图与回放。';
+function updateConfig(){const scenario=$('#config-scenario').value,neutral=scenario==='interop_neutral'||scenario==='interop_containment',allow=scenario==='asl_city';$('#config-avoid').disabled=!allow;if(!allow)$('#config-avoid').checked=false;$('#config-behavior').disabled=!allow||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;$('#config-effect').disabled=scenario!=='asl_city';$('#config-effect-field').hidden=$('#config-effect').disabled;for(const id of ['config-avoid','config-behavior'])$('#'+id).closest('label').hidden=neutral;$('#config-scope-note').textContent=neutral?(scenario==='interop_containment'?'区域封控：融合层规划 + 基座逐步运动与到位行为；占位/警告/拦阻由行为层执行，结果只作本地仿真结论。':'融合层中性任务：规划器固定为 interop，逐步运动；突击效果类型不适用。'):'历史城市场景沿用基座规划器与原有行为链；可在运行记录中查看已保存的地图与回放。';
   // 仿真步数跟随场景默认（asl_city 机动距离远，需要 620 步）；
   // 用户改过自定义值时只保证 asl_city 不低于 620。
   const ticks=$('#config-form [name=max_ticks]');ticks.max=700;
-  const defaults={asl_city:620,interop_neutral:260};
+  const defaults={asl_city:620,interop_neutral:260,interop_containment:320};
   const untouched=Object.values(defaults).includes(Number(ticks.value));
   if(untouched)ticks.value=defaults[$('#config-scenario').value]||200;
   else if($('#config-scenario').value==='asl_city')ticks.value=Math.max(Number(ticks.value),620);}
 function openConfig(){updateConfig();$('#config-error').hidden=true;$('#config-dialog').showModal();}
-$('#config-form').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),scenario=f.get('scenario'),neutral=scenario==='interop_neutral',config={scenario,mode:f.get('mode'),motion:'real',objective:f.get('objective'),planner:neutral?'interop':'base',max_ticks:Number(f.get('max_ticks')),avoid:$('#config-avoid').checked&&!$('#config-avoid').disabled,behavior:$('#config-behavior').checked&&!$('#config-behavior').disabled,...(!$('#config-effect').disabled?{effect_kind:f.get('effect_kind')}:{})};try{const result=await api('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});$('#config-dialog').close();watchProcess(result.id);}catch(err){$('#config-error').textContent=err.message;$('#config-error').hidden=false;}});
+$('#config-form').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),scenario=f.get('scenario'),neutral=scenario==='interop_neutral'||scenario==='interop_containment',config={scenario,mode:f.get('mode'),motion:'real',objective:f.get('objective'),planner:neutral?'interop':'base',max_ticks:Number(f.get('max_ticks')),avoid:$('#config-avoid').checked&&!$('#config-avoid').disabled,behavior:$('#config-behavior').checked&&!$('#config-behavior').disabled,...(!$('#config-effect').disabled?{effect_kind:f.get('effect_kind')}:{})};try{const result=await api('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});$('#config-dialog').close();watchProcess(result.id);}catch(err){$('#config-error').textContent=err.message;$('#config-error').hidden=false;}});
 const theater=$('#task-theater'),mapCard=$('.map-card'),sceneHome=$('.overview-grid');
 function taskRange(jid){
   const rows=state.run.trace,dispatch=rows.find(e=>['job_dispatched','recording_start'].includes(e.kind)&&e.job_id===jid);
@@ -334,7 +399,7 @@ function renderExecutionEvidence(jid){
 }
 $('#close-theater').onclick=closeTheater;theater.addEventListener('cancel',e=>{e.preventDefault();closeTheater();});
 $('#theater-task').onchange=e=>openTask(e.target.value);
-$('#task-source').onchange=async e=>{const jid=state.taskWindow.jobId;await loadRun(e.target.value);if(state.run.report.jobs.some(j=>j.job_id===jid))openTask(jid,true);};
+$('#task-source')?.remove();
 $('#task-view-switch').onclick=e=>{const b=e.target.closest('[data-task-view]');if(!b)return;state.taskView=b.dataset.taskView;setBounds();renderTheater();draw();};
 $('#task-restart').onclick=()=>{if(!state.taskWindow)return;state.taskWindow.start=state.taskWindow.dispatch;updateTaskTimeline();setTime(state.taskWindow.start);setBounds();draw();setPlaying(true);};
 $('#action-start').onclick=()=>{if(!state.taskWindow)return;state.taskWindow.start=state.taskWindow.execution;updateTaskTimeline();setTime(state.taskWindow.start);setBounds();draw();setPlaying(true);};
@@ -348,13 +413,21 @@ function visibleStructures(){const jid=selectedJobId();return (state.run.replay.
 function globalView(){if(state.taskWindow){closeTheater();return;}state.focus=null;$('#task-select').value='';state.zoom=1;setBounds();renderTime();draw();}
 function setBounds(){
   if(!state.run)return;
+  // 只含区域封控一个作业的运行：全局分配也按"封控区 + 集结地"取景，
+  // 不套整张场景图——否则 140 m 的封控区被压成一个小方块，看不出谁封哪段、
+  // 各平台的探测圈也小到看不见。
+  if(!state.focus&&!state.taskWindow&&state.run.replay.containment
+     &&state.run.report.jobs.length===1){
+    const b=containmentBounds();if(b){bounds=b;return;}
+  }
+  if(!state.focus&&state.run.scene_map?.surfaces?.length){bounds=fullBounds();return;}
   const r=state.run.replay,jid=selectedJobId(),j=r.jobs.find(j=>j.job_id===jid);let points=[];
   if(j&&state.taskWindow){
     const structure=(r.behaviors||[]).find(b=>b.job_id===jid);points.push(structure?.site||j.pos);if(structure){points.push(...(structure.loop||[]),...(structure.type==='hold'?(structure.posts||[]).slice(0,1):(structure.posts||[])),...(structure.type==='hold'?(structure.standbys||[]).slice(0,1):(structure.standbys||[])),...(structure.staging||[]),...(structure.objective||[]));const radius=structure.area_radius||structure.ring_radius;if(radius)points.push([structure.site[0]-radius,structure.site[1]-radius],[structure.site[0]+radius,structure.site[1]+radius]);}
     for(const w of r.workers)for(const p of w.samples)if(p.job===jid&&p.t>=state.taskWindow.start&&p.t<=state.taskWindow.end)points.push([p.x,p.y]);
   }else if(j){
     points.push(j.pos);const structure=(r.behaviors||[]).find(b=>b.job_id===jid&&b.sim_s<=state.t);
-    if(structure){points.push(structure.site,...(structure.loop||[]),...(structure.posts||[]),...(structure.standbys||[]),...(structure.staging||[]),...(structure.objective||[]));const radius=structure.area_radius||structure.ring_radius;if(radius){points.push([structure.site[0]-radius,structure.site[1]-radius],[structure.site[0]+radius,structure.site[1]+radius]);}}
+    if(structure){points.push(structure.site,...(structure.loop||[]),...(structure.area||[]),...(structure.posts||[]),...(structure.standbys||[]),...(structure.staging||[]),...(structure.objective||[]));const radius=structure.area_radius||structure.ring_radius;if(radius){points.push([structure.site[0]-radius,structure.site[1]-radius],[structure.site[0]+radius,structure.site[1]+radius]);}}
     if(frame().jobs[jid].status!=='succeeded')for(const w of r.workers){if(activeWorkerJob(w)===jid){const p=workerAt(w);points.push([p.x,p.y]);}}
   }else if(state.focus?.type==='worker'){
     const w=r.workers.find(w=>w.pid===state.focus.id),p=workerAt(w);points.push([p.x-4,p.y-4],[p.x+4,p.y+4]);
@@ -363,13 +436,15 @@ function setBounds(){
     // 中间会拉出一大片空地，建筑群和任务点全被压成小点。起点与全场景
     // 的关系放到右下角缩略图里看，主图专注任务区。
     const jobs=r.jobs.map(j=>j.pos);points=[...jobs];
+    const ckArea=state.run.replay.containment?.structure?.area;
+    if(ckArea)points.push(...ckArea);
     if(jobs.length){
       const cx=jobs.reduce((s,p)=>s+p[0],0)/jobs.length,cy=jobs.reduce((s,p)=>s+p[1],0)/jobs.length;
       const near=(p)=>Math.hypot(p[0]-cx,p[1]-cy)<=130;
       // 只让"建筑级"占地参与取景：花坛/标识柱这类小构件离得远却会把视野拉空，
       // 图上仍画它们，只是不再决定镜头。
       const area=(poly)=>{let a=0;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length];a+=p[0]*q[1]-q[0]*p[1];}return Math.abs(a/2);};
-      if($('#show-obstacles').checked)for(const o of (state.run.obstacles||[]))if(area(o.polygon)>25&&o.polygon.some(near))points.push(...o.polygon);
+      if($('#show-obstacles').checked)for(const o of mapGeometry('obstacles'))if(area(o.polygon)>25&&o.polygon.some(near))points.push(...o.polygon);
       for(const b of (r.behaviors||[])){for(const p of [...(b.staging||[]),...(b.objective||[]),...(b.posts||[]),...(b.standbys||[]),...(b.loop||[])])if(near(p))points.push(p);}
       for(const w of r.workers)if(near(w.start))points.push(w.start);
     }
@@ -403,13 +478,14 @@ function renderStage(){
   const jid=selectedJobId(),j=state.run.report.jobs.find(j=>j.job_id===jid),f=frame();
   $('#overview-view').classList.toggle('active',!state.focus);$('#view-badge').textContent=state.focus?'聚焦动作':'全局分配';
   $('#scene-heading').textContent=j?j.job_id+' · '+taskLabel(j):state.focus?'平台位置':'全局任务分布';
-  $('#focus-view').textContent=j?'仅突出当前任务 · 镜头保持固定':'点击右侧任务，查看成员与动作';
+  $('#focus-view').textContent=j?(j.type==='blockade'&&state.run.replay.containment?'区域封控任务 · 可打开封控视图看边界占位与接近事件':'仅突出当前任务 · 镜头保持固定'):'点击右侧任务，查看成员与动作';
   const panel=$('#stage-panel');panel.classList.toggle('has-focus',!!j);panel.style.setProperty('--task-color',taskColor(jid));
   if(!j){panel.innerHTML='<div class="stage-empty"><span>◈</span><div><b>全局看分配</b><small>颜色对应任务；选中任务后查看具体动作。默认收起历史轨迹。</small></div></div>';return;}
   const s=f.jobs[jid],started=s.behavior.startedAt!=null||(!state.run.report.behavior&&s.phase&&s.phase!=='travel');
   const index=s.status==='succeeded'?3:started?2:s.phase?1:s.attempts?0:-1;
   const phase=s.status==='succeeded'?'已完成':s.status==='failed'?'执行失败':s.status==='cancelling'?'取消中':!s.attempts?'等待分配':started?phaseName(s.phase):s.phase==='work'?'等待成员到齐':'前往作业区';
-  panel.innerHTML=`<div class="stage-top"><div><span class="stage-dot"></span><b>${esc(jid)} · ${esc(taskLabel(j))}</b><span class="stage-phase">${esc(phase)}</span></div><button class="text-button" data-global>返回全局 ↗</button></div><div class="stage-steps">${['已分配','前往作业区','执行动作','已完成'].map((v,i)=>`<span class="${i<index?'done':i===index?'current':''}"><i>${i<index?'✓':i+1}</i>${v}</span>`).join('')}</div><div class="stage-detail"><span>${esc(behaviorSummary(j,s))}</span><div class="force-chips">${s.pids.map(pid=>{const w=state.run.replay.workers.find(x=>x.pid===pid),role=(state.run.replay.behaviors||[]).find(x=>x.job_id===jid)?.roles?.[pid]||'';return `<button class="member-chip ${state.focus?.id===pid?'selected':''}" data-worker="${esc(pid)}" title="${esc((w?.kind_name||'')+(role?' · '+role:''))}">${no(pid)}<small>${esc(kindNames[w?.kind]||'')}${role?' · '+esc(role):''}</small></button>`;}).join('')||'<small>尚未分配成员</small>'}</div></div>`;
+  const ck=!!(state.run.replay.containment&&state.run.replay.containment.job_id===jid);
+  panel.innerHTML=`<div class="stage-top"><div><span class="stage-dot"></span><b>${esc(jid)} · ${esc(taskLabel(j))}</b><span class="stage-phase">${esc(phase)}</span>${ck?'<button class="text-button" data-containment>◎ 区域封控视图</button>':''}</div><button class="text-button" data-global>返回全局 ↗</button></div><div class="stage-steps">${['已分配','前往作业区','执行动作','已完成'].map((v,i)=>`<span class="${i<index?'done':i===index?'current':''}"><i>${i<index?'✓':i+1}</i>${v}</span>`).join('')}</div><div class="stage-detail"><span>${esc(behaviorSummary(j,s))}</span><div class="force-chips">${s.pids.map(pid=>{const w=state.run.replay.workers.find(x=>x.pid===pid),role=(state.run.replay.behaviors||[]).find(x=>x.job_id===jid)?.roles?.[pid]||'';return `<button class="member-chip ${state.focus?.id===pid?'selected':''}" data-worker="${esc(pid)}" title="${esc((w?.kind_name||'')+(role?' · '+role:''))}">${no(pid)}<small>${esc(kindNames[w?.kind]||'')}${role?' · '+esc(role):''}</small></button>`;}).join('')||'<small>尚未分配成员</small>'}</div></div>`;
 }
 function trailsFor(w){
   const full=$('#full-trails').checked,jid=selectedJobId(),s=jid?frame().jobs[jid]:null;
@@ -430,10 +506,31 @@ function trailsFor(w){
   const current=workerAt(w);if(segment.length&&current.job===segment.at(-1).job&&current.command===segment.at(-1).command&&state.t>segment.at(-1).t)segment.push({...current,t:state.t});
   if(segment.length>1)segments.push(segment);return segments;
 }
-function fullBounds(){
-  // 全场景（含 150 m 外的出发阵地）的取景范围，缩略图与"看全图"都用它。
+
+function mapGeometry(key){return state.run?.scene_map?.[key]||state.run?.[key]||[];}
+function mapStyle(o){const id=o.id||'';return o.source==='mesh_aabb'?['#b9c8d6','#7b90a3']:id.includes('planter')?['#99b78c','#6c8961']:id.includes('walls')?['#aeb4b1','#7e8782']:id.includes('beacon')?['#d2b36b','#a38b4e']:['#ccd5d2','#9fadb4'];}
+function landmarkName(o){const n=o.name||'';const names={env_beacon_lawn:'草坪区标识柱',env_beacon_walls:'围墙区标识柱',env_beacon_city:'城市区标识柱',env_beacon_wetlands:'湿地区标识柱',env_beacon_yosemite:'山地区标识柱',env_wetlands_north:'北湿地',env_wetlands_south:'南湿地',env_yosemite:'山地'};return (names[n]||buildingName(n))+(o.missing_geometry?' · 缺少模型，仅示位置':'');}
+
+// 区域封控运行的取景范围：封控区、通道口、站位、集结待机区与目标起终点。
+function containmentBounds(){
+  const ck=state.run&&state.run.replay&&state.run.replay.containment;
+  if(!ck||!ck.structure)return null;
+  const pts=[];
+  for(const p of ck.structure.area||[])pts.push(p);
+  for(const g of ck.structure.gates||[])if(g.point)pts.push(g.point);
+  for(const p of ck.structure.post_plan||[])if(p.point)pts.push(p.point);
+  for(const w of state.run.replay.workers)if(w.start)pts.push(w.start);
+  for(const t of (ck.result&&ck.result.targets)||[]){
+    if(t.start)pts.push(t.start);if(t.goal)pts.push(t.goal);
+  }
+  if(!pts.length)return null;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),pad=22;
+  return [Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)+pad,Math.max(...ys)+pad];
+}
+function fullBounds(){  // 全场景（含 150 m 外的出发阵地）的取景范围，缩略图与"看全图"都用它。
   const r=state.run.replay,pts=[...r.workers.map(w=>w.start),...r.jobs.map(j=>j.pos)];
-  for(const o of state.run.obstacles||[])pts.push(...o.polygon);
+  for(const o of [...mapGeometry('obstacles'),...mapGeometry('roads'),...mapGeometry('surfaces')])pts.push(...o.polygon);
+  for(const l of mapGeometry('landmarks'))if(l.pose)pts.push(l.pose.slice(0,2));
   for(const b of r.behaviors||[])for(const p of [...(b.staging||[]),...(b.objective||[]),...(b.loop||[]),...(b.posts||[]),...(b.standbys||[])])pts.push(p);
   if(!pts.length)return [0,0,100,100];
   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),pad=10;
@@ -447,20 +544,21 @@ function drawMinimap(W,H){
   const M=p=>[x0+w/2+(p[0]-cx)*s,y0+h/2-(p[1]-cy)*s];
   ctx.save();
   ctx.beginPath();ctx.roundRect(x0,y0,w,h,8);ctx.fillStyle='#ffffffee';ctx.fill();ctx.strokeStyle='#d6e2da';ctx.lineWidth=1;ctx.stroke();
-  for(const rd of state.run.roads||[]){ctx.beginPath();rd.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#eef1ec';ctx.fill();}
-  for(const o of state.run.obstacles||[]){ctx.beginPath();o.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle=o.source==='mesh_aabb'?'#b9c8d5':'#d3dade';ctx.fill();}
+  for(const rd of mapGeometry('roads')){ctx.beginPath();rd.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#eef1ec';ctx.fill();}
+  for(const o of mapGeometry('obstacles')){ctx.beginPath();o.polygon.forEach((p,i)=>{const q=M(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle=mapStyle(o)[0];ctx.fill();}
   for(const job of state.run.replay.jobs){const [mx,my]=M(job.pos);ctx.strokeStyle=taskColor(job.job_id);ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(mx,my,4,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(mx,my,1.4,0,Math.PI*2);ctx.fillStyle=taskColor(job.job_id);ctx.fill();}
   for(const wk of state.run.replay.workers){const [mx,my]=M(wk.start);ctx.beginPath();ctx.arc(mx,my,1.9,0,Math.PI*2);ctx.fillStyle=state.taskWindow?teamColor(wk.pid):'#5d7f90';ctx.fill();}
   const screen=canvas.getBoundingClientRect(),viewScale=mapScale(),centerX=(bounds[0]+bounds[2])/2,centerY=(bounds[1]+bounds[3])/2;
   const a=M([centerX-screen.width/(2*viewScale),centerY+screen.height/(2*viewScale)]),b=M([centerX+screen.width/(2*viewScale),centerY-screen.height/(2*viewScale)]);
-  ctx.strokeStyle='#2f8f86';ctx.lineWidth=1.2;ctx.setLineDash([3,2]);ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.setLineDash([]);
+  ctx.save();ctx.beginPath();ctx.rect(x0+1,y0+1,w-2,h-17);ctx.clip();
+  ctx.strokeStyle='#2f8f86';ctx.lineWidth=1.2;ctx.setLineDash([3,2]);ctx.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.setLineDash([]);ctx.restore();
   ctx.fillStyle='#fffffff2';ctx.fillRect(x0+1,y0+h-16,w-2,15);
   ctx.font='9px "Segoe UI","Microsoft YaHei"';ctx.fillStyle='#6d8778';ctx.fillText('全局态势 · 点击看全图',x0+8,y0+h-5);
   ctx.restore();
   state.hits.push({type:'fit',x:x0+w/2,y:y0+h/2,w:w,h:h});
 }
 function draw(){
-  if(!state.run||state.page!=='overview')return;
+  if(!state.run||state.page!=='overview'||state.ckView)return;
   const rect=canvas.getBoundingClientRect();if(rect.width<1)return;const dpr=window.devicePixelRatio||1;
   if(canvas.width!==Math.round(rect.width*dpr)||canvas.height!==Math.round(rect.height*dpr)){canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);}
   ctx.setTransform(dpr,0,0,dpr,0,0);const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);ctx.fillStyle='#edf0e9';ctx.fillRect(0,0,W,H);
@@ -477,20 +575,21 @@ function draw(){
   const arrowAlong=(points,color)=>{if(!points||points.length<2)return;ctx.fillStyle=color;for(let i=1;i<points.length;i++){const a=P(points[i-1]),b=P(points[i]);if(Math.hypot(b[0]-a[0],b[1]-a[1])<34)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]);ctx.beginPath();ctx.moveTo(mx+Math.cos(ang)*5.5,my+Math.sin(ang)*5.5);ctx.lineTo(mx+Math.cos(ang+2.6)*6,my+Math.sin(ang+2.6)*6);ctx.lineTo(mx+Math.cos(ang-2.6)*6,my+Math.sin(ang-2.6)*6);ctx.closePath();ctx.fill();}};
   const circle=(p,r,color,fill=null,dash=[])=>{const a=P(p);ctx.beginPath();ctx.arc(...a,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}ctx.strokeStyle=color;ctx.lineWidth=1.4;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
   if($('#show-grid').checked){const step=(x1-x0)>35?5:2;ctx.font='9px "Segoe UI"';for(let x=Math.floor(x0/step)*step;x<=x1;x+=step){line([[x,y0],[x,y1]],'#e8eee7',.6);const a=P([x,y0]);ctx.fillStyle='#9aada1';ctx.fillText(x,a[0],H-30);}for(let y=Math.floor(y0/step)*step;y<=y1;y+=step)line([[x0,y],[x1,y]],'#e8eee7',.6);}
+  if($('#show-obstacles').checked)for(const surface of mapGeometry('surfaces')){ctx.beginPath();surface.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#e4edda';ctx.fill();ctx.strokeStyle='#a9bf99';ctx.lineWidth=1;ctx.stroke();}
   // 底图：道路/广场来自 SDF（env_road_*/env_city_road_*/env_city_square），
   // 只作底图不参与避障；先画路再画建筑，建筑才压得住路口。
-  if($('#show-obstacles').checked&&(state.run.roads||[]).length){
-    for(const road of state.run.roads){ctx.beginPath();road.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
+  if($('#show-obstacles').checked&&mapGeometry('roads').length){
+    for(const road of mapGeometry('roads')){ctx.beginPath();road.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
       const plaza=String(road.id||'').includes('square');
-      ctx.fillStyle=plaza?'#f8f9f3':'#f4f6ef';ctx.fill();ctx.strokeStyle='#e6eae0';ctx.lineWidth=.8;ctx.stroke();}
+      ctx.fillStyle=plaza?'#e8ded0':'#d8ddda';ctx.fill();ctx.strokeStyle='#b6c2b8';ctx.lineWidth=.8;ctx.stroke();}
   }
   // Assignment links are not routes; only recorded routes and traveled trails are drawn.
   // 静态占地（建筑/花坛/围墙）在总览与任务视图都画：场景是"左侧十字路口建筑群"，
   // 建筑图层看不见就看不出任务点周围是什么。
-  if($('#show-obstacles').checked)for(const obstacle of (state.run.obstacles||[])){
+  if($('#show-obstacles').checked)for(const obstacle of mapGeometry('obstacles')){
     ctx.beginPath();obstacle.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
     const building=obstacle.source==='mesh_aabb';
-    ctx.fillStyle=building?'#b9c8d6':'#ccd5d2';ctx.strokeStyle=building?'#7b90a3':'#9fadb4';ctx.lineWidth=1;ctx.fill();ctx.stroke();
+    ctx.fillStyle=mapStyle(obstacle)[0];ctx.strokeStyle=mapStyle(obstacle)[1];ctx.lineWidth=1;ctx.fill();ctx.stroke();
     if(building&&$('#show-labels').checked&&(state.taskWindow||scale>3.2)){const pts=obstacle.polygon.map(P);const w=Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0]));if(w>44){const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length;ctx.fillStyle='#43586ab8';ctx.font='9px "Segoe UI","Microsoft YaHei"';ctx.textAlign='center';ctx.fillText(buildingName(obstacle.label||obstacle.id),cx,cy+3);ctx.textAlign='left';}}
   }
   const annotationLabels=[];
@@ -521,6 +620,37 @@ function draw(){
       const siteXY=P(b.site);circle(b.site,state.taskWindow?15:8,'#b34a3a','#b34a3a12',[3,3]);
       ctx.strokeStyle='#b34a3a';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(siteXY[0]-5,siteXY[1]);ctx.lineTo(siteXY[0]+5,siteXY[1]);ctx.moveTo(siteXY[0],siteXY[1]-5);ctx.lineTo(siteXY[0],siteXY[1]+5);ctx.stroke();
       annotationLabels.push({text:'目标 · '+(b.target_id||jid),x:siteXY[0],y:siteXY[1],color:'#a8442f',priority:true});const lead=(b.assault_pids||f.jobs[jid].pids)[0],route=f.jobs[jid].behavior.routes?.[lead];if(m.index===3&&route?.to&&Math.hypot(route.to[0]-b.objective[0][0],route.to[1]-b.objective[0][1])>.7){circle(route.to,15,'#5d9c70','#5d9c7015',[3,3]);const a=P(route.to);annotationLabels.push({text:'确认点 · '+no(lead),x:a[0],y:a[1]+24,color:'#5d9c70'});}}else{for(const p of b.staging||[])circle(p,state.taskWindow?9:5,c,null,[2,3]);for(const p of b.objective||[])circle(p,state.taskWindow?6:3,c,c+'44');}ctx.restore();
+  }
+  // 区域封控场景要素：封控边界、通道口、占位点。这是本轮场景的一部分，
+  // 不随"选中哪个任务"消失——总览要能直接看出"这块区域被谁封住了"。
+  const ckStructure=state.run.replay.containment?.structure;
+  if(ckStructure&&ckStructure.area&&$('#show-behaviors').checked){
+    const c=taskColor(ckStructure.job_id);
+    ctx.save();ctx.beginPath();ckStructure.area.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.closePath();
+    ctx.fillStyle=c+'0d';ctx.fill();ctx.setLineDash([9,6]);ctx.strokeStyle=c+'cc';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+    for(const gate of ckStructure.gates||[]){const a=P(gate.point);ctx.strokeStyle='#7c3aed';ctx.lineWidth=2;ctx.beginPath();ctx.arc(a[0],a[1],5,0,Math.PI*2);ctx.stroke();}
+    for(const post of ckStructure.post_plan||[]){circle(post.point,4,c,c+'33');}
+    // 控制建立后把区域压实一档，并画出每台平台的探测半径圈——这才看得出
+    // "封控区被谁封着、谁看得见哪一段"，而不是只有几个点。
+    const ckEvents=state.run.replay.containment.events||[];
+    const ckEst=ckEvents.find(e=>e.kind==='control_established');
+    if(ckEst&&state.t>=(ckEst.t||0)){
+      ctx.save();ctx.beginPath();ckStructure.area.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.closePath();
+      ctx.fillStyle=c+'1f';ctx.fill();ctx.restore();
+    }
+    const sensorR=(ckStructure.sensor_radius_m||35)*scale;
+    if(sensorR>5){
+      for(const pid of Object.keys(ckStructure.roles||{})){
+        const w=state.run.replay.workers.find(x=>x.pid===pid);
+        if(!w)continue;
+        const p=workerAt(w);
+        if(!p||!Number.isFinite(p.x))continue;
+        circle([p.x,p.y],sensorR,c+'55',c+'0b',[4,4]);
+      }
+    }
+    const cx=ckStructure.center||ckStructure.site;const a=P(cx);
+    annotationLabels.push({text:'封控区 · '+num(ckStructure.perimeter_m,0)+' m 边界',x:a[0],y:a[1]-10,color:c,priority:true});
+    ctx.restore();
   }
   let traceCount=0;for(const w of state.run.replay.workers)for(const segment of trailsFor(w)){line(segment.map(p=>[p.x,p.y]),state.taskWindow?teamColor(w.pid,jid):taskColor(segment.at(-1).job),state.focus?.id===w.pid?2.6:1.8);traceCount++;}
   state.hits=[];const labels=[],placed=[];const showLabels=$('#show-labels').checked;
@@ -581,8 +711,13 @@ function draw(){
   }
   for(const l of workerLabels)placeLabel(l.text,l.x,l.y,l.color,true,!!l.small);for(const l of [...annotationLabels,...jobLabels])placeLabel(l.text,l.x,l.y,l.color,l.priority,l.small);
   if(jid&&!holdInfo&&$('#show-landmarks').checked){const job=state.run.replay.jobs.find(j=>j.job_id===jid),[x,y]=P(job.pos);if(inView(x,y)){const label=(job.landmark||'').split('（')[0];if(label)placeLabel(label,x,y+20,'#8b9e8a');}}
+  if($('#show-landmarks').checked)for(const l of mapGeometry('landmarks')){if(!l.pose)continue;const [x,y]=P(l.pose);if(!inView(x,y))continue;const missing=l.missing_geometry;ctx.strokeStyle=missing?'#a77a52':'#947b42';ctx.lineWidth=1.3;ctx.setLineDash(missing?[3,3]:[]);ctx.beginPath();ctx.arc(x,y,missing?7:3,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);if($('#show-labels').checked)placeLabel(landmarkName(l),x,y,'#796b4d',false,true);}
   ctx.textAlign='left';drawMinimap(W,H);$('#map-scale').textContent=num(40/scale,1)+' 场景单位';
   $('#map-caption').textContent=state.taskWindow?'本任务执行回放 · 仅显示参与成员与已记录动作':full?'完整历史轨迹 · 按所选任务筛选':!focused?'全局态势 · 形状=平台类型，颜色=编组；建筑群即突击目标区，点击任务聚焦':f.jobs[jid]?.status==='succeeded'?'任务已完成 · 已收起动作结构与轨迹':'最近 10 秒尾迹 · 到位后仅保留动作轨迹 · 镜头固定';
+  // 封控运行的全局视图要说明多出来的那几圈是什么，不然虚线圆会被当成轨迹。
+  if(!state.taskWindow&&!focused&&state.run.replay.containment){
+    $('#map-caption').textContent='封控区 + 各平台探测半径（虚线圆）· 控制建立后区域压实显示 · 点任务看执行';
+  }
   state.scene={jobId:jid,focused,plannedCount,traceCount,structureCount:structures.length,relevantWorkers,labels,bounds:[...bounds]};
 }
 canvas.addEventListener('click',e=>{if(mapDragMoved){mapDragMoved=false;return;}const b=canvas.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;
@@ -592,19 +727,22 @@ canvas.addEventListener('click',e=>{if(mapDragMoved){mapDragMoved=false;return;}
 document.addEventListener('click',e=>{
   const nav=e.target.closest('[data-page]');if(nav)setPage(nav.dataset.page);
   const go=e.target.closest('[data-goto]');if(go)setPage(go.dataset.goto);
+  const ck=e.target.closest('[data-containment]');if(ck)showOverviewMode('containment');
+  if(e.target.closest('[data-ck-back]')){showOverviewMode('map');return;}
   const job=e.target.closest('[data-job]');if(job)openTask(job.dataset.job);
   const worker=e.target.closest('[data-worker]');if(worker)focus('worker',worker.dataset.worker,worker.hasAttribute('data-locate'));
   const event=e.target.closest('[data-event-time]');if(event){setPlaying(false);if(event.dataset.eventJob&&!state.taskWindow)openTask(event.dataset.eventJob,false);setTime(Number(event.dataset.eventTime));}
   const run=e.target.closest('[data-load-run]');if(run)loadRun(run.dataset.loadRun).then(()=>setPage('overview'));
+  const ckRun=e.target.closest('[data-ck-run]');if(ckRun){loadRun(ckRun.dataset.ckRun,true).then(()=>{showOverviewMode('containment');toast('已打开区域封控演示；切到“全局分配”页签可对照机动与任务位置。');});}
   if(e.target.closest('[data-behavior-run]')){const r=state.catalog.runs.find(r=>r.id===state.catalog.default_run&&r.behavior)||state.catalog.runs.find(r=>r.behavior);if(r)loadRun(r.id);else toast('还没有启用到位动作的记录，请新建演示。');}
   if(e.target.closest('[data-global]'))globalView();
   const source=e.target.closest('[data-source]');if(source)api('/api/source/'+source.dataset.source).then(d=>{$('#source-title').textContent=d.name;$('#source-text').textContent=d.text;$('#source-dialog').showModal();}).catch(e=>toast(e.message));
 });
 $('#play').onclick=()=>{if(state.run)setPlaying(!state.playing);};$('#restart').onclick=()=>{setPlaying(false);if(state.taskWindow){state.taskWindow.start=state.taskWindow.dispatch;updateTaskTimeline();}setTime(state.taskWindow?.start??0);setBounds();draw();};$('#step-back').onclick=()=>{setPlaying(false);setTime(Math.floor(state.t)-1);};$('#step-next').onclick=()=>{setPlaying(false);setTime(Math.floor(state.t)+1);};$('#jump-end').onclick=()=>{setPlaying(false);setTime(state.taskWindow?.end??state.run.replay.end);};$('#scrubber').oninput=e=>{setPlaying(false);setTime(Number(e.target.value));};$('#speed').onchange=e=>state.speed=Number(e.target.value);
 for(const id of ['show-trails','show-labels','show-landmarks','show-behaviors','show-starts','show-grid','full-trails','show-obstacles','show-planned','show-blocked-line'])$('#'+id).onchange=draw;
-$('#fit-map').onclick=()=>{state.zoom=1;setBounds();draw();};$('#map-zoom-in').onclick=()=>{state.zoom=Math.min(32,state.zoom*1.4);draw();};$('#map-zoom-out').onclick=()=>{state.zoom=Math.max(.25,state.zoom/1.4);draw();};$('#clear-focus').onclick=globalView;$('#overview-view').onclick=globalView;$('#event-filter').onchange=()=>{lastEventKey='';renderEvents();};$('#platform-filter').onchange=renderPlatforms;
+$('#fit-map').onclick=()=>{state.zoom=1;setBounds();draw();};$('#map-zoom-in').onclick=()=>{state.zoom=Math.min(32,state.zoom*1.4);draw();};$('#map-zoom-out').onclick=()=>{state.zoom=Math.max(.25,state.zoom/1.4);draw();};$('#clear-focus').onclick=globalView;$('#overview-view').onclick=()=>{showOverviewMode('map');globalView();};$('#event-filter').onchange=()=>{lastEventKey='';renderEvents();};$('#platform-filter').onchange=renderPlatforms;
 $('#run-select').onchange=e=>loadRun(e.target.value);$('#refresh').onclick=()=>refreshCatalog().catch(e=>toast(e.message));for(const id of ['open-config','guide-run','runs-new'])$('#'+id).onclick=openConfig;$('#close-config').onclick=()=>$('#config-dialog').close();$('#close-source').onclick=()=>$('#source-dialog').close();$('#config-scenario').onchange=()=>{if($('#config-scenario').value==='asl_city'){$('#config-avoid').checked=true;$('#config-behavior').checked=true;}updateConfig();};$('#config-avoid').onchange=updateConfig;
-$('#open-actions').onclick=()=>{setPage('overview');$('#behavior-panel').scrollIntoView({block:'start'});};$('#show-report').onclick=()=>{if(state.run)window.open(artifact('report.html'),'_blank','noopener');};$('#task-select').onchange=e=>{if(e.target.value)openTask(e.target.value);};
+$('#open-actions').onclick=()=>{setPage('overview');$('#behavior-panel').scrollIntoView({block:'start'});};$$('.ov-tab').forEach(b=>{b.onclick=()=>showOverviewMode(b.dataset.ov);});$('#show-report').onclick=()=>{if(state.run)window.open(artifact('report.html'),'_blank','noopener');};$('#task-select').onchange=e=>{if(e.target.value)openTask(e.target.value);};
 document.addEventListener('keydown',e=>{if(!state.run||document.querySelector('dialog[open]:not(#task-theater)')||/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();setPlaying(!state.playing);}if(e.code==='ArrowRight'){e.preventDefault();setPlaying(false);setTime(state.t+1);}if(e.code==='ArrowLeft'){e.preventDefault();setPlaying(false);setTime(state.t-1);}});
 new ResizeObserver(draw).observe(canvas);
 let last=performance.now(),lastRender=0;
@@ -648,3 +786,5 @@ canvas.addEventListener('pointermove',e=>{
 });
 for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>{mapDrag=null;canvas.style.cursor='grab';});
 canvas.title='滚轮缩放（以鼠标位置为中心） · 按住拖动平移 · 适应视图恢复';
+
+for(const icon of document.querySelectorAll('.legend-platform')){const c=icon.getContext('2d');drawPlatformIcon(c,icon.dataset.kind,24,24,17,0,({UGV:'#3f6fa3',TANK:'#8a6b3d',PLANE:'#2f8f86',WING:'#7657a8'})[icon.dataset.kind]);}

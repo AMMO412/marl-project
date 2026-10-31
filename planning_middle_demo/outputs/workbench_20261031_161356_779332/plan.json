@@ -1,0 +1,915 @@
+{
+  "plan_id": "PLAN-INTEROP-SEC",
+  "assignments": [
+    {
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "task_type": "T-SEC",
+      "start_s": 20.214,
+      "end_s": 200.214,
+      "target": {
+        "point": [
+          155.0,
+          34.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 20.214,
+      "path_length_m": 156.416,
+      "path": [
+        [
+          20.0,
+          -45.0
+        ],
+        [
+          155.0,
+          34.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.5295,
+      "energy": 66.513,
+      "risk": 1.925,
+      "status": "ASSIGNED",
+      "role": "boundary:1/2",
+      "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "task_type": "T-SEC",
+      "start_s": 20.656,
+      "end_s": 200.656,
+      "target": {
+        "point": [
+          65.0,
+          96.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 20.656,
+      "path_length_m": 153.212,
+      "path": [
+        [
+          10.0,
+          -47.0
+        ],
+        [
+          65.0,
+          96.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 1.2036,
+      "energy": 43.661,
+      "risk": 0.0,
+      "status": "ASSIGNED",
+      "role": "boundary:2/2",
+      "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "task_type": "T-SEC",
+      "start_s": 13.738,
+      "end_s": 193.738,
+      "target": {
+        "point": [
+          80.0,
+          20.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 13.738,
+      "path_length_m": 103.078,
+      "path": [
+        [
+          0.0,
+          -45.0
+        ],
+        [
+          80.0,
+          20.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.6823,
+      "energy": 41.154,
+      "risk": 1.099,
+      "status": "ASSIGNED",
+      "role": "gate:G-A",
+      "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "task_type": "T-SEC",
+      "start_s": 28.235,
+      "end_s": 208.235,
+      "target": {
+        "point": [
+          180.0,
+          65.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 28.235,
+      "path_length_m": 220.554,
+      "path": [
+        [
+          -10.0,
+          -47.0
+        ],
+        [
+          180.0,
+          65.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.5326,
+      "energy": 47.028,
+      "risk": 1.921,
+      "status": "ASSIGNED",
+      "role": "gate:G-B",
+      "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "task_type": "T-SEC",
+      "start_s": 19.267,
+      "end_s": 199.267,
+      "target": {
+        "point": [
+          95.0,
+          45.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 19.267,
+      "path_length_m": 146.308,
+      "path": [
+        [
+          -20.0,
+          -45.0
+        ],
+        [
+          73.1,
+          23.2
+        ],
+        [
+          95.0,
+          45.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.7831,
+      "energy": 65.705,
+      "risk": 0.0,
+      "status": "ASSIGNED",
+      "role": "intercept:standby",
+      "altitude_m": 0.35
+    }
+  ],
+  "commands": [
+    {
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 0.853,
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00001",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 12.885,
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "phase": "TRANSIT",
+      "at_s": 0.853,
+      "command_id": "CMD-00002",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "phase": "HOLD",
+      "at_s": 13.738,
+      "command_id": "CMD-00003",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "phase": "HOLD",
+      "at_s": 133.738,
+      "command_id": "CMD-00004",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 1,
+      "topic": "/container_00/robot_001",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U1",
+      "subtask_id": "T1-S3",
+      "phase": "STOP",
+      "at_s": 193.738,
+      "command_id": "CMD-00005",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 1.505,
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00006",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 19.152,
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "phase": "TRANSIT",
+      "at_s": 1.505,
+      "command_id": "CMD-00007",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "phase": "HOLD",
+      "at_s": 20.656,
+      "command_id": "CMD-00008",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "phase": "HOLD",
+      "at_s": 140.656,
+      "command_id": "CMD-00009",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 2,
+      "topic": "/container_00/robot_002",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U2",
+      "subtask_id": "T1-S2",
+      "phase": "STOP",
+      "at_s": 200.656,
+      "command_id": "CMD-00010",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 0.666,
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00011",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 27.569,
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "phase": "TRANSIT",
+      "at_s": 0.666,
+      "command_id": "CMD-00012",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "phase": "HOLD",
+      "at_s": 28.235,
+      "command_id": "CMD-00013",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "phase": "HOLD",
+      "at_s": 148.235,
+      "command_id": "CMD-00014",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S4",
+      "phase": "STOP",
+      "at_s": 208.235,
+      "command_id": "CMD-00015",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 0.662,
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00016",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 19.552,
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "phase": "TRANSIT",
+      "at_s": 0.662,
+      "command_id": "CMD-00017",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "phase": "HOLD",
+      "at_s": 20.214,
+      "command_id": "CMD-00018",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "phase": "HOLD",
+      "at_s": 140.214,
+      "command_id": "CMD-00019",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U4",
+      "subtask_id": "T1-S1",
+      "phase": "STOP",
+      "at_s": 200.214,
+      "command_id": "CMD-00020",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 0.79,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00021",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 14.426,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "TRANSIT",
+      "at_s": 0.79,
+      "command_id": "CMD-00022",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 0.189,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "TRANSIT",
+      "at_s": 15.216,
+      "command_id": "CMD-00023",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 3.863,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "TRANSIT",
+      "at_s": 15.405,
+      "command_id": "CMD-00024",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "HOLD",
+      "at_s": 19.267,
+      "command_id": "CMD-00025",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "HOLD",
+      "at_s": 139.267,
+      "command_id": "CMD-00026",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 22,
+      "topic": "/container_00/robot_022",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U5",
+      "subtask_id": "T1-S5",
+      "phase": "STOP",
+      "at_s": 199.267,
+      "command_id": "CMD-00027",
+      "attempt": 1,
+      "action": "start"
+    }
+  ],
+  "source_message": {
+    "schema_version": "0.3",
+    "message_id": "MSG-INTEROP-SEC-001",
+    "issued_at": "2026-10-30T08:00:00Z",
+    "source": "UPPER"
+  },
+  "schema_version": "0.3",
+  "plan_version": 1,
+  "generated_at": "2026-10-31T16:14:14.733+08:00",
+  "backend": "unified",
+  "objective": "timeliness",
+  "objective_weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "objective_metrics": {
+    "objective": "timeliness",
+    "weights": {
+      "time": 1.0,
+      "risk": 0.0,
+      "energy": 0.0
+    },
+    "makespan_s": 208.235,
+    "total_energy": 264.06,
+    "total_risk": 4.945
+  },
+  "result_status": "PLAN_ONLY",
+  "evidence_source": "NO_EXECUTION_EVIDENCE",
+  "execution_scope": "TRANSIT_AND_HOLD",
+  "execution_note": "commands 覆盖到达任务点的路径跟随与任务时段的零速度保持；地面平台原地转向后直行，固定翼按最小转弯半径转向；任务段动作、20 Hz 续发、超时停车由导航/控制模块负责。",
+  "unassigned": [],
+  "conflicts": [],
+  "metrics": {
+    "makespan_s": 208.235,
+    "assigned_subtasks": 5,
+    "unassigned_subtasks": 0,
+    "conflicts_detected": 0,
+    "conflicts_resolved": 0,
+    "resolution_rate": 1.0,
+    "plan_latency_ms": 83.103,
+    "tasks_total": 1,
+    "tasks_fully_assigned": 1
+  },
+  "explain": [
+    "T1-S1 -> U4: 20.2-200.2 s（移动 20.2s，156.4 m），风险 1.92，能耗 66.51，代价 0.3340",
+    "T1-S2 -> U2: 20.7-200.7 s（移动 20.7s，153.2 m），风险 0.00，能耗 43.66，代价 0.3348",
+    "T1-S3 -> U1: 13.7-193.7 s（移动 13.7s，103.1 m），风险 1.10，能耗 41.15，代价 0.3232",
+    "T1-S4 -> U3: 28.2-208.2 s（移动 28.2s，220.6 m），风险 1.92，能耗 47.03，代价 0.3474",
+    "T1-S5 -> U5: 19.3-199.3 s（移动 19.3s，146.3 m），风险 0.00，能耗 65.70，代价 0.3324"
+  ]
+}

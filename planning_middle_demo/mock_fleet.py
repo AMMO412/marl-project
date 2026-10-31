@@ -33,6 +33,7 @@ import json
 import math
 
 from contracts_v2 import PROTOCOL_V2
+import containment_geom as geom
 import motion
 
 
@@ -326,6 +327,16 @@ class MockFleet:
                    # 当前执行版本：评估结果绑定 attempt，重试即新版本
                    attempt=m["wire"]["command"].get("attempt", 1))
         params = self.behavior_params.get(task["job_id"])
+        out = dict(job_id=task["job_id"], type=task["jtype"],
+                   pos=[task["position"][0], task["position"][1]],
+                   # 当前执行版本：评估结果绑定 attempt，重试即新版本
+                   attempt=m["wire"]["command"].get("attempt", 1))
+        params = dict(params or {})
+        # 融合层计划下发的角色（边界段/门哨/机动组）随指令到达；基座原生
+        # 场景没有 roles 字段，行为层按几何自行分工。
+        roles = task.get("roles") or {}
+        if roles:
+            params["roles"] = dict(roles)
         if params:
             out["_behavior"] = dict(params)
         return out
@@ -404,11 +415,52 @@ class MockFleet:
                 r['loop'] = [[round(p[0], 2), round(p[1], 2)]
                              for p in behavior.loop]
             elif behavior.kind == 'blockade':
-                r['posts'] = [[round(p[0], 2), round(p[1], 2)]
-                              for p in behavior.posts]
-                r['intruder_start'] = [round(v, 2)
-                                       for v in behavior.intruder_start]
-                r['ring_radius'] = behavior.params.get('ring_radius')
+                if getattr(behavior, 'polygon', None):
+                    # 1028 区域封控：真实边界 + 分段占位 + 门哨 + 机动组
+                    r['area'] = [[round(p[0], 2), round(p[1], 2)]
+                                 for p in behavior.polygon]
+                    r['posts'] = [list(post['point']) for post in behavior.post_list]
+                    r['post_plan'] = [dict(post) for post in behavior.post_list]
+                    r['gates'] = [dict(gate) for gate in behavior.gates]
+                    r['roles'] = dict(getattr(behavior, 'roles', {}))
+                    r['control_level'] = behavior.control_level
+                    r['control_level_label'] = behavior.metrics.get(
+                        'control_level_label')
+                    r['engagement_authority'] = behavior.authority
+                    r['engagement_authority_label'] = behavior.metrics.get(
+                        'engagement_authority_label')
+                    r['control_objective'] = behavior.objective
+                    r['sensor_radius_m'] = behavior.params.get('sensor_radius_m')
+                    r['standoff_m'] = behavior.params.get('standoff_m')
+                    r['duration_s'] = behavior.params.get('duration_s')
+                    r['center'] = [round(v, 2) for v in behavior.center]
+                    r['perimeter_m'] = round(behavior.perimeter_m, 1)
+                    # 每段边界的折线：画图/覆盖核对都以这条线为准，前端不再
+                    # 自己按弧长重算（重算就会和规划层看到的不是同一条边界）。
+                    r['sectors'] = []
+                    for post in behavior.post_list:
+                        if not post.get('sector'):
+                            continue
+                        r['sectors'].append(dict(
+                            pid=post['pid'], role=post['role'],
+                            sector=list(post['sector']),
+                            boundary=geom.sector_vertices(
+                                behavior.polygon, post['sector'][0],
+                                post['sector'][1])))
+                    r['targets'] = [dict(target_id=x.id,
+                                         authorized=x.authorized,
+                                         compliance=x.compliance,
+                                         start=[round(v, 2) for v in x.start],
+                                         goal=[round(v, 2) for v in x.goal],
+                                         speed_mps=x.speed,
+                                         t_start_s=x.t_start)
+                                    for x in behavior.targets]
+                else:
+                    r['posts'] = [[round(p[0], 2), round(p[1], 2)]
+                                  for p in behavior.posts]
+                    r['intruder_start'] = [round(v, 2)
+                                           for v in behavior.intruder_start]
+                    r['ring_radius'] = behavior.params.get('ring_radius')
             elif behavior.kind == 'recon':
                 r['area_radius'] = behavior.params.get('area_radius')
                 r['sensor_radius'] = behavior.params.get('sensor_radius')

@@ -37,7 +37,14 @@ MODES = ("normal", "failure", "timeout", "kill", "deviation")
 
 def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
              grace_s=1, H=None, K=None, dev_threshold=4.0,
-             motion="teleport", avoid=False, behavior=False, planner=None):
+             motion="teleport", avoid=False, behavior=False, planner=None,
+             nav=None):
+    """跑一次规划/执行闭环。
+
+    ``nav`` 允许调用方注入静态地图：融合层的中性样例没有 ``_meta.sdf``，
+    基座 ``build_nav`` 会退到 simple_city 坐标；此时由 ``interop.runtime``
+    用编成表的 no_go 约束构造 NavMap 后注入，行为层才在正确的地图上绕障。
+    """
     check_scenario_v2(scenario)
     if type(max_ticks) is not int or max_ticks < 1:
         raise ValueError("max_ticks 必须 >= 1")
@@ -86,8 +93,7 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
         if dev_threshold == 4.0:
             dev_threshold = 2.0      # 偏差早发现，才有余量加人救回
     # 可选避障：从真实建筑轮廓构造静态障碍图，地面平台按 A* 路径机动。
-    nav = None
-    if avoid:
+    if nav is None and avoid:
         from city_nav import build_nav
         nav, _ = build_nav(scenario)
     # 到位后行为：需要在真实运动 + 静态地图（避障）下才生效。

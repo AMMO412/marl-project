@@ -27,6 +27,7 @@ import math
 
 from assessment import EFFECT_KINDS, StubAdjudicator, normalize_effect_kind
 from city_nav import NavError, distance
+import containment_geom as geom
 
 
 def _unit(a, b):
@@ -369,6 +370,884 @@ class BlockadeBehavior(Behavior):
         return dict(intruder=[round(v, 2) for v in self.intruder],
                     interceptor=self.interceptor,
                     stopped=self.intruder_stopped)
+
+
+# ------------------------------------------------------------------
+# 2b. 区域封控（1028 §2.2）：边界段占位 + 通道哨位 + 警告→拦阻
+# ------------------------------------------------------------------
+CN_LEVELS = ("monitor", "warn", "block")
+CN_LEVEL_LABELS = {"monitor": "监视", "warn": "警告", "block": "拦阻"}
+CN_AUTHORITY = ("none", "self_defense", "on_order")
+CN_AUTHORITY_LABELS = {"none": "无火力授权", "self_defense": "仅自卫",
+                       "on_order": "按令"}
+CN_OBJECTIVES = ("deny_entry", "control_passage", "monitor_channel", "intercept")
+CN_STATE_WAIT = "待出现"
+CN_STATE_WATCH = "监视"
+CN_STATE_WARNED = "已警告"
+CN_STATE_INTERCEPT = "拦截中"
+CN_STATE_HELD = "已拦阻"
+CN_STATE_BREACH = "未授权进入"
+CN_STATE_WITHDRAWN = "已撤离"
+CN_STATE_PASSED = "已放行"
+
+
+class _ContainmentTarget:
+    """一个被监视/被处置的目标（未授权或已授权），只做匀速直线运动。
+
+    真实识别、敌我属性判定属外部情报/传感器模块；本层按输入给定的
+    ``authorized`` 标记复核，不臆造识别过程（见 docs/区域封控任务.md）。
+    """
+
+    def __init__(self, spec, center):
+        self.id = str(spec.get("target_id") or spec.get("id") or "T?")
+        self.authorized = bool(spec.get("authorized", False))
+        self.compliance = bool(spec.get("compliance", False))
+        self.speed = float(spec.get("speed_mps", 2.0))
+        self.t_start = float(spec.get("t_start_s", 0.0))
+        self.start = [float(v) for v in (spec.get("start") or center)]
+        self.goal = [float(v) for v in (spec.get("goal") or center)]
+        self.pos = list(self.start)
+        self.state = CN_STATE_WAIT
+        self.appeared = False
+        self.detected_t = None
+        self.warned_t = None
+        self.intercept_t = None
+        self.resolved_t = None
+        self.breach_t = None
+        self.interceptor = None
+        self.track = []
+        self.version = 1
+
+    def velocity(self, retreat=False):
+        tx, ty = (self.start if retreat else self.goal)
+        dx, dy = tx - self.pos[0], ty - self.pos[1]
+        d = math.hypot(dx, dy)
+        if d <= 1e-9:
+            return (0.0, 0.0), 0.0
+        return (dx / d * self.speed, dy / d * self.speed), d
+
+    def move(self, dt, retreat=False):
+        (vx, vy), d = self.velocity(retreat)
+        step = min(d, self.speed * dt)
+        if d > 1e-9:
+            self.pos = [self.pos[0] + vx / self.speed * step,
+                        self.pos[1] + vy / self.speed * step]
+        return step
+
+    def snapshot(self):
+        return dict(target_id=self.id, authorized=self.authorized,
+                    compliance=self.compliance, speed_mps=self.speed,
+                    start=[round(v, 2) for v in self.start],
+                    goal=[round(v, 2) for v in self.goal],
+                    pos=[round(v, 2) for v in self.pos], state=self.state,
+                    detected_at_s=self.detected_t, warned_at_s=self.warned_t,
+                    intercepted_at_s=self.intercept_t,
+                    resolved_at_s=self.resolved_t, breach_at_s=self.breach_t,
+                    interceptor=self.interceptor)
+
+
+class ContainmentBehavior(Behavior):
+    """区域封控：按 1028 §2.2 的控制等级与交战授权执行"监视→警告→拦阻"。
+
+    与 ``BlockadeBehavior``（小场景环形占位演示）的分工：
+      * BlockadeBehavior 保留给历史场景，几何是"作业点外一圈"；
+      * 本类只在输入给出 ``area`` 多边形时启用，几何是**真实封控边界**：
+        边界按弧长均分为若干段，每段一个占位点；通道口一个哨位；
+        另有机动拦截组与预备队。
+    本层不含火力、毁伤与效果判定：控制等级最高到"拦阻"，交战授权只影响
+    是否允许前出拦阻，不改变任何武器语义。
+    """
+
+    kind = 'blockade'
+    label = '区域封控'
+    DEFAULTS = dict(
+        area=None,
+        gates=(),
+        roles=None,
+        standoff_m=12.0,
+        gate_standoff_m=6.0,
+        sensor_radius_m=35.0,
+        warn_range_m=None,
+        intercept_standoff_m=10.0,
+        intercept_post=None,
+        reserve_post=None,
+        control_level="block",
+        engagement_authority="on_order",
+        control_objective="deny_entry",
+        max_leak_rate=0.0,
+        min_coverage=0.5,
+        min_intercept_rate=0.8,
+        max_response_s=15.0,
+        intruders=(),
+        duration_s=180.0,
+        boundary_sample_m=5.0,
+        occupy_tol=3.0,
+        intercept_tol=4.0,
+        occupancy_tolerance_s=5.0,
+        # 在岗不等于钉在原地：占位组沿负责的边界段巡视、门哨在通道口横向
+        # 游走、机动组在待机点小圈待机。周期给慢一点，看起来是"踱步"不是冲锋。
+        patrol_enabled=True,
+        patrol_speed_mps=2.0,
+        patrol_period_s=120.0,
+        gate_patrol_period_s=45.0,
+        standby_loop_radius_m=8.0,
+        max_steps=600,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        p = self.params
+        self.polygon = geom.as_polygon(p.get('area'))
+        self.perimeter_m = geom.perimeter(self.polygon)
+        self.samples = geom.boundary_samples(self.polygon,
+                                             p['boundary_sample_m'])
+        self.center = geom.polygon_center(self.polygon)
+        self.site = [round(v, 3) for v in self.center]
+        self.gates = [dict(g) for g in (p.get('gates') or [])]
+        self.control_level = str(p.get('control_level') or 'block')
+        self.authority = str(p.get('engagement_authority') or 'on_order')
+        if self.control_level not in CN_LEVELS:
+            raise ValueError("control_level 必须是 %s" % "/".join(CN_LEVELS))
+        if self.authority not in CN_AUTHORITY:
+            raise ValueError("engagement_authority 必须是 %s"
+                             % "/".join(CN_AUTHORITY))
+        self.objective = str(p.get('control_objective') or 'deny_entry')
+        self.starts = {}
+        self.lost_pids = set()
+        self._assign_roles()
+        self._on_post = {}
+        # 巡视相位按平台错开，避免所有哨位同手同脚一起走。
+        self.patrol_phase = {pid: (index * 1.7) % (2 * math.pi)
+                             for index, pid in enumerate(sorted(self.posts))}
+        self.targets = [_ContainmentTarget(spec, self.center)
+                        for spec in (p.get('intruders') or [])]
+        self.control_established_at = None
+        self.control_released_at = None
+        self.coverage_sum = 0.0
+        self.coverage_t = 0.0
+        self.occupancy_sum = 0.0
+        self.vacancy_started = {}
+        self.interrupted_pids = set()
+        self.interruptions = []
+        self.intercept_tasks = {}     # pid -> target_id
+        self.timeline = []
+        self.counts = dict(unauthorized=0, authorized=0, warned=0,
+                           warning_effective=0, intercept_attempts=0,
+                           intercepted=0, breach=0, passed=0, false_intercept=0)
+        self.response_times = []
+        self.warn_latencies = []
+        self.verdict = None
+        self.metrics.update(
+            perimeter_m=round(self.perimeter_m, 1),
+            boundary_samples=len(self.samples),
+            control_level=self.control_level,
+            control_level_label=CN_LEVEL_LABELS[self.control_level],
+            engagement_authority=self.authority,
+            engagement_authority_label=CN_AUTHORITY_LABELS[self.authority],
+            control_objective=self.objective,
+            sensor_radius_m=p['sensor_radius_m'],
+            policy=dict(area=[[round(x, 2), round(y, 2)] for x, y in self.polygon],
+                        gates=[dict(g) for g in self.gates],
+                        posts=[dict(p) for p in self.post_list],
+                        roles=dict(self.roles)),
+        )
+        self.set_phase('机动')
+
+    # ---------------- 分工与占位 ----------------
+    def _assign_roles(self):
+        """把平台分到 边界段 / 通道哨位 / 机动拦截 / 预备队。
+
+        优先用计划下发的角色（``roles[pid]``），只有当角色缺失/不覆盖全部
+        平台时才按几何补位——执行层不把计划的角色当唯一真值，但也不擅自
+        把"守东段"改成"守西段"。
+        """
+        pids = list(self.pids)
+        declared = {pid: str(role) for pid, role in
+                    (self.params.get('roles') or {}).items() if pid in pids}
+        boundary_roles = {}
+        gate_roles = {}
+        intercept_pids = []
+        reserve_pids = []
+        for pid in pids:
+            role = declared.get(pid, '')
+            kind, _, detail = role.partition(':')
+            if kind == 'boundary' and detail:
+                try:
+                    boundary_roles[pid] = int(detail.split('/')[0])
+                except ValueError:
+                    boundary_roles[pid] = 0
+            elif kind == 'gate':
+                gate_roles[pid] = detail or (self.gates[0].get('gate_id')
+                                             if self.gates else 'G1')
+            elif kind == 'intercept':
+                intercept_pids.append(pid)
+            elif kind == 'reserve':
+                reserve_pids.append(pid)
+        unassigned = [pid for pid in pids
+                      if pid not in boundary_roles and pid not in gate_roles
+                      and pid not in intercept_pids and pid not in reserve_pids]
+
+        # 补位：先满足入口哨位，再给一个机动组，其余做边界段。
+        gate_ids = [str(g.get('gate_id')) for g in self.gates]
+        for gate_id in gate_ids:
+            if gate_id in gate_roles.values():
+                continue
+            if not unassigned:
+                break
+            gate_roles[unassigned.pop(0)] = gate_id
+        for pid in list(unassigned):
+            if not intercept_pids:
+                intercept_pids.append(pid)
+                unassigned.remove(pid)
+        for pid in list(unassigned):
+            boundary_roles[pid] = 0
+            unassigned.remove(pid)
+
+        boundary_pids = [pid for pid in pids if pid in boundary_roles]
+        sector_count = len(boundary_pids)
+        posts = (geom.sector_posts(self.polygon, sector_count,
+                                   standoff=float(self.params['standoff_m']))
+                 if sector_count else [])
+        # 按声明的段号排序；未声明段号的排在后面、按平台编号，保证可复现。
+        order = sorted(boundary_pids,
+                       key=lambda pid: (boundary_roles.get(pid) or 999, pid))
+        self.posts = {}
+        self.sectors = {}
+        self.roles = {}
+        self.post_list = []
+        for index, pid in enumerate(order):
+            post = posts[index] if index < len(posts) else posts[-1]
+            self.posts[pid] = list(post['post'])
+            self.sectors[pid] = (post['s0'], post['s1'])
+            self.roles[pid] = 'boundary:%d/%d' % (post['index'], sector_count)
+            self.post_list.append(dict(pid=pid, role=self.roles[pid],
+                                       point=list(post['post']),
+                                       mid=list(post['mid']),
+                                       sector=[post['s0'], post['s1']],
+                                       index=post['index']))
+
+        for pid, gate_id in gate_roles.items():
+            gate = next((g for g in self.gates
+                         if str(g.get('gate_id')) == str(gate_id)),
+                        self.gates[0] if self.gates else None)
+            point = (gate or {}).get('point') or [self.center[0], self.center[1]]
+            arc = geom.arc_of_point(self.polygon, point)['s']
+            inward, _ = geom.point_at(self.polygon, arc,
+                                      float(self.params['gate_standoff_m']))
+            self.posts[pid] = [round(inward[0], 3), round(inward[1], 3)]
+            self.sectors[pid] = None
+            self.roles[pid] = 'gate:%s' % gate_id
+            self.post_list.append(dict(pid=pid, role=self.roles[pid],
+                                       point=list(self.posts[pid]),
+                                       mid=[round(v, 3) for v in point],
+                                       sector=None, gate=str(gate_id)))
+
+        standby = self.params.get('intercept_post') or [
+            self.center[0], self.center[1]]
+        reserve = self.params.get('reserve_post') or [
+            self.center[0], self.center[1] - float(self.params['standoff_m'])]
+        for pid in intercept_pids:
+            self.posts[pid] = [float(v) for v in standby]
+            self.sectors[pid] = None
+            self.roles[pid] = 'intercept:standby'
+            self.post_list.append(dict(pid=pid, role=self.roles[pid],
+                                       point=list(self.posts[pid]),
+                                       mid=list(self.posts[pid]), sector=None))
+        for pid in reserve_pids:
+            self.posts[pid] = [float(v) for v in reserve]
+            self.sectors[pid] = None
+            self.roles[pid] = 'reserve:standby'
+            self.post_list.append(dict(pid=pid, role=self.roles[pid],
+                                       point=list(self.posts[pid]),
+                                       mid=list(self.posts[pid]), sector=None))
+        self.interceptors = list(intercept_pids) + [
+            pid for pid in gate_roles if pid not in intercept_pids]
+        self.reserve_pids = list(reserve_pids)
+
+    def _role_label(self, pid):
+        return self.roles.get(pid, '未分工')
+
+    # ---------------- 事件与时间线 ----------------
+    def _log(self, t, event, **fields):
+        row = dict(t=round(t, 2), event=event, **fields)
+        self.timeline.append(row)
+        return row
+
+    def report_loss(self, pid, t):
+        """执行期成员失联：不再计在位，并显式记一条控制中断。"""
+        if pid in self.lost_pids:
+            return
+        self.lost_pids.add(pid)
+        self.metrics['our_losses'] = len(self.lost_pids)
+        self._log(t, 'member_lost', pid=pid, role=self._role_label(pid))
+        self.emit('member_lost', pid=pid, role=self._role_label(pid))
+
+    # ---------------- 主循环 ----------------
+    def step(self, poses, t, dt):
+        self.t = t
+        p = self.params
+        warn_range = float(p['warn_range_m'] or p['sensor_radius_m'])
+        targets_out = dict(self.posts)
+        self._on_post = {}
+        for pid, post in self.posts.items():
+            if pid in self.lost_pids:
+                continue
+            self._on_post[pid] = self._is_on_post(pid, poses[pid])
+
+        # 处置结束后回到"封控在位"：阶段名反映当前实际状态，一次警告/拦阻
+        # 不是整个封控时段的终态。这一步在推进目标之前判断，"处置完毕"
+        # 至少能显示一拍，不会同拍被覆盖。
+        if (self.control_established_at is not None
+                and not self.intercept_tasks
+                and self.phase in ('警告', '拦阻', '处置完毕')
+                and not any(x.state in (CN_STATE_WARNED, CN_STATE_INTERCEPT)
+                            for x in self.targets)):
+            self.set_phase('封控在位')
+
+        for spec in self.targets:
+            self._update_target(spec, poses, t, dt, warn_range)
+
+        self._track_control(poses, t, dt)
+
+        for pid, post in self.posts.items():
+            if pid in self.lost_pids:
+                continue
+            if pid in self.intercept_tasks:
+                target = self._target_of(pid)
+                if target is not None and target.state == CN_STATE_INTERCEPT:
+                    point = geom.lead_intercept(
+                        tuple(poses[pid])[:2],
+                        target.pos,
+                        (target.velocity()[0][0], target.velocity()[0][1]),
+                        self._speed_of(pid))
+                    targets_out[pid] = self._free_point(point)
+                continue
+            # 在岗不等于钉在原地：沿负责的边界段来回巡视（门哨在通道口横向
+            # 游走、机动组在待机点小圈待机），监视扇面随时间扫过，比站着
+            # 不动更接近"持续监视/占位"，也能看出覆盖缺口。
+            targets_out[pid] = self._patrol_target(pid, t) or post
+
+        if self.control_established_at is not None and not self.done:
+            if t - self.control_established_at >= float(p['duration_s']):
+                self._finalize(t)
+        if t > float(p['max_steps']):
+            self._finalize(t, timeout=True)
+        # 巡视/待机时把平台限速到巡逻速度：跟随器按"距离越近越慢"走，
+        # 全速追一个 2 m/s 的慢移目标会一顿一顿地超调，看起来像抽搐。
+        speed_scale = {}
+        if p.get('patrol_enabled', True):
+            patrol_speed = max(0.2, float(p['patrol_speed_mps']))
+            for pid in self.posts:
+                if pid in self.intercept_tasks:
+                    continue                  # 前出拦阻按全速，不按巡逻速度
+                kind = str(self.roles.get(pid, '')).split(':')[0]
+                if kind in ('intercept', 'reserve'):
+                    on_station = True          # 待机点本来就是小圈
+                elif kind in ('boundary', 'gate'):
+                    # 只有已经进入自己那段/口才开始踱步；否则先全速到位。
+                    on_station = bool(self._on_post.get(pid))
+                else:
+                    continue
+                if on_station:
+                    speed_scale[pid] = min(
+                        1.0, patrol_speed / max(self._speed_of(pid), 0.1))
+        return dict(targets=targets_out, phase=self.phase, done=self.done,
+                    speed_scale=speed_scale)
+
+    def _speed_of(self, pid):
+        return float((getattr(self, 'speeds', None) or {}).get(pid, 8.0) or 8.0)
+
+    def _gate_of(self, pid):
+        role = str(self.roles.get(pid, ''))
+        if not role.startswith('gate:'):
+            return None
+        gate_id = role.split(':', 1)[1]
+        return next((g for g in self.gates
+                     if str(g.get('gate_id')) == gate_id),
+                    self.gates[0] if self.gates else None)
+
+    def _is_on_post(self, pid, pose):
+        """是否在"自己负责的那段"上：看段内/口内，不看是否精确踩点。
+
+        平台会沿段巡视，用"离指定点 ≤ occupy_tol"判定会把正常巡视误记成
+        离岗；这里按职责范围判：边界段看弧长与带内距离，门哨看通道口范围。
+        """
+        p = self.params
+        role = str(self.roles.get(pid, ''))
+        kind = role.split(':')[0]
+        point = tuple(pose)[:2]
+        if kind == 'boundary':
+            sector = self.sectors.get(pid)
+            if not sector:
+                return False
+            arc = geom.arc_of_point(self.polygon, point)
+            s0, s1 = sector
+            inside = (s0 - 1e-6) <= arc['s'] <= (s1 + 1e-6)
+            band = float(p['standoff_m']) + 25.0
+            return bool(inside and arc['distance'] <= band)
+        if kind == 'gate':
+            gate = self._gate_of(pid)
+            if gate is None:
+                return False
+            radius = float(gate.get('width', 12.0)) / 2.0 + 20.0
+            return distance(point, tuple(gate['point'])) <= radius
+        return distance(point, self.posts.get(pid, point)) <= float(p['occupy_tol'])
+
+    def _patrol_target(self, pid, t):
+        """在岗时的巡逻目标：边界段来回巡视、通道口横向游走、待机点小圈。"""
+        if not self.params.get('patrol_enabled', True):
+            return None
+        p = self.params
+        role = str(self.roles.get(pid, ''))
+        kind = role.split(':')[0]
+        phase = self.patrol_phase.get(pid, 0.0)
+        if kind == 'boundary':
+            sector = self.sectors.get(pid)
+            if not sector:
+                return None
+            s0, s1 = sector
+            span = max(1e-6, s1 - s0)
+            period = max(20.0, float(p['patrol_period_s']))
+            # 振幅同时受"段长"和"巡视速度"约束：正弦扫掠的峰值线速度是
+            # amp·2π/period，不封顶会出现 100 m 段上 5 m/s 的"飞奔"。
+            amp = min(span / 2.0 - 10.0,
+                      float(p['patrol_speed_mps']) * period / (2 * math.pi))
+            amp = max(0.0, amp)
+            s = (s0 + s1) / 2.0 + amp * math.sin(2 * math.pi * t / period + phase)
+            point, _ = geom.point_at(self.polygon, s, float(p['standoff_m']))
+            return [round(point[0], 3), round(point[1], 3)]
+        if kind == 'gate':
+            gate = self._gate_of(pid)
+            if gate is None:
+                return None
+            angle = math.atan2(gate['direction'][1], gate['direction'][0])
+            nx, ny = -math.sin(angle), math.cos(angle)
+            period = max(10.0, float(p['gate_patrol_period_s']))
+            amp = min(max(1.0, float(gate.get('width', 12.0)) / 2.0 - 1.5),
+                      float(p['patrol_speed_mps']) * period / (2 * math.pi))
+            off = amp * math.sin(2 * math.pi * t / period + phase)
+            arc = geom.arc_of_point(self.polygon, tuple(gate['point']))['s']
+            base, _ = geom.point_at(self.polygon, arc,
+                                    float(p['gate_standoff_m']))
+            return [round(base[0] + nx * off, 3), round(base[1] + ny * off, 3)]
+        if kind in ('intercept', 'reserve'):
+            center = self.posts.get(pid)
+            if not center:
+                return None
+            radius = float(p['standby_loop_radius_m']) * (0.75 if kind == 'reserve' else 1.0)
+            period = max(20.0, float(p['patrol_period_s']))
+            theta = 2 * math.pi * t / period + phase
+            return [round(center[0] + radius * math.cos(theta), 3),
+                    round(center[1] + radius * math.sin(theta), 3)]
+        return None
+
+    def _free_point(self, point, max_radius=6.0):
+        """前出点若落在静态障碍里，吸附到最近可通行点（不悄悄穿过花坛）。"""
+        nav = getattr(self, 'nav', None)
+        if nav is None:
+            return list(point)
+        try:
+            snapped, _ = nav.nearest_free((point[0], point[1]),
+                                          max_radius=max_radius)
+            return [float(snapped[0]), float(snapped[1])]
+        except Exception:      # noqa: BLE001  吸附失败就用原点，交回按原样执行
+            return list(point)
+
+    def _target_of(self, pid):
+        target_id = self.intercept_tasks.get(pid)
+        return next((x for x in self.targets if x.id == target_id), None)
+
+    # ---------------- 目标推进与处置 ----------------
+    def _update_target(self, target, poses, t, dt, warn_range):
+        p = self.params
+        if target.state in (CN_STATE_HELD, CN_STATE_BREACH,
+                            CN_STATE_WITHDRAWN, CN_STATE_PASSED):
+            return
+        if not target.appeared:
+            if t < target.t_start:
+                return
+            target.appeared = True
+            self.counts['unauthorized' if not target.authorized
+                        else 'authorized'] += 1
+            self.emit('target_appeared', target_id=target.id,
+                      authorized=target.authorized,
+                      pos=[round(v, 2) for v in target.pos])
+            self._log(t, 'target_appeared', target=target.id,
+                      authorized=target.authorized)
+        retreat = target.state == CN_STATE_WARNED and target.compliance
+        target.move(dt, retreat=retreat)
+        target.track.append([round(t, 1), round(target.pos[0], 2),
+                             round(target.pos[1], 2)])
+
+        if target.detected_t is None:
+            observer = self._nearest_observer(poses, target.pos,
+                                              float(p['sensor_radius_m']))
+            if observer is None:
+                return
+            target.detected_t = round(t, 2)
+            target.state = CN_STATE_WATCH
+            self.emit('target_detected', target_id=target.id, pid=observer,
+                      authorized=target.authorized,
+                      range=round(distance(poses[observer], target.pos), 2))
+            self._log(t, 'target_detected', target=target.id, pid=observer,
+                      authorized=target.authorized)
+            if target.authorized:
+                self.emit('target_authorized', target_id=target.id)
+                self._log(t, 'target_authorized', target=target.id)
+            else:
+                self.emit('target_unauthorized', target_id=target.id)
+                self._log(t, 'target_unauthorized', target=target.id)
+
+        if target.authorized:
+            if geom.inside(self.polygon, target.pos):
+                target.state = CN_STATE_PASSED
+                target.resolved_t = round(t, 2)
+                self.counts['passed'] += 1
+                self.emit('authorized_pass', target_id=target.id,
+                          pos=[round(v, 2) for v in target.pos])
+                self._log(t, 'authorized_pass', target=target.id)
+            return
+
+        if target.state == CN_STATE_WATCH:
+            if geom.inside(self.polygon, target.pos):
+                # 只监视/无授权时目标自己走进来，也属于"未授权进入"。
+                self._mark_breach(target, t)
+                return
+            if self.control_level == 'monitor':
+                return
+            near = self._nearest_observer(poses, target.pos, warn_range)
+            if near is None:
+                return
+            target.state = CN_STATE_WARNED
+            target.warned_t = round(t, 2)
+            self.counts['warned'] += 1
+            if target.detected_t is not None:
+                self.warn_latencies.append(round(t - target.detected_t, 2))
+            self.emit('warning_issued', target_id=target.id, pid=near,
+                      level=CN_LEVEL_LABELS[self.control_level])
+            self._log(t, 'warning_issued', target=target.id, pid=near)
+            self.set_phase('警告')
+            return
+
+        if target.state == CN_STATE_WARNED:
+            if target.compliance:
+                if distance(target.pos, target.start) <= 3.0:
+                    target.state = CN_STATE_WITHDRAWN
+                    target.resolved_t = round(t, 2)
+                    self.counts['warning_effective'] += 1
+                    self.emit('warning_effective', target_id=target.id)
+                    self._log(t, 'warning_effective', target=target.id)
+                return
+            if geom.inside(self.polygon, target.pos):
+                # 警告无效且已进入：无论有没有拦阻，都按"未授权进入"记账。
+                self._mark_breach(target, t)
+                return
+            if self.control_level != 'block':
+                return
+            if self.authority == 'none':
+                # 无火力授权：只能警告与报告，不实施拦阻；如实记"未处置"。
+                if not getattr(target, '_no_authority_logged', False):
+                    target._no_authority_logged = True
+                    self.emit('intercept_denied', target_id=target.id,
+                              reason='无火力授权')
+                    self._log(t, 'intercept_denied', target=target.id)
+                return
+            pid = self._pick_interceptor(poses, target)
+            if pid is None:
+                return
+            target.state = CN_STATE_INTERCEPT
+            target.intercept_t = round(t, 2)
+            target.interceptor = pid
+            self.intercept_tasks[pid] = target.id
+            self.counts['intercept_attempts'] += 1
+            if target.detected_t is not None:
+                self.response_times.append(round(t - target.detected_t, 2))
+            self.emit('intercept_assigned', target_id=target.id, pid=pid,
+                      role=self._role_label(pid))
+            self._log(t, 'intercept_assigned', target=target.id, pid=pid,
+                      role=self._role_label(pid))
+            self.set_phase('拦阻')
+            return
+
+        if target.state == CN_STATE_INTERCEPT:
+            pid = target.interceptor
+            if pid is None or pid in self.lost_pids:
+                self.intercept_tasks.pop(pid, None)
+                target.state = CN_STATE_WARNED
+                target.interceptor = None
+                return
+            if distance(poses[pid], target.pos) <= float(p['intercept_tol']):
+                target.state = CN_STATE_HELD
+                target.resolved_t = round(t, 2)
+                self.counts['intercepted'] += 1
+                self.intercept_tasks.pop(pid, None)
+                self.emit('intercepted', target_id=target.id, pid=pid,
+                          pos=[round(v, 2) for v in target.pos])
+                self._log(t, 'intercepted', target=target.id, pid=pid)
+                self.set_phase('处置完毕')
+                return
+            if geom.inside(self.polygon, target.pos):
+                self._mark_breach(target, t, pid=pid)
+            return
+
+    def _mark_breach(self, target, t, pid=None):
+        """记一次未授权进入（漏控）并闭掉该目标；只记一次。"""
+        if target.state == CN_STATE_BREACH:
+            return
+        target.state = CN_STATE_BREACH
+        target.breach_t = round(t, 2)
+        target.resolved_t = round(t, 2)
+        self.counts['breach'] += 1
+        self.intercept_tasks.pop(target.interceptor, None)
+        target.interceptor = None
+        self.emit('breach', target_id=target.id, pid=pid,
+                  pos=[round(v, 2) for v in target.pos])
+        self._log(t, 'breach', target=target.id, pid=pid)
+
+    def _nearest_observer(self, poses, point, radius):
+        best, best_d = None, radius
+        for pid in self.posts:
+            if pid in self.lost_pids:
+                continue
+            if not self._on_post.get(pid) and self.control_established_at is not None:
+                continue      # 离位平台不算在监视范围内
+            d = distance(poses[pid], point)
+            if d <= best_d:
+                best, best_d = pid, d
+        return best
+
+    def _pick_interceptor(self, poses, target):
+        """机动组优先；机动组忙时再由通道哨位前出支援（处置完回岗）。
+
+        1028 §2.2.3 的兵力组成里，"占位组"与"机动拦截组"是两拨人：让门哨
+        习惯性脱岗追击，会同时把通道监视和边界覆盖率打空，图上看起来
+        "有人去了"，实际封控已经漏了。
+        """
+        busy = set(self.intercept_tasks)
+        mobile = [pid for pid in self.interceptors
+                  if self.roles.get(pid, '').startswith('intercept')
+                  and pid not in busy and pid not in self.lost_pids]
+        support = [pid for pid in self.interceptors
+                   if not self.roles.get(pid, '').startswith('intercept')
+                   and pid not in busy and pid not in self.lost_pids]
+        for pool in (mobile, support):
+            if pool:
+                return min(pool, key=lambda pid: distance(poses[pid], target.pos))
+        return None
+
+    # ---------------- 控制状态时间线 ----------------
+    def _track_control(self, poses, t, dt):
+        p = self.params
+        # 只把"占位/门哨"算进在位与边界监视：机动组本来就要前出，
+        # 把它离岗记成控制中断会把"履职"误报成"漏控"。
+        tracked = [pid for pid in self.posts
+                   if self.roles.get(pid, '').startswith(('boundary', 'gate'))]
+        manned = [pid for pid in tracked
+                  if pid not in self.lost_pids and self._on_post.get(pid)]
+        observers = [tuple(poses[pid])[:2] for pid in manned]
+        coverage = geom.coverage_ratio(self.samples, observers,
+                                       float(p['sensor_radius_m']))
+        self.coverage_sum += coverage * dt
+        self.coverage_t += dt
+        post_count = max(1, len([pid for pid in tracked
+                                 if pid not in self.lost_pids]))
+        self.occupancy_sum += len(manned) / float(post_count) * dt
+        self._last_coverage = coverage
+
+        all_manned = len(manned) == post_count
+        if self.control_established_at is None:
+            if all_manned:
+                self.control_established_at = round(t, 2)
+                self.set_phase('封控在位')
+                self.emit('control_established', posts=post_count,
+                          coverage=round(coverage, 3))
+                self._log(t, 'control_established', coverage=round(coverage, 3))
+        else:
+            # 离位容忍：超阈值记一次中断；回岗记一次恢复。同一次离位不重复刷，
+            # 历史也不因恢复而抹掉（1028 §1.4 全过程核验）。
+            for pid in tracked:
+                if pid in self.lost_pids:
+                    continue
+                if pid in manned:
+                    self.vacancy_started.pop(pid, None)
+                    if pid in self.interrupted_pids:
+                        self.interrupted_pids.discard(pid)
+                        self.emit('control_restored', pid=pid,
+                                  role=self._role_label(pid))
+                        self._log(t, 'control_restored', pid=pid,
+                                  role=self._role_label(pid))
+                    continue
+                since = self.vacancy_started.setdefault(pid, t)
+                if (t - since >= float(p['occupancy_tolerance_s'])
+                        and pid not in self.interrupted_pids):
+                    self.interrupted_pids.add(pid)
+                    self.interruptions.append(dict(t=round(t, 2), pid=pid,
+                                                   role=self._role_label(pid),
+                                                   reason='离位超过容忍时长'))
+                    self.emit('control_interrupted', pid=pid,
+                              role=self._role_label(pid))
+                    self._log(t, 'control_interrupted', pid=pid,
+                              role=self._role_label(pid))
+
+    # ---------------- 结算 ----------------
+    def _finalize(self, t, timeout=False):
+        if self.done:
+            return
+        self._last_coverage = getattr(self, '_last_coverage', 0.0)
+        self.control_released_at = round(t, 2)
+        metrics = dict(
+            perimeter_m=round(self.perimeter_m, 1),
+            control_level=self.control_level,
+            control_level_label=CN_LEVEL_LABELS[self.control_level],
+            engagement_authority=self.authority,
+            boundary_coverage=round(self.coverage_sum / max(self.coverage_t, 1e-9), 4),
+            occupancy_ratio=round(self.occupancy_sum / max(self.coverage_t, 1e-9), 4),
+            unauthorized_approaches=self.counts['unauthorized'],
+            authorized_approaches=self.counts['authorized'],
+            unauthorized_entries=self.counts['breach'],
+            leak_rate=round(self.counts['breach']
+                            / max(1, self.counts['unauthorized']), 4),
+            intercept_attempts=self.counts['intercept_attempts'],
+            intercepted=self.counts['intercepted'],
+            intercept_rate=round(self.counts['intercepted']
+                                 / max(1, self.counts['intercept_attempts']), 4),
+            warned=self.counts['warned'],
+            warning_effective=self.counts['warning_effective'],
+            warning_effective_rate=round(self.counts['warning_effective']
+                                         / max(1, self.counts['warned']), 4),
+            authorized_passes=self.counts['passed'],
+            false_intercepts=self.counts['false_intercept'],
+            mean_response_s=(round(sum(self.response_times)
+                                   / len(self.response_times), 2)
+                             if self.response_times else None),
+            mean_warning_latency_s=(round(sum(self.warn_latencies)
+                                          / len(self.warn_latencies), 2)
+                                    if self.warn_latencies else None),
+            control_established_at_s=self.control_established_at,
+            control_released_at_s=self.control_released_at,
+            interruptions=len(self.interruptions),
+            targets=[x.snapshot() for x in self.targets],
+            timeline=[dict(row) for row in self.timeline],
+        )
+        result = self._verdict(metrics, timeout=timeout)
+        metrics['verdict'] = result
+        self.metrics.update(metrics)
+        self.verdict = result
+        self._log(t, 'containment_result',
+                  verdict=result['verdict'], reason=result['reason'])
+        # 事件里带一份"可回放"的完整过程数据：指标数字、逐目标轨迹与控制
+        # 时间线。工作台的区域封控页只读这一条事件 + 结构事件，不再二次推算。
+        summary = {k: v for k, v in metrics.items()
+                   if k not in ('targets', 'timeline')}
+        self.emit('containment_result', verdict=result['verdict'],
+                  reason=result['reason'], items=result['items'],
+                  metrics=summary,
+                  targets=[dict(x.snapshot(), track=[list(p) for p in x.track])
+                           for x in self.targets],
+                  timeline=[dict(row) for row in self.timeline])
+        self._finish('containment_timeout' if timeout else 'containment_done')
+
+    def _verdict(self, metrics, timeout=False):
+        """按 1028 §2.2.2 的控制目标逐项判定；缺证据时记"待确认"。
+
+        本层只判"控制目标是否达成"：执行走完不等于任务成功，目标未达成也
+        不因此重跑作业（重试属于指挥层决策）。
+        """
+        p = self.params
+        items = []
+        objective = self.objective
+        if objective == 'deny_entry':
+            limit = float(p['max_leak_rate'])
+            ok = metrics['unauthorized_entries'] == 0
+            items.append(dict(id='unauthorized_entries', label='未授权进入事件数',
+                              value=metrics['unauthorized_entries'], target=0,
+                              ok=ok, required=True))
+            items.append(dict(id='leak_rate', label='漏控率',
+                              value=metrics['leak_rate'], target=limit,
+                              ok=metrics['leak_rate'] <= limit + 1e-9,
+                              required=True))
+            items.append(dict(id='intercept_rate', label='拦截成功率',
+                              value=metrics['intercept_rate'],
+                              target=float(p['min_intercept_rate']), required=False,
+                              ok=metrics['intercept_rate'] >= float(p['min_intercept_rate'])
+                              or metrics['intercept_attempts'] == 0))
+        elif objective == 'control_passage':
+            items.append(dict(id='unauthorized_cross', label='未授权穿越数',
+                              value=metrics['unauthorized_entries'], target=0,
+                              ok=metrics['unauthorized_entries'] == 0,
+                              required=True))
+            items.append(dict(id='authorized_pass', label='授权放行率',
+                              value=(1.0 if metrics['authorized_approaches'] == 0
+                                     else round(metrics['authorized_passes']
+                                                / max(1, metrics['authorized_approaches']), 4)),
+                              target=1.0,
+                              ok=metrics['authorized_approaches'] == 0
+                              or metrics['authorized_passes'] == metrics['authorized_approaches'],
+                              required=True))
+        elif objective == 'monitor_channel':
+            target = float(p['min_coverage'])
+            items.append(dict(id='boundary_coverage', label='边界监视覆盖率',
+                              value=metrics['boundary_coverage'], target=target,
+                              ok=metrics['boundary_coverage'] >= target,
+                              required=True))
+            items.append(dict(id='occupancy_ratio', label='持续占位率',
+                              value=metrics['occupancy_ratio'], target=target,
+                              ok=metrics['occupancy_ratio'] >= target,
+                              required=True))
+        else:   # intercept
+            items.append(dict(id='intercept_rate', label='拦截成功率',
+                              value=metrics['intercept_rate'],
+                              target=float(p['min_intercept_rate']),
+                              ok=metrics['intercept_rate'] >= float(p['min_intercept_rate']),
+                              required=True))
+            response = metrics['mean_response_s']
+            items.append(dict(id='mean_response', label='平均响应时间(s)',
+                              value=response, target=float(p['max_response_s']),
+                              ok=response is not None
+                              and response <= float(p['max_response_s']),
+                              required=True))
+
+        failed = [x for x in items if x['required'] and not x['ok']]
+        if timeout:
+            verdict, reason = 'failed', '封控时段结束时仍有目标未闭合'
+        elif metrics['unauthorized_approaches'] == 0 and objective in (
+                'deny_entry', 'intercept'):
+            verdict = 'pending'
+            reason = '本次未触发未授权接近事件：只支持"状态维持"结论，不证明处置能力'
+        elif failed:
+            verdict = 'failed'
+            reason = '；'.join('%s=%s（要求 %s）' % (x['label'], x['value'], x['target'])
+                              for x in failed)
+        else:
+            verdict = 'succeeded'
+            reason = '全部必需判据有证据满足（封控 %s s，控制等级%s，交战授权%s）' % (
+                int(float(p['duration_s'])), CN_LEVEL_LABELS[self.control_level],
+                CN_AUTHORITY_LABELS[self.authority])
+        return dict(verdict=verdict, reason=reason, items=items,
+                    objective=objective,
+                    evidence='本地行为状态机 + 4.1 输入仿真的过程记录',
+                    closure=[x.snapshot() for x in self.targets])
+
+    # ---------------- 展示 ----------------
+    def progress_frac(self):
+        if self.done:
+            return 1.0
+        if self.control_established_at is None:
+            return 0.12 * min(1.0, self.t / 30.0)
+        elapsed = self.t - self.control_established_at
+        return min(0.98, 0.12 + 0.88 * elapsed
+                   / max(float(self.params['duration_s']), 1.0))
+
+    def debug(self):
+        return dict(
+            control_level=self.control_level,
+            coverage=round(getattr(self, '_last_coverage', 0.0), 3),
+            on_post={pid: bool(self._on_post.get(pid)) for pid in self.posts},
+            targets=[dict(target_id=x.id, state=x.state,
+                          pos=[round(v, 2) for v in x.pos],
+                          interceptor=x.interceptor) for x in self.targets],
+            interceptor_active=dict(self.intercept_tasks),
+        )
 
 
 # ------------------------------------------------------------------
@@ -1743,10 +2622,17 @@ BEHAVIORS = {cls.kind: cls for cls in
 
 
 def make_behavior(job, nav, pids, params=None):
-    """按作业类型造行为；未知类型退回"原地作业"。"""
-    cls = BEHAVIORS.get(job.get('type'))
-    if cls is None:
-        return Behavior(job, nav, pids, params)
+    """按作业类型造行为；未知类型退回"原地作业"。
+
+    区域封控有两种几何：历史小场景的"作业点外一圈"（BlockadeBehavior）与
+    1028 的"真实封控边界"（ContainmentBehavior）。后者只在输入给了
+    ``area`` 多边形时启用，避免改变旧样例与历史回放的语义。
+    """
     merged = dict(job.get('_behavior') or {})
     merged.update(params or {})
+    if job.get('type') == 'blockade' and merged.get('area'):
+        return ContainmentBehavior(job, nav, pids, merged)
+    cls = BEHAVIORS.get(job.get('type'))
+    if cls is None:
+        return Behavior(job, nav, pids, merged)
     return cls(job, nav, pids, merged)

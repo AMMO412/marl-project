@@ -187,6 +187,59 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
               {"duration_s": 60}, "普通巡逻点"),
     ]
 
+    # 区域封控（1028 §2.2）：3 千米级区域在 580×460 米演示场景里等比缩小为
+    # 140×90 米；边界 2 台占位、1 台门哨、1 台机动拦截；控制等级"拦阻"、
+    # 交战授权"按令"；两条未授权目标 + 一条已授权目标用于核验"拒止进入 /
+    # 授权放行 / 警告后撤离"三类事件闭合。
+    containment_fleet = build(scene, [1, 2, 3, 21, 22], "PLAN-INTEROP-SEC")
+    # 集结待机区：离封控区约 160–200 m，运行链才能完整展示"集结 → 规划路径 →
+    # 到达占位点 → 开始封控"。坐标取场景空地上的固定点，不随机。
+    assembly_positions = {
+        "U1": {"x": 0.0, "y": -45.0},
+        "U2": {"x": 10.0, "y": -47.0},
+        "U3": {"x": -10.0, "y": -47.0},
+        "U4": {"x": 20.0, "y": -45.0},
+        "U5": {"x": -20.0, "y": -45.0},
+    }
+    for unit in containment_fleet["formation"]["units"]:
+        if unit["unit_id"] in assembly_positions:
+            unit["position"] = dict(assembly_positions[unit["unit_id"]])
+    containment_tasks = [
+        _task("T1", "T-SEC", 1,
+              {"defense_area": [[40, 20], [180, 20], [180, 110], [40, 110]]},
+              (0, 600), {"HLD": 1}, 5, 5,
+              {"hold_duration_s": 180,
+               "control_objective": "deny_entry",
+               "control_level": "block",
+               "engagement_authority": "on_order",
+               "roles": {"boundary": 2, "gate": 2, "intercept": 1,
+                         "reserve": 0},
+               "gates": [
+                   {"gate_id": "G-A", "point": [80, 20], "width": 14,
+                    "direction": [0, 1]},
+                   {"gate_id": "G-B", "point": [180, 65], "width": 14,
+                    "direction": [-1, 0]},
+               ],
+               "sensor_radius_m": 40,
+               "standoff_m": 14,
+               "intercept_post": [95, 45],
+               "max_leak_rate": 0.0,
+               "assembly_point": [0, -46],
+               "assembly_radius_m": 30,
+               "intruders": [
+                   {"target_id": "IN-1", "start": [80, -30], "goal": [80, 60],
+                    "speed_mps": 2.5, "t_start_s": 45, "authorized": False,
+                    "compliance": False},
+                   {"target_id": "IN-2", "start": [220, 65], "goal": [180, 65],
+                    "speed_mps": 2.0, "t_start_s": 70, "authorized": False,
+                    "compliance": True},
+                   {"target_id": "AU-1", "start": [80, -30], "goal": [80, 70],
+                    "speed_mps": 2.5, "t_start_s": 100, "authorized": True,
+                    "compliance": False},
+               ]},
+              "140×90 米区域封控：2 段占位 + 门哨 + 机动拦截"),
+    ]
+
     return {
         "patrol_checkpoint": (
             _message("MSG-INTEROP-PATROL-001", patrol_tasks), patrol_fleet),
@@ -196,6 +249,9 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
             _message("MSG-INTEROP-MIXED-001", mixed_tasks), mixed_fleet),
         "capability_gap": (
             _message("MSG-INTEROP-GAP-001", gap_tasks), gap_fleet),
+        "area_containment": (
+            _message("MSG-INTEROP-SEC-001", containment_tasks),
+            containment_fleet),
     }
 
 
@@ -219,6 +275,18 @@ def _check_targets(message: Dict[str, Any], fleet: Dict[str, Any]) -> List[str]:
         for key in ("defense_positions", "entry_points"):
             for point in (task.get("params", {}).get(key) or []):
                 points.append((float(point[0]), float(point[1])))
+        # 区域封控的通道口与目标时间线同样不能落在禁入区里
+        for gate in (task.get("params", {}).get("gates") or []):
+            if isinstance(gate, dict) and gate.get("point"):
+                points.append((float(gate["point"][0]),
+                               float(gate["point"][1])))
+        for target in (task.get("params", {}).get("intruders") or []):
+            if not isinstance(target, dict):
+                continue
+            for field in ("start", "goal"):
+                if target.get(field):
+                    points.append((float(target[field][0]),
+                                   float(target[field][1])))
         for point in points:
             for name, polygon in polygons:
                 if point_in_polygon(point, polygon):

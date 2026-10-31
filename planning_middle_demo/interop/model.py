@@ -12,12 +12,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 Point = Tuple[float, float]
 
-TASK_TYPES = ("T-RCN", "T-SEC", "T-PTL", "T-HLD")
+TASK_TYPES = ("T-RCN", "T-SEC", "T-PTL", "T-HLD", "T-ASL")
 TASK_TYPE_LABELS = {
     "T-RCN": "协同侦察",
     "T-SEC": "区域封控",
     "T-PTL": "巡逻警戒",
     "T-HLD": "要点坚守",
+    "T-ASL": "机动突击",
 }
 
 
@@ -102,6 +103,9 @@ class Subtask:
     depends_on: List[str] = field(default_factory=list)
     coordination: List[str] = field(default_factory=list)
     role: str = ""
+    # T-ASL：突击席位的载荷下限；侦察/评估席位的固定平台（可空）
+    min_payload: float = 0.0
+    pinned_unit: str = ""
     status: str = "UNASSIGNED"
 
 

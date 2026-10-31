@@ -21,14 +21,17 @@ STATIC = ROOT / 'workbench'
 OUTPUTS = ROOT / 'outputs'
 SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场景',
              'asl_city': '城市十字路口机动突击',
-             'interop_neutral': '融合版中性任务（4.1 统一接口）'}
+             'interop_neutral': '融合版中性任务（4.1 统一接口）',
+             'interop_containment': '区域封控 · T-SEC（4.1 边界控制）'}
 # 融合统一层只能跑中性任务；含突击/效果判定的场景继续用基座规划器。
-INTEROP_SCENARIOS = {'interop_neutral'}
+INTEROP_SCENARIOS = {'interop_neutral', 'interop_containment'}
 # 4.1 原生场景：工作台直接读消息+编成表，规划走 interop，运行时用派生 v2 视图。
 INTEROP_PAIRS = {'interop_neutral': ('mixed_inspection.message.json',
-                                     'mixed_inspection.formation.json')}
+                                     'mixed_inspection.formation.json'),
+                 'interop_containment': ('area_containment.message.json',
+                                         'area_containment.formation.json')}
 # 带静态障碍地图、可以开绕障的场景（其余场景没有真实障碍，绕障无意义）
-AVOID_SCENARIOS = {'simple_city', 'asl_city'}
+AVOID_SCENARIOS = {'simple_city', 'asl_city', 'interop_containment'}
 MODES = {'normal': '正常执行', 'failure': '失败重试', 'timeout': '超时恢复',
          'kill': '成员失联', 'deviation': '进度偏差'}
 ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
@@ -39,7 +42,7 @@ ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
 SOURCES = {'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
            'coordinator': ROOT / 'coordinator_v2.py', 'fleet': ROOT / 'mock_fleet.py',
            'contracts': ROOT / 'contracts_v2.py'}
-WORKBENCH_VERSION = '2026-10-30-interop-map-fix'
+WORKBENCH_VERSION = '2026-10-31-containment-in-overview'
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -96,8 +99,16 @@ def validate_config(data):
         result['max_ticks'] = 620
     if 'max_ticks' not in data and result['scenario'] == 'interop_neutral':
         result['max_ticks'] = 260
+    if result['scenario'] == 'interop_containment':
+        # 区域封控必须逐步运动 + 行为层：闭环的"到位→占位→警告→拦阻"才是任务本身，
+        # 瞬移快进只剩一张计划表，看不出控制过程。
+        result['motion'] = 'real'
+        result['avoid'] = True
+        result['behavior'] = True
+        if 'max_ticks' not in data:
+            result['max_ticks'] = 320
     if 'avoid' not in data and result['scenario'] in INTEROP_PAIRS:
-        result['avoid'] = False
+        result['avoid'] = result['scenario'] == 'interop_containment'
     if type(result['avoid']) is not bool:
         raise ValueError('avoid 必须是布尔值')
     if type(result['behavior']) is not bool:
@@ -122,6 +133,7 @@ def run_worker(out):
     custom = None
     scenario41 = None
     inputs = {}
+    nav = None
     if config['scenario'] in INTEROP_PAIRS:
         # 4.1 原生场景：消息+编成表是权威输入；v2 字段只是运行替身视图，
         # 不写成可复用的旧场景文件，避免把有损转换当成等价场景。
@@ -142,6 +154,11 @@ def run_worker(out):
         inputs = {'message': str(message_path), 'formation': str(formation_path),
                   'message_sha256': hashlib.sha256(message_path.read_bytes()).hexdigest(),
                   'formation_sha256': hashlib.sha256(formation_path.read_bytes()).hexdigest()}
+        # 融合层样例没有 _meta.sdf；静态地图改由 4.1 编成表的 no_go 约束构造，
+        # 行为层（绕障/占位）才在同一张地图上跑，不去猜 simple_city 坐标。
+        if config['avoid']:
+            from interop.runtime import nav_from_scenario
+            nav = nav_from_scenario(scenario41)
     else:
         source = ROOT / 'scenarios' / (config['scenario'] + '.json')
         scenario = read_json(source)
@@ -160,7 +177,7 @@ def run_worker(out):
         custom = planner_from_v2(scenario, objective=scenario.get('objective'))
     report, audit = simulate(scenario, mode=config['mode'], motion=config['motion'],
                              avoid=config['avoid'], max_ticks=config['max_ticks'],
-                             behavior=config['behavior'], planner=custom)
+                             behavior=config['behavior'], planner=custom, nav=nav)
 
     plan_files = []
     if scenario41 is not None:
@@ -201,6 +218,31 @@ def run_worker(out):
     (out / 'summary.txt').write_text(render_text(scenario, report, audit), encoding='utf-8')
     (out / 'report.html').write_text(render_html(scenario, report, audit), encoding='utf-8')
     render(out)
+
+
+def compact_plan(doc, max_points=90):
+    """把 4.2 plan.json 压成前端够用的形态（去掉逐指令明细）。
+
+    区域封控页要画"从集结地到占位点的规划路径"和计划角色，只要 assignments；
+    commands 有几百条六分量速度指令，原样塞进页面既慢也没人看。
+    """
+    assignments = []
+    for item in doc.get('assignments') or []:
+        path = item.get('path') or []
+        if len(path) > max_points:
+            step = max(1, len(path) // max_points)
+            path = path[::step] + [path[-1]]
+        assignments.append(dict(
+            unit_id=item.get('unit_id'), robot_id=item.get('robot_id'),
+            task_id=item.get('parent_task_id'), role=item.get('role') or '',
+            target=item.get('target'), start_s=item.get('start_s'),
+            end_s=item.get('end_s'), travel_s=item.get('travel_s'),
+            path_length_m=item.get('path_length_m'),
+            path=[[round(float(p[0]), 2), round(float(p[1]), 2)] for p in path]))
+    return dict(plan_id=doc.get('plan_id'), assignments=assignments,
+                metrics=doc.get('metrics') or {},
+                objective=doc.get('objective'),
+                makespan_s=(doc.get('metrics') or {}).get('makespan_s'))
 
 
 def run_path(run_id):
@@ -314,10 +356,22 @@ def load_run(run_id):
             geometry_note = geometry['provenance']['rule']
         except (OSError, ValueError, KeyError) as exc:
             geometry_note = str(exc)
+    from workbench_scene import scene_map
+    try:
+        backdrop = scene_map(scenario)
+    except (OSError, ValueError, KeyError) as exc:
+        backdrop = dict(error=str(exc))
+    plan_payload = None
+    plan_path = out / 'plan.json'
+    if plan_path.is_file():
+        try:
+            plan_payload = compact_plan(read_json(plan_path))
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            plan_payload = dict(error=str(exc))
     return dict(id=run_id, scenario=scenario, report=report, trace=trace, replay=replay,
                 manifest=read_json(out / 'manifest.json') if (out / 'manifest.json').exists() else {},
-                obstacles=obstacles, geometry_note=geometry_note,
-                roads=roads, landmarks=landmarks, fleet_state=fleet_state,
+                obstacles=obstacles, geometry_note=geometry_note, scene_map=backdrop,
+                roads=roads, landmarks=landmarks, fleet_state=fleet_state, plan=plan_payload,
                 files=[n for n in sorted(ARTIFACTS) if (out / n).is_file()])
 
 
@@ -394,9 +448,12 @@ class Workbench:
                                  timeouts=r.get('timeouts', 0)))
             except (OSError, ValueError, KeyError):
                 continue
-        # 默认运行：优先最新融合层运行，其次 asl_city 行为运行。下拉保留全部历史。
+        # 默认运行：优先多任务融合层运行，其次其它融合层运行、asl_city 行为运行。
+        # 单任务的区域封控运行不抢占首页——它有自己的入口，首页仍看"全局分配"。
         interop_runs = [r for r in runs if r.get('planner') == 'interop']
-        default_run = next((r['id'] for r in interop_runs), None)
+        default_run = next((r['id'] for r in interop_runs
+                            if int(r.get('total') or 0) >= 2), None)
+        default_run = default_run or next((r['id'] for r in interop_runs), None)
         asl_runs = [r for r in runs
                     if r['behavior_details'] and r.get('scenario') == 'asl_city']
         default_run = default_run or next((r['id'] for r in asl_runs), None)
@@ -416,6 +473,7 @@ class Workbench:
         return dict(service='planning-middle-workbench/v1',
                     version=WORKBENCH_VERSION,
                     features=dict(planner=True,
+                                  containment=True,
                                   interop_scenario='interop_neutral',
                                   plan_schema='0.3'),
                     default_run=default_run,
@@ -463,7 +521,8 @@ def make_handler(app):
                         file = OUTPUTS / 'behavior_demo' / 'behavior_demo.html'
                 elif path == '/demos/schematic':
                     file = ROOT.parent / 'outputs' / '任务动态示意_20261027' / 'index.html'
-                elif path in ('/', '/index.html', '/app.js', '/task_details.js', '/styles.css', '/favicon.svg'):
+                elif path in ('/', '/index.html', '/app.js', '/containment.js',
+                              '/task_details.js', '/styles.css', '/favicon.svg'):
                     file = STATIC / ('index.html' if path == '/' else path[1:])
                 else:
                     raise FileNotFoundError()

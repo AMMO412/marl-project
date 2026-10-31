@@ -30,12 +30,6 @@ function renderTaskDetailChrome(jid){
   if(state.taskWindow.start>state.taskWindow.dispatch)$('#task-source-note').textContent+=` · 已跳过 ${num(state.taskWindow.start-state.taskWindow.dispatch,0)} 秒接近过程`;
   $('#task-data-warning').hidden=!m.collapsed;
   $('#task-data-warning').textContent=m.collapsed?'本运行的集结点与执行点重合，不能据此验证集结到执行的分段移动；原坐标与阶段日志保留。':'';
-  const sourceKey=state.run.id+':'+state.catalog.default_run;
-  if($('#task-source').dataset.sourceKey!==sourceKey){
-    $('#task-source').innerHTML=[state.run.id,state.catalog.default_run,'behavior_20261028_verify'].filter((x,i,a)=>x&&a.indexOf(x)===i).map(id=>`<option value="${esc(id)}">${id==='behavior_20261028_verify'?'专项验证记录（串行）':'本轮并行记录 · '+shortRun(id)}</option>`).join('');
-    $('#task-source').value=state.run.id;
-    $('#task-source').dataset.sourceKey=sourceKey;
-  }
   $('#action-chapters').hidden=m.j.jtype!=='assault'||process||m.preExecution;
   if(m.j.jtype==='assault')$('#action-chapters').innerHTML=m.steps.map((step,i)=>`<button class="${i===m.index?'current':''} ${step[2]>state.t?'future':''}" ${step[2]==null?'disabled':`data-task-time="${step[2]}"`}><small>${step[2]==null?'未记录':num(step[2]-m.start,0)+' s'}${step[2]>state.t?' · 未播放':''}</small>${i+1} · ${esc(step[1])}</button>`).join('')+`<span>${m.collapsed?'本轮集结点与执行点重合；可切换专项记录对照。':'点击阶段跳转 · 成员轨道按日志展开'}</span>`;
   for(const id of ['map-zoom-in','map-zoom-out'])$('#'+id).disabled=process;

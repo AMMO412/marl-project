@@ -228,3 +228,19 @@ robot_id 分配、能力等级、分解上限、匈牙利、避障 A*、协同�
 STOP、确定性、窗口/能力/禁入区拒绝、审计（窗口/穿障碍/兵力上限）、
 输出与 manifest、离线CLI端到端、`to-v2`拒绝有损转换且保护已有输出、
 畸形计划与数值边界、对比条件显式披露。未验证真实平台接入。
+
+## 8 区域封控（T-SEC）落地
+
+T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
+`params.roles` 拆成 **边界段占位 / 通道哨位 / 机动拦截 / 预备队**，边界按弧长
+均分、占位点从段中点向内缩 `standoff_m`，几何与执行层共用
+`containment_geom.py`。角色写入 `assignments[].role`，并随指令
+（`task_block.roles`）下发到基座 `behaviors.ContainmentBehavior`，由它执行
+监视 → 警告 → 拦阻 → 处置，产出控制时间线与逐项判定。
+
+- 样例：`scenarios/area_containment.{message,formation}.json`（集结待机区 →
+  140×90 m 区域，2 段占位 + 2 个门哨 + 1 个机动组，2 条未授权目标 + 1 条授权目标）。
+- 运行：`python -m interop.cli demo ... --motion real --behavior`；工作台场景选
+  "区域封控 · T-SEC"，运行后在"演示总览"顶部切到 **区域封控** 页签查看
+  （占位平台在岗巡视，警告/拦阻/放行按时间轴播放）。
+- 参数、指标口径、未做项：见 `docs/区域封控任务_20261031.md`。

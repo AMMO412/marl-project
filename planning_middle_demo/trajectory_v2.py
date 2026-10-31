@@ -50,6 +50,15 @@ BEHAVIOR_EVENT_NAME = {
     "result_failed": "结果未达成", "result_pending": "结果待评估",
     "on_post": "上岗", "handover_start": "接替开始",
     "handover_complete": "接替完成", "relief": "换班",
+    # 区域封控（1028 §2.2）的控制过程事件
+    "target_appeared": "目标出现", "target_detected": "发现目标",
+    "target_authorized": "识别为已授权", "target_unauthorized": "识别为未授权",
+    "warning_issued": "发出警告", "warning_effective": "警告有效·目标撤离",
+    "intercept_assigned": "指派拦阻", "intercept_denied": "授权不足未拦阻",
+    "intercepted": "拦阻到位", "breach": "未授权进入",
+    "authorized_pass": "授权放行", "control_established": "控制建立",
+    "control_interrupted": "控制中断", "control_restored": "控制恢复",
+    "containment_result": "封控结果",
     "behavior_complete": "行为完成", "arrived_area": "进入作业区",
     "route_failed": "路径失败", "behavior_sample": "行为轨迹采样",
     "energy_depleted": "电量耗尽", "start_snapped": "出发点吸附",
@@ -59,6 +68,14 @@ BEHAVIOR_EVENT_NAME = {
     "confirmation_timeout": "确认超时", "attack_window_missed": "错过攻击窗口",
     "task_timeout": "任务超时",
 }
+
+# 区域封控页要按时间轴逐条播放的控制过程事件（不含目标内部状态字）
+CONTAINMENT_EVENTS = ("target_appeared", "target_detected", "target_authorized",
+                      "target_unauthorized", "warning_issued",
+                      "warning_effective", "intercept_assigned",
+                      "intercept_denied", "intercepted", "breach",
+                      "authorized_pass", "control_established",
+                      "control_interrupted", "control_restored")
 
 
 def load_scene_background(scenario, roads_csv=None):
@@ -166,6 +183,45 @@ def _trajectories(trace):
             for pid, points in per_worker.items()}
 
 
+def _containment_replay(trace):
+    """从回放审计里抽出区域封控页需要的三块数据。
+
+    * ``structure``：封控边界、分段占位、通道口、角色、控制等级（来自行为层
+      启动时记的 ``behavior_structure``）；
+    * ``result``：逐项判定、指标、逐目标轨迹与控制时间线（``containment_result``）；
+    * ``events``：可逐条播放的控制过程事件（发现/警告/拦阻/越界/放行等）。
+
+    三者都只从**已有记录**里取，不在前端重算几何或指标；没有封控结构就返回
+    None，工作台显示"本次运行不含区域封控"而不是补一张示意图。
+    """
+    structure = None
+    result = None
+    live = []
+    for row in trace:
+        if row.get("kind") != "behavior_event":
+            continue
+        event = row.get("event") or {}
+        kind = event.get("kind")
+        if kind == "behavior_structure" and event.get("type") == "blockade" \
+                and event.get("area"):
+            structure = dict(event)
+            structure["sim_s"] = row.get("sim_s", 0)
+        elif kind == "containment_result":
+            result = dict(event)
+            result["sim_s"] = row.get("sim_s", 0)
+        elif kind in CONTAINMENT_EVENTS:
+            live.append(dict(
+                kind=kind, sim_s=row.get("sim_s", event.get("t", 0)),
+                t=event.get("t", row.get("sim_s", 0)),
+                target_id=event.get("target_id"), pid=event.get("pid"),
+                role=event.get("role"), pos=event.get("pos"),
+                phase=event.get("phase"), coverage=event.get("coverage")))
+    if structure is None:
+        return None
+    return dict(job_id=structure.get("job_id"), structure=structure,
+                result=result, events=live)
+
+
 def build_replay_data(scenario, report, trace):
     """以场景初始位为起点，最终报告仅补身份，不倒灌最终位置/状态。"""
     final_info = {p["pid"]: p for p in report.get("platforms", [])}
@@ -259,6 +315,7 @@ def build_replay_data(scenario, report, trace):
     return dict(workers=ordered, jobs=jobs, events=events,
                 behaviors=[behaviors[j["job_id"]] for j in jobs
                            if j["job_id"] in behaviors],
+                containment=_containment_replay(trace),
                 end=max(times),
                 background=load_scene_background(scenario),
                 motion=report.get("motion", "teleport"),

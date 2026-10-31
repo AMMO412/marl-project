@@ -1,0 +1,43 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
+  "inputs": {
+    "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
+    "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.formation.json",
+    "message_sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214",
+    "formation_sha256": "2e77fad9b26d39fec389e36cf579f0b42350b8df6a0c92c45e2d5479c2e1ef0e"
+  },
+  "plan_files": [
+    "plan.json",
+    "assignments.csv",
+    "commands.csv",
+    "report.md",
+    "ros2_commands.txt"
+  ],
+  "scenario_sha256": "e7cd6444f719fc7a50a1547b13dcc764d85ce0970fcfc3360f68c4510dbd9004",
+  "source_scenario_sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214",
+  "generated_at": "2026-10-31T16:14:14.835003+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false,
+  "planner": "interop",
+  "workbench_config": {
+    "scenario": "interop_containment",
+    "mode": "normal",
+    "motion": "real",
+    "avoid": true,
+    "max_ticks": 320,
+    "objective": "makespan",
+    "behavior": true,
+    "effect_kind": "damage",
+    "planner": "interop"
+  },
+  "mode": "normal",
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "max_ticks": 320,
+  "H": 610,
+  "K": 8,
+  "dev_threshold": 4.0
+}

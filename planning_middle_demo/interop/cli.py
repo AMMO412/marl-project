@@ -153,8 +153,16 @@ def cmd_demo(args) -> int:
     v2["objective"] = ("energy" if args.objective == "energy" else "makespan")
     engine = InteropPlanner(scenario, objective=args.objective, data=v2)
     from run_demo_v2 import simulate
+    nav = None
+    if args.behavior:
+        # 到位行为需要静态地图；融合层样例没有 _meta.sdf，用编成表的 no_go
+        # 约束现造 NavMap，避免退回 simple_city 世界坐标。
+        from .runtime import nav_from_scenario
+        nav = nav_from_scenario(scenario)
     report, audit = simulate(v2, mode=args.mode, max_ticks=args.max_ticks,
-                             motion=args.motion, planner=engine)
+                             motion=args.motion, avoid=nav is not None,
+                             behavior=args.behavior and nav is not None,
+                             planner=engine, nav=nav)
     # 同一份 4.1 输入的计划层产物（4.2），与运行报告分开放
     plan = Planner(scenario, objective=args.objective).plan()
     paths = write_outputs(
@@ -272,6 +280,9 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("--motion", default="teleport",
                       choices=("teleport", "real"))
     demo.add_argument("--max-ticks", type=int, default=200)
+    demo.add_argument("--behavior", action="store_true",
+                      help="到位后运行基座行为状态机（区域封控的占位/警告/拦阻"
+                           "等任务段动作只有开启后才会执行）")
     demo.set_defaults(func=cmd_demo)
 
     sdf = sub.add_parser("sdf", help="SDF → 编成表骨架")

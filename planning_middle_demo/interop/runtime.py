@@ -146,6 +146,39 @@ def scenario_from_v2(data: Dict[str, Any]) -> Scenario:
     )
 
 
+def _sec_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
+    """T-SEC → 基座行为层参数（区域封控语义，1028 §2.2）。
+
+    统一层负责"谁守哪段、谁当门哨、谁当机动组"；执行层要复现同一条边界，
+    因此把区域、通道、控制等级、交战授权和目标时间线显式交给行为层，
+    不让它自己猜。缺 area 的旧样例不注入，行为层保持原样。
+    """
+    if task.task_type != "T-SEC":
+        return None
+    from .message import target_point
+    area = None
+    for key in ("area", "defense_area", "sector"):
+        if key in task.target:
+            area = task.target[key]
+            break
+    if area is None:
+        return None
+    params = task.params
+    out = dict(area=area)
+    for key in ("gates", "control_level", "engagement_authority",
+                "control_objective", "sensor_radius_m", "standoff_m",
+                "warn_range_m", "intercept_standoff_m", "intercept_post",
+                "reserve_post", "intruders", "max_leak_rate", "rotation_s",
+                "occupancy_tolerance_s", "boundary_sample_m"):
+        if key in params:
+            out[key] = params[key]
+    out["roles"] = params.get("roles") or {}
+    out["duration_s"] = float(params.get(
+        "hold_duration_s", params.get("duration_s", 600.0)))
+    out["site"] = list(target_point(task.target))
+    return out
+
+
 def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
                raw_formation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """统一 Scenario → 基座可执行的 middle-demo/v2 场景。
@@ -158,7 +191,7 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
         from .message import target_point
         duration = float(task.params.get("duration_s",
                                          task.params.get("hold_duration_s", 120.0)))
-        jobs.append(dict(
+        job = dict(
             job_id=task.task_id,
             pos=list(target_point(task.target)),
             work=duration * max(1, int(task.min_units)),
@@ -170,7 +203,12 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
             altitude=float(task.params.get("altitude_m", 0.0)),
             _task_type=task.task_type,
             _target=task.target,
-        ))
+        )
+        behavior = _sec_behavior_params(task)
+        if behavior is not None:
+            # 运行视图的作业参数（非 4.1 契约字段，只给基座行为层读）。
+            job["_behavior"] = behavior
+        jobs.append(job)
     horizon = int(max([t.window_end_s for t in scenario.tasks] + [1.0])) + 10
     interop_meta = {"schema_version": "0.3", "authoritative": False,
                     "role": "runtime-view", "note":
@@ -198,6 +236,72 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
                       for p in scenario.platforms],
         "jobs": jobs,
     }
+
+
+def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
+                      radius: float = 1.5, resolution: float = 1.0):
+    """用 4.1 编成表的 no_go 约束构造基座静态地图（NavMap）。
+
+    融合层的中性样例不写 ``_meta.sdf``，基座 ``city_nav.build_nav`` 会退到
+    simple_city 的世界坐标，等于用错地图。这里改为**只用权威输入**：
+    平台与任务几何定边界，编成表的 ``no_go`` 约束当障碍，不解析 SDF、
+    不猜坐标。范围只包住本次作业区，A* 栅格因此保持 1 m 级而不爆内存。
+    """
+    import city_nav
+
+    points = [tuple(p.position) for p in scenario.platforms]
+    for task in scenario.tasks:
+        for key in ("area", "defense_area", "sector", "patrol_area"):
+            value = task.target.get(key)
+            if value is None:
+                continue
+            polygon = value.get("polygon") if isinstance(value, dict) else value
+            try:
+                points.extend((float(p[0]), float(p[1])) for p in polygon)
+            except (TypeError, ValueError, IndexError):
+                pass
+        for key in ("gates", "intruders", "entry_points", "defense_positions",
+                    "posts", "intercept_post", "reserve_post"):
+            values = task.params.get(key) or []
+            if isinstance(values, dict):
+                values = [values]
+            for item in values if isinstance(values, (list, tuple)) else []:
+                if isinstance(item, dict):
+                    for field in ("point", "start", "goal"):
+                        if field in item:
+                            try:
+                                points.append((float(item[field][0]),
+                                               float(item[field][1])))
+                            except (TypeError, ValueError, IndexError):
+                                pass
+                else:
+                    try:
+                        points.append((float(item[0]), float(item[1])))
+                    except (TypeError, ValueError, IndexError):
+                        pass
+        try:
+            from .message import target_points
+            points.extend(target_points(task.target))
+        except Exception:      # 几何不可解析时不影响地图构造
+            pass
+    if not points:
+        raise ValueError("场景里没有可用于确定封控地图的点")
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    bounds = [min(xs) - margin, min(ys) - margin,
+              max(xs) + margin, max(ys) + margin]
+    obstacles = []
+    for item in scenario.constraints:
+        if item.get("type") != "no_go":
+            continue
+        area = item.get("area") or {}
+        polygon = area.get("polygon") if isinstance(area, dict) else area
+        if not polygon:
+            continue
+        obstacles.append(dict(id=item.get("constraint_id"),
+                              polygon=[(float(p[0]), float(p[1])) for p in polygon]))
+    return city_nav.NavMap(bounds, obstacles, radius=radius,
+                           resolution=resolution)
 
 
 class InteropPlanner(object):
@@ -306,10 +410,13 @@ class InteropPlanner(object):
             job = coord.jobs[task.task_id]
             items = by_task.get(task.task_id, [])
             pids = []
+            roles = {}
             for item in sorted(items, key=lambda a: a.start_s):
                 pid = fleet.pid_of(robot_of[item.unit_id])
                 if pid not in pids:
                     pids.append(pid)
+                if getattr(item, "role", ""):
+                    roles[pid] = item.role
             if not items or len(pids) < int(job.crew):
                 reasons = [u["reason"] for u in plan.unassigned
                            if u["parent_task_id"] == task.task_id]
@@ -337,6 +444,11 @@ class InteropPlanner(object):
             rate = sum(float(coord.platforms[pid].work_rate) for pid in pids)
             job._interop_total = max(1.0, duration * max(rate, 1e-6))
             job.work = max(float(job.progress) + 1e-6, job._interop_total)
+            # 计划角色随指令下发到执行层（边界段/门哨/机动组），使"守哪一段"
+            # 在计划与执行两份数据里对得上；执行层只把角色当建议，仍按在位
+            # 几何自行复核。
+            if roles:
+                job._interop_roles = dict(roles)
             assignments.append(planner_v2.Assignment(
                 job_id=task.task_id, pids=pids, start=int(round(max(0.0, start))),
                 end=int(round(end)), travel=int(round(travel)),

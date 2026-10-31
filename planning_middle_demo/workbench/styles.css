@@ -127,3 +127,103 @@
   #page-overview .player-top {flex-wrap:wrap;gap:8px}
   #page-overview .player-top>.button-group {flex-wrap:wrap}
 }
+
+/* Shared platform icons and readable legend, including narrow layouts. */
+.map-card .map-legend{font-size:11px;line-height:1.5;gap:8px 16px;padding:12px 16px;color:#52685e}
+.map-card .map-legend>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend-platform{width:24px;height:24px;flex-shrink:0}
+.map-legend i{display:inline-block;flex-shrink:0;width:15px;height:11px}
+.legend-target i{width:13px;height:13px;border:1.5px dashed #568d82;border-radius:50%;position:relative}
+.legend-target i:after{content:'';position:absolute;inset:4px;background:#568d82;border-radius:50%}
+.legend-route i{height:0;border-top:2px solid #548878;width:24px}
+.legend-building i{background:#b9c8d6;border:1px solid #7b90a3}
+.legend-green i{background:#99b78c;border:1px solid #6c8961}
+.legend-wall i{background:#aeb4b1;border:1px solid #7e8782;height:5px}
+.map-legend .legend-note{flex-basis:100%;white-space:normal!important}
+.scene-map-note{font-size:11px;line-height:1.6;color:#64766c;padding:8px 16px;background:#f6f8f5;border-top:1px solid #e5ebe8}
+
+/* ---------------- 区域封控（T-SEC）回放页 ---------------- */
+.ck-body{display:grid;gap:14px}
+.ck-head{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px 12px}
+.ck-head-main{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.ck-head h2{font-size:17px;margin:4px 0 0;display:flex;align-items:center;gap:10px}
+.ck-verdict{font-size:11px;font-weight:500;border-radius:20px;padding:3px 11px;border:1px solid #cdd9d1;color:#576b5f;background:#f4f7f4}
+.ck-verdict.succeeded{background:#e6f4ea;border-color:#bfe2c9;color:#23724a}
+.ck-verdict.failed{background:#fdecea;border-color:#f3c3bb;color:#a33726}
+.ck-verdict.pending{background:#fdf4e3;border-color:#ecd6ac;color:#8a6218}
+.ck-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.ck-chips span{font-size:11px;color:#4f6a59;background:#f3f7f2;border:1px solid #e0e9dc;border-radius:5px;padding:3px 9px;white-space:nowrap}
+.ck-reason{margin:10px 0 0;font-size:12px;color:#4d6a57;background:#f6faf5;border-left:3px solid #7eb195;padding:8px 12px;border-radius:0 5px 5px 0}
+.ck-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.ck-kpi{background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px 15px;display:grid;gap:3px;border-top:3px solid #cfdad3}
+.ck-kpi.ok{border-top-color:#3f9c6d}
+.ck-kpi.bad{border-top-color:#c0483a}
+.ck-kpi-label{font-size:11px;color:#7a8e80}
+.ck-kpi-value{font-size:23px;font-weight:600;color:#25402f;letter-spacing:.5px}
+.ck-kpi-note{font-size:10px;color:#8b9d90;line-height:1.5}
+.ck-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.ck-map-card{position:relative;display:flex;flex-direction:column;margin:0}
+.ck-map-actions{display:flex;gap:8px}
+.ck-legend{display:flex;flex-wrap:wrap;gap:14px;padding:0 20px 9px;font-size:11px;color:#75897b}
+.ck-legend i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+#ck-canvas{width:100%;height:500px;display:block;background:#f4f6f1;border-top:1px solid #e6ece5;border-bottom:1px solid #e6ece5}
+.ck-clock{display:flex;align-items:center;gap:12px;padding:11px 18px;background:#fff;border-radius:0 0 10px 10px}
+.ck-clock input[type=range]{flex:1;accent-color:var(--green)}
+.ck-clock #ck-time{font-size:12px;color:#55705f;min-width:104px;text-align:right;font-variant-numeric:tabular-nums}
+.ck-speed{font-size:11px;color:#75897b;display:flex;align-items:center;gap:5px}
+.ck-speed select{padding:3px 6px;font-size:11px;border-radius:4px;border:1px solid #d5e1d7}
+.ck-side{display:grid;gap:14px}
+.ck-side .card{margin:0}
+.ck-table{margin:0}
+.ck-table th{font-size:10px;color:#7f9385;font-weight:500;white-space:nowrap}
+.ck-table td{font-size:11px;color:#41584a;font-variant-numeric:tabular-nums}
+.ck-tag{font-size:9px;border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap}
+.ck-tag.un{background:#fdeceb;color:#a4362a;border:1px solid #f3c9c3}
+.ck-tag.au{background:#e8f0fb;color:#2b5ea8;border:1px solid #c5d8f1}
+.ck-state{font-size:10px;border-radius:4px;padding:2px 7px;color:#fff;background:var(--c,#94a3b8);white-space:nowrap}
+.ck-items{list-style:none;margin:0;padding:0 18px 8px;display:grid;gap:6px}
+.ck-items li{display:grid;grid-template-columns:18px 1fr;gap:8px;font-size:11px;color:#4b6455;align-items:baseline}
+.ck-check{font-size:12px;font-weight:700}
+.ck-items li.ok .ck-check{color:#2f8a5c}
+.ck-items li.bad .ck-check{color:#bb4433}
+.ck-items em{font-style:normal;font-size:10px}
+.ck-timeline{list-style:none;margin:0;padding:0 18px 16px;display:grid;gap:2px;max-height:330px;overflow:auto}
+.ck-timeline li{display:grid;grid-template-columns:52px 1fr;gap:9px;padding:5px 6px;border-radius:5px;font-size:11px;color:#4c6656;cursor:pointer;border-left:2px solid #dde8dd}
+.ck-timeline li:hover{background:#f3f8f2;border-left-color:#7fb094}
+.ck-timeline time{color:#8ba192;font-variant-numeric:tabular-nums}
+.ck-empty{background:#fff;border:1px dashed #cfdcd2;border-radius:10px;padding:46px 30px;text-align:center;color:#61776a}
+.ck-empty h3{margin:8px 0 6px;font-size:16px;color:#31513d}
+.ck-empty p{max-width:560px;margin:0 auto 16px;font-size:12px;line-height:1.8}
+.ck-empty-icon{font-size:34px;color:#9db8a6}
+@media(max-width:1500px){.ck-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1200px){.ck-layout{grid-template-columns:minmax(0,1fr)}.ck-side{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.ck-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ck-side{grid-template-columns:1fr}#ck-canvas{height:400px}}
+@media(max-width:550px){.ck-kpis{grid-template-columns:1fr}#ck-canvas{height:340px}.ck-clock{flex-wrap:wrap;gap:8px}.ck-clock input[type=range]{flex-basis:100%}.ck-chips{justify-content:flex-start}}
+.ck-ticker{display:flex;align-items:center;gap:9px;padding:9px 18px;background:#f7faf6;border-bottom:1px solid #e6ece5;font-size:12px;color:#43604f;min-height:38px;flex-wrap:wrap}
+.ck-ticker em{font-style:normal;color:#8a9d8e}
+.ck-ticker time{font-variant-numeric:tabular-nums;color:#7b9284}
+.ck-ticker b{color:#1f4a35}
+.ck-ticker span.ck-pill{font-size:11px;background:#fff;border:1px solid #dbe6d9;border-radius:4px;padding:1px 7px;color:#54705c}
+.ck-phase{font-size:11px;border-radius:4px;padding:2px 9px;color:#fff;background:var(--c,#64748b);white-space:nowrap}
+.ck-ribbon{position:relative;height:22px;background:#fff;border-bottom:1px solid #e6ece5}
+.ck-ribbon i{position:absolute;top:6px;width:2px;height:10px;background:var(--c,#94a3b8);border-radius:1px;cursor:pointer;transform:translateX(-1px)}
+.ck-ribbon i:hover{height:15px;top:3px;width:3px}
+.ck-head-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.ck-table th,.ck-table td{padding:6px 5px}
+.ck-table td:first-child{white-space:nowrap}
+.ck-side .table-scroll{overflow-x:auto}
+.ck-legend i.dash{background:none;border-top:2px dashed #64748b;height:0;width:18px;vertical-align:middle}
+.ck-map-actions{flex-wrap:wrap;gap:6px}
+.ck-map-actions .button.active{background:#eaf4eb;border-color:#c6ddc9;color:#3e7b52}
+/* 演示总览的两个视角：全局分配 / 区域封控（同一轮运行，不换数据源） */
+.overview-tabs{display:flex;align-items:center;gap:6px;margin:0 0 14px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:9px}
+.overview-tabs span{margin-left:8px;font-size:11px;color:#82988a;line-height:1.5}
+.ov-tab{border:1px solid transparent;background:none;color:#5d7568;padding:8px 16px;border-radius:6px;font-size:12px}
+.ov-tab:hover{background:#f2f7f1}
+.ov-tab.active{background:#eaf4eb;border-color:#c6ddc9;color:#2f7a55;font-weight:600}
+@media(max-width:800px){.overview-tabs span{display:none}}
+/* 没有封控动作记录时的说明条：讲清楚为什么看不到，并给一键入口 */
+.ck-hint{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 12px;padding:11px 16px;background:#fdf7ec;border:1px solid #ecd9b8;border-radius:9px;color:#7a5c27;font-size:12px;line-height:1.6}
+.ck-hint span{flex:1 1 420px}
+.ck-hint .button{flex-shrink:0}
+@media(max-width:700px){.ck-hint{flex-direction:column;align-items:flex-start}}

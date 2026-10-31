@@ -798,9 +798,12 @@ class PathFollower:
                          self.max_linear * max(0.25, min(1.0, dist / 1.2)))
             linear *= max(0.0, math.cos(err))
         if nav is not None and linear > 0:
-            # 前向安全投影：贴墙时先转再走，并标记需要重规划
-            projected = (x + linear * math.cos(yaw) * 0.3,
-                         y + linear * math.sin(yaw) * 0.3)
+            # 前向安全投影：贴墙时先转再走，并标记需要重规划。
+            # 投影距离按"至多 1.2 m"截断：按 0.3×linear 计算时，8 m/s 的平台
+            # 会朝车头方向看 2.4 m，在 1.5 m 通行间隙的窄道里必然判成撞墙，
+            # 于是原地反复重规划（占位永远凑不齐）。
+            look = max(0.2, min(1.2, linear * 0.3))
+            projected = (x + look * math.cos(yaw), y + look * math.sin(yaw))
             if not nav.free(projected, nav.radius * 0.75):
                 state.replan = True
                 linear = 0.0

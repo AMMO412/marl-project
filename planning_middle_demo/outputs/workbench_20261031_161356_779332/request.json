@@ -1,0 +1,11 @@
+{
+  "scenario": "interop_containment",
+  "mode": "normal",
+  "motion": "real",
+  "avoid": true,
+  "max_ticks": 320,
+  "objective": "makespan",
+  "behavior": true,
+  "effect_kind": "damage",
+  "planner": "interop"
+}

@@ -1,0 +1,67 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-SEC",
+  "generated_at": "2026-10-31T16:11:08.462+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 5,
+    "tasks": 1,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-SEC-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
+      "sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.formation.json",
+      "sha256": "2e77fad9b26d39fec389e36cf579f0b42350b8df6a0c92c45e2d5479c2e1ef0e"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\plan.json",
+      "sha256": "eab2b1b4e7b3d2cccf549dea14f1a6555e261d8aa214179c3258fd26a99fd05b",
+      "bytes": 20054
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\assignments.csv",
+      "sha256": "50a19e41170e91e4a39e01936af0edbd0a54d8ebd0c5c7694e8ca69e64c853e3",
+      "bytes": 1094
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\commands.csv",
+      "sha256": "70376c3d1f657321051bd959ade884393b7ace2b3c4535aad061f81b001f30d2",
+      "bytes": 3127
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\report.md",
+      "sha256": "7a3d72dda0376b40d883c07306a4452edd7dbf466f860c3cee978682e0189fbf",
+      "bytes": 2870
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\ros2_commands.txt",
+      "sha256": "6a0fa7ec87feff29853a18872dc8abbb234d541c5220e64d27c7a15f04a98ca2",
+      "bytes": 5960
+    }
+  },
+  "command": "demo --message interop/scenarios/area_containment.message.json --formation interop/scenarios/area_containment.formation.json --out ..\\outputs\\interop_demo\\containment_run15 --motion real --behavior --max-ticks 320",
+  "planner": "interop",
+  "runtime_report": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment_run15\\run\\report.json"
+}

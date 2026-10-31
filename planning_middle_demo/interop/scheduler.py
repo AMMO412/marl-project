@@ -169,6 +169,7 @@ class Planner(object):
                 energy=energy,
                 risk=risk,
                 altitude_m=state.altitude_m,
+                role=subtask.role,
             )
             self.assignments.append(assignment)
             assigned_by_subtask[subtask.subtask_id] = assignment
@@ -243,7 +244,8 @@ class Planner(object):
         if len(group) <= 1:
             return
         platforms = [p for p in self.scenario.platforms
-                     if p.status == "READY"]
+                     if p.status == "READY"
+                     and p.unit_id not in self._units_used_by_parent(parent_id)]
         if not platforms:
             return
         matrix = []
@@ -342,6 +344,11 @@ class Planner(object):
             start_s, end_s, route, motion, risk, energy,
         ), ("OK", "")
 
+    def _units_used_by_parent(self, parent_id: str) -> set:
+        """同一父任务已占用的平台：T-ASL 的侦察/突击/评估席位必须各用一台。"""
+        return {a.unit_id for a in self.assignments
+                if a.parent_task_id == parent_id}
+
     def _evaluate_candidates(self, subtask: Subtask, dep_ready: float):
         best = None
         rejects = {}
@@ -349,6 +356,8 @@ class Planner(object):
         if "simultaneous_arrival" in subtask.coordination:
             used_units = {a.unit_id for a in self.assignments
                           if a.parent_task_id == subtask.parent_task_id}
+        if subtask.task_type == "T-ASL":
+            used_units |= self._units_used_by_parent(subtask.parent_task_id)
         for platform in self.scenario.platforms:
             owner = self.reserved.get(platform.unit_id)
             if owner is not None and owner != subtask.subtask_id:
@@ -380,7 +389,8 @@ class Planner(object):
             chosen = scheduling[0]
         else:
             chosen = None
-            for reason in ("NO_CAPABILITY", "STATUS", "NO_GO", "NO_ROUTE"):
+            for reason in ("NO_CAPABILITY", "PAYLOAD", "STATUS", "NO_GO",
+                           "NO_ROUTE"):
                 if reason in counts:
                     chosen = reason
                     break

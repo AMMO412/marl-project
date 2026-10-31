@@ -1,0 +1,6 @@
+﻿unit_id,robot_id,topic,platform_class,subtask_id,parent_task_id,task_type,target,start_s,end_s,window_start_s,window_end_s,depends_on,coordination,status,path_length_m,waypoint_count,risk,energy,path
+U4,21,/container_00/robot_021,TANK,T1-S1,T1,T-SEC,"{""point"": [155.0, 34.0]}",20.214,200.214,0.000,600.000,,,ASSIGNED,156.416,2,1.925,66.513,"(20.00,-45.00) | (155.00,34.00)"
+U2,2,/container_00/robot_002,UGV,T1-S2,T1,T-SEC,"{""point"": [65.0, 96.0]}",20.656,200.656,0.000,600.000,,,ASSIGNED,153.212,2,0.000,43.661,"(10.00,-47.00) | (65.00,96.00)"
+U1,1,/container_00/robot_001,UGV,T1-S3,T1,T-SEC,"{""point"": [80.0, 20.0]}",13.738,193.738,0.000,600.000,,,ASSIGNED,103.078,2,1.099,41.154,"(0.00,-45.00) | (80.00,20.00)"
+U3,3,/container_00/robot_003,UGV,T1-S4,T1,T-SEC,"{""point"": [180.0, 65.0]}",28.235,208.235,0.000,600.000,,,ASSIGNED,220.554,2,1.921,47.028,"(-10.00,-47.00) | (180.00,65.00)"
+U5,22,/container_00/robot_022,TANK,T1-S5,T1,T-SEC,"{""point"": [95.0, 45.0]}",19.267,199.267,0.000,600.000,,,ASSIGNED,146.308,3,0.000,65.705,"(-20.00,-45.00) | (73.10,23.20) | (95.00,45.00)"

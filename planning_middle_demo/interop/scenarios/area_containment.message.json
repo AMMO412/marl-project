@@ -1,0 +1,140 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-SEC-001",
+  "issued_at": "2026-10-30T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-SEC",
+      "priority": 1,
+      "target": {
+        "defense_area": [
+          [
+            40,
+            20
+          ],
+          [
+            180,
+            20
+          ],
+          [
+            180,
+            110
+          ],
+          [
+            40,
+            110
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 600
+      },
+      "required_capabilities": {
+        "HLD": 1
+      },
+      "min_units": 5,
+      "max_units": 5,
+      "params": {
+        "hold_duration_s": 180,
+        "control_objective": "deny_entry",
+        "control_level": "block",
+        "engagement_authority": "on_order",
+        "roles": {
+          "boundary": 2,
+          "gate": 2,
+          "intercept": 1,
+          "reserve": 0
+        },
+        "gates": [
+          {
+            "gate_id": "G-A",
+            "point": [
+              80,
+              20
+            ],
+            "width": 14,
+            "direction": [
+              0,
+              1
+            ]
+          },
+          {
+            "gate_id": "G-B",
+            "point": [
+              180,
+              65
+            ],
+            "width": 14,
+            "direction": [
+              -1,
+              0
+            ]
+          }
+        ],
+        "sensor_radius_m": 40,
+        "standoff_m": 14,
+        "intercept_post": [
+          95,
+          45
+        ],
+        "max_leak_rate": 0.0,
+        "assembly_point": [
+          0,
+          -46
+        ],
+        "assembly_radius_m": 30,
+        "intruders": [
+          {
+            "target_id": "IN-1",
+            "start": [
+              80,
+              -30
+            ],
+            "goal": [
+              80,
+              60
+            ],
+            "speed_mps": 2.5,
+            "t_start_s": 45,
+            "authorized": false,
+            "compliance": false
+          },
+          {
+            "target_id": "IN-2",
+            "start": [
+              220,
+              65
+            ],
+            "goal": [
+              180,
+              65
+            ],
+            "speed_mps": 2.0,
+            "t_start_s": 70,
+            "authorized": false,
+            "compliance": true
+          },
+          {
+            "target_id": "AU-1",
+            "start": [
+              80,
+              -30
+            ],
+            "goal": [
+              80,
+              70
+            ],
+            "speed_mps": 2.5,
+            "t_start_s": 100,
+            "authorized": true,
+            "compliance": false
+          }
+        ]
+      },
+      "description": "140×90 米区域封控：2 段占位 + 门哨 + 机动拦截"
+    }
+  ]
+}

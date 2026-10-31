@@ -68,6 +68,13 @@ class BehaviorRunner:
         self.events = []
         self.routes = []
         self._follower = PathFollower()
+        # 每台平台一个跟随器：``PathFollower.max_linear`` 是"场景单位/秒"，
+        # 若所有平台共用默认 0.8，就会把 4.1 编成表里的 8 m/s 地面平台、
+        # 30 m/s 飞机全部压成 0.8 m/s——小场景看不出来，几百米的封控区里
+        # 拦截组永远追不上目标。默认值只留作未登记速度时的兜底。
+        self._followers = {}
+        # 行为层给出的"限速系数"（默认 1.0 = 平台全速）
+        self._speed_scale = {}
         self.behavior.speeds = speeds
         self._last_phase = None
         self._job = behavior.job_id
@@ -125,11 +132,40 @@ class BehaviorRunner:
                 self._log_route_failed(agent, target, str(exc2))
                 return None
 
-    def _set_target(self, agent, target):
+    def _follower_for(self, pid):
+        follower = self._followers.get(pid)
+        if follower is None:
+            agent = self.agents.get(pid)
+            speed = float(getattr(agent, 'speed', 0.8) or 0.8)
+            # 跟随器参数要跟速度同量级：一拍走 ``speed*dt`` 米，若航点容差
+            # 只有 0.35 m，高速平台会"一步跨过航点"，前瞻点落到身后，于是
+            # 原地打转。容差/前瞻按每拍位移放大，小场景（0.8 m/s）保持原值。
+            step_move = max(speed * self.dt, 1e-3)
+            follower = PathFollower(
+                max_linear=max(0.2, speed),
+                lookahead=max(1.0, 3.0 * step_move),
+                waypoint_tol=max(0.35, 1.6 * step_move))
+            self._followers[pid] = follower
+        # 行为层可以给"限速系数"：区域封控的占位/门哨在岗时按巡逻速度走，
+        # 前出拦阻恢复全速。跟随器缓存复用，这里每步刷新上限即可。
+        agent = self.agents.get(pid)
+        if agent is not None:
+            scale = float(self._speed_scale.get(pid, 1.0))
+            follower.max_linear = max(0.2, float(agent.speed) * scale)
+        return follower
+
+    def _set_target(self, agent, target, force=False):
+        """设定目标点并规划路径；``force`` 用于安全投影触发重规划时强制重算。
+
+        原先重规划分支调用 ``_set_target(agent, agent.target)`` 会因"目标没变"
+        直接返回，跟随器拿着旧路径每拍再触发一次安全投影，形成原地打转
+        （仿真 300 拍仍停在原地，占位永远凑不齐）。
+        """
         if target is None:
             return
         target = [float(target[0]), float(target[1])]
-        if agent.target is not None and distance(target, agent.target) < 0.35:
+        if (not force and agent.target is not None
+                and distance(target, agent.target) < 0.35):
             return
         if agent.can_climb and agent.altitude > 0:
             # 空中平台越障直飞：已知静态建筑高度低于巡航高度，2D 地图上的
@@ -158,7 +194,7 @@ class BehaviorRunner:
             return
         agent.target = target
         agent.path = plan['path']
-        agent.follow = self._follower.reset()
+        agent.follow = self._follower_for(agent.pid).reset()
         agent.path_meta = plan
         self.routes.append(dict(pid=agent.pid, job_id=self._job,
                                 t=round(self.time, 2),
@@ -177,6 +213,7 @@ class BehaviorRunner:
         poses = {pid: (a.x, a.y, a.yaw) for pid, a in self.agents.items()}
         speeds = {pid: a.speed for pid, a in self.agents.items()}
         out = self.behavior.step(poses, self.time, 1.0)
+        self._speed_scale = out.get('speed_scale') or {}
         debug = self.behavior.debug() if hasattr(self.behavior, 'debug') else {}
         targets = out.get('targets') or {}
         phase = out.get('phase') or self.behavior.phase
@@ -218,12 +255,19 @@ class BehaviorRunner:
                     continue
                 if not agent.path or agent.follow is None:
                     continue
-                v, w, state = self._follower.step(agent.pose, agent.path,
-                                                  agent.follow, self.nav)
+                v, w, state = self._follower_for(agent.pid).step(
+                    agent.pose, agent.path, agent.follow, self.nav)
                 agent.follow = state
                 if state.replan:
                     state.replan = False
-                    self._set_target(agent, agent.target)
+                    # 只转向不前进：把车头摆向可通行方向，下一拍重新判断。
+                    # 若直接 continue，平台会原地卡死（既不动也不转）。
+                    agent.yaw += w * self.dt
+                    # 同一次卡住的连续重规划之间留 1 s 冷却，避免每拍都跑 A*。
+                    last = getattr(agent, '_replan_at', -9.0)
+                    if self.time - last >= 1.0:
+                        agent._replan_at = self.time
+                        self._set_target(agent, agent.target, force=True)
                     continue
                 agent.yaw += w * self.dt
                 agent.x += v * math.cos(agent.yaw) * self.dt
