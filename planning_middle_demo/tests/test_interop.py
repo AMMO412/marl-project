@@ -507,6 +507,25 @@ class AslIntegrationTests(unittest.TestCase):
         self.assertEqual(behavior["target_id"], "JUNCTION-CROSS-01")
         self.assertIn("sdf", v2["_meta"])
 
+    def test_runtime_assault_end_to_end(self):
+        from interop.runtime import InteropPlanner, to_v2_dict
+        from run_demo_v2 import simulate
+        scenario = self.scenario()
+        v2 = to_v2_dict(scenario)
+        engine = InteropPlanner(scenario, objective="timeliness", data=v2)
+        report, audit = simulate(v2, mode="normal", max_ticks=320,
+                                 motion="real", avoid=True, behavior=True,
+                                 planner=engine)
+        self.assertTrue(report["all_succeeded"], report.get("need_report"))
+        results = [event.get("event") for event in audit
+                   if event.get("kind") == "behavior_event"
+                   and (event.get("event") or {}).get("kind") == "behavior_result"]
+        self.assertTrue(results)
+        items = {item["id"]: item["status"]
+                 for item in results[-1]["items"] if item.get("required")}
+        self.assertEqual(items.get("effect"), "achieved")
+        self.assertEqual(items.get("confirmation"), "achieved")
+
     def test_workbench_config_interop_asl(self):
         import workbench_server
         config = workbench_server.validate_config(dict(
