@@ -1,9 +1,0 @@
-{
-  "scenario": "simple_city",
-  "mode": "kill",
-  "motion": "real",
-  "avoid": true,
-  "max_ticks": 210,
-  "objective": "dispersion",
-  "behavior": true
-}

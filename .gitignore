@@ -23,3 +23,14 @@ Thumbs.db
 
 # Office temporary lock files
 ~$*
+
+# Curated outputs: new runs stay local unless explicitly selected.
+/gazebo/
+/planning_middle_demo/outputs/*
+!/planning_middle_demo/outputs/README.md
+!/planning_middle_demo/outputs/avoid_run/
+!/planning_middle_demo/outputs/behavior_20261028_verify/
+!/planning_middle_demo/outputs/workbench_20261030_210424_645030/
+!/planning_middle_demo/outputs/workbench_20261031_133309_423875/
+!/planning_middle_demo/outputs/workbench_20261031_133851_453017/
+!/planning_middle_demo/outputs/workbench_20261031_133959_331450/

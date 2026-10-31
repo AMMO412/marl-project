@@ -1,1 +1,0 @@
-{"protocol": "middle-demo/v2", "platforms": [{"robot_no": 1, "pos": [0, 0]}], "jobs": [{"job_id": "ordinary-job", "pos": [0, 0], "work": 2.0, "window": [0, 50], "crew": 1, "need_payload": 0, "need_sensor": null, "altitude": 0}], "rules": {"max_attempts": 3, "dev_threshold": 7, "grace_s": 5}}

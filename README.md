@@ -19,9 +19,12 @@
 | `docs/` | 架构、接口、验证状态与维护说明 |
 | `资料/` | 外部需求、接口原文、参考材料及索引 |
 | `outputs/` | 跨模块报告、演示及交付产物；程序内 outputs 保留运行记录 |
-| `gazebo/` | 独立仿真配套，不代表融合版已完成真实联调 |
 | `.work/`、`.workbuddy/` | 临时工作与恢复记录，含唯一文件，不整体清空 |
 | `AGENTS.md` | AI 协作和版本管理规则 |
+
+## 当前目录精简
+
+2026-10-31已将独立Gazebo大素材、旧资料变体和多余运行结果归档到项目外。主程序保留6组代表记录；新运行默认不纳入Git。详情见[整理清单](outputs/目录精简_20261031.md)。源码、当前SDF与必要地图模型保留。
 
 ## 当前限制
 
@@ -37,7 +40,7 @@
 
 公开仓库：[AMMO412/marl-project](https://github.com/AMMO412/marl-project)。
 
-- 只下载当前文件：[下载 main 分支 ZIP](https://github.com/AMMO412/marl-project/archive/refs/heads/main.zip)，解压后阅读本入口并按“启动”操作。仿真素材较大，下载可能需要一些时间。
+- 只下载当前文件：[下载 main 分支 ZIP](https://github.com/AMMO412/marl-project/archive/refs/heads/main.zip)，解压后阅读本入口并按“启动”操作。当前版本已移除暂不使用的完整Gazebo素材包。
 - 需要保留版本历史：`git clone https://github.com/AMMO412/marl-project.git`。
 - 本地修改、检查并提交后，用 `git push` 同步到 GitHub；GitHub不会自动获取尚未提交的本地文件。
 - ZIP不含Git历史，也不等于完整运行环境；Windows/WSL、Python、Gazebo等依赖按相关说明配置。当前仓库快照不表示已完成真实平台联调或完整验收。

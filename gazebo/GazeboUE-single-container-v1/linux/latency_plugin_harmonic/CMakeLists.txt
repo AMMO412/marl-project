@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.16)
-project(StampedPosePublisher)
-find_package(gz-sim8 REQUIRED)
-add_library(StampedPosePublisher SHARED StampedPosePublisher.cc)
-target_link_libraries(StampedPosePublisher gz-sim8::gz-sim8)
-target_compile_features(StampedPosePublisher PRIVATE cxx_std_17)
