@@ -491,6 +491,11 @@ class ContainmentBehavior(Behavior):
         patrol_period_s=120.0,
         gate_patrol_period_s=45.0,
         standby_loop_radius_m=8.0,
+        # 空中监视：绕封控区上方盘旋，按高度层提供覆盖（2D 画面按投影绘制）
+        air_altitude_m=60.0,
+        air_orbit_radius_m=55.0,
+        air_orbit_period_s=90.0,
+        air_speed_mps=14.0,
         max_steps=600,
     )
 
@@ -519,6 +524,12 @@ class ContainmentBehavior(Behavior):
         # 巡视相位按平台错开，避免所有哨位同手同脚一起走。
         self.patrol_phase = {pid: (index * 1.7) % (2 * math.pi)
                              for index, pid in enumerate(sorted(self.posts))}
+        # 空中监视的高度层：BehaviorRunner 用 params['air_altitude'] 决定
+        # 巡航高度（键是 pid），没配高度的飞机仍按地面 A* 走，不会穿楼。
+        if self.air_pids:
+            self.params['air_altitude'] = {
+                pid: float(self.params['air_altitude_m'])
+                for pid in self.air_pids}
         self.targets = [_ContainmentTarget(spec, self.center)
                         for spec in (p.get('intruders') or [])]
         self.control_established_at = None
@@ -546,6 +557,8 @@ class ContainmentBehavior(Behavior):
             engagement_authority_label=CN_AUTHORITY_LABELS[self.authority],
             control_objective=self.objective,
             sensor_radius_m=p['sensor_radius_m'],
+            air_units=len(self.air_pids),
+            air_altitude_m=(float(p['air_altitude_m']) if self.air_pids else None),
             policy=dict(area=[[round(x, 2), round(y, 2)] for x, y in self.polygon],
                         gates=[dict(g) for g in self.gates],
                         posts=[dict(p) for p in self.post_list],
@@ -568,6 +581,7 @@ class ContainmentBehavior(Behavior):
         gate_roles = {}
         intercept_pids = []
         reserve_pids = []
+        air_pids = []
         for pid in pids:
             role = declared.get(pid, '')
             kind, _, detail = role.partition(':')
@@ -583,9 +597,12 @@ class ContainmentBehavior(Behavior):
                 intercept_pids.append(pid)
             elif kind == 'reserve':
                 reserve_pids.append(pid)
+            elif kind == 'air':
+                air_pids.append(pid)
         unassigned = [pid for pid in pids
                       if pid not in boundary_roles and pid not in gate_roles
-                      and pid not in intercept_pids and pid not in reserve_pids]
+                      and pid not in intercept_pids and pid not in reserve_pids
+                      and pid not in air_pids]
 
         # 补位：先满足入口哨位，再给一个机动组，其余做边界段。
         gate_ids = [str(g.get('gate_id')) for g in self.gates]
@@ -660,9 +677,20 @@ class ContainmentBehavior(Behavior):
             self.post_list.append(dict(pid=pid, role=self.roles[pid],
                                        point=list(self.posts[pid]),
                                        mid=list(self.posts[pid]), sector=None))
+        for pid in air_pids:
+            self.posts[pid] = [float(v) for v in self.center]
+            self.sectors[pid] = None
+            self.roles[pid] = 'air:watch'
+            self.post_list.append(dict(pid=pid, role=self.roles[pid],
+                                       point=list(self.posts[pid]),
+                                       mid=list(self.posts[pid]), sector=None,
+                                       air=True,
+                                       altitude_m=float(self.params['air_altitude_m']),
+                                       orbit_radius_m=float(self.params['air_orbit_radius_m'])))
         self.interceptors = list(intercept_pids) + [
             pid for pid in gate_roles if pid not in intercept_pids]
         self.reserve_pids = list(reserve_pids)
+        self.air_pids = list(air_pids)
 
     def _role_label(self, pid):
         return self.roles.get(pid, '未分工')
@@ -743,6 +771,12 @@ class ContainmentBehavior(Behavior):
                 kind = str(self.roles.get(pid, '')).split(':')[0]
                 if kind in ('intercept', 'reserve'):
                     on_station = True          # 待机点本来就是小圈
+                elif kind == 'air':
+                    # 空中盘旋按自己的巡航速度，不受地面巡视限速影响
+                    speed_scale[pid] = min(
+                        1.0, max(0.1, float(p['air_speed_mps']))
+                        / max(self._speed_of(pid), 0.1))
+                    continue
                 elif kind in ('boundary', 'gate'):
                     # 只有已经进入自己那段/口才开始踱步；否则先全速到位。
                     on_station = bool(self._on_post.get(pid))
@@ -791,6 +825,9 @@ class ContainmentBehavior(Behavior):
                 return False
             radius = float(gate.get('width', 12.0)) / 2.0 + 20.0
             return distance(point, tuple(gate['point'])) <= radius
+        if kind == 'air':
+            radius = float(p['air_orbit_radius_m']) * 1.5
+            return distance(point, tuple(self.center)) <= radius
         return distance(point, self.posts.get(pid, point)) <= float(p['occupy_tol'])
 
     def _patrol_target(self, pid, t):
@@ -839,6 +876,13 @@ class ContainmentBehavior(Behavior):
             theta = 2 * math.pi * t / period + phase
             return [round(center[0] + radius * math.cos(theta), 3),
                     round(center[1] + radius * math.sin(theta), 3)]
+        if kind == 'air':
+            # 空中监视：绕封控区上方定高盘旋（2D 画面按投影画）
+            radius = float(p['air_orbit_radius_m'])
+            period = max(20.0, float(p['air_orbit_period_s']))
+            theta = 2 * math.pi * t / period + phase
+            return [round(self.center[0] + radius * math.cos(theta), 3),
+                    round(self.center[1] + radius * math.sin(theta), 3)]
         return None
 
     def _free_point(self, point, max_radius=6.0):
@@ -1045,6 +1089,10 @@ class ContainmentBehavior(Behavior):
         manned = [pid for pid in tracked
                   if pid not in self.lost_pids and self._on_post.get(pid)]
         observers = [tuple(poses[pid])[:2] for pid in manned]
+        # 空中监视也算观察者：它在封控区上方盘旋，探测圈覆盖整片区域。
+        for pid in getattr(self, 'air_pids', []):
+            if pid not in self.lost_pids:
+                observers.append(tuple(poses[pid])[:2])
         coverage = geom.coverage_ratio(self.samples, observers,
                                        float(p['sensor_radius_m']))
         self.coverage_sum += coverage * dt
@@ -1102,6 +1150,9 @@ class ContainmentBehavior(Behavior):
             engagement_authority=self.authority,
             boundary_coverage=round(self.coverage_sum / max(self.coverage_t, 1e-9), 4),
             occupancy_ratio=round(self.occupancy_sum / max(self.coverage_t, 1e-9), 4),
+            air_units=len(getattr(self, 'air_pids', [])),
+            air_altitude_m=(float(self.params['air_altitude_m'])
+                            if getattr(self, 'air_pids', []) else None),
             unauthorized_approaches=self.counts['unauthorized'],
             authorized_approaches=self.counts['authorized'],
             unauthorized_entries=self.counts['breach'],

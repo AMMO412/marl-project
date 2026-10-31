@@ -55,8 +55,8 @@
             "required_capabilities": {
               "HLD": 1
             },
-            "min_units": 5,
-            "max_units": 5,
+            "min_units": 6,
+            "max_units": 6,
             "params": {
               "hold_duration_s": 180,
               "control_objective": "deny_entry",
@@ -66,8 +66,14 @@
                 "boundary": 2,
                 "gate": 2,
                 "intercept": 1,
-                "reserve": 0
+                "reserve": 0,
+                "air": 1
               },
+              "air_unit": "U6",
+              "air_altitude_m": 60,
+              "air_orbit_radius_m": 55,
+              "air_orbit_period_s": 90,
+              "air_speed_mps": 14,
               "gates": [
                 {
                   "gate_id": "G-A",
@@ -270,6 +276,28 @@
               "heading_rad": 0.0,
               "speed_mps": 8.0,
               "endurance_s": 28800.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U6",
+              "platform_type": "uav_recon",
+              "platform_class": "PLANE",
+              "robot_id": 31,
+              "capabilities": {
+                "RCN": 3,
+                "STK": 0,
+                "PTL": 2,
+                "HLD": 0
+              },
+              "position": {
+                "x": 0.0,
+                "y": -52.0
+              },
+              "altitude_m": 6.0,
+              "vertical_speed_mps": 3.0,
+              "heading_rad": 0.0,
+              "speed_mps": 30.0,
+              "endurance_s": 36000.0,
               "status": "READY"
             }
           ]
@@ -1283,6 +1311,14 @@
         -45.0
       ],
       "_platform_class": "TANK"
+    },
+    {
+      "robot_no": 31,
+      "pos": [
+        0.0,
+        -52.0
+      ],
+      "_platform_class": "PLANE"
     }
   ],
   "jobs": [
@@ -1292,12 +1328,12 @@
         110.0,
         65.0
       ],
-      "work": 900.0,
+      "work": 1080.0,
       "window": [
         0,
         600
       ],
-      "crew": 5,
+      "crew": 6,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
@@ -1424,11 +1460,17 @@
           }
         ],
         "max_leak_rate": 0.0,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 55,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_unit": "U6",
         "roles": {
           "boundary": 2,
           "gate": 2,
           "intercept": 1,
-          "reserve": 0
+          "reserve": 0,
+          "air": 1
         },
         "duration_s": 180.0,
         "site": [

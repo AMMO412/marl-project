@@ -14,16 +14,16 @@
         110.0,
         65.0
       ],
-      "work": 972.0000000000001,
+      "work": 1080.0,
       "window": [
         0,
         600
       ],
-      "crew": 5,
+      "crew": 6,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
-      "progress": 972.0,
+      "progress": 1080.0,
       "status": "succeeded",
       "attempts": 1,
       "started_at": 26,
@@ -130,11 +130,17 @@
           }
         ],
         "max_leak_rate": 0.0,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 55,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_unit": "U6",
         "roles": {
           "boundary": 2,
           "gate": 2,
           "intercept": 1,
-          "reserve": 0
+          "reserve": 0,
+          "air": 1
         },
         "duration_s": 180.0,
         "site": [
@@ -204,6 +210,18 @@
       "battery": 999977.1,
       "alive": true,
       "topic": "/container_00/robot_022"
+    },
+    {
+      "pid": "rover_31",
+      "kind": "PLANE",
+      "robot_no": 31,
+      "pos": [
+        67.266,
+        30.377
+      ],
+      "battery": 999938.6,
+      "alive": true,
+      "topic": "/container_00/robot_031"
     }
   ],
   "active_commands": 0,
@@ -219,16 +237,16 @@
     "periodic": 25
   },
   "done": 1,
-  "used_energy": -4999386.5,
-  "per_task_energy": -4999386.52,
+  "used_energy": -5999005.2,
+  "per_task_energy": -5999005.16,
   "makespan": 204,
-  "spread": 43.31,
+  "spread": 44.15,
   "need_report": [],
   "solve_summary": null,
   "rejected_reasons": {},
   "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
   "mode": "normal",
-  "max_ticks": 320,
+  "max_ticks": 340,
   "H": 610,
   "K": 8,
   "dev_threshold": 4.0,

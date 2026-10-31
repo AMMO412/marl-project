@@ -8,6 +8,7 @@
 """
 
 import json
+import math
 import unittest
 
 import containment_geom as geom
@@ -249,6 +250,29 @@ class ContainmentBehaviorTests(unittest.TestCase):
         self.assertIn("speed_scale", out)
         self.assertLess(out["speed_scale"][boundary], 1.0)
 
+    def test_air_watch_orbits_and_carries_altitude(self):
+        roles = {"p1": "boundary:1/1", "p2": "gate:G1",
+                 "p3": "intercept:standby", "p4": "air:watch"}
+        behavior = ContainmentBehavior(
+            dict(job_id="T1", pos=[50, 50]), _Nav(),
+            ["p1", "p2", "p3", "p4"],
+            _params(roles=roles, duration_s=30.0,
+                    air_altitude_m=60, air_orbit_radius_m=40))
+        self.assertEqual(behavior.air_pids, ["p4"])
+        self.assertEqual(behavior.params["air_altitude"]["p4"], 60)
+        self.assertTrue(behavior.roles["p4"].startswith("air"))
+        orbit = behavior._patrol_target("p4", 0.0)
+        self.assertAlmostEqual(
+            math.hypot(orbit[0] - behavior.center[0],
+                       orbit[1] - behavior.center[1]), 40.0, places=2)
+        # 空中监视也算观察者：封控区上方盘旋即提供覆盖
+        poses = {pid: (behavior.posts[pid][0], behavior.posts[pid][1], 0.0)
+                 for pid in behavior.pids}
+        poses["p4"] = (orbit[0], orbit[1], 0.0)
+        behavior.step(poses, 0.0, 1.0)
+        self.assertGreater(behavior._last_coverage, 0.0)
+        self.assertEqual(behavior.metrics.get("air_units"), 1)
+
     def test_losing_a_post_records_control_interruption(self):
         behavior = ContainmentBehavior(
             dict(job_id="T1", pos=[50, 50]), _Nav(), ["p1", "p2", "p3"],
@@ -308,10 +332,11 @@ class ScenarioSampleTests(unittest.TestCase):
         scenario = load_scenario(self.MESSAGE[0], self.MESSAGE[1])
         subtasks = decompose(scenario)
         roles = sorted(s.role for s in subtasks)
-        self.assertEqual(len(subtasks), 5)
+        self.assertEqual(len(subtasks), 6)
         self.assertEqual(sum(r.startswith("boundary") for r in roles), 2)
         self.assertEqual(sum(r.startswith("gate") for r in roles), 2)
         self.assertEqual(sum(r.startswith("intercept") for r in roles), 1)
+        self.assertEqual(sum(r.startswith("air") for r in roles), 1)
 
     def test_sample_to_v2_carries_behavior_params(self):
         from interop.message import load_scenario
@@ -324,6 +349,9 @@ class ScenarioSampleTests(unittest.TestCase):
         self.assertEqual(len(behavior["area"]), 4)
         self.assertEqual(behavior["control_level"], "block")
         self.assertEqual(len(behavior["intruders"]), 3)
+        # 空中监视的高度层与盘旋参数要随运行视图下发
+        self.assertEqual(behavior["air_altitude_m"], 60)
+        self.assertEqual(behavior["air_unit"], "U6")
         # 场景要能通过 v2 契约校验（否则工作台运行会在构造阶段就被拒绝）
         from contracts_v2 import check_scenario_v2
         check_scenario_v2(json.loads(json.dumps(data)))

@@ -5,8 +5,8 @@
   "inputs": {
     "message": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
     "formation": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.formation.json",
-    "message_sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214",
-    "formation_sha256": "2e77fad9b26d39fec389e36cf579f0b42350b8df6a0c92c45e2d5479c2e1ef0e"
+    "message_sha256": "728ae867fc4a3d40b5a0cbfa1bf05c54b670acb8080b30014c305dd229901ec6",
+    "formation_sha256": "e886f6d8feb27a28756b35ff4fd236b52648166601a085e0581d9fd4d6fbcce9"
   },
   "plan_files": [
     "plan.json",
@@ -15,9 +15,9 @@
     "report.md",
     "ros2_commands.txt"
   ],
-  "scenario_sha256": "e7cd6444f719fc7a50a1547b13dcc764d85ce0970fcfc3360f68c4510dbd9004",
-  "source_scenario_sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214",
-  "generated_at": "2026-10-31T16:14:14.835003+08:00",
+  "scenario_sha256": "75c95a7c9ecb57ab52b506f1cccac4125fb0ea9aefdb75f70354bd3715ec16d6",
+  "source_scenario_sha256": "728ae867fc4a3d40b5a0cbfa1bf05c54b670acb8080b30014c305dd229901ec6",
+  "generated_at": "2026-10-31T16:56:47.888333+08:00",
   "backend": "mock_only",
   "external_integration_verified": false,
   "planner": "interop",
@@ -26,7 +26,7 @@
     "mode": "normal",
     "motion": "real",
     "avoid": true,
-    "max_ticks": 320,
+    "max_ticks": 340,
     "objective": "makespan",
     "behavior": true,
     "effect_kind": "damage",
@@ -36,7 +36,7 @@
   "motion": "real",
   "avoid": true,
   "behavior": true,
-  "max_ticks": 320,
+  "max_ticks": 340,
   "H": 610,
   "K": 8,
   "dev_threshold": 4.0

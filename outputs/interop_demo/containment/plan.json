@@ -209,6 +209,47 @@
       "status": "ASSIGNED",
       "role": "intercept:standby",
       "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "task_type": "T-SEC",
+      "start_s": 5.579,
+      "end_s": 185.579,
+      "target": {
+        "point": [
+          110.0,
+          65.0
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 600.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 5.579,
+      "path_length_m": 160.59,
+      "path": [
+        [
+          0.0,
+          -52.0
+        ],
+        [
+          110.0,
+          65.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.8162,
+      "energy": 91.271,
+      "risk": 0.0,
+      "status": "ASSIGNED",
+      "role": "air:watch",
+      "altitude_m": 6.0
     }
   ],
   "commands": [
@@ -859,6 +900,126 @@
       "command_id": "CMD-00027",
       "attempt": 1,
       "action": "start"
+    },
+    {
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "twist": {
+        "linear": {
+          "x": 30.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.5
+        }
+      },
+      "duration_s": 1.632,
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00028",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "twist": {
+        "linear": {
+          "x": 30.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 3.946,
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "phase": "TRANSIT",
+      "at_s": 1.632,
+      "command_id": "CMD-00029",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "phase": "HOLD",
+      "at_s": 5.579,
+      "command_id": "CMD-00030",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 60.0,
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "phase": "HOLD",
+      "at_s": 125.579,
+      "command_id": "CMD-00031",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 31,
+      "topic": "/container_00/robot_031",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U6",
+      "subtask_id": "T1-S6",
+      "phase": "STOP",
+      "at_s": 185.579,
+      "command_id": "CMD-00032",
+      "attempt": 1,
+      "action": "start"
     }
   ],
   "source_message": {
@@ -869,7 +1030,7 @@
   },
   "schema_version": "0.3",
   "plan_version": 1,
-  "generated_at": "2026-10-31T15:46:35.603+08:00",
+  "generated_at": "2026-10-31T16:53:50.594+08:00",
   "backend": "unified",
   "objective": "timeliness",
   "objective_weights": {
@@ -885,7 +1046,7 @@
       "energy": 0.0
     },
     "makespan_s": 208.235,
-    "total_energy": 264.06,
+    "total_energy": 355.331,
     "total_risk": 4.945
   },
   "result_status": "PLAN_ONLY",
@@ -896,12 +1057,12 @@
   "conflicts": [],
   "metrics": {
     "makespan_s": 208.235,
-    "assigned_subtasks": 5,
+    "assigned_subtasks": 6,
     "unassigned_subtasks": 0,
     "conflicts_detected": 0,
     "conflicts_resolved": 0,
     "resolution_rate": 1.0,
-    "plan_latency_ms": 6870.897,
+    "plan_latency_ms": 6742.265,
     "tasks_total": 1,
     "tasks_fully_assigned": 1
   },
@@ -910,6 +1071,7 @@
     "T1-S2 -> U2: 20.7-200.7 s（移动 20.7s，153.2 m），风险 0.00，能耗 43.66，代价 0.3348",
     "T1-S3 -> U1: 13.7-193.7 s（移动 13.7s，103.1 m），风险 1.10，能耗 41.15，代价 0.3232",
     "T1-S4 -> U3: 28.2-208.2 s（移动 28.2s，220.6 m），风险 1.92，能耗 47.03，代价 0.3474",
-    "T1-S5 -> U5: 19.3-199.3 s（移动 19.3s，146.3 m），风险 0.00，能耗 65.70，代价 0.3324"
+    "T1-S5 -> U5: 19.3-199.3 s（移动 19.3s，146.3 m），风险 0.00，能耗 65.70，代价 0.3324",
+    "T1-S6 -> U6: 5.6-185.6 s（移动 5.6s，160.6 m），风险 0.00，能耗 91.27，代价 0.3096"
   ]
 }

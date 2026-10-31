@@ -3,7 +3,7 @@
   "mode": "normal",
   "motion": "real",
   "avoid": true,
-  "max_ticks": 320,
+  "max_ticks": 340,
   "objective": "makespan",
   "behavior": true,
   "effect_kind": "damage",

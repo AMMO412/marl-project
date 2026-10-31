@@ -191,7 +191,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     # 140×90 米；边界 2 台占位、1 台门哨、1 台机动拦截；控制等级"拦阻"、
     # 交战授权"按令"；两条未授权目标 + 一条已授权目标用于核验"拒止进入 /
     # 授权放行 / 警告后撤离"三类事件闭合。
-    containment_fleet = build(scene, [1, 2, 3, 21, 22], "PLAN-INTEROP-SEC")
+    containment_fleet = build(scene, [1, 2, 3, 21, 22, 31], "PLAN-INTEROP-SEC")
     # 集结待机区：离封控区约 160–200 m，运行链才能完整展示"集结 → 规划路径 →
     # 到达占位点 → 开始封控"。坐标取场景空地上的固定点，不随机。
     assembly_positions = {
@@ -200,6 +200,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
         "U3": {"x": -10.0, "y": -47.0},
         "U4": {"x": 20.0, "y": -45.0},
         "U5": {"x": -20.0, "y": -45.0},
+        "U6": {"x": 0.0, "y": -52.0},
     }
     for unit in containment_fleet["formation"]["units"]:
         if unit["unit_id"] in assembly_positions:
@@ -207,13 +208,18 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     containment_tasks = [
         _task("T1", "T-SEC", 1,
               {"defense_area": [[40, 20], [180, 20], [180, 110], [40, 110]]},
-              (0, 600), {"HLD": 1}, 5, 5,
+              (0, 600), {"HLD": 1}, 6, 6,
               {"hold_duration_s": 180,
                "control_objective": "deny_entry",
                "control_level": "block",
                "engagement_authority": "on_order",
                "roles": {"boundary": 2, "gate": 2, "intercept": 1,
-                         "reserve": 0},
+                         "reserve": 0, "air": 1},
+               "air_unit": "U6",
+               "air_altitude_m": 60,
+               "air_orbit_radius_m": 55,
+               "air_orbit_period_s": 90,
+               "air_speed_mps": 14,
                "gates": [
                    {"gate_id": "G-A", "point": [80, 20], "width": 14,
                     "direction": [0, 1]},

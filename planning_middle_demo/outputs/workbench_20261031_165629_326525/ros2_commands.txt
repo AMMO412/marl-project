@@ -1,0 +1,67 @@
+# 4.2 执行层 → ROS 2 发布命令（话题 /container_00/robot_XXX）
+# 每条命令按 at_s 排程、持续 duration_s；-r 20 约 20 Hz。
+# Ctrl+C 后仍需发一次全零 Twist；本文件只给命令，不自动发布。
+# CMD-00001  at=0.000 s  duration=0.853 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_001 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00002  at=0.853 s  duration=12.885 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_001 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00003  at=13.738 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_001 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00004  at=133.738 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_001 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00005  at=193.738 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_001 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00006  at=0.000 s  duration=1.505 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_002 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00007  at=1.505 s  duration=19.152 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_002 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00008  at=20.656 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_002 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00009  at=140.656 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_002 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00010  at=200.656 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_002 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00011  at=0.000 s  duration=0.666 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_003 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00012  at=0.666 s  duration=27.569 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_003 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00013  at=28.235 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_003 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00014  at=148.235 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_003 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00015  at=208.235 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_003 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00016  at=0.000 s  duration=0.662 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_021 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00017  at=0.662 s  duration=19.552 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_021 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00018  at=20.214 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_021 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00019  at=140.214 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_021 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00020  at=200.214 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_021 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00021  at=0.000 s  duration=0.790 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00022  at=0.790 s  duration=14.426 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00023  at=15.216 s  duration=0.189 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.800}}"
+# CMD-00024  at=15.405 s  duration=3.863 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 8.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00025  at=19.267 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00026  at=139.267 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00027  at=199.267 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_022 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00028  at=0.000 s  duration=1.632 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_031 geometry_msgs/msg/Twist "{linear: {x: 30.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.500}}"
+# CMD-00029  at=1.632 s  duration=3.946 s  phase=TRANSIT
+ros2 topic pub -r 20 /container_00/robot_031 geometry_msgs/msg/Twist "{linear: {x: 30.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00030  at=5.579 s  duration=120.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_031 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00031  at=125.579 s  duration=60.000 s  phase=HOLD
+ros2 topic pub -r 20 /container_00/robot_031 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"
+# CMD-00032  at=185.579 s  duration=1.000 s  phase=STOP
+ros2 topic pub -r 20 /container_00/robot_031 geometry_msgs/msg/Twist "{linear: {x: 0.000, y: 0.000, z: 0.000}, angular: {x: 0.000, y: 0.000, z: 0.000}}"

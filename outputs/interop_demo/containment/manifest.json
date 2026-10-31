@@ -9,13 +9,13 @@
     "energy": 0.0
   },
   "plan_id": "PLAN-INTEROP-SEC",
-  "generated_at": "2026-10-31T15:46:35.608+08:00",
+  "generated_at": "2026-10-31T16:53:50.599+08:00",
   "python": "3.14.7",
   "platform": "Windows-11-10.0.26200-SP0",
   "scenario": {
     "formation_id": "INTEROP-container_00",
     "cell_size_m": 1.0,
-    "platforms": 5,
+    "platforms": 6,
     "tasks": 1,
     "message": {
       "schema_version": "0.3",
@@ -27,38 +27,38 @@
   "inputs": {
     "message": {
       "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
-      "sha256": "339751949f15828d931efde82780fd28775ce0367501edf5eb5849110ebce214"
+      "sha256": "728ae867fc4a3d40b5a0cbfa1bf05c54b670acb8080b30014c305dd229901ec6"
     },
     "formation": {
       "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.formation.json",
-      "sha256": "2e77fad9b26d39fec389e36cf579f0b42350b8df6a0c92c45e2d5479c2e1ef0e"
+      "sha256": "e886f6d8feb27a28756b35ff4fd236b52648166601a085e0581d9fd4d6fbcce9"
     }
   },
   "outputs": {
     "plan_json": {
       "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment\\plan.json",
-      "sha256": "5bd761f51d9ffa44f7990a4e6e52f24d2802a761bdefbcde5a43f28b8c348302",
-      "bytes": 20056
+      "sha256": "05fecb70f21c8af480b209a743b9ca4bdbdc6041dcc3335c9d633b8fec382c5f",
+      "bytes": 23556
     },
     "assignments_csv": {
       "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment\\assignments.csv",
-      "sha256": "50a19e41170e91e4a39e01936af0edbd0a54d8ebd0c5c7694e8ca69e64c853e3",
-      "bytes": 1094
+      "sha256": "2fcc86a51fbd4fd6413d07808ca9506dc3bd56318e0559572c67e35ae6a7b032",
+      "bytes": 1347
     },
     "commands_csv": {
       "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment\\commands.csv",
-      "sha256": "70376c3d1f657321051bd959ade884393b7ace2b3c4535aad061f81b001f30d2",
-      "bytes": 3127
+      "sha256": "b64be94ae8296b30a22c7cb4839bc2615349754c36f5460c5bf02fdb2644333a",
+      "bytes": 3682
     },
     "report_md": {
       "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment\\report.md",
-      "sha256": "e1ea49d0e416f45470b38b11ef31d5959e38881e9d21f3968ef67803e5efbab0",
-      "bytes": 2872
+      "sha256": "0639bc1928277e679dec8db5232c36e987b3c45007adc2e18c3472b63a1adf02",
+      "bytes": 3294
     },
     "ros2_commands": {
       "path": "D:\\Desktop\\MARL项目\\outputs\\interop_demo\\containment\\ros2_commands.txt",
-      "sha256": "6a0fa7ec87feff29853a18872dc8abbb234d541c5220e64d27c7a15f04a98ca2",
-      "bytes": 5960
+      "sha256": "31cb42ab38c001a0a2c1ffb375a53e91c2ec35f5a52057cecb81969ab64fdc9e",
+      "bytes": 7020
     }
   },
   "command": "plan --message interop/scenarios/area_containment.message.json --formation interop/scenarios/area_containment.formation.json --out ..\\outputs\\interop_demo\\containment --objective timeliness"

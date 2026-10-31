@@ -1,0 +1,557 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 710,
+  "K": 8,
+  "_meta": {
+    "source": "interop 4.1 运行视图（不是无损旧场景转换）",
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-ASL-JUNCTION-001",
+      "issued_at": "2026-10-31T07:00:00Z",
+      "source": "UPPER"
+    },
+    "cell_size_m": 1.0,
+    "formula": "job.work=duration_s×crew；统一层负责规划，基座负责运行",
+    "interop": {
+      "schema_version": "0.3",
+      "authoritative": false,
+      "role": "runtime-view",
+      "note": "v2 字段是运行替身视图；能力/障碍/阵位语义以 bundle 内原始 4.1 消息与编成表为准",
+      "message": {
+        "schema_version": "0.3",
+        "message_id": "MSG-ASL-JUNCTION-001",
+        "issued_at": "2026-10-31T07:00:00Z",
+        "source": "UPPER",
+        "tasks": [
+          {
+            "task_id": "ASL-JUNCTION-1",
+            "task_type": "T-ASL",
+            "priority": 1,
+            "target": {
+              "point": [
+                -95.0,
+                -145.0
+              ]
+            },
+            "window": {
+              "start_s": 0,
+              "end_s": 700
+            },
+            "required_capabilities": {},
+            "min_units": 6,
+            "max_units": 6,
+            "params": {
+              "effect": "damage",
+              "required_level": 6.0,
+              "payload_required": 4.0,
+              "duration_s": 140.0,
+              "attack_window": [
+                0.0,
+                700.0
+              ],
+              "scout": {
+                "count": 1,
+                "capabilities": {
+                  "RCN": 3
+                },
+                "unit": "UAV-31"
+              },
+              "assessor": {
+                "count": 1,
+                "capabilities": {
+                  "RCN": 2
+                },
+                "unit": "UAV-41"
+              },
+              "staging_center": [
+                -62.0,
+                -124.0
+              ],
+              "staging_radius": 6.0,
+              "objective_radius": 14.0,
+              "observe_radius": 25.0,
+              "observe_angle": 0.0,
+              "assessment_post": [
+                -95.0,
+                -120.0
+              ],
+              "assessment_delay": 20.0,
+              "confirmation_deadline": 120.0,
+              "execute_deadline": 520.0,
+              "withdraw": true,
+              "withdraw_point": [
+                -75.0,
+                -130.0
+              ],
+              "withdraw_ring": 7.0,
+              "withdraw_deadline": 200.0,
+              "target_id": "JUNCTION-CROSS-01",
+              "object_label": "城市十字路口建筑群",
+              "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+              "collateral_limit": "按演练规则不评估附带损伤",
+              "positive_id_required": true,
+              "waves": 1,
+              "required_duration": 10.0,
+              "required_control_s": 10.0,
+              "scout_unit": "UAV-31",
+              "assessor_unit": "UAV-41",
+              "assault_units": 4
+            }
+          }
+        ]
+      },
+      "formation": {
+        "formation": {
+          "formation_id": "INTEROP-ASL-JUNCTION",
+          "units": [
+            {
+              "unit_id": "UGV-01",
+              "platform_type": "rover",
+              "platform_class": "UGV",
+              "robot_id": 1,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 1,
+                "PTL": 2,
+                "HLD": 2
+              },
+              "position": {
+                "x": 0.0,
+                "y": -22.5
+              },
+              "speed_mps": 0.8,
+              "endurance_s": 36000.0,
+              "payload": 6.0,
+              "sensor": "eo",
+              "status": "READY"
+            },
+            {
+              "unit_id": "UGV-11",
+              "platform_type": "rover",
+              "platform_class": "UGV",
+              "robot_id": 11,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 1,
+                "PTL": 2,
+                "HLD": 2
+              },
+              "position": {
+                "x": -5.0,
+                "y": -22.5
+              },
+              "speed_mps": 0.8,
+              "endurance_s": 36000.0,
+              "payload": 6.0,
+              "sensor": "eo",
+              "status": "READY"
+            },
+            {
+              "unit_id": "TANK-21",
+              "platform_type": "tank",
+              "platform_class": "TANK",
+              "robot_id": 21,
+              "capabilities": {
+                "RCN": 1,
+                "STK": 3,
+                "PTL": 1,
+                "HLD": 3
+              },
+              "position": {
+                "x": -10.0,
+                "y": -22.5
+              },
+              "speed_mps": 1.0,
+              "endurance_s": 36000.0,
+              "payload": 8.0,
+              "sensor": "eo",
+              "status": "READY"
+            },
+            {
+              "unit_id": "TANK-22",
+              "platform_type": "tank",
+              "platform_class": "TANK",
+              "robot_id": 22,
+              "capabilities": {
+                "RCN": 1,
+                "STK": 3,
+                "PTL": 1,
+                "HLD": 3
+              },
+              "position": {
+                "x": -10.0,
+                "y": -17.5
+              },
+              "speed_mps": 1.0,
+              "endurance_s": 36000.0,
+              "payload": 8.0,
+              "sensor": "eo",
+              "status": "READY"
+            },
+            {
+              "unit_id": "UAV-31",
+              "platform_type": "uav_recon",
+              "platform_class": "PLANE",
+              "robot_id": 31,
+              "capabilities": {
+                "RCN": 3,
+                "STK": 0,
+                "PTL": 2,
+                "HLD": 0
+              },
+              "position": {
+                "x": -15.0,
+                "y": -22.5
+              },
+              "altitude_m": 30.0,
+              "vertical_speed_mps": 3.0,
+              "speed_mps": 2.0,
+              "endurance_s": 36000.0,
+              "payload": 2.0,
+              "sensor": "sar",
+              "status": "READY"
+            },
+            {
+              "unit_id": "UAV-41",
+              "platform_type": "uav_strike",
+              "platform_class": "WING",
+              "robot_id": 41,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 2,
+                "PTL": 2,
+                "HLD": 0
+              },
+              "position": {
+                "x": -20.0,
+                "y": -22.5
+              },
+              "altitude_m": 25.0,
+              "vertical_speed_mps": 3.0,
+              "speed_mps": 1.6,
+              "endurance_s": 36000.0,
+              "payload": 1.5,
+              "sensor": "ir",
+              "status": "READY"
+            }
+          ]
+        },
+        "constraints": [
+          {
+            "constraint_id": "HOUSE-01",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -145.6,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -178.9
+                ],
+                [
+                  -145.6,
+                  -178.9
+                ]
+              ]
+            },
+            "height_m": 7.69
+          },
+          {
+            "constraint_id": "HOUSE-02",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -60.6,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -180.9
+                ],
+                [
+                  -60.6,
+                  -180.9
+                ]
+              ]
+            },
+            "height_m": 7.23
+          },
+          {
+            "constraint_id": "HOUSE-03",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -144.1,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -100.7
+                ],
+                [
+                  -144.1,
+                  -100.7
+                ]
+              ]
+            },
+            "height_m": 9.17
+          },
+          {
+            "constraint_id": "HOUSE-04",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -60.9,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -98.2
+                ],
+                [
+                  -60.9,
+                  -98.2
+                ]
+              ]
+            },
+            "height_m": 7.69
+          },
+          {
+            "constraint_id": "OFFICE-01",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -173.9,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -136.2
+                ],
+                [
+                  -173.9,
+                  -136.2
+                ]
+              ]
+            },
+            "height_m": 18.66
+          },
+          {
+            "constraint_id": "OFFICE-02",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -33.9,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -136.2
+                ],
+                [
+                  -33.9,
+                  -136.2
+                ]
+              ]
+            },
+            "height_m": 18.66
+          }
+        ],
+        "meta": {
+          "cell_size_m": 1.0,
+          "grid_cell_m": 2.0,
+          "grid_margin_m": 1.5,
+          "plan_id": "PLAN-ASL-JUNCTION",
+          "scene": "container_00",
+          "scene_bounds": [
+            -290.0,
+            -230.0,
+            290.0,
+            230.0
+          ],
+          "source_sdf": "container_00_combined_scene.sdf"
+        }
+      }
+    },
+    "sdf": "资料/接口说明/container_00_combined_scene.sdf",
+    "models": "资料/接口说明/models",
+    "scale": 1.0,
+    "offset_x": 0.0,
+    "offset_y": 0.0,
+    "bounds": [
+      -185,
+      -210,
+      20,
+      30
+    ],
+    "radius": 1.75,
+    "resolution": 0.5
+  },
+  "platforms": [
+    {
+      "robot_no": 1,
+      "pos": [
+        0.0,
+        -22.5
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 11,
+      "pos": [
+        -5.0,
+        -22.5
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 21,
+      "pos": [
+        -10.0,
+        -22.5
+      ],
+      "_platform_class": "TANK"
+    },
+    {
+      "robot_no": 22,
+      "pos": [
+        -10.0,
+        -17.5
+      ],
+      "_platform_class": "TANK"
+    },
+    {
+      "robot_no": 31,
+      "pos": [
+        -15.0,
+        -22.5
+      ],
+      "_platform_class": "PLANE"
+    },
+    {
+      "robot_no": 41,
+      "pos": [
+        -20.0,
+        -22.5
+      ],
+      "_platform_class": "WING"
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "ASL-JUNCTION-1",
+      "type": "assault",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "window": [
+        0,
+        700
+      ],
+      "crew": 6,
+      "_task_type": "T-ASL",
+      "_target": {
+        "point": [
+          -95.0,
+          -145.0
+        ]
+      },
+      "_behavior": {
+        "staging_center": [
+          -62.0,
+          -124.0
+        ],
+        "staging_radius": 6.0,
+        "objective_radius": 14.0,
+        "confirm_radius": 18.0,
+        "arrive_tol": 0.8,
+        "sync_tol": 14.0,
+        "scout_pid": "rover_31",
+        "observe_radius": 25.0,
+        "observe_angle": 0.0,
+        "assessor_pid": "rover_41",
+        "assessment_post": [
+          -95.0,
+          -120.0
+        ],
+        "attack_window": [
+          0.0,
+          700.0
+        ],
+        "assessment_delay": 20.0,
+        "confirmation_deadline": 120.0,
+        "execute_deadline": 520.0,
+        "effect_kind": "damage",
+        "required_level": 6.0,
+        "required_duration": 10.0,
+        "required_control_s": 10.0,
+        "damage_per_hit": 1.0,
+        "fire_interval": 3.0,
+        "rounds_per_salvo": 1,
+        "counterattack_interval": 0.0,
+        "target_id": "JUNCTION-CROSS-01",
+        "object_label": "城市十字路口建筑群",
+        "roe": "仅打击经侦察指示的目标，禁止扩大打击范围",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "positive_id_required": true,
+        "waves": 1,
+        "role_payload": {
+          "assault": 4.0,
+          "support": 0.5
+        },
+        "assault_payload_required": 4.0,
+        "withdraw": true,
+        "withdraw_point": [
+          -75.0,
+          -130.0
+        ],
+        "withdraw_ring": 7.0,
+        "withdraw_deadline": 200.0,
+        "timeout_s": 900.0,
+        "air_altitude": {
+          "rover_31": 30.0,
+          "rover_41": 25.0
+        }
+      }
+    }
+  ]
+}

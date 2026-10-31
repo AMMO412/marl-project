@@ -1,0 +1,67 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-ASL-JUNCTION",
+  "generated_at": "2026-10-31T16:53:54.028+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-ASL-JUNCTION",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 1,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-ASL-JUNCTION-001",
+      "issued_at": "2026-10-31T07:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\asl_junction.message.json",
+      "sha256": "65cf2d4f42f9314f5daea7570657eea4c95ddd095a311421b3f99de0b6f53c98"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\asl_junction.formation.json",
+      "sha256": "2f1abc2320a007f1dff07942718d374dd82cf99eb1ded47ed74e1e07f06eb35b"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\plan.json",
+      "sha256": "1877d732cfc6b6d8fde28350b3ede889acc7dcbc1fbeac0c7ed4ed290b8754ae",
+      "bytes": 26979
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\assignments.csv",
+      "sha256": "39da6b15398059c170aa651ffa1fb6e7c939a7ac859e01284c8b954cc0cef3b3",
+      "bytes": 1703
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\commands.csv",
+      "sha256": "ff2e82a3cfcf060bff85815bc4d66fc1ce99b26b9904f3983c2770f0b40e25d7",
+      "bytes": 4759
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\report.md",
+      "sha256": "93ab2c3bcbbd01e1eb1c5a4dd5c5b703ecfafe7a162ae21ac6132152d0a7a984",
+      "bytes": 4072
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\ros2_commands.txt",
+      "sha256": "bb394460fddaccdd7644679a97026698cd0b8dcd68a22413b2774c5973aef6e1",
+      "bytes": 7902
+    }
+  },
+  "command": "demo --message interop/scenarios/asl_junction.message.json --formation interop/scenarios/asl_junction.formation.json --out ..\\outputs\\tasl_merge_final --max-ticks 700",
+  "planner": "interop",
+  "runtime_report": "D:\\Desktop\\MARL项目\\outputs\\tasl_merge_final\\run\\report.json"
+}

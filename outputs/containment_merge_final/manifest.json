@@ -1,0 +1,67 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-SEC",
+  "generated_at": "2026-10-31T16:54:05.103+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 1,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-SEC-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.message.json",
+      "sha256": "728ae867fc4a3d40b5a0cbfa1bf05c54b670acb8080b30014c305dd229901ec6"
+    },
+    "formation": {
+      "path": "D:\\Desktop\\MARL项目\\planning_middle_demo\\interop\\scenarios\\area_containment.formation.json",
+      "sha256": "e886f6d8feb27a28756b35ff4fd236b52648166601a085e0581d9fd4d6fbcce9"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\plan.json",
+      "sha256": "f0e76c3e9da956cd491dfa6e235e8de3c971502f2b3550d05a1d65e5c583f6db",
+      "bytes": 23554
+    },
+    "assignments_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\assignments.csv",
+      "sha256": "2fcc86a51fbd4fd6413d07808ca9506dc3bd56318e0559572c67e35ae6a7b032",
+      "bytes": 1347
+    },
+    "commands_csv": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\commands.csv",
+      "sha256": "b64be94ae8296b30a22c7cb4839bc2615349754c36f5460c5bf02fdb2644333a",
+      "bytes": 3682
+    },
+    "report_md": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\report.md",
+      "sha256": "875bcac18167c31ab46fbec84548931b93a5f9ea24c16cb7ead1f1448dff3ba0",
+      "bytes": 3292
+    },
+    "ros2_commands": {
+      "path": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\ros2_commands.txt",
+      "sha256": "31cb42ab38c001a0a2c1ffb375a53e91c2ec35f5a52057cecb81969ab64fdc9e",
+      "bytes": 7020
+    }
+  },
+  "command": "demo --message interop/scenarios/area_containment.message.json --formation interop/scenarios/area_containment.formation.json --out ..\\outputs\\containment_merge_final --max-ticks 320 --behavior",
+  "planner": "interop",
+  "runtime_report": "D:\\Desktop\\MARL项目\\outputs\\containment_merge_final\\run\\report.json"
+}

@@ -198,8 +198,9 @@ def _decompose_rcn(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     raise PlanningError("%s（T-RCN）缺少 area / route / target_list" % task.task_id)
 
 
-SEC_ROLE_KEYS = ("boundary", "gate", "intercept", "reserve")
-SEC_DEFAULT_ROLES = {"boundary": 2, "gate": 1, "intercept": 1, "reserve": 0}
+SEC_ROLE_KEYS = ("boundary", "gate", "intercept", "reserve", "air")
+SEC_DEFAULT_ROLES = {"boundary": 2, "gate": 1, "intercept": 1,
+                     "reserve": 0, "air": 0}
 
 
 def _sec_roles(task: Task) -> Dict[str, int]:
@@ -226,7 +227,8 @@ def _sec_roles(task: Task) -> Dict[str, int]:
     gates = task.params.get("gates") or []
     gate_count = len(gates) if isinstance(gates, list) else 0
     if gate_count:
-        return {"boundary": 0, "gate": gate_count, "intercept": 1, "reserve": 0}
+        return {"boundary": 0, "gate": gate_count, "intercept": 1,
+                "reserve": 0, "air": 0}
     return dict(SEC_DEFAULT_ROLES)
 
 
@@ -279,10 +281,10 @@ def _decompose_sec(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         polygon = geom.as_polygon([[float(p[0]), float(p[1])] for p in area])
         roles = _sec_roles(task)
         if task.max_units is not None:
-            # 兵力上限优先保证"有人在位"：先减预备队，再减边界段，最后减门哨；
-            # 机动拦截组保留（否则拦阻义务无人承担）。
+            # 兵力上限优先保证"有人在位"：先减预备队与空中监视，再减边界段，
+            # 最后减门哨；机动拦截组保留（否则拦阻义务无人承担）。
             limit = max(1, int(task.max_units))
-            for key in ("reserve", "boundary", "gate"):
+            for key in ("reserve", "air", "boundary", "gate"):
                 while roles[key] > 0 and sum(roles.values()) > limit:
                     roles[key] -= 1
         if sum(roles.values()) <= 0:
@@ -311,11 +313,22 @@ def _decompose_sec(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         for _ in range(roles["reserve"]):
             spot = reserve_post or [center[0], center[1] - standoff]
             items.append(({"point": [float(v) for v in spot]}, "reserve:standby"))
+        air_caps = task.params.get("air_capabilities") or {"RCN": 2}
+        air_unit = task.params.get("air_unit")
+        for _ in range(roles["air"]):
+            # 空中监视/中继：绕封控区上方盘旋，传感器覆盖整块区域。
+            # 席位按 air_unit 固定或用 air_capabilities 限定，避免被地面平台
+            # 拿了"空中席位"（地面平台没有高度层，飞不上去）。
+            items.append(({"point": [float(v) for v in center]}, "air:watch"))
         subtasks = []
         for index, (target, role) in enumerate(items):
             subtask = _make_subtask(task, index + 1, target, duration,
                                     coordination=coordination)
             subtask.role = role
+            if role.startswith("air:"):
+                subtask.required_capabilities = dict(air_caps)
+                if air_unit:
+                    subtask.pinned_unit = str(air_unit)
             subtasks.append(subtask)
         return subtasks
 

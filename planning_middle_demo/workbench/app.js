@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -511,6 +511,21 @@ function mapGeometry(key){return state.run?.scene_map?.[key]||state.run?.[key]||
 function mapStyle(o){const id=o.id||'';return o.source==='mesh_aabb'?['#b9c8d6','#7b90a3']:id.includes('planter')?['#99b78c','#6c8961']:id.includes('walls')?['#aeb4b1','#7e8782']:id.includes('beacon')?['#d2b36b','#a38b4e']:['#ccd5d2','#9fadb4'];}
 function landmarkName(o){const n=o.name||'';const names={env_beacon_lawn:'草坪区标识柱',env_beacon_walls:'围墙区标识柱',env_beacon_city:'城市区标识柱',env_beacon_wetlands:'湿地区标识柱',env_beacon_yosemite:'山地区标识柱',env_wetlands_north:'北湿地',env_wetlands_south:'南湿地',env_yosemite:'山地'};return (names[n]||buildingName(n))+(o.missing_geometry?' · 缺少模型，仅示位置':'');}
 
+// 区域封控运行的目标状态：结果里的 state 是最终状态，总览要按当前时刻回推。
+const CK_STATE_COLOR={'监视':'#d97706','已警告':'#d97706','拦截中':'#7c3aed',
+  '已拦阻':'#0d9488','未授权进入':'#991b1b','已撤离':'#64748b',
+  '已放行':'#2563eb','待出现':'#94a3b8'};
+function ckTargetState(tgt,events,t){
+  const kinds=new Set((events||[]).filter(e=>e.target_id===tgt.target_id&&(e.t||0)<=t).map(e=>e.kind));
+  if(kinds.has('breach'))return '未授权进入';
+  if(kinds.has('intercepted'))return '已拦阻';
+  if(kinds.has('warning_effective'))return '已撤离';
+  if(kinds.has('authorized_pass'))return '已放行';
+  if(kinds.has('intercept_assigned'))return '拦截中';
+  if(kinds.has('warning_issued'))return '已警告';
+  if(kinds.has('target_detected'))return '监视';
+  return '待出现';
+}
 // 区域封控运行的取景范围：封控区、通道口、站位、集结待机区与目标起终点。
 function containmentBounds(){
   const ck=state.run&&state.run.replay&&state.run.replay.containment;
@@ -621,31 +636,56 @@ function draw(){
       ctx.strokeStyle='#b34a3a';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(siteXY[0]-5,siteXY[1]);ctx.lineTo(siteXY[0]+5,siteXY[1]);ctx.moveTo(siteXY[0],siteXY[1]-5);ctx.lineTo(siteXY[0],siteXY[1]+5);ctx.stroke();
       annotationLabels.push({text:'目标 · '+(b.target_id||jid),x:siteXY[0],y:siteXY[1],color:'#a8442f',priority:true});const lead=(b.assault_pids||f.jobs[jid].pids)[0],route=f.jobs[jid].behavior.routes?.[lead];if(m.index===3&&route?.to&&Math.hypot(route.to[0]-b.objective[0][0],route.to[1]-b.objective[0][1])>.7){circle(route.to,15,'#5d9c70','#5d9c7015',[3,3]);const a=P(route.to);annotationLabels.push({text:'确认点 · '+no(lead),x:a[0],y:a[1]+24,color:'#5d9c70'});}}else{for(const p of b.staging||[])circle(p,state.taskWindow?9:5,c,null,[2,3]);for(const p of b.objective||[])circle(p,state.taskWindow?6:3,c,c+'44');}ctx.restore();
   }
-  // 区域封控场景要素：封控边界、通道口、占位点。这是本轮场景的一部分，
-  // 不随"选中哪个任务"消失——总览要能直接看出"这块区域被谁封住了"。
-  const ckStructure=state.run.replay.containment?.structure;
+  // 区域封控场景要素：封控边界、通道口、站位、探测圈与目标处置。
+  // 总览要能直接看出"这块区域被谁封住、谁看得见哪段、目标现在什么状态"，
+  // 所以这里不用一堆虚线：区域实线、探测圈细实线、目标带状态与拦阻连线。
+  const ckData=state.run.replay.containment;
+  const ckStructure=ckData&&ckData.structure;
   if(ckStructure&&ckStructure.area&&$('#show-behaviors').checked){
     const c=taskColor(ckStructure.job_id);
-    ctx.save();ctx.beginPath();ckStructure.area.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.closePath();
-    ctx.fillStyle=c+'0d';ctx.fill();ctx.setLineDash([9,6]);ctx.strokeStyle=c+'cc';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-    for(const gate of ckStructure.gates||[]){const a=P(gate.point);ctx.strokeStyle='#7c3aed';ctx.lineWidth=2;ctx.beginPath();ctx.arc(a[0],a[1],5,0,Math.PI*2);ctx.stroke();}
-    for(const post of ckStructure.post_plan||[]){circle(post.point,4,c,c+'33');}
-    // 控制建立后把区域压实一档，并画出每台平台的探测半径圈——这才看得出
-    // "封控区被谁封着、谁看得见哪一段"，而不是只有几个点。
-    const ckEvents=state.run.replay.containment.events||[];
+    const ckEvents=ckData.events||[];
     const ckEst=ckEvents.find(e=>e.kind==='control_established');
-    if(ckEst&&state.t>=(ckEst.t||0)){
-      ctx.save();ctx.beginPath();ckStructure.area.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.closePath();
-      ctx.fillStyle=c+'1f';ctx.fill();ctx.restore();
-    }
+    const established=!!ckEst&&state.t>=(ckEst.t||0);
+    ctx.save();
+    ctx.beginPath();ckStructure.area.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.closePath();
+    ctx.fillStyle=established?c+'1a':c+'0c';ctx.fill();
+    ctx.strokeStyle=c+'cc';ctx.lineWidth=2;ctx.stroke();
+    for(const gate of ckStructure.gates||[]){const a=P(gate.point);ctx.strokeStyle='#7c3aed';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(a[0],a[1],4.5,0,Math.PI*2);ctx.stroke();}
+    for(const post of ckStructure.post_plan||[]){if(post.air)continue;circle(post.point,3,c,c+'44');}
+    // 探测半径：细实线，不再用虚线圈（一屏五六个虚线圈和轨迹线叠在一起太乱）
     const sensorR=(ckStructure.sensor_radius_m||35)*scale;
-    if(sensorR>5){
+    if(sensorR>4){
       for(const pid of Object.keys(ckStructure.roles||{})){
         const w=state.run.replay.workers.find(x=>x.pid===pid);
         if(!w)continue;
         const p=workerAt(w);
         if(!p||!Number.isFinite(p.x))continue;
-        circle([p.x,p.y],sensorR,c+'55',c+'0b',[4,4]);
+        const air=String(ckStructure.roles[pid]).startsWith('air');
+        circle([p.x,p.y],sensorR,air?'#2563eb66':c+'66',air?'#2563eb14':c+'0c');
+      }
+    }
+    // 目标：当前状态、近 30 s 轨迹、拦阻连线——总览里也要看得出"在拦阻"
+    for(const tgt of ((ckData.result&&ckData.result.targets)||[])){
+      const track=(tgt.track||[]).filter(x=>x[0]<=state.t);
+      if(!track.length)continue;
+      const last=track[track.length-1],pos=[last[1],last[2]];
+      if(track.length>2)line(track.filter(x=>x[0]>=state.t-30).map(x=>[x[1],x[2]]),tgt.authorized?'#2563eb99':'#dc262699',1.6);
+      const stateNow=ckTargetState(tgt,ckEvents,state.t);
+      if(stateNow==='待出现')continue;
+      const color=CK_STATE_COLOR[stateNow]||'#94a3b8';
+      const q=P(pos);
+      ctx.beginPath();ctx.arc(q[0],q[1],6,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.6;ctx.stroke();
+      annotationLabels.push({text:tgt.target_id+' · '+stateNow,x:q[0]+10,y:q[1]-6,color,priority:false});
+      const assigned=ckEvents.find(e=>e.kind==='intercept_assigned'&&e.target_id===tgt.target_id);
+      const done=ckEvents.find(e=>e.kind==='intercepted'&&e.target_id===tgt.target_id);
+      if(assigned&&state.t>=assigned.t&&(!done||state.t<=done.t+3)){
+        const w=state.run.replay.workers.find(x=>x.pid===tgt.interceptor);
+        const a=w?workerAt(w):null;
+        if(a&&Number.isFinite(a.x)){
+          line([[a.x,a.y],pos],'#7c3aedcc',2);
+          const m=P([(a.x+pos[0])/2,(a.y+pos[1])/2]);
+          annotationLabels.push({text:'拦阻',x:m[0]+4,y:m[1]-4,color:'#7c3aed',priority:false});
+        }
       }
     }
     const cx=ckStructure.center||ckStructure.site;const a=P(cx);

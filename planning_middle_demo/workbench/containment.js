@@ -45,7 +45,8 @@
     control_restored: '控制恢复',
   };
   const ROLE_TEXT = {
-    boundary: '边界段', gate: '通道哨位', intercept: '机动拦截', reserve: '预备队',
+    boundary: '边界段', gate: '通道哨位', intercept: '机动拦截',
+    reserve: '预备队', air: '空中监视',
   };
 
   const el = (s) => document.querySelector(s);
@@ -177,6 +178,14 @@
       width = Math.round(Math.max(...xs) - Math.min(...xs));
       height = Math.round(Math.max(...ys) - Math.min(...ys));
     }
+    // 空中监视只在对空/高度层上有意义，这里把机数与高度直接标出来，
+    // 免得"图上有架飞机"却不知道它飞多高、算不算封控兵力。
+    const airPosts = (st.post_plan || []).filter((p) =>
+      String(p.role || '').startsWith('air') || p.air);
+    const airChip = airPosts.length
+      ? '<span>空中监视 ' + airPosts.length + ' 台 · ' +
+        num((airPosts[0].altitude_m || m.air_altitude_m || 0), 0) + ' m</span>'
+      : '';
     const cards = [
       ['未授权进入', num(m.unauthorized_entries, 0) + ' 次',
         '拒止进入主判据 · 要求 0 次', m.unauthorized_entries === 0],
@@ -236,7 +245,8 @@
           '<span>控制等级 ' + esc(st.control_level_label || st.control_level) + '</span>' +
           '<span>交战授权 ' + esc(st.engagement_authority_label || st.engagement_authority) + '</span>' +
           '<span>封控时段 ' + num(st.duration_s, 0) + ' s</span>' +
-          '<span>' + (st.post_plan || []).length + ' 个占位/哨位</span>' +
+          '<span>' + (st.post_plan || []).length + ' 台在位</span>' +
+          airChip +
         '</div>' +
         '<button class="button small" data-ck-back>← 返回全局分配</button></div></div>' +
         '<p class="ck-reason">' + esc(result().reason || '') + '</p>' +
@@ -545,6 +555,8 @@
   }
 
   function onStation(st, pid, pos) {
+    const role = String((st.roles || {})[pid] || '');
+    if (role.startsWith('air')) return true;   // 空中监视一直在自己的空域里
     const sector = (st.sectors || []).find((s) => s.pid === pid);
     if (sector && sector.boundary && sector.boundary.length > 1) {
       const band = (st.standoff_m || 12) + 25;
@@ -722,9 +734,11 @@
         const r = Math.max(6, (st.sensor_radius_m || 35) * scale);
         ctx.beginPath();
         ctx.arc(c[0], c[1], r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(13,148,136,0.07)';
+        ctx.fillStyle = roleKind === 'air'
+          ? 'rgba(37,99,235,0.06)' : 'rgba(13,148,136,0.07)';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(13,148,136,0.35)';
+        ctx.strokeStyle = roleKind === 'air'
+          ? 'rgba(37,99,235,0.45)' : 'rgba(13,148,136,0.35)';
         ctx.setLineDash([2, 3]);
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -821,7 +835,9 @@
         ctx.beginPath(); ctx.arc(q[0], q[1], 5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
       }
       if (onPost || String(st.roles[pid] || '').startsWith('intercept')) {
-        const text = shortPid(pid) + ' ' + roleName(st.roles[pid]).split(' · ')[0];
+        let text = shortPid(pid) + ' ' + roleName(st.roles[pid]).split(' · ')[0];
+        const airPost = (st.post_plan || []).find((p) => p.pid === pid && p.altitude_m);
+        if (airPost) text += ' · ' + num(airPost.altitude_m, 0) + ' m';
         placeLabel(text, q[0] + 11, q[1] - 6, '#0f172a');
       }
     }
