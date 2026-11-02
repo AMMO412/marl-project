@@ -787,7 +787,7 @@ document.addEventListener('keydown',e=>{if(!state.run||document.querySelector('d
 new ResizeObserver(draw).observe(canvas);
 let last=performance.now(),lastRender=0;
 function animate(now){const dt=Math.min((now-last)/1000,.1);last=now;if(state.playing&&state.run){state.t=Math.min(state.taskWindow?.end??state.run.replay.end,state.t+dt*state.speed);draw();if(now-lastRender>110){renderTime();lastRender=now;}if(state.t>=(state.taskWindow?.end??state.run.replay.end)){setPlaying(false);renderTime();}}requestAnimationFrame(animate);}
-requestAnimationFrame(animate);renderFiles();refreshCatalog().then(()=>{if(new URLSearchParams(location.search).get('new')==='interop'){$('#config-scenario').value='interop_neutral';openConfig();}}).catch(e=>{$('#connection-text').textContent='连接失败';toast('无法连接本地服务：'+e.message);});
+requestAnimationFrame(animate);renderFiles();refreshCatalog().then(()=>{if(new URLSearchParams(location.search).get('new')==='interop'){$('#config-scenario').value='interop_containment';openConfig();}}).catch(e=>{$('#connection-text').textContent='连接失败';toast('无法连接本地服务：'+e.message);});
 
 // Map navigation uses world coordinates; icon sizes remain readable in screen pixels.
 function drawPlatformIcon(c,kind,x,y,r,yaw,color){

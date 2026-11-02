@@ -1030,7 +1030,7 @@
   },
   "schema_version": "0.3",
   "plan_version": 1,
-  "generated_at": "2026-10-31T16:56:47.787+08:00",
+  "generated_at": "2026-11-02T11:10:45.993+08:00",
   "backend": "unified",
   "objective": "timeliness",
   "objective_weights": {
@@ -1062,7 +1062,7 @@
     "conflicts_detected": 0,
     "conflicts_resolved": 0,
     "resolution_rate": 1.0,
-    "plan_latency_ms": 83.098,
+    "plan_latency_ms": 83.748,
     "tasks_total": 1,
     "tasks_fully_assigned": 1
   },

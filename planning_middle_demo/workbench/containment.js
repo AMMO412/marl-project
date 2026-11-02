@@ -265,7 +265,7 @@
             '<span><i style="background:' + COLORS.area + '"></i>封控边界</span>' +
             '<span><i style="background:' + COLORS.sector + '"></i>边界段</span>' +
             '<span><i style="background:' + COLORS.gate + '"></i>通道口</span>' +
-            '<span><i class="dash" style="border-color:#64748b"></i>规划路径</span>' +
+            '<span><i style="background:#64748b;height:2px"></i>规划路径</span>' +
             '<span><i style="background:' + COLORS.unauthorized + '"></i>未授权</span>' +
             '<span><i style="background:' + COLORS.passed + '"></i>已授权</span>' +
             '<span><i style="background:' + COLORS.held + '"></i>已拦阻</span>' +
@@ -625,13 +625,11 @@
         const w = workerOf(route);
         const color = (w && w.color) || '#64748b';
         poly(path, false);
-        ctx.setLineDash([7, 5]);
         ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.55;
-        ctx.lineWidth = 1.6;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = 1.4;
         ctx.stroke();
         ctx.globalAlpha = 1;
-        ctx.setLineDash([]);
         // 终点箭头：标清"规划去哪个占位点"
         const a = P(path[path.length - 2]), b = P(path[path.length - 1]);
         const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
@@ -653,10 +651,8 @@
         ctx.fillStyle = 'rgba(71,85,105,0.16)';
         ctx.fill();
         ctx.strokeStyle = '#475569';
-        ctx.setLineDash([3, 2]);
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
-        ctx.setLineDash([]);
         ctx.fillStyle = '#334155';
         ctx.font = '11px "Segoe UI","Microsoft YaHei"';
         placeLabel('集结待机区', c[0] + 12, c[1] + 4, '#334155');
@@ -668,11 +664,9 @@
       poly(st.area);
       ctx.fillStyle = 'rgba(194,65,12,0.06)';
       ctx.fill();
-      ctx.setLineDash([6, 4]);
       ctx.strokeStyle = COLORS.area;
       ctx.lineWidth = 2;
       ctx.stroke();
-      ctx.setLineDash([]);
       const c = P(st.center || st.area[0]);
       ctx.fillStyle = 'rgba(194,65,12,0.85)';
       ctx.font = '11px "Segoe UI","Microsoft YaHei"';
@@ -692,11 +686,9 @@
       const post = (st.post_plan || []).find((p) => p.pid === sector.pid);
       if (post) {
         const a = P(post.point), b = P(post.mid || post.point);
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = color + '88';
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
-        ctx.setLineDash([]);
       }
     });
 
@@ -738,11 +730,9 @@
           ? 'rgba(37,99,235,0.06)' : 'rgba(13,148,136,0.07)';
         ctx.fill();
         ctx.strokeStyle = roleKind === 'air'
-          ? 'rgba(37,99,235,0.45)' : 'rgba(13,148,136,0.35)';
-        ctx.setLineDash([2, 3]);
+          ? 'rgba(37,99,235,0.32)' : 'rgba(13,148,136,0.26)';
         ctx.lineWidth = 1;
         ctx.stroke();
-        ctx.setLineDash([]);
       }
       const q = P(post.point);
       ctx.beginPath();
@@ -751,26 +741,18 @@
       ctx.fill();
     });
 
-    // 目标轨迹与当前位姿
+    // 目标轨迹与当前位姿（不画虚线，也不从起点到目标拉长线，避免整屏斜线）
     const events = (C.data.events || []);
     for (const tgt of (result().targets || [])) {
       const track = (tgt.track || []).filter((p) => p[0] <= t);
       if (track.length > 1) {
         poly(track.map((p) => [p[1], p[2]]), false);
-        ctx.setLineDash([4, 3]);
         ctx.strokeStyle = tgt.authorized ? COLORS.passed : COLORS.unauthorized;
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.5;
         ctx.lineWidth = 1.6;
         ctx.stroke();
         ctx.globalAlpha = 1;
-        ctx.setLineDash([]);
       }
-      // 起点与目标点
-      const s = P(tgt.start), g = P(tgt.goal);
-      ctx.strokeStyle = tgt.authorized ? 'rgba(37,99,235,0.5)' : 'rgba(220,38,38,0.5)';
-      ctx.setLineDash([2, 4]);
-      ctx.beginPath(); ctx.moveTo(...s); ctx.lineTo(...g); ctx.stroke();
-      ctx.setLineDash([]);
       if (t < (tgt.track?.[0]?.[0] ?? 0)) continue;
       const pos = targetAt(tgt, t);
       const q = P(pos);
@@ -812,9 +794,7 @@
       const p1 = P([a.x, a.y]), p2 = P(targetAt(tgt, t));
       ctx.strokeStyle = 'rgba(124,58,237,0.85)';
       ctx.lineWidth = 2;
-      ctx.setLineDash([5, 3]);
       ctx.beginPath(); ctx.moveTo(...p1); ctx.lineTo(...p2); ctx.stroke();
-      ctx.setLineDash([]);
       const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
       ctx.fillStyle = '#7c3aed';
       ctx.font = '10px "Segoe UI","Microsoft YaHei"';

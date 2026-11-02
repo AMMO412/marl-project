@@ -21,10 +21,9 @@ STATIC = ROOT / 'workbench'
 OUTPUTS = ROOT / 'outputs'
 SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场景',
              'asl_city': '城市十字路口机动突击',
-             'interop_neutral': '融合版中性任务（4.1 统一接口）',
-             'interop_neutral': '融合版中性任务（4.1 统一接口）',
-             'interop_containment': '区域封控 · T-SEC（4.1 边界控制）',
-             'interop_asl': '融合版机动突击（4.1 样例）'}
+             'interop_neutral': '融合版五类任务样例（4.1 统一接口）',
+             'interop_containment': '区域封控演示（T-SEC）',
+             'interop_asl': '融合版机动突击样例（T-ASL）'}
 # 融合统一层覆盖五类任务：中性四类 + T-ASL（打击/判定仍由基座行为层执行）。
 INTEROP_SCENARIOS = {'interop_neutral', 'interop_containment', 'interop_asl'}
 # 4.1 原生场景：工作台直接读消息+编成表，规划走 interop，运行时用派生 v2 视图。

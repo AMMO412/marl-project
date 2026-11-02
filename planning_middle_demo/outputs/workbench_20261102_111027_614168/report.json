@@ -246,7 +246,7 @@
   "rejected_reasons": {},
   "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
   "mode": "normal",
-  "max_ticks": 340,
+  "max_ticks": 320,
   "H": 610,
   "K": 8,
   "dev_threshold": 4.0,
