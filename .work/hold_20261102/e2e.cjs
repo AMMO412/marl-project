@@ -3,7 +3,7 @@ const { chromium } = require('C:/Users/ammo/.codex/tmp/beijing-map-20261017-01a1
 const path = require('path');
 
 (async () => {
-  const base = 'http://127.0.0.1:8899';
+  const base = process.argv[2] || 'http://127.0.0.1:8899';
   const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' });
   const page = await browser.newPage({ viewport: { width: 1680, height: 1280 } });
   const errors = [];
