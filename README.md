@@ -39,6 +39,8 @@
 
 [项目结构与维护](docs/项目结构.md) · [配置导航](configs/README.md) · [成果目录](outputs/README.md) · [外部资料](资料/README.md)
 
+任务实现模板：[区域封控复盘与要点坚守任务书](docs/任务实现模板_区域封控复盘与要点坚守任务书_20261102.md)——新任务（如 T-HLD 要点坚守）按这份模板落地。
+
 ## 下载与版本同步
 
 公开仓库：[AMMO412/marl-project](https://github.com/AMMO412/marl-project)。
