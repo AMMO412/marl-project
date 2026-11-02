@@ -288,7 +288,7 @@
             '<span><i style="background:' + COLORS.key + '"></i>要点</span>' +
             '<span><i style="background:' + COLORS.post + '"></i>阵位在位</span>' +
             '<span><i style="background:' + COLORS.postOff + '"></i>阵位空缺</span>' +
-            '<span><i style="background:' + COLORS.post + '55"></i>探测圈（全向覆盖）</span>' +
+            '<span><i style="background:' + COLORS.post + '55"></i>探测圈（跟随在位平台）</span>' +
             '<span><i style="background:' + COLORS.threat + '"></i>威胁方向</span>' +
             '<span><i style="background:' + COLORS.air + '"></i>空中观察</span>' +
             '<span><i style="background:' + COLORS.reinforce + '"></i>增援</span>' +
@@ -631,20 +631,35 @@
               COLORS.relay);
     }
 
-    // 阵位探测圈（圆形覆盖）：扇区只表示"威胁来自哪里"，真正保证要点不被
-    // 从斜向空隙钻进来的是各阵位探测圈对要点一周的覆盖，所以按半径画实线圆。
+    // 探测圈：圆心跟着**在位平台**的实时位置走，不是画在计划阵位点上。
+    // 静态画在阵位上会骗人——T+0 全员还在集结地时图上就已经"有覆盖"了。
+    // 没有人在位的阵位不画圈，缺口因此是看得见的（与覆盖判据同一口径）。
     const sensorR = (Number(st.sensor_radius_m) || 0) * scale;
+    const suppressedAt = (postId, now) => {
+      let sup = false;
+      for (const e of (C.data.events || [])) {
+        if (e.post_id !== postId || (e.t || 0) > now) continue;
+        if (e.kind === 'post_suppressed') sup = true;
+        else if (e.kind === 'post_restored') sup = false;
+      }
+      return sup;
+    };
     if (sensorR > 4) {
       for (const position of (st.positions || [])) {
-        const q = P(position.point);
+        const pid = occupantAt(position.id, t);
+        if (!pid) continue;
+        if (suppressedAt(position.id, t)) continue;   // 被压制的阵位不算覆盖
+        const a = agentAt(pid, t);
+        if (!a || !Number.isFinite(a.x)) continue;
+        const q = P([a.x, a.y]);
         ctx.beginPath();
         ctx.arc(q[0], q[1], sensorR, 0, Math.PI * 2);
-        ctx.strokeStyle = COLORS.post + '3d';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = COLORS.post + '48';
+        ctx.lineWidth = 1.1;
         ctx.stroke();
       }
     }
-    // 空中观察席的盘旋圈与高度标注
+    // 空中观察席的盘旋航线（这是固定航线，画在要点为圆心的位置才是对的）
     if ((st.air_units || []).length) {
       const orbit = (Number(st.air_orbit_radius_m) || 45) * scale;
       const kp0 = P(st.key_point);

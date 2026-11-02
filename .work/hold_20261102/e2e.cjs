@@ -64,6 +64,20 @@ const path = require('path');
     }
   });
   await page.waitForTimeout(600);
+  // 先拍 T+3 s（还没建立控制）：探测圈应当只在已到位平台上，不在计划阵位上
+  await page.evaluate(() => {
+    const scrub = document.querySelector('#hl-scrub');
+    scrub.value = 3;
+    scrub.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(400);
+  await page.locator('.ck-map-card').screenshot({ path: path.resolve('.work/hold_20261102/hold_map_card_t3.png') });
+  await page.evaluate(() => {
+    const scrub = document.querySelector('#hl-scrub');
+    scrub.value = 120;
+    scrub.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(400);
   await page.locator('#overview-hold-view').screenshot({ path: path.resolve('.work/hold_20261102/hold_task_view_120s.png') });
   await page.locator('.ck-map-card').screenshot({ path: path.resolve('.work/hold_20261102/hold_map_card_120s.png') });
 
