@@ -13,7 +13,7 @@
   const C = {
     data: null, jobId: null, t: 0, playing: false, speed: 3,
     raf: null, last: 0, built: false, bounds: null,
-    cam: 'all', visible: false,
+    cam: 'all', visible: false, showRoutes: false,
   };
   const COLORS = {
     area: '#b4552d', sector: '#0f766e', gate: '#7c3aed',
@@ -80,6 +80,7 @@
     C.autoPlayed = false;
     C.cam = 'all';
     C.camAuto = true;
+    C.showRoutes = false;
     C.t = 0;
     C.bounds = null;
     if (!C.data) { renderEmpty(run); return; }
@@ -259,13 +260,13 @@
           '<div class="ck-map-actions">' +
             '<button class="button small' + (C.cam === 'all' ? ' active' : '') + '" id="ck-cam-all">全程 · 集结→占位</button>' +
             '<button class="button small' + (C.cam === 'area' ? ' active' : '') + '" id="ck-cam-area">封控区</button>' +
+            '<button class="button small' + (C.showRoutes ? ' active' : '') + '" id="ck-routes" title="只影响显示，不改变回放数据">规划路径</button>' +
             '<button class="button small" id="ck-fit">⌖ 适应视图</button>' +
           '</div></div>' +
           '<div class="ck-legend" id="ck-legend">' +
             '<span><i style="background:' + COLORS.area + '"></i>封控边界</span>' +
             '<span><i style="background:' + COLORS.sector + '"></i>边界段</span>' +
             '<span><i style="background:' + COLORS.gate + '"></i>通道口</span>' +
-            '<span><i style="background:#64748b;height:2px"></i>规划路径</span>' +
             '<span><i style="background:' + COLORS.unauthorized + '"></i>未授权</span>' +
             '<span><i style="background:' + COLORS.passed + '"></i>已授权</span>' +
             '<span><i style="background:' + COLORS.held + '"></i>已拦阻</span>' +
@@ -317,6 +318,12 @@
     const camAll = el('#ck-cam-all'), camArea = el('#ck-cam-area');
     if (camAll) camAll.addEventListener('click', () => setCam('all'));
     if (camArea) camArea.addEventListener('click', () => setCam('area'));
+    const routesBtn = el('#ck-routes');
+    if (routesBtn) routesBtn.addEventListener('click', () => {
+      C.showRoutes = !C.showRoutes;
+      routesBtn.classList.toggle('active', C.showRoutes);
+      draw();
+    });
     buildRibbon();
     updateTicker();
     const timeline = el('#ck-timeline');
@@ -616,46 +623,45 @@
       if (close) ctx.closePath();
     };
 
-    // 规划路径（4.2 计划里的 A* 航迹）与集结点：先画，压在所有要素下面
-    const routes = planAssignments();
-    if (routes.length) {
-      for (const route of routes) {
+    // 集结点始终画；规划路径默认关闭——一屏几条从集结地穿到占位点的长线
+    // 会把封控区压住，只有想看"规划器怎么走的"时才点开。
+    const start = assemblyPoints();
+    if (start.length) {
+      const cx = start.reduce((s, p) => s + p[0], 0) / start.length;
+      const cy = start.reduce((s, p) => s + p[1], 0) / start.length;
+      const c = P([cx, cy]);
+      ctx.beginPath();
+      ctx.arc(c[0], c[1], 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(71,85,105,0.14)';
+      ctx.fill();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.fillStyle = '#334155';
+      ctx.font = '11px "Segoe UI","Microsoft YaHei"';
+      placeLabel('集结待机区', c[0] + 11, c[1] + 4, '#334155');
+    }
+    if (C.showRoutes) {
+      for (const route of planAssignments()) {
         const path = route.path || [];
         if (path.length < 2) continue;
         const w = workerOf(route);
         const color = (w && w.color) || '#64748b';
         poly(path, false);
         ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.5;
         ctx.lineWidth = 1.4;
         ctx.stroke();
         ctx.globalAlpha = 1;
-        // 终点箭头：标清"规划去哪个占位点"
         const a = P(path[path.length - 2]), b = P(path[path.length - 1]);
         const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(b[0], b[1]);
-        ctx.lineTo(b[0] - 8 * Math.cos(ang - 0.4), b[1] - 8 * Math.sin(ang - 0.4));
-        ctx.lineTo(b[0] - 8 * Math.cos(ang + 0.4), b[1] - 8 * Math.sin(ang + 0.4));
+        ctx.lineTo(b[0] - 7 * Math.cos(ang - 0.4), b[1] - 7 * Math.sin(ang - 0.4));
+        ctx.lineTo(b[0] - 7 * Math.cos(ang + 0.4), b[1] - 7 * Math.sin(ang + 0.4));
         ctx.closePath();
         ctx.fill();
-      }
-      const start = assemblyPoints();
-      if (start.length) {
-        const cx = start.reduce((s, p) => s + p[0], 0) / start.length;
-        const cy = start.reduce((s, p) => s + p[1], 0) / start.length;
-        const c = P([cx, cy]);
-        ctx.beginPath();
-        ctx.arc(c[0], c[1], 9, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(71,85,105,0.16)';
-        ctx.fill();
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = '#334155';
-        ctx.font = '11px "Segoe UI","Microsoft YaHei"';
-        placeLabel('集结待机区', c[0] + 12, c[1] + 4, '#334155');
       }
     }
 
@@ -741,14 +747,15 @@
       ctx.fill();
     });
 
-    // 目标轨迹与当前位姿（不画虚线，也不从起点到目标拉长线，避免整屏斜线）
+    // 目标轨迹与当前位姿：只留最近 12 s 的一小段尾迹，不画长直线
     const events = (C.data.events || []);
     for (const tgt of (result().targets || [])) {
       const track = (tgt.track || []).filter((p) => p[0] <= t);
-      if (track.length > 1) {
-        poly(track.map((p) => [p[1], p[2]]), false);
+      const tail = track.filter((p) => p[0] >= t - 12);
+      if (tail.length > 1) {
+        poly(tail.map((p) => [p[1], p[2]]), false);
         ctx.strokeStyle = tgt.authorized ? COLORS.passed : COLORS.unauthorized;
-        ctx.globalAlpha = 0.5;
+        ctx.globalAlpha = 0.45;
         ctx.lineWidth = 1.6;
         ctx.stroke();
         ctx.globalAlpha = 1;

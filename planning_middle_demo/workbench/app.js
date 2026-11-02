@@ -669,7 +669,7 @@ function draw(){
       const track=(tgt.track||[]).filter(x=>x[0]<=state.t);
       if(!track.length)continue;
       const last=track[track.length-1],pos=[last[1],last[2]];
-      if(track.length>2)line(track.filter(x=>x[0]>=state.t-30).map(x=>[x[1],x[2]]),tgt.authorized?'#2563eb99':'#dc262699',1.6);
+      if(track.length>2)line(track.filter(x=>x[0]>=state.t-10).map(x=>[x[1],x[2]]),tgt.authorized?'#2563eb99':'#dc262699',1.6);
       const stateNow=ckTargetState(tgt,ckEvents,state.t);
       if(stateNow==='待出现')continue;
       const color=CK_STATE_COLOR[stateNow]||'#94a3b8';
