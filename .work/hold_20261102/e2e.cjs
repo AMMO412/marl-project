@@ -72,6 +72,15 @@ const path = require('path');
   });
   await page.waitForTimeout(400);
   await page.locator('.ck-map-card').screenshot({ path: path.resolve('.work/hold_20261102/hold_map_card_t3.png') });
+  // 进攻进行中（T+56 落在 N 方向试探 8 s 展示窗内）
+  await page.evaluate(() => {
+    const scrub = document.querySelector('#hl-scrub');
+    scrub.value = 56;
+    scrub.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(400);
+  const ticker56 = await page.evaluate(() => document.querySelector('#hl-ticker')?.textContent || '');
+  await page.locator('.ck-map-card').screenshot({ path: path.resolve('.work/hold_20261102/hold_map_card_attack.png') });
   await page.evaluate(() => {
     const scrub = document.querySelector('#hl-scrub');
     scrub.value = 120;
@@ -113,6 +122,6 @@ const path = require('path');
     hlTime: window.HoldPage.time(),
   }));
 
-  console.log(JSON.stringify({ note, hidden, ticks, info, at120, onMap, after, errors }, null, 2));
+  console.log(JSON.stringify({ note, hidden, ticks, info, ticker56, at120, onMap, after, errors }, null, 2));
   await browser.close();
 })().catch((e) => { console.error(e); process.exit(1); });

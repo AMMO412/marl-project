@@ -238,3 +238,9 @@
 .hl-bar{position:absolute;top:2px;height:12px;background:#0f766e;border-radius:3px;opacity:.85}
 .hl-mark{position:absolute;top:0;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #1d4ed8;transform:translateX(-5px)}
 .hl-mark.reinf{border-top-color:#ea580c}
+/* 要点坚守状态条的小标签（进攻/击退/在位/空缺） */
+.ck-ticker .ck-chip{font-size:11px;background:#fff;border:1px solid #dbe6d9;border-radius:4px;padding:1px 7px;color:#54705c;white-space:nowrap}
+.ck-ticker .ck-chip.on{background:#e9f6ee;border-color:#bfe2c9;color:#1f6b45}
+.ck-ticker .ck-chip.out{background:#fbfbfb;border-color:#e6e6e6;color:#8c9a90}
+.ck-ticker .ck-chip.warn{background:#fdf1e3;border-color:#ecd3ac;color:#9a5a12}
+.ck-ticker .ck-chip.phase{font-weight:600;background:#eef4ff;border-color:#cfdcf5;color:#2b4f8f}

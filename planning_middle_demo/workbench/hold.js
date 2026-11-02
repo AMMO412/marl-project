@@ -290,6 +290,8 @@
             '<span><i style="background:' + COLORS.postOff + '"></i>阵位空缺</span>' +
             '<span><i style="background:' + COLORS.post + '55"></i>探测圈（跟随在位平台）</span>' +
             '<span><i style="background:' + COLORS.threat + '"></i>威胁方向</span>' +
+            '<span><i style="background:' + COLORS.threat + '"></i>敌方进攻（输入事件）</span>' +
+            '<span><i style="background:' + COLORS.effect + '"></i>反击 / 击退（桩判定）</span>' +
             '<span><i style="background:' + COLORS.air + '"></i>空中观察</span>' +
             '<span><i style="background:' + COLORS.reinforce + '"></i>增援</span>' +
             '<span><i style="background:' + COLORS.withdraw + '"></i>撤离</span>' +
@@ -449,7 +451,23 @@
       const pid = occupantAt(p.id, C.t);
       return chip(p.id + (pid ? ' · ' + shortPid(pid) : ' · 空缺'), pid ? 'on' : 'out');
     }).join('');
-    box.innerHTML = chip('T+' + num(C.t, 1) + ' s · ' + phase, 'phase') + manned;
+    // 进攻/处置事件在状态条上也给一眼：地图上同时有箭头与脉冲。
+    const events = C.data.events || [];
+    const attack = events.filter((e) => e.kind === 'enemy_attack')
+      .filter((e) => C.t >= (e.t || 0) && C.t <= (e.t || 0) + 8).pop();
+    let fight = '';
+    if (attack) {
+      fight += chip('敌方进攻 ' + (attack.direction || '') + ' · ' +
+        (attack.attack_kind === 'assault' ? '突击' : '试探'), 'warn');
+    }
+    const recent = events.filter(
+      (e) => ['attack_repelled', 'attack_unresolved'].includes(e.kind)
+        && C.t >= (e.t || 0) && C.t <= (e.t || 0) + 6).pop();
+    if (recent) {
+      fight += chip((recent.kind === 'attack_repelled' ? '击退' : '未解除') +
+        '（桩判定·未验证）', recent.kind === 'attack_repelled' ? 'on' : 'warn');
+    }
+    box.innerHTML = chip('T+' + num(C.t, 1) + ' s · ' + phase, 'phase') + fight + manned;
   }
 
   // ---------------------------------------------------------------- 画布
@@ -534,7 +552,8 @@
     };
 
     // 威胁扇区（后端算好的顶点）：淡填充 + 细实线，不用虚线。
-    // 标注放在扇区外缘中点，不堆在要点上——两个方向的文字会在圆心挤成一团。
+    // 标签按"本扇区方位角"直接定在扇区内 0.55 半径处，**不走避让算法**：
+    // 避让会把它推到别的扇区甚至要点上，"威胁 N"标到西边就完全讲错了。
     for (const sector of (st.threat_sectors || [])) {
       const poly = (sector.polygon || []).map(P);
       if (poly.length < 3) continue;
@@ -546,17 +565,30 @@
       ctx.strokeStyle = 'rgba(185,28,28,0.32)';
       ctx.lineWidth = 1.1;
       ctx.stroke();
-      const edge = (sector.polygon || [])[Math.max(1,
-        Math.floor((sector.polygon || []).length / 2))];
-      if (edge) {
-        // 标签放在扇区内部（0.78 半径处）：边缘一圈留给阵位点，文字不压标记。
-        const q = P(edge);
-        const kp0 = P(st.key_point);
-        placeLabel('威胁 ' + (sector.id || '') + ' · ' +
-          num(sector.bearing_deg, 0) + '°',
-          kp0[0] + (q[0] - kp0[0]) * 0.55,
-          kp0[1] + (q[1] - kp0[1]) * 0.55, COLORS.threat);
-      }
+      // 标签放在本扇区内、沿方位角偏 1/3 扇宽的位置（贴着自己扇区的一侧），
+      // 并把它的矩形登记进避让表：后面的阵位标签会让开它。
+      const bearing = (Number(sector.bearing_deg) || 0) * Math.PI / 180;
+      const sectorWidth = Number(sector.width_deg) || 60;
+      const offsetRad = bearing + sectorWidth * 0.33 * Math.PI / 180;
+      const radius = (Number(st.sensor_radius_m) || 40) * 0.45;
+      const labelPoint = [
+        st.key_point[0] + Math.sin(offsetRad) * radius,
+        st.key_point[1] + Math.cos(offsetRad) * radius];
+      const q = P(labelPoint);
+      const text = '威胁 ' + (sector.id || '') + ' · ' +
+        num(sector.bearing_deg, 0) + '°';
+      ctx.font = '600 11px "Segoe UI","Microsoft YaHei"';
+      const textW = ctx.measureText(text).width + 8;
+      placed.push({ x: q[0] - textW / 2, y: q[1] - 9, w: textW, h: 18 });
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+      ctx.strokeText(text, q[0], q[1]);
+      ctx.fillStyle = COLORS.threat;
+      ctx.fillText(text, q[0], q[1]);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
     }
 
     // 撤离路线（只有开了"规划路径"才画，默认干净）
@@ -744,6 +776,109 @@
       // 预备队/支援/中继的身份已经由站位标签给出，再标一遍只会糊成一团。
       const onOwnPost = kind === 'post' && occupantAt(roles[pid].split(':')[1], t) === pid;
       if (!onOwnPost && kind === 'post') placeLabel(shortPid(pid), q[0], q[1] - 14, '#0f172a');
+    }
+
+    // 敌方进攻与"阵内反击/击退"的过程画面。
+    // 全部取值来自记录的事件（方向、目标阵位、判定结论），不模拟弹道与命中；
+    // 反击/击退一律标"桩判定"，避免把抽象效果看成战果。
+    const eventsAll = C.data.events || [];
+    const bearingOf = (ev) => {
+      if (typeof ev.bearing_deg === 'number') return ev.bearing_deg;
+      const th = (st.threats || []).find(
+        (x) => String(x.id) === String(ev.direction));
+      if (th) return Number(th.bearing_deg) || 0;
+      const n = Number(ev.direction);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const activeAttack = eventsAll.filter((e) => e.kind === 'enemy_attack')
+      .filter((e) => t >= (e.t || 0) && t <= (e.t || 0) + 8)
+      .pop();
+    if (activeAttack) {
+      const et = activeAttack.t || 0;
+      const progress = Math.max(0, Math.min(1, (t - et) / 8));
+      const bearing = bearingOf(activeAttack);
+      const radius = (Number(st.sensor_radius_m) || 40) * 1.05;
+      const origin = [
+        st.key_point[0] + Math.sin(bearing * Math.PI / 180) * radius,
+        st.key_point[1] + Math.cos(bearing * Math.PI / 180) * radius];
+      const post = (st.positions || []).find((p) => p.id === activeAttack.post_id)
+        || { point: st.key_point };
+      const p1 = P(origin), p2 = P(post.point);
+      const alpha = 0.9 - 0.6 * progress;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(185,28,28,' + alpha.toFixed(2) + ')';
+      ctx.fillStyle = 'rgba(185,28,28,' + alpha.toFixed(2) + ')';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(p1[0], p1[1]);
+      ctx.lineTo(p2[0], p2[1]);
+      ctx.stroke();
+      // 箭头
+      const ang = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+      ctx.beginPath();
+      ctx.moveTo(p2[0], p2[1]);
+      ctx.lineTo(p2[0] - 10 * Math.cos(ang - 0.35), p2[1] - 10 * Math.sin(ang - 0.35));
+      ctx.lineTo(p2[0] - 10 * Math.cos(ang + 0.35), p2[1] - 10 * Math.sin(ang + 0.35));
+      ctx.closePath();
+      ctx.fill();
+      // 目标阵位上的接触环（随时间扩散）
+      ctx.beginPath();
+      ctx.arc(p2[0], p2[1], 10 + progress * 16, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(185,28,28,' + (alpha * 0.8).toFixed(2) + ')';
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.restore();
+      ctx.font = '600 11px "Segoe UI","Microsoft YaHei"';
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+      const head = '敌方进攻 ' + (activeAttack.direction || '') +
+        ' · ' + (activeAttack.attack_kind === 'assault' ? '突击' : '试探') +
+        (activeAttack.ratio ? ' ×' + num(activeAttack.ratio, 1) : '');
+      ctx.strokeText(head, p1[0], p1[1] - 10);
+      ctx.fillStyle = COLORS.threat;
+      ctx.fillText(head, p1[0], p1[1] - 10);
+      ctx.textAlign = 'left';
+    }
+    // 处置结果：反击脉冲 + 击退/未解除标签（都是桩判定，标 verified=false）
+    const resolutionWindow = (ev) => eventsAll.filter(
+      (e) => (e.t || 0) >= (ev.t || 0) && (e.t || 0) <= (ev.t || 0) + 12
+        && (!e.post_id || e.post_id === ev.post_id));
+    for (const attack of eventsAll.filter((e) => e.kind === 'enemy_attack')) {
+      const et = attack.t || 0;
+      if (t < et || t > et + 14) continue;
+      const window = resolutionWindow(attack);
+      const counter = window.find((e) => e.kind === 'counter_attack');
+      const repelled = window.find((e) => e.kind === 'attack_repelled');
+      const unresolved = window.find((e) => e.kind === 'attack_unresolved');
+      const post = (st.positions || []).find((p) => p.id === attack.post_id)
+        || { point: st.key_point };
+      const q = P(post.point);
+      if (counter && t >= (counter.t || 0) && t <= (counter.t || 0) + 4) {
+        const k = (t - (counter.t || 0)) / 4;
+        ctx.save();
+        for (let i = 0; i < 2; i += 1) {
+          ctx.beginPath();
+          ctx.arc(q[0], q[1], 12 + k * 30 + i * 7, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(180,83,9,' + (0.75 * (1 - k)).toFixed(2) + ')';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      const done = repelled || unresolved;
+      if (done && t >= (done.t || 0) && t <= (done.t || 0) + 6) {
+        const ok = !!repelled;
+        const text = ok ? '击退' : '未解除';
+        ctx.font = '600 11px "Segoe UI","Microsoft YaHei"';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.strokeText(text + '（桩判定·未验证）', q[0], q[1] - 26);
+        ctx.fillStyle = ok ? '#0f766e' : '#b45309';
+        ctx.fillText(text + '（桩判定·未验证）', q[0], q[1] - 26);
+        ctx.textAlign = 'left';
+      }
     }
 
     // 时钟角标

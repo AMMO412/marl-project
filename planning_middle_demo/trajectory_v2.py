@@ -287,6 +287,8 @@ def _hold_replay(trace):
                 overall=event.get("overall"), verified=event.get("verified"),
                 attack_kind=event.get("attack_kind"),
                 direction=event.get("direction"),
+                bearing_deg=event.get("bearing_deg"),
+                range_m=event.get("range_m"),
                 ratio=event.get("ratio"), manned=event.get("manned"),
                 gap_s=event.get("gap_s"), reason=event.get("reason"),
                 posts=event.get("posts")))
