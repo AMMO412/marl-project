@@ -520,6 +520,23 @@ def _crop_hld_roles(counts: Dict[str, int], limit: int) -> Dict[str, int]:
     return counts
 
 
+def _widest_gap_bearing(threats: Sequence[Dict[str, Any]]) -> float:
+    """威胁方向之间最大空隙的中分方位（环形威胁下放预备队用）。"""
+    bearings = sorted(float(item.get("bearing_deg", 0.0)) % 360.0
+                      for item in threats)
+    if not bearings:
+        return 180.0
+    if len(bearings) == 1:
+        return (bearings[0] + 180.0) % 360.0
+    best_start, best_gap = bearings[-1], 0.0
+    for index, bearing in enumerate(bearings):
+        prev = bearings[index - 1] if index else bearings[-1] - 360.0
+        gap = bearing - prev
+        if gap > best_gap:
+            best_gap, best_start = gap, prev
+    return (best_start + best_gap / 2.0) % 360.0
+
+
 def hld_stations(task: Task, key_point: Optional[Point] = None,
                  positions: Optional[Sequence[Dict[str, Any]]] = None
                  ) -> Dict[str, Any]:
@@ -542,20 +559,27 @@ def hld_stations(task: Task, key_point: Optional[Point] = None,
                      float(positions[0]["point"][1])] if positions
                     else [0.0, 0.0]))
     threats = _hld_threats(task)
-    if threats:
-        mean = sum(item["bearing_deg"] for item in threats) / len(threats)
-    else:
-        mean = 180.0
     standoff = task.params.get("reserve_standoff_m")
     standoff = (max(10.0, float(standoff)) if standoff is not None
                 else max(10.0, float(task.params.get("post_radius_m", 30.0))))
-    back = geom.compass_vector((mean + 180.0) % 360.0)
+    if len(threats) >= 3:
+        # 环形威胁（≥3 个方向）没有"背后"可言：按方位角平均会把预备队摆到
+        # 某个扇区里，接替/增援都要横穿阵地。改为放在要点近旁、威胁扇区之间
+        # 最大空隙的方向上——四向都能就近增援，也不与阵位抢道。
+        base_bearing = _widest_gap_bearing(threats)
+        reserve_standoff = standoff * 0.5
+    else:
+        mean = (sum(item["bearing_deg"] for item in threats) / len(threats)
+                if threats else 180.0)
+        base_bearing = (mean + 180.0) % 360.0
+        reserve_standoff = standoff
     reserve_point = task.params.get("reserve_point")
     if reserve_point is not None:
         reserve_point = list(as_point(reserve_point))
     else:
-        reserve_point = [anchor[0] + back[0] * standoff,
-                         anchor[1] + back[1] * standoff]
+        vec = geom.compass_vector(base_bearing)
+        reserve_point = [anchor[0] + vec[0] * reserve_standoff,
+                         anchor[1] + vec[1] * reserve_standoff]
 
     roles = task.params.get("roles")
     support_roles = int(roles.get("support") or 0) if isinstance(roles, dict) else 0
@@ -566,7 +590,7 @@ def hld_stations(task: Task, key_point: Optional[Point] = None,
     elif support_roles:
         # 未给支援位时，在预备队左右各偏 40° 摆开，避免与预备队重叠。
         for offset in (40.0, -40.0, 0.0):
-            vec = geom.compass_vector((mean + 180.0 + offset) % 360.0)
+            vec = geom.compass_vector((base_bearing + offset) % 360.0)
             support_points.append([anchor[0] + vec[0] * standoff * 0.8,
                                    anchor[1] + vec[1] * standoff * 0.8])
 

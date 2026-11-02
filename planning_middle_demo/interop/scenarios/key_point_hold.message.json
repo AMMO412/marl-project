@@ -16,24 +16,34 @@
       },
       "window": {
         "start_s": 0,
-        "end_s": 300
+        "end_s": 320
       },
       "required_capabilities": {
         "HLD": 2
       },
-      "min_units": 3,
-      "max_units": 4,
+      "min_units": 4,
+      "max_units": 5,
       "params": {
         "hold_duration_s": 150,
         "threat_directions": [
           {
             "id": "N",
             "bearing_deg": 0,
-            "width_deg": 70
+            "width_deg": 60
           },
           {
             "id": "E",
             "bearing_deg": 90,
+            "width_deg": 60
+          },
+          {
+            "id": "S",
+            "bearing_deg": 180,
+            "width_deg": 60
+          },
+          {
+            "id": "W",
+            "bearing_deg": 270,
             "width_deg": 60
           }
         ],
@@ -59,24 +69,37 @@
           {
             "id": "P3",
             "point": [
-              22,
-              14
+              0,
+              8
             ],
-            "facing_deg": 150,
+            "facing_deg": 180,
+            "min_units": 1
+          },
+          {
+            "id": "P4",
+            "point": [
+              -40,
+              40
+            ],
+            "facing_deg": 270,
             "min_units": 1
           }
         ],
         "roles": {
-          "post": 3,
+          "post": 4,
           "reserve": 1,
           "support": 0,
           "relay": 0
         },
-        "min_on_post": 2,
+        "min_on_post": 3,
         "hold_criteria": "quantity",
         "sensor_radius_m": 45,
         "observation_ring_m": 24,
         "observation_gap_max_s": 8,
+        "patrol_enabled": true,
+        "patrol_radius_m": 5,
+        "patrol_speed_mps": 1.5,
+        "patrol_period_s": 50,
         "relief": {
           "interval_s": 50,
           "handover_tol_m": 3,
@@ -132,13 +155,18 @@
             "ratio": 1.6
           },
           {
-            "t_s": 135,
+            "t_s": 125,
             "kind": "probe",
             "direction": "E"
+          },
+          {
+            "t_s": 150,
+            "kind": "probe",
+            "direction": "S"
           }
         ]
       },
-      "description": "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"
+      "description": "要点坚守：1 要点 + 4 威胁方向 + 4 阵位 + 1 预备队"
     }
   ]
 }

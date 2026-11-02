@@ -121,7 +121,7 @@ def validate_config(data):
         result['avoid'] = True
         result['behavior'] = True
         if 'max_ticks' not in data:
-            result['max_ticks'] = 260
+            result['max_ticks'] = 280
     if 'max_ticks' not in data and result['scenario'] == 'interop_asl':
         result['max_ticks'] = 700
     if 'avoid' not in data and result['scenario'] in INTEROP_PAIRS:

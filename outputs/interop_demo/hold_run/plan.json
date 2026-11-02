@@ -18,7 +18,7 @@
       "topic": "/container_00/robot_001",
       "window": {
         "start_s": 0.0,
-        "end_s": 300.0
+        "end_s": 320.0
       },
       "depends_on": [],
       "coordination": [],
@@ -63,7 +63,7 @@
       "topic": "/container_00/robot_002",
       "window": {
         "start_s": 0.0,
-        "end_s": 300.0
+        "end_s": 320.0
       },
       "depends_on": [],
       "coordination": [],
@@ -88,15 +88,15 @@
       "altitude_m": 0.35
     },
     {
-      "unit_id": "U4",
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "task_type": "T-HLD",
-      "start_s": 14.863,
-      "end_s": 164.863,
+      "start_s": 11.246,
+      "end_s": 161.246,
       "target": {
         "point": [
-          22.0,
-          14.0
+          0.0,
+          8.0
         ]
       },
       "parent_task_id": "T1",
@@ -104,40 +104,40 @@
       "topic": "/container_00/robot_022",
       "window": {
         "start_s": 0.0,
-        "end_s": 300.0
+        "end_s": 320.0
       },
       "depends_on": [],
       "coordination": [],
-      "travel_s": 14.863,
-      "path_length_m": 115.741,
+      "travel_s": 11.246,
+      "path_length_m": 86.163,
       "path": [
         [
-          -88.0,
-          -22.0
+          -80.0,
+          -24.0
         ],
         [
-          22.0,
-          14.0
+          0.0,
+          8.0
         ]
       ],
       "heading_start": 0.0,
-      "heading_end": 0.3163,
-      "energy": 54.259,
+      "heading_end": 0.3805,
+      "energy": 51.893,
       "risk": 0.0,
       "status": "ASSIGNED",
       "role": "post:P3",
       "altitude_m": 0.35
     },
     {
-      "unit_id": "U3",
+      "unit_id": "U4",
       "subtask_id": "T1-S4",
       "task_type": "T-HLD",
-      "start_s": 10.99,
-      "end_s": 160.99,
+      "start_s": 10.941,
+      "end_s": 160.941,
       "target": {
         "point": [
-          -21.213,
-          18.787
+          -40.0,
+          40.0
         ]
       },
       "parent_task_id": "T1",
@@ -145,25 +145,66 @@
       "topic": "/container_00/robot_021",
       "window": {
         "start_s": 0.0,
-        "end_s": 300.0
+        "end_s": 320.0
       },
       "depends_on": [],
       "coordination": [],
-      "travel_s": 10.99,
-      "path_length_m": 83.345,
+      "travel_s": 10.941,
+      "path_length_m": 78.409,
+      "path": [
+        [
+          -88.0,
+          -22.0
+        ],
+        [
+          -40.0,
+          40.0
+        ]
+      ],
+      "heading_start": 0.0,
+      "heading_end": 0.912,
+      "energy": 51.273,
+      "risk": 0.0,
+      "status": "ASSIGNED",
+      "role": "post:P4",
+      "altitude_m": 0.35
+    },
+    {
+      "unit_id": "U3",
+      "subtask_id": "T1-S5",
+      "task_type": "T-HLD",
+      "start_s": 14.538,
+      "end_s": 164.538,
+      "target": {
+        "point": [
+          -10.607,
+          50.607
+        ]
+      },
+      "parent_task_id": "T1",
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "window": {
+        "start_s": 0.0,
+        "end_s": 320.0
+      },
+      "depends_on": [],
+      "coordination": [],
+      "travel_s": 14.538,
+      "path_length_m": 109.539,
       "path": [
         [
           -96.0,
           -18.0
         ],
         [
-          -21.213,
-          18.787
+          -10.607,
+          50.607
         ]
       ],
       "heading_start": 0.0,
-      "heading_end": 0.4571,
-      "energy": 51.668,
+      "heading_end": 0.6768,
+      "energy": 35.477,
       "risk": 0.0,
       "status": "ASSIGNED",
       "role": "reserve:standby",
@@ -460,8 +501,8 @@
       "action": "start"
     },
     {
-      "robot_id": 21,
-      "topic": "/container_00/robot_021",
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
       "twist": {
         "linear": {
           "x": 0.0,
@@ -474,9 +515,9 @@
           "z": 0.8
         }
       },
-      "duration_s": 0.571,
+      "duration_s": 0.846,
       "unit_id": "U3",
-      "subtask_id": "T1-S4",
+      "subtask_id": "T1-S5",
       "phase": "TRANSIT",
       "at_s": 0.0,
       "command_id": "CMD-00013",
@@ -484,6 +525,126 @@
       "action": "start"
     },
     {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 8.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 13.692,
+      "unit_id": "U3",
+      "subtask_id": "T1-S5",
+      "phase": "TRANSIT",
+      "at_s": 0.846,
+      "command_id": "CMD-00014",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 120.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S5",
+      "phase": "HOLD",
+      "at_s": 14.538,
+      "command_id": "CMD-00015",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 30.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S5",
+      "phase": "HOLD",
+      "at_s": 134.538,
+      "command_id": "CMD-00016",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 3,
+      "topic": "/container_00/robot_003",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "duration_s": 1.0,
+      "unit_id": "U3",
+      "subtask_id": "T1-S5",
+      "phase": "STOP",
+      "at_s": 164.538,
+      "command_id": "CMD-00017",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
+      "robot_id": 21,
+      "topic": "/container_00/robot_021",
+      "twist": {
+        "linear": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "angular": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.8
+        }
+      },
+      "duration_s": 1.14,
+      "unit_id": "U4",
+      "subtask_id": "T1-S4",
+      "phase": "TRANSIT",
+      "at_s": 0.0,
+      "command_id": "CMD-00018",
+      "attempt": 1,
+      "action": "start"
+    },
+    {
       "robot_id": 21,
       "topic": "/container_00/robot_021",
       "twist": {
@@ -498,12 +659,12 @@
           "z": 0.0
         }
       },
-      "duration_s": 10.418,
-      "unit_id": "U3",
+      "duration_s": 9.801,
+      "unit_id": "U4",
       "subtask_id": "T1-S4",
       "phase": "TRANSIT",
-      "at_s": 0.571,
-      "command_id": "CMD-00014",
+      "at_s": 1.14,
+      "command_id": "CMD-00019",
       "attempt": 1,
       "action": "start"
     },
@@ -523,11 +684,11 @@
         }
       },
       "duration_s": 120.0,
-      "unit_id": "U3",
+      "unit_id": "U4",
       "subtask_id": "T1-S4",
       "phase": "HOLD",
-      "at_s": 10.99,
-      "command_id": "CMD-00015",
+      "at_s": 10.941,
+      "command_id": "CMD-00020",
       "attempt": 1,
       "action": "start"
     },
@@ -547,11 +708,11 @@
         }
       },
       "duration_s": 30.0,
-      "unit_id": "U3",
+      "unit_id": "U4",
       "subtask_id": "T1-S4",
       "phase": "HOLD",
-      "at_s": 130.99,
-      "command_id": "CMD-00016",
+      "at_s": 130.941,
+      "command_id": "CMD-00021",
       "attempt": 1,
       "action": "start"
     },
@@ -571,11 +732,11 @@
         }
       },
       "duration_s": 1.0,
-      "unit_id": "U3",
+      "unit_id": "U4",
       "subtask_id": "T1-S4",
       "phase": "STOP",
-      "at_s": 160.99,
-      "command_id": "CMD-00017",
+      "at_s": 160.941,
+      "command_id": "CMD-00022",
       "attempt": 1,
       "action": "start"
     },
@@ -594,12 +755,12 @@
           "z": 0.8
         }
       },
-      "duration_s": 0.395,
-      "unit_id": "U4",
+      "duration_s": 0.476,
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "phase": "TRANSIT",
       "at_s": 0.0,
-      "command_id": "CMD-00018",
+      "command_id": "CMD-00023",
       "attempt": 1,
       "action": "start"
     },
@@ -618,12 +779,12 @@
           "z": 0.0
         }
       },
-      "duration_s": 14.468,
-      "unit_id": "U4",
+      "duration_s": 10.77,
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "phase": "TRANSIT",
-      "at_s": 0.395,
-      "command_id": "CMD-00019",
+      "at_s": 0.476,
+      "command_id": "CMD-00024",
       "attempt": 1,
       "action": "start"
     },
@@ -643,11 +804,11 @@
         }
       },
       "duration_s": 120.0,
-      "unit_id": "U4",
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "phase": "HOLD",
-      "at_s": 14.863,
-      "command_id": "CMD-00020",
+      "at_s": 11.246,
+      "command_id": "CMD-00025",
       "attempt": 1,
       "action": "start"
     },
@@ -667,11 +828,11 @@
         }
       },
       "duration_s": 30.0,
-      "unit_id": "U4",
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "phase": "HOLD",
-      "at_s": 134.863,
-      "command_id": "CMD-00021",
+      "at_s": 131.246,
+      "command_id": "CMD-00026",
       "attempt": 1,
       "action": "start"
     },
@@ -691,11 +852,11 @@
         }
       },
       "duration_s": 1.0,
-      "unit_id": "U4",
+      "unit_id": "U5",
       "subtask_id": "T1-S3",
       "phase": "STOP",
-      "at_s": 164.863,
-      "command_id": "CMD-00022",
+      "at_s": 161.246,
+      "command_id": "CMD-00027",
       "attempt": 1,
       "action": "start"
     }
@@ -708,7 +869,7 @@
   },
   "schema_version": "0.3",
   "plan_version": 1,
-  "generated_at": "2026-11-02T16:02:44.593+08:00",
+  "generated_at": "2026-11-02T16:29:56.615+08:00",
   "backend": "unified",
   "objective": "timeliness",
   "objective_weights": {
@@ -724,7 +885,7 @@
       "energy": 0.0
     },
     "makespan_s": 167.538,
-    "total_energy": 178.966,
+    "total_energy": 211.682,
     "total_risk": 0.0
   },
   "result_status": "PLAN_ONLY",
@@ -735,19 +896,20 @@
   "conflicts": [],
   "metrics": {
     "makespan_s": 167.538,
-    "assigned_subtasks": 4,
+    "assigned_subtasks": 5,
     "unassigned_subtasks": 0,
     "conflicts_detected": 0,
     "conflicts_resolved": 0,
     "resolution_rate": 1.0,
-    "plan_latency_ms": 48.923,
+    "plan_latency_ms": 58.03,
     "tasks_total": 1,
     "tasks_fully_assigned": 1
   },
   "explain": [
-    "T1-S1 -> U1: 16.8-166.8 s（移动 16.8s，124.7 m），风险 0.00，能耗 36.24，代价 0.5566",
-    "T1-S2 -> U2: 17.5-167.5 s（移动 17.5s，136.1 m），风险 0.00，能耗 36.80，代价 0.5590",
-    "T1-S3 -> U4: 14.9-164.9 s（移动 14.9s，115.7 m），风险 0.00，能耗 54.26，代价 0.5501",
-    "T1-S4 -> U3: 11.0-161.0 s（移动 11.0s，83.3 m），风险 0.00，能耗 51.67，代价 0.5372"
+    "T1-S1 -> U1: 16.8-166.8 s（移动 16.8s，124.7 m），风险 0.00，能耗 36.24，代价 0.5218",
+    "T1-S2 -> U2: 17.5-167.5 s（移动 17.5s，136.1 m），风险 0.00，能耗 36.80，代价 0.5241",
+    "T1-S3 -> U5: 11.2-161.2 s（移动 11.2s，86.2 m），风险 0.00，能耗 51.89，代价 0.5044",
+    "T1-S4 -> U4: 10.9-160.9 s（移动 10.9s，78.4 m），风险 0.00，能耗 51.27，代价 0.5034",
+    "T1-S5 -> U3: 14.5-164.5 s（移动 14.5s，109.5 m），风险 0.00，能耗 35.48，代价 0.5147"
   ]
 }

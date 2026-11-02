@@ -1,7 +1,7 @@
 {
   "protocol": "middle-demo/v2",
   "run_id": "demo-v2",
-  "simulated_until_s": 181,
+  "simulated_until_s": 179,
   "objective": "makespan",
   "planner": "interop",
   "all_succeeded": true,
@@ -14,16 +14,16 @@
         0.0,
         40.0
       ],
-      "work": 660.0,
+      "work": 810.0,
       "window": [
         0,
-        300
+        320
       ],
-      "crew": 3,
+      "crew": 4,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
-      "progress": 660.0,
+      "progress": 810.0,
       "status": "succeeded",
       "attempts": 1,
       "started_at": 18,
@@ -55,17 +55,26 @@
           {
             "id": "P3",
             "point": [
-              22.0,
-              14.0
+              0.0,
+              8.0
             ],
-            "facing_deg": 150.0,
+            "facing_deg": 180.0,
+            "min_units": 1
+          },
+          {
+            "id": "P4",
+            "point": [
+              -40.0,
+              40.0
+            ],
+            "facing_deg": 270.0,
             "min_units": 1
           }
         ],
         "stations": {
           "reserve": [
-            -21.213,
-            18.787
+            -10.607,
+            50.607
           ],
           "support": [],
           "relay": [
@@ -77,16 +86,26 @@
           {
             "id": "N",
             "bearing_deg": 0,
-            "width_deg": 70
+            "width_deg": 60
           },
           {
             "id": "E",
             "bearing_deg": 90,
             "width_deg": 60
+          },
+          {
+            "id": "S",
+            "bearing_deg": 180,
+            "width_deg": 60
+          },
+          {
+            "id": "W",
+            "bearing_deg": 270,
+            "width_deg": 60
           }
         ],
         "role_counts": {
-          "post": 3,
+          "post": 4,
           "reserve": 1,
           "support": 0,
           "relay": 0
@@ -97,7 +116,7 @@
           40.0
         ],
         "hold_criteria": "quantity",
-        "min_on_post": 2,
+        "min_on_post": 3,
         "observation_gap_max_s": 8,
         "observation_ring_m": 24,
         "sensor_radius_m": 45,
@@ -139,9 +158,14 @@
             "ratio": 1.6
           },
           {
-            "t_s": 135,
+            "t_s": 125,
             "kind": "probe",
             "direction": "E"
+          },
+          {
+            "t_s": 150,
+            "kind": "probe",
+            "direction": "S"
           }
         ],
         "counter_attack": {
@@ -160,7 +184,11 @@
         "assembly_point": [
           -90,
           -16
-        ]
+        ],
+        "patrol_enabled": true,
+        "patrol_radius_m": 5,
+        "patrol_speed_mps": 1.5,
+        "patrol_period_s": 50
       }
     }
   ],
@@ -170,10 +198,10 @@
       "kind": "UGV",
       "robot_no": 1,
       "pos": [
-        -29.849,
-        -9.903
+        -30.007,
+        -9.931
       ],
-      "battery": 999986.2,
+      "battery": 999992.4,
       "alive": true,
       "topic": "/container_00/robot_001"
     },
@@ -182,22 +210,34 @@
       "kind": "UGV",
       "robot_no": 2,
       "pos": [
-        -29.975,
-        -9.784
+        -29.949,
+        -9.958
       ],
-      "battery": 999990.7,
+      "battery": 999986.8,
       "alive": true,
       "topic": "/container_00/robot_002"
+    },
+    {
+      "pid": "rover_03",
+      "kind": "UGV",
+      "robot_no": 3,
+      "pos": [
+        -29.982,
+        -9.953
+      ],
+      "battery": 999987.5,
+      "alive": true,
+      "topic": "/container_00/robot_003"
     },
     {
       "pid": "rover_21",
       "kind": "TANK",
       "robot_no": 21,
       "pos": [
-        -29.956,
-        -9.895
+        -29.977,
+        -9.907
       ],
-      "battery": 999978.9,
+      "battery": 999980.8,
       "alive": true,
       "topic": "/container_00/robot_021"
     },
@@ -206,10 +246,10 @@
       "kind": "TANK",
       "robot_no": 22,
       "pos": [
-        -29.85,
-        -9.944
+        -29.822,
+        -9.931
       ],
-      "battery": 999989.2,
+      "battery": 999988.7,
       "alive": true,
       "topic": "/container_00/robot_022"
     }
@@ -227,17 +267,17 @@
     "periodic": 22
   },
   "done": 1,
-  "used_energy": -3999504.9,
-  "per_task_energy": -3999504.94,
-  "makespan": 181,
-  "spread": 0.08,
+  "used_energy": -4999396.2,
+  "per_task_energy": -4999396.24,
+  "makespan": 179,
+  "spread": 0.06,
   "need_report": [],
   "solve_summary": null,
   "rejected_reasons": {},
   "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
   "mode": "normal",
-  "max_ticks": 260,
-  "H": 310,
+  "max_ticks": 280,
+  "H": 330,
   "K": 8,
   "dev_threshold": 4.0,
   "motion": "real",

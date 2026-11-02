@@ -514,6 +514,11 @@ class MockFleet:
                 r['observation_ring_m'] = behavior.observation_ring_m
                 r['observation_gap_max_s'] = behavior.params.get(
                     'observation_gap_max_s')
+                r['patrol_enabled'] = bool(getattr(behavior, 'patrol_enabled',
+                                                   False))
+                r['patrol_radius_m'] = getattr(behavior, 'patrol_radius', 0.0)
+                r['patrol_speed_mps'] = getattr(behavior, 'patrol_speed', None)
+                r['post_tolerance_m'] = getattr(behavior, 'post_tolerance', None)
                 r['duration_s'] = behavior.params.get('duration_s')
                 r['relief'] = dict(behavior.params.get('relief') or {})
                 r['reinforce'] = dict(behavior.params.get('reinforce') or {})

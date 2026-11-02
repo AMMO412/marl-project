@@ -495,8 +495,72 @@ class HoldBehaviorTests(unittest.TestCase):
         metrics = result["metrics"]
         for key in ("control_hold_ratio", "control_interruption_s",
                     "observation_gap_max_s", "enemy_attacks",
-                    "enemy_breaches", "relief_count", "our_losses"):
+                    "enemy_breaches", "relief_count", "our_losses",
+                    "patrol_radius_m"):
             self.assertIn(key, metrics)
+
+    def test_on_post_patrol_moves_but_stays_manned(self):
+        """到点后要游走，但游走不能被记成离岗。"""
+        behavior = _behavior(hold_duration_s=40, patrol_radius_m=4.0,
+                             patrol_speed_mps=2.0)
+        poses = {}
+        for pid in behavior.pids:
+            point = behavior._station_of(pid)
+            poses[pid] = (float(point[0]), float(point[1]), 0.0)
+        seen_offset = {}
+        for t in range(40):
+            out = behavior.step(poses, float(t), 1.0)
+            for pid, target in out["targets"].items():
+                post_id = behavior.post_of_pid.get(pid)
+                if post_id:
+                    offset = ((target[0] - behavior.post_point[post_id][0]) ** 2
+                              + (target[1] - behavior.post_point[post_id][1]) ** 2) ** 0.5
+                    seen_offset[pid] = max(seen_offset.get(pid, 0.0), offset)
+                poses[pid] = (float(target[0]), float(target[1]), 0.0)
+        # 游走确实发生了（目标点离阵位超过 1 m）
+        self.assertTrue(any(v > 1.0 for v in seen_offset.values()))
+        # 而且在位判定没被游走打穿
+        self.assertNotIn("control_interrupted", _kinds(behavior))
+        self.assertGreater(behavior.control_time, 30.0)
+
+    def test_patrol_disabled_posts_are_static(self):
+        behavior = _behavior(patrol_enabled=False)
+        poses = {pid: (0.0, 0.0, 0.0) for pid in behavior.pids}
+        for pid, post_id in behavior.post_of_pid.items():
+            poses[pid] = (float(behavior.post_point[post_id][0]),
+                          float(behavior.post_point[post_id][1]), 0.0)
+        out = behavior.step(poses, 5.0, 1.0)
+        for pid in behavior.pids:
+            post_id = behavior.post_of_pid.get(pid)
+            if not post_id:
+                continue
+            self.assertEqual(out["targets"][pid], behavior.post_point[post_id])
+        self.assertEqual(out["speed_scale"], {})
+
+    def test_patrol_speed_scale_on_post(self):
+        behavior = _behavior(patrol_radius_m=4.0, patrol_speed_mps=2.0)
+        behavior.speeds = {pid: 8.0 for pid in behavior.pids}
+        poses = {pid: (0.0, 0.0, 0.0) for pid in behavior.pids}
+        for pid, post_id in behavior.post_of_pid.items():
+            poses[pid] = (float(behavior.post_point[post_id][0]),
+                          float(behavior.post_point[post_id][1]), 0.0)
+        out = behavior.step(poses, 0.0, 1.0)
+        self.assertTrue(out["speed_scale"])
+        for value in out["speed_scale"].values():
+            self.assertAlmostEqual(value, 2.0 / 8.0, places=3)
+
+    def test_handover_aborted_when_withdraw_starts(self):
+        """撤离优先：在途接替要中止并留痕，不能拖成"接替超时"。"""
+        behavior = _behavior(
+            hold_duration_s=25, control_lost_after_s=999,
+            relief=dict(interval_s=15, handover_tol_m=3,
+                        swap_requires_arrival=True, relief_cycles=1))
+        _run(behavior, steps=40, hold={"U4"})     # 预备队卡住 → 接替一直不完成
+        kinds = _kinds(behavior)
+        self.assertIn("handover_start", kinds)
+        self.assertIn("withdraw_started", kinds)
+        self.assertIn("handover_aborted", kinds)
+        self.assertNotIn("handover_timeout", kinds)
 
 
 # ----------------------------------------------------------------------
@@ -567,11 +631,23 @@ class HoldSampleTests(unittest.TestCase):
         formation = json.loads(HOLD_FORMATION.read_text(encoding="utf-8"))
         scenario = parse_message(message, formation)
         subtasks = decompose(scenario)
-        self.assertEqual(len(subtasks), 4)
+        self.assertEqual(len(subtasks), 5)
         self.assertEqual(sorted(s.role for s in subtasks),
-                         ["post:P1", "post:P2", "post:P3",
+                         ["post:P1", "post:P2", "post:P3", "post:P4",
                           "reserve:standby"])
         check_scenario_v2(to_v2_dict(scenario, message, formation))
+
+    def test_sample_covers_all_threat_directions(self):
+        """后方不能空着：每个威胁方向都要有一个正对它的阵位。"""
+        message = json.loads(HOLD_MESSAGE.read_text(encoding="utf-8"))
+        params = message["tasks"][0]["params"]
+        facings = [float(p["facing_deg"]) % 360.0
+                   for p in params["positions"]]
+        for threat in params["threat_directions"]:
+            bearing = float(threat["bearing_deg"]) % 360.0
+            gaps = [abs((f - bearing + 180.0) % 360.0 - 180.0) for f in facings]
+            self.assertLessEqual(min(gaps), 30.0,
+                                 "威胁 %s 没有正对的阵位" % threat["id"])
 
     def test_sample_positions_inside_scene(self):
         formation = json.loads(HOLD_FORMATION.read_text(encoding="utf-8"))
@@ -613,7 +689,7 @@ class HoldWorkbenchTests(unittest.TestCase):
         self.assertEqual(config["motion"], "real")
         self.assertTrue(config["avoid"])
         self.assertTrue(config["behavior"])
-        self.assertEqual(config["max_ticks"], 260)
+        self.assertEqual(config["max_ticks"], 280)
 
     def test_catalog_exposes_hold_feature(self):
         import workbench_server

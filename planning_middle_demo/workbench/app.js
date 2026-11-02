@@ -297,7 +297,7 @@ function updateConfig(){const scenario=$('#config-scenario').value,interop=scena
   // 仿真步数跟随场景默认（asl_city 机动距离远，需要 620 步）；
   // 用户改过自定义值时只保证 asl_city 不低于 620。
   const ticks=$('#config-form [name=max_ticks]');ticks.max=700;
-  const defaults={asl_city:620,interop_neutral:260,interop_containment:320,interop_hold:260,interop_asl:700};
+  const defaults={asl_city:620,interop_neutral:260,interop_containment:320,interop_hold:280,interop_asl:700};
   const untouched=Object.values(defaults).includes(Number(ticks.value));
   if(untouched)ticks.value=defaults[$('#config-scenario').value]||200;
   else if($('#config-scenario').value==='asl_city')ticks.value=Math.max(Number(ticks.value),620);}

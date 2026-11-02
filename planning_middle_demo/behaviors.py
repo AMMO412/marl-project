@@ -2621,6 +2621,12 @@ class KeepBehavior(Behavior):
         min_on_post=2,
         observation_gap_max_s=5.0,
         post_tolerance_m=3.0,
+        # 在岗不等于钉在原地：到点后在阵位前方左右踱步（垂直于朝向），
+        # 观察扇面随之扫过，比站着不动更接近"持续观察/占位"。
+        patrol_enabled=True,
+        patrol_radius_m=5.0,
+        patrol_speed_mps=1.5,
+        patrol_period_s=50.0,
         handover_tol_m=3.0,
         handover_timeout_s=60.0,
         swap_requires_arrival=True,
@@ -2662,6 +2668,13 @@ class KeepBehavior(Behavior):
             raise ValueError("hold_criteria 必须是 %s" % "/".join(HL_CRITERIA))
         self.adjudicator = StubAdjudicator()
         self.post_tolerance = max(0.5, float(p['post_tolerance_m']))
+        # 岗内游走：到点后在阵位附近踱步。振幅进"在位区间"，否则正常游走会被
+        # 判成离岗（区域封控踩过的坑：用"离点 ≤ ε"判在位会把巡视记成脱岗）。
+        self.patrol_enabled = bool(p['patrol_enabled'])
+        self.patrol_radius = (max(0.0, float(p['patrol_radius_m']))
+                              if self.patrol_enabled else 0.0)
+        self.patrol_speed = max(0.2, float(p['patrol_speed_mps']))
+        self.patrol_period = max(10.0, float(p['patrol_period_s']))
         self.handover_tol = max(0.5, float(p['handover_tol_m']))
         self.arrive_tol = max(0.5, float(p['arrive_tol']))
         self.swap_requires_arrival = bool(p['swap_requires_arrival'])
@@ -2725,6 +2738,9 @@ class KeepBehavior(Behavior):
         self.role = {}
         self._assign_roles()
         self.on_post = {}
+        # 游走相位按平台错开，避免所有阵位同手同脚一起走。
+        self.patrol_phase = {pid: (index * 1.9) % (2 * math.pi)
+                             for index, pid in enumerate(sorted(self.pids))}
 
         # ---- 过程记账 ----
         self.control_established_at = None
@@ -2778,6 +2794,11 @@ class KeepBehavior(Behavior):
             observation_samples=len(self.samples),
             threats=[dict(item) for item in self.threats],
             role_counts=dict(p.get('role_counts') or {}),
+            patrol_enabled=self.patrol_enabled,
+            patrol_radius_m=self.patrol_radius,
+            patrol_speed_mps=(self.patrol_speed if self.patrol_enabled else None),
+            patrol_period_s=(self.patrol_period if self.patrol_enabled else None),
+            post_tolerance_m=self.post_tolerance,
             scope=HL_SCOPE_NOTE,
         )
         self.set_phase('机动')
@@ -2946,10 +2967,39 @@ class KeepBehavior(Behavior):
             self._step_reinforce(poses, t)
             self._step_end(poses, t)
         return dict(targets=self._targets_for(), phase=self.phase,
-                    done=self.done)
+                    done=self.done, speed_scale=self._step_speed_scale())
+
+    def _step_speed_scale(self):
+        """在岗游走限速：按 patrol_speed_mps 走，前出增援/接替/撤离恢复全速。"""
+        if not self.patrol_enabled or self.patrol_radius <= 0:
+            return {}
+        busy = set()
+        if self.handover:
+            busy.update({self.handover.get('incoming'), self.handover.get('outgoing')})
+        if self.reinforce:
+            busy.add(self.reinforce.get('pid'))
+        scale = {}
+        for pid in self.pids:
+            if pid in self.lost_pids or pid in busy:
+                continue
+            if self.withdraw_started_at is not None:
+                continue
+            if not self.post_of_pid.get(pid) or not self.on_post.get(pid):
+                continue
+            scale[pid] = min(1.0, self.patrol_speed
+                             / max(self._speed_of(pid), 0.1))
+        return scale
+
+    def _speed_of(self, pid):
+        return float((getattr(self, 'speeds', None) or {}).get(pid, 8.0) or 8.0)
 
     def _refresh_on_post(self, poses):
-        """在位判定：按"自己阵位的半径"判，而不是"离作业点 ≤ ε"。"""
+        """在位判定：按"自己阵位的半径"判，而不是"离作业点 ≤ ε"。
+
+        半径包含游走振幅：到点后平台会在阵位附近踱步，若仍按"离点 ≤ 3 m"
+        判，正常游走就会被记成离岗，控制中断也会凭空出现。
+        """
+        area = self.post_tolerance + self.patrol_radius
         self.on_post = {}
         for pid in self.pids:
             if pid in self.lost_pids:
@@ -2960,8 +3010,29 @@ class KeepBehavior(Behavior):
                 self.on_post[pid] = False
                 continue
             self.on_post[pid] = distance(
-                tuple(poses[pid])[:2], tuple(self.post_point[post_id])) \
-                <= self.post_tolerance
+                tuple(poses[pid])[:2], tuple(self.post_point[post_id])) <= area
+
+    def _post_target(self, pid, t):
+        """在岗游走目标：在阵位前方沿"朝向的垂线"左右踱步。
+
+        垂直于朝向踱步（而不是朝里/朝外走），阵面始终对着威胁方向，背不露给
+        要点；振幅受 ``patrol_radius_m`` 约束，正好落在在位半径里。
+        """
+        post_id = self.post_of_pid.get(pid)
+        if not post_id:
+            return None
+        point = self.post_point[post_id]
+        if self.patrol_radius <= 0:
+            return list(point)
+        facing = math.radians(float(self.post_facing.get(post_id) or 0.0))
+        # 朝向单位向量（0°=北）与其右向垂线
+        fx, fy = math.sin(facing), math.cos(facing)
+        px, py = fy, -fx
+        phase = self.patrol_phase.get(pid, 0.0)
+        offset = self.patrol_radius * math.sin(
+            2 * math.pi * t / self.patrol_period + phase)
+        return [round(point[0] + px * offset, 3),
+                round(point[1] + py * offset, 3)]
 
     def manned_posts(self):
         """当前有效占位的阵位清单（有人、在位、且未被压制）。"""
@@ -3442,6 +3513,16 @@ class KeepBehavior(Behavior):
 
     def _begin_withdraw(self, t, reason):
         p = self.params
+        # 撤离优先于接替：在途接替直接中止并留痕，不能让它拖到超时，
+        # 否则时间线上会出现"已撤离、接替却超时"这种自相矛盾的记录。
+        if self.handover:
+            self.emit('handover_aborted', post_id=self.handover['post_id'],
+                      incoming=self.handover['incoming'],
+                      outgoing=self.handover.get('outgoing'),
+                      reason='撤离开始')
+            self._log(t, 'handover_aborted', post_id=self.handover['post_id'],
+                      reason='撤离开始')
+            self.handover = None
         allowed = bool(p['withdraw_allowed'])
         if not allowed:
             self._finalize(t, 'control_lost' if reason == 'control_lost'
@@ -3480,7 +3561,10 @@ class KeepBehavior(Behavior):
             if self.reinforce and pid == self.reinforce['pid']:
                 targets[pid] = list(self.post_point[self.reinforce['post_id']])
                 continue
-            targets[pid] = self._station_of(pid)
+            # 只占位才游走：预备队/支援/中继在各自站位待机，不到处走。
+            walk = self._post_target(pid, self.t) if self.post_of_pid.get(pid) \
+                else None
+            targets[pid] = walk if walk is not None else self._station_of(pid)
         return targets
 
     # ---------------- 结算 ----------------
@@ -3512,6 +3596,9 @@ class KeepBehavior(Behavior):
             min_on_post=self.min_on_post,
             hold_criteria=self.criteria,
             hold_criteria_label=HL_CRITERIA_LABELS[self.criteria],
+            patrol_enabled=self.patrol_enabled,
+            patrol_radius_m=self.patrol_radius,
+            patrol_speed_mps=(self.patrol_speed if self.patrol_enabled else None),
             relief_count=len(self.handover_list),
             relief_skipped=self.relief_skipped,
             handovers=[dict(item) for item in self.handover_list],

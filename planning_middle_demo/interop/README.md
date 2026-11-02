@@ -295,17 +295,18 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
   写入 `assignments[].role`，随 `task_block.roles` 下发到基座
   `behaviors.KeepBehavior`（`kind='hold'`，仅在 `_behavior.positions` 存在时启用；
   旧的两点轮换演示仍走 `HoldBehavior`）。
-- 执行语义：机动进场 → 占位（达到 `min_on_post` 记 `control_established`）→
-  观察（`observation_gap` / `observation_restored`）→ 接替轮换（**接替者到位才撤**，
-  `handover_start` / `handover_complete`）→ 增援（`reinforce_triggered` /
+- 执行语义：机动进场 → 占位（达到 `min_on_post` 记 `control_established`，到点后
+  在阵位前方**左右游走**）→ 观察（`observation_gap` / `observation_restored`）→
+  接替轮换（**接替者到位才撤**，`handover_start` / `handover_complete`；撤离开始时
+  在途接替记 `handover_aborted`）→ 增援（`reinforce_triggered` /
   `reinforce_arrived` / `reinforce_timeout`）→ 撤离（`withdraw_started` /
   `withdrawn`）→ `hold_result` 结算。
 - 抽象效果：敌方进攻是**输入事件**（`enemy_events`），阵内反击/火力控制可用性
   记为 `counter_attack` 事件与 `suppressed` 状态，判定走 `assessment.Adjudicator`
   的桩实现并写 `verified=false`；不建弹道/命中/毁伤模型，也不在规划层判成败。
-- 样例：`scenarios/key_point_hold.{message,formation}.json`（要点 + 2 条威胁方向 +
-  3 个阵位 + 1 台预备队；坚守 150 s，含 1 次自动轮换、1 次按敌我比触发的增援、
-  1 次按时撤离、3 次敌方进攻）。
+- 样例：`scenarios/key_point_hold.{message,formation}.json`（要点 + 东南西北 4 条
+  威胁方向 + 4 个正对威胁的阵位 + 1 台预备队，共 5 台平台；坚守 150 s，含 2 次
+  自动轮换、1 次按敌我比触发的增援、1 次按时撤离、4 次敌方进攻含一次后方试探）。
 - 运行：`python -m interop.cli demo ... --motion real --behavior --max-ticks 260`；
   工作台场景选 "要点坚守 · T-HLD"，运行后在"演示总览"顶部切到 **要点坚守** 页签
   （阵位在位甘特、增援/接替标记、逐项判定、桩判定清单）。

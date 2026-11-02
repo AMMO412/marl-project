@@ -1,7 +1,7 @@
 {
   "protocol": "middle-demo/v2",
   "objective": "makespan",
-  "H": 310,
+  "H": 330,
   "K": 8,
   "_meta": {
     "source": "interop 4.1 运行视图（不是无损旧场景转换）",
@@ -36,24 +36,34 @@
             },
             "window": {
               "start_s": 0,
-              "end_s": 300
+              "end_s": 320
             },
             "required_capabilities": {
               "HLD": 2
             },
-            "min_units": 3,
-            "max_units": 4,
+            "min_units": 4,
+            "max_units": 5,
             "params": {
               "hold_duration_s": 150,
               "threat_directions": [
                 {
                   "id": "N",
                   "bearing_deg": 0,
-                  "width_deg": 70
+                  "width_deg": 60
                 },
                 {
                   "id": "E",
                   "bearing_deg": 90,
+                  "width_deg": 60
+                },
+                {
+                  "id": "S",
+                  "bearing_deg": 180,
+                  "width_deg": 60
+                },
+                {
+                  "id": "W",
+                  "bearing_deg": 270,
                   "width_deg": 60
                 }
               ],
@@ -79,24 +89,37 @@
                 {
                   "id": "P3",
                   "point": [
-                    22,
-                    14
+                    0,
+                    8
                   ],
-                  "facing_deg": 150,
+                  "facing_deg": 180,
+                  "min_units": 1
+                },
+                {
+                  "id": "P4",
+                  "point": [
+                    -40,
+                    40
+                  ],
+                  "facing_deg": 270,
                   "min_units": 1
                 }
               ],
               "roles": {
-                "post": 3,
+                "post": 4,
                 "reserve": 1,
                 "support": 0,
                 "relay": 0
               },
-              "min_on_post": 2,
+              "min_on_post": 3,
               "hold_criteria": "quantity",
               "sensor_radius_m": 45,
               "observation_ring_m": 24,
               "observation_gap_max_s": 8,
+              "patrol_enabled": true,
+              "patrol_radius_m": 5,
+              "patrol_speed_mps": 1.5,
+              "patrol_period_s": 50,
               "relief": {
                 "interval_s": 50,
                 "handover_tol_m": 3,
@@ -152,13 +175,18 @@
                   "ratio": 1.6
                 },
                 {
-                  "t_s": 135,
+                  "t_s": 125,
                   "kind": "probe",
                   "direction": "E"
+                },
+                {
+                  "t_s": 150,
+                  "kind": "probe",
+                  "direction": "S"
                 }
               ]
             },
-            "description": "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"
+            "description": "要点坚守：1 要点 + 4 威胁方向 + 4 阵位 + 1 预备队"
           }
         ]
       },
@@ -212,6 +240,28 @@
             },
             {
               "unit_id": "U3",
+              "platform_type": "ifv",
+              "platform_class": "UGV",
+              "robot_id": 3,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 1,
+                "PTL": 2,
+                "HLD": 2
+              },
+              "position": {
+                "x": -96.0,
+                "y": -18.0
+              },
+              "altitude_m": 0.35,
+              "vertical_speed_mps": 0.0,
+              "heading_rad": 0.0,
+              "speed_mps": 8.0,
+              "endurance_s": 21600.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U4",
               "platform_type": "tank",
               "platform_class": "TANK",
               "robot_id": 21,
@@ -222,8 +272,8 @@
                 "HLD": 3
               },
               "position": {
-                "x": -96.0,
-                "y": -18.0
+                "x": -88.0,
+                "y": -22.0
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -233,7 +283,7 @@
               "status": "READY"
             },
             {
-              "unit_id": "U4",
+              "unit_id": "U5",
               "platform_type": "tank",
               "platform_class": "TANK",
               "robot_id": 22,
@@ -244,8 +294,8 @@
                 "HLD": 3
               },
               "position": {
-                "x": -88.0,
-                "y": -22.0
+                "x": -80.0,
+                "y": -24.0
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -1243,18 +1293,26 @@
       "_platform_class": "UGV"
     },
     {
-      "robot_no": 21,
+      "robot_no": 3,
       "pos": [
         -96.0,
         -18.0
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 21,
+      "pos": [
+        -88.0,
+        -22.0
       ],
       "_platform_class": "TANK"
     },
     {
       "robot_no": 22,
       "pos": [
-        -88.0,
-        -22.0
+        -80.0,
+        -24.0
       ],
       "_platform_class": "TANK"
     }
@@ -1266,12 +1324,12 @@
         0.0,
         40.0
       ],
-      "work": 450.0,
+      "work": 600.0,
       "window": [
         0,
-        300
+        320
       ],
-      "crew": 3,
+      "crew": 4,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
@@ -1309,17 +1367,26 @@
           {
             "id": "P3",
             "point": [
-              22.0,
-              14.0
+              0.0,
+              8.0
             ],
-            "facing_deg": 150.0,
+            "facing_deg": 180.0,
+            "min_units": 1
+          },
+          {
+            "id": "P4",
+            "point": [
+              -40.0,
+              40.0
+            ],
+            "facing_deg": 270.0,
             "min_units": 1
           }
         ],
         "stations": {
           "reserve": [
-            -21.213,
-            18.787
+            -10.607,
+            50.607
           ],
           "support": [],
           "relay": [
@@ -1331,16 +1398,26 @@
           {
             "id": "N",
             "bearing_deg": 0,
-            "width_deg": 70
+            "width_deg": 60
           },
           {
             "id": "E",
             "bearing_deg": 90,
             "width_deg": 60
+          },
+          {
+            "id": "S",
+            "bearing_deg": 180,
+            "width_deg": 60
+          },
+          {
+            "id": "W",
+            "bearing_deg": 270,
+            "width_deg": 60
           }
         ],
         "role_counts": {
-          "post": 3,
+          "post": 4,
           "reserve": 1,
           "support": 0,
           "relay": 0
@@ -1351,7 +1428,7 @@
           40.0
         ],
         "hold_criteria": "quantity",
-        "min_on_post": 2,
+        "min_on_post": 3,
         "observation_gap_max_s": 8,
         "observation_ring_m": 24,
         "sensor_radius_m": 45,
@@ -1393,9 +1470,14 @@
             "ratio": 1.6
           },
           {
-            "t_s": 135,
+            "t_s": 125,
             "kind": "probe",
             "direction": "E"
+          },
+          {
+            "t_s": 150,
+            "kind": "probe",
+            "direction": "S"
           }
         ],
         "counter_attack": {
@@ -1414,7 +1496,11 @@
         "assembly_point": [
           -90,
           -16
-        ]
+        ],
+        "patrol_enabled": true,
+        "patrol_radius_m": 5,
+        "patrol_speed_mps": 1.5,
+        "patrol_period_s": 50
       }
     }
   ]

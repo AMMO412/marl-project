@@ -499,14 +499,16 @@
     const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
     const P = (p) => [W / 2 + (p[0] - cx) * scale, H / 2 - (p[1] - cy) * scale];
     const t = C.t;
+    const roles = st.roles || {};
     const labels = [];
     const placed = [];
     const placeLabel = (text, x, y, color) => {
       ctx.font = '11px "Segoe UI","Microsoft YaHei"';
       const w = ctx.measureText(text).width + 10, h = 17;
-      // 矩形避让：放不下就不画，宁缺不叠字（与封控页同一规则）。
-      for (const [dx, dy] of [[10, -18], [10, 6], [-w - 10, -18], [-w - 10, 6],
-        [10, -40], [-w - 10, 30], [16, 20], [-w - 16, -38]]) {
+      // 矩形避让：放不下就不画，宁缺不叠字（与封控页同一规则）。首个候选
+      // 偏移留出 16 px，避开 11 px 半径的平台图标（否则图标压住阵位编号）。
+      for (const [dx, dy] of [[16, -26], [16, 8], [-w - 16, -26], [-w - 16, 8],
+        [16, -48], [-w - 16, 30], [22, 24], [-w - 22, -44]]) {
         const box = { x: x + dx, y: y + dy, w, h };
         if (box.x < 4 || box.y < 4 || box.x + w > W - 4 || box.y + h > H - 4) continue;
         if (placed.some((b) => box.x < b.x + b.w + 3 && box.x + w + 3 > b.x &&
@@ -585,8 +587,10 @@
     ctx.font = '600 12px "Segoe UI","Microsoft YaHei"';
     ctx.fillText('要点', kp[0] + 12, kp[1] + 4);
 
-    // 预备队/支援/中继站位：与要点或彼此重合时不重复标注（默认配置里
-    // 支援位/中继位常常就是预备队点或要点本身）。
+    // 预备队/支援/中继站位：标签直接带当前在位平台编号，平台自己就不再单独
+    // 标一遍（默认配置里支援位/中继位常常就是预备队点或要点本身）。
+    const rolePid = (kind) => Object.keys(roles).find(
+      (pid) => String(roles[pid]).split(':')[0] === kind);
     const same = (a, b) => !!a && !!b &&
       Math.abs(a[0] - b[0]) < 1 && Math.abs(a[1] - b[1]) < 1;
     const station = (point, text, color) => {
@@ -601,13 +605,20 @@
       ctx.stroke();
       placeLabel(text, q[0], q[1], color);
     };
-    station(st.standby, '预备队', COLORS.reserve);
+    const reservePid = rolePid('reserve');
+    station(st.standby, '预备队' + (reservePid ? ' · ' + shortPid(reservePid) : ''),
+            COLORS.reserve);
+    const supportPid = rolePid('support');
     for (const point of (st.support_points || [])) {
       if (same(point, st.standby)) continue;
-      station(point, '支援位', COLORS.support);
+      station(point, '支援位' + (supportPid ? ' · ' + shortPid(supportPid) : ''),
+              COLORS.support);
     }
     if (st.relay_point && !same(st.relay_point, st.key_point)) {
-      station(st.relay_point, '中继位', COLORS.relay);
+      const relayPid = rolePid('relay');
+      station(st.relay_point,
+              '中继位' + (relayPid ? ' · ' + shortPid(relayPid) : ''),
+              COLORS.relay);
     }
 
     // 阵位：环 + 朝向刻线；在位=实心，空缺=空心
@@ -655,7 +666,6 @@
     }
 
     // 我方平台
-    const roles = st.roles || {};
     for (const pid of Object.keys(roles)) {
       const a = agentAt(pid, t);
       if (!a) continue;
@@ -674,9 +684,9 @@
         ctx.fill();
       }
       // 平台只在"不在自己阵位"时补编号：在位的身份已经由阵位标签给出，
-      // 两个标签叠在一起只会糊成一团。
+      // 预备队/支援/中继的身份已经由站位标签给出，再标一遍只会糊成一团。
       const onOwnPost = kind === 'post' && occupantAt(roles[pid].split(':')[1], t) === pid;
-      if (!onOwnPost) placeLabel(shortPid(pid), q[0], q[1] - 14, '#0f172a');
+      if (!onOwnPost && kind === 'post') placeLabel(shortPid(pid), q[0], q[1] - 14, '#0f172a');
     }
 
     // 时钟角标

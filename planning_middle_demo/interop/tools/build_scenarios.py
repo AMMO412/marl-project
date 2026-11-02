@@ -247,15 +247,16 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     ]
 
     # 要点坚守（1028 §2.5）：3 号高地式样例在 580×460 米演示场景里等比缩小为
-    # 一个要点 + 2 条威胁方向 + 3 个预设阵位 + 1 台预备队。坚守 150 s，含 1 次
-    # 自动轮换（接替者到位才撤）、1 次按敌我比触发的增援、1 次按时撤离；
-    # 敌方进攻只作为**输入事件**，反击/压制走桩判定（verified=false）。
-    hold_fleet = build(scene, [1, 2, 21, 22], "PLAN-INTEROP-HLD")
+    # 一个要点 + 4 条威胁方向（东南西北，后方不留空）+ 4 个预设阵位 + 1 台预备队。
+    # 坚守 150 s，含 2 次自动轮换（接替者到位才撤）、1 次按敌我比触发的增援、
+    # 1 次按时撤离；敌方进攻只作为**输入事件**，反击/压制走桩判定（verified=false）。
+    hold_fleet = build(scene, [1, 2, 3, 21, 22], "PLAN-INTEROP-HLD")
     hold_assembly = {
         "U1": {"x": -92.0, "y": -12.0},
         "U2": {"x": -84.0, "y": -16.0},
         "U3": {"x": -96.0, "y": -18.0},
         "U4": {"x": -88.0, "y": -22.0},
+        "U5": {"x": -80.0, "y": -24.0},
     }
     for unit in hold_fleet["formation"]["units"]:
         if unit["unit_id"] in hold_assembly:
@@ -263,24 +264,33 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     hold_tasks = [
         _task("T1", "T-HLD", 1,
               {"key_point": [0, 40]},
-              (0, 300), {"HLD": 2}, 3, 4,
+              (0, 320), {"HLD": 2}, 4, 5,
               {"hold_duration_s": 150,
                "threat_directions": [
-                   {"id": "N", "bearing_deg": 0, "width_deg": 70},
-                   {"id": "E", "bearing_deg": 90, "width_deg": 60}],
+                   {"id": "N", "bearing_deg": 0, "width_deg": 60},
+                   {"id": "E", "bearing_deg": 90, "width_deg": 60},
+                   {"id": "S", "bearing_deg": 180, "width_deg": 60},
+                   {"id": "W", "bearing_deg": 270, "width_deg": 60}],
                "positions": [
                    {"id": "P1", "point": [0, 72], "facing_deg": 0,
                     "min_units": 1},
                    {"id": "P2", "point": [40, 40], "facing_deg": 90,
                     "min_units": 1},
-                   {"id": "P3", "point": [22, 14], "facing_deg": 150,
+                   {"id": "P3", "point": [0, 8], "facing_deg": 180,
+                    "min_units": 1},
+                   {"id": "P4", "point": [-40, 40], "facing_deg": 270,
                     "min_units": 1}],
-               "roles": {"post": 3, "reserve": 1, "support": 0, "relay": 0},
-               "min_on_post": 2,
+               "roles": {"post": 4, "reserve": 1, "support": 0, "relay": 0},
+               "min_on_post": 3,
                "hold_criteria": "quantity",
                "sensor_radius_m": 45,
                "observation_ring_m": 24,
                "observation_gap_max_s": 8,
+               # 到点后在阵位前方踱步（在岗游走），不是钉在原地
+               "patrol_enabled": True,
+               "patrol_radius_m": 5,
+               "patrol_speed_mps": 1.5,
+               "patrol_period_s": 50,
                "relief": {"interval_s": 50, "handover_tol_m": 3,
                           "swap_requires_arrival": True, "relief_cycles": 2},
                "reinforce": {"trigger": "position_lost", "enemy_ratio": 1.5,
@@ -296,8 +306,10 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
                "enemy_events": [
                    {"t_s": 55, "kind": "probe", "direction": "N"},
                    {"t_s": 95, "kind": "assault", "direction": "N", "ratio": 1.6},
-                   {"t_s": 135, "kind": "probe", "direction": "E"}]},
-              "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"),
+                   {"t_s": 125, "kind": "probe", "direction": "E"},
+                   # 后方试探：验证"后面的阵位"也有人盯着
+                   {"t_s": 150, "kind": "probe", "direction": "S"}]},
+              "要点坚守：1 要点 + 4 威胁方向 + 4 阵位 + 1 预备队"),
     ]
 
     return {

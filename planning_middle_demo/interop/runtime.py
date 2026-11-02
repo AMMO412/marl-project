@@ -267,7 +267,8 @@ def _hld_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
                 "observation_ring_m", "observation_samples", "sensor_radius_m",
                 "relief", "reinforce", "withdraw", "enemy_events",
                 "counter_attack", "effect", "assembly_point",
-                "post_tolerance_m", "max_steps"):
+                "post_tolerance_m", "patrol_enabled", "patrol_radius_m",
+                "patrol_speed_mps", "patrol_period_s", "max_steps"):
         if key in params:
             out[key] = params[key]
     return out

@@ -9,13 +9,13 @@
     "energy": 0.0
   },
   "plan_id": "PLAN-INTEROP-HLD",
-  "generated_at": "2026-11-02T16:02:44.600+08:00",
+  "generated_at": "2026-11-02T16:29:56.622+08:00",
   "python": "3.14.7",
   "platform": "Windows-11-10.0.26200-SP0",
   "scenario": {
     "formation_id": "INTEROP-container_00",
     "cell_size_m": 1.0,
-    "platforms": 4,
+    "platforms": 5,
     "tasks": 1,
     "message": {
       "schema_version": "0.3",
@@ -27,41 +27,41 @@
   "inputs": {
     "message": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.message.json",
-      "sha256": "b55cf751875b3b3716add6e31a519029a5777259d560184d4cc9d89918a3fb31"
+      "sha256": "d3c93f97f193977bbdf50dfef86d153cb4a12bd15abb94d3595493519e8eb1d7"
     },
     "formation": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.formation.json",
-      "sha256": "6aac911d5dc63d6d4f04f0ab95ca0e15184bdf1628e80622051b33ea430c5d53"
+      "sha256": "48f58f7bff3fe1277da6e949ead30d6ec62565819a3356b97c8cafd7e56c1af6"
     }
   },
   "outputs": {
     "plan_json": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\plan.json",
-      "sha256": "38144856516a2d30a3d1365277adf20ee250627c8d6e09c913dd362a386ac3a8",
-      "bytes": 16535
+      "sha256": "f70554a6d6be2c247930085f81f4e6d450d98d3b4a22f1d3718ec5ad3f1632a3",
+      "bytes": 20028
     },
     "assignments_csv": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\assignments.csv",
-      "sha256": "07a46bbe5d26404930012d94251b1e2806b902edac49db52ee15c455004a4f46",
-      "bytes": 968
+      "sha256": "9d26beeaa5d8c2bbb9594fb0478d3cd53c09aaa1a27610248708b499600ec4e8",
+      "bytes": 1147
     },
     "commands_csv": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\commands.csv",
-      "sha256": "d9e22dc78204d297024a614cbd9b51864efcb933f0ba28283536d210fd8d7394",
-      "bytes": 2576
+      "sha256": "f1922ef04f7170343ef7d87dc07ceda764a1c9773592e9fb2c9bd40908358da3",
+      "bytes": 3125
     },
     "report_md": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\report.md",
-      "sha256": "11ca1370f0654f3b360a00dc96542d6ced9119a4ded5c9ea5ef1d9e679fecbab",
-      "bytes": 2899
+      "sha256": "ceb6a1347d2232f43c4c140c3bf51616a78832c7eb2118d035544543867f90b4",
+      "bytes": 3083
     },
     "ros2_commands": {
       "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\ros2_commands.txt",
-      "sha256": "f5b518c089469d27b0c623ef8f0a3a208f9a1c362fd36f27ef2f1bf4dc09e03c",
-      "bytes": 4901
+      "sha256": "420e42e75659a0bc71d8e3950f339a2cbcbaf7dbcd2bdf5fd9a6d3f72dfaf47f",
+      "bytes": 5960
     }
   },
-  "command": "demo --message interop/scenarios/key_point_hold.message.json --formation interop/scenarios/key_point_hold.formation.json --out ..\\outputs\\interop_demo\\hold_run --motion real --behavior --max-ticks 260",
+  "command": "demo --message interop/scenarios/key_point_hold.message.json --formation interop/scenarios/key_point_hold.formation.json --out ..\\outputs\\interop_demo\\hold_run --motion real --behavior --max-ticks 280",
   "planner": "interop",
   "runtime_report": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_run\\run\\report.json"
 }

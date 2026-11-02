@@ -48,6 +48,28 @@
       },
       {
         "unit_id": "U3",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 3,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -96.0,
+          "y": -18.0
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "U4",
         "platform_type": "tank",
         "platform_class": "TANK",
         "robot_id": 21,
@@ -58,8 +80,8 @@
           "HLD": 3
         },
         "position": {
-          "x": -96.0,
-          "y": -18.0
+          "x": -88.0,
+          "y": -22.0
         },
         "altitude_m": 0.35,
         "vertical_speed_mps": 0.0,
@@ -69,7 +91,7 @@
         "status": "READY"
       },
       {
-        "unit_id": "U4",
+        "unit_id": "U5",
         "platform_type": "tank",
         "platform_class": "TANK",
         "robot_id": 22,
@@ -80,8 +102,8 @@
           "HLD": 3
         },
         "position": {
-          "x": -88.0,
-          "y": -22.0
+          "x": -80.0,
+          "y": -24.0
         },
         "altitude_m": 0.35,
         "vertical_speed_mps": 0.0,
