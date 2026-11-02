@@ -1,0 +1,43 @@
+{
+  "protocol": "middle-demo/v2",
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "scenario": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.message.json",
+  "inputs": {
+    "message": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.message.json",
+    "formation": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.formation.json",
+    "message_sha256": "b55cf751875b3b3716add6e31a519029a5777259d560184d4cc9d89918a3fb31",
+    "formation_sha256": "6aac911d5dc63d6d4f04f0ab95ca0e15184bdf1628e80622051b33ea430c5d53"
+  },
+  "plan_files": [
+    "plan.json",
+    "assignments.csv",
+    "commands.csv",
+    "report.md",
+    "ros2_commands.txt"
+  ],
+  "scenario_sha256": "d65c9028f4a71fefef8ca3642c0e5d0a58f5e6f83bc84fdfd3ddbb14daf88d02",
+  "source_scenario_sha256": "b55cf751875b3b3716add6e31a519029a5777259d560184d4cc9d89918a3fb31",
+  "generated_at": "2026-11-02T16:03:24.595166+08:00",
+  "backend": "mock_only",
+  "external_integration_verified": false,
+  "planner": "interop",
+  "workbench_config": {
+    "scenario": "interop_hold",
+    "mode": "normal",
+    "motion": "real",
+    "avoid": true,
+    "max_ticks": 260,
+    "objective": "makespan",
+    "behavior": true,
+    "effect_kind": "damage",
+    "planner": "interop"
+  },
+  "mode": "normal",
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "max_ticks": 260,
+  "H": 310,
+  "K": 8,
+  "dev_threshold": 4.0
+}

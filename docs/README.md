@@ -2,6 +2,9 @@
 
 - [项目结构与维护](项目结构.md)
 - [融合版代码讲解（按调用链条）](融合版代码讲解_20261030.md)
+- [区域封控（T-SEC）实现说明](区域封控任务_20261031.md)
+- [要点坚守（T-HLD）实现说明](要点坚守任务_20261102.md)
+- [任务实现模板（T-SEC 复盘 + T-HLD 任务书）](任务实现模板_区域封控复盘与要点坚守任务书_20261102.md)
 - [融合接口与运行说明](../planning_middle_demo/interop/README.md)
 - [基座设计和接口文档](../planning_middle_demo/docs/)
 - [基座完整说明](../planning_middle_demo/README_v2.md)

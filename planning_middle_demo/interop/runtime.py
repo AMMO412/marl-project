@@ -234,6 +234,45 @@ def _sec_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
     return out
 
 
+def _hld_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
+    """T-HLD → 基座行为层参数（要点坚守语义，1028 §2.5）。
+
+    统一层回答"谁去哪个阵位、谁当预备队"；执行层要复现同一组阵位点、朝向与
+    观察口径，因此把要点、阵位、威胁方向、轮换/增援/撤离规则显式交下去，
+    不让执行层自己按作业点摆一圈。效果类字段（``effect`` / ``counter_attack``）
+    只作为**抽象效果**参数透传，判定仍由 ``assessment.Adjudicator`` 完成。
+
+    白名单之外的字段不下发：4.1 的 ``params`` 是自由字段，透传未知字段会让
+    "行为层读了什么"变得不可核对。
+    """
+    if task.task_type != "T-HLD":
+        return None
+    from .templates import hld_key_point, hld_positions, hld_stations
+    key_point = hld_key_point(task)
+    positions = hld_positions(task)
+    if key_point is None or not positions:
+        return None
+    params = task.params
+    out = dict(
+        key_point=[float(key_point[0]), float(key_point[1])],
+        positions=[dict(item) for item in positions],
+        stations=hld_stations(task, key_point, positions),
+        threats=[dict(item) for item in (params.get("threat_directions") or [])],
+        role_counts=dict(params.get("roles") or {}),
+        duration_s=float(params.get("hold_duration_s",
+                                   params.get("duration_s", 600.0))),
+        site=[float(key_point[0]), float(key_point[1])],
+    )
+    for key in ("hold_criteria", "min_on_post", "observation_gap_max_s",
+                "observation_ring_m", "observation_samples", "sensor_radius_m",
+                "relief", "reinforce", "withdraw", "enemy_events",
+                "counter_attack", "effect", "assembly_point",
+                "post_tolerance_m", "max_steps"):
+        if key in params:
+            out[key] = params[key]
+    return out
+
+
 def _unit_pid(scenario: Scenario, unit_id: Optional[str]) -> Optional[str]:
     if not unit_id:
         return None
@@ -339,7 +378,7 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
             _task_type=task.task_type,
             _target=task.target,
         )
-        behavior = _sec_behavior_params(task)
+        behavior = _sec_behavior_params(task) or _hld_behavior_params(task)
         if behavior is not None:
             # 运行视图的作业参数（非 4.1 契约字段，只给基座行为层读）。
             job["_behavior"] = behavior
@@ -407,7 +446,9 @@ def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
             except (TypeError, ValueError, IndexError):
                 pass
         for key in ("gates", "intruders", "entry_points", "defense_positions",
-                    "posts", "intercept_post", "reserve_post"):
+                    "posts", "intercept_post", "reserve_post", "positions",
+                    "reserve_point", "support_points", "relay_point",
+                    "threat_directions"):
             values = task.params.get(key) or []
             if isinstance(values, dict):
                 values = [values]

@@ -133,7 +133,7 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
 | T-RCN 协同侦察 | 区域竖条 / 路线分段 / 目标点 | assignments / commands | `recon` 行为 | 覆盖率、任务反馈 |
 | T-SEC 区域封控 | 边界段 / 门哨 / 机动组 | `role=boundary/gate/...` | `blockade` 行为 | 封控运行结果 |
 | T-PTL 巡逻警戒 | 路线分段 / 巡逻区 / 点 | assignments / commands | `patrol` 行为 | 圈数、任务反馈 |
-| T-HLD 要点坚守 | 阵位点 | assignments / commands | `hold` 行为 | 换班、在位记录 |
+| T-HLD 要点坚守 | 阵位 / 预备队 / 支援 / 中继 | `role=post:P1/reserve:...` | `hold` 行为（KeepBehavior） | `hold_result` 逐项判定（效果为桩判定） |
 | T-ASL 机动突击 | 侦察 / 突击 / 评估席位 | `role` + 效果参数 | `assault` 行为 + `assessment` | `assessment_received` 逐项结算 |
 
 前四类的“是否完成”由基座任务状态与行为反馈给出；T-ASL 的效果结论只看
@@ -282,3 +282,31 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
   "区域封控 · T-SEC"，运行后在"演示总览"顶部切到 **区域封控** 页签查看
   （占位平台在岗巡视，警告/拦阻/放行按时间轴播放）。
 - 参数、指标口径、未做项：见 `docs/区域封控任务_20261031.md`。
+
+## 9 要点坚守（T-HLD）落地
+
+`templates._decompose_hld` 按 `params.positions` + `params.roles` 拆成
+**阵位 / 预备队 / 支援 / 中继**：阵位点与朝向来自 4.1 输入，缺省时按
+`threat_directions` 在要点外 `post_radius_m` 处布点（几何在
+`containment_geom.py` 的「要点几何」一节，与执行层同一套角度）。兵力上限
+裁剪顺序固定为 `support → relay → reserve → post`，**阵位最后裁**。
+
+- 角色：`post:P1` / `reserve:standby` / `support:S1` / `relay:standby`，
+  写入 `assignments[].role`，随 `task_block.roles` 下发到基座
+  `behaviors.KeepBehavior`（`kind='hold'`，仅在 `_behavior.positions` 存在时启用；
+  旧的两点轮换演示仍走 `HoldBehavior`）。
+- 执行语义：机动进场 → 占位（达到 `min_on_post` 记 `control_established`）→
+  观察（`observation_gap` / `observation_restored`）→ 接替轮换（**接替者到位才撤**，
+  `handover_start` / `handover_complete`）→ 增援（`reinforce_triggered` /
+  `reinforce_arrived` / `reinforce_timeout`）→ 撤离（`withdraw_started` /
+  `withdrawn`）→ `hold_result` 结算。
+- 抽象效果：敌方进攻是**输入事件**（`enemy_events`），阵内反击/火力控制可用性
+  记为 `counter_attack` 事件与 `suppressed` 状态，判定走 `assessment.Adjudicator`
+  的桩实现并写 `verified=false`；不建弹道/命中/毁伤模型，也不在规划层判成败。
+- 样例：`scenarios/key_point_hold.{message,formation}.json`（要点 + 2 条威胁方向 +
+  3 个阵位 + 1 台预备队；坚守 150 s，含 1 次自动轮换、1 次按敌我比触发的增援、
+  1 次按时撤离、3 次敌方进攻）。
+- 运行：`python -m interop.cli demo ... --motion real --behavior --max-ticks 260`；
+  工作台场景选 "要点坚守 · T-HLD"，运行后在"演示总览"顶部切到 **要点坚守** 页签
+  （阵位在位甘特、增援/接替标记、逐项判定、桩判定清单）。
+- 参数、指标口径、未做项：见 `docs/要点坚守任务_20261102.md`。

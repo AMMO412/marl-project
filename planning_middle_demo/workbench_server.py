@@ -23,19 +23,23 @@ SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场
              'asl_city': '城市十字路口机动突击',
              'interop_neutral': '融合版五类任务样例（4.1 统一接口）',
              'interop_containment': '区域封控演示（T-SEC）',
+             'interop_hold': '要点坚守演示（T-HLD）',
              'interop_asl': '融合版机动突击样例（T-ASL）'}
 # 融合统一层覆盖五类任务：中性四类 + T-ASL（打击/判定仍由基座行为层执行）。
-INTEROP_SCENARIOS = {'interop_neutral', 'interop_containment', 'interop_asl'}
+INTEROP_SCENARIOS = {'interop_neutral', 'interop_containment', 'interop_hold',
+                     'interop_asl'}
 # 4.1 原生场景：工作台直接读消息+编成表，规划走 interop，运行时用派生 v2 视图。
 INTEROP_PAIRS = {'interop_neutral': ('mixed_inspection.message.json',
                                      'mixed_inspection.formation.json'),
                  'interop_containment': ('area_containment.message.json',
                                          'area_containment.formation.json'),
+                 'interop_hold': ('key_point_hold.message.json',
+                                  'key_point_hold.formation.json'),
                  'interop_asl': ('asl_junction.message.json',
                                  'asl_junction.formation.json')}
 # 带静态障碍地图、可以开绕障的场景（其余场景没有真实障碍，绕障无意义）
 AVOID_SCENARIOS = {'simple_city', 'asl_city', 'interop_containment',
-                   'interop_asl'}
+                   'interop_hold', 'interop_asl'}
 MODES = {'normal': '正常执行', 'failure': '失败重试', 'timeout': '超时恢复',
          'kill': '成员失联', 'deviation': '进度偏差'}
 ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
@@ -46,7 +50,7 @@ ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
 SOURCES = {'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
            'coordinator': ROOT / 'coordinator_v2.py', 'fleet': ROOT / 'mock_fleet.py',
            'contracts': ROOT / 'contracts_v2.py'}
-WORKBENCH_VERSION = '2026-10-31-containment-in-overview'
+WORKBENCH_VERSION = '2026-11-02-hold-task-view'
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -110,10 +114,19 @@ def validate_config(data):
         result['behavior'] = True
         if 'max_ticks' not in data:
             result['max_ticks'] = 320
+    if result['scenario'] == 'interop_hold':
+        # 要点坚守同理：机动进场 → 占位 → 接替 → 增援 → 撤离是任务本身，
+        # 瞬移快进会把轮换和增援的时序全压平。
+        result['motion'] = 'real'
+        result['avoid'] = True
+        result['behavior'] = True
+        if 'max_ticks' not in data:
+            result['max_ticks'] = 260
     if 'max_ticks' not in data and result['scenario'] == 'interop_asl':
         result['max_ticks'] = 700
     if 'avoid' not in data and result['scenario'] in INTEROP_PAIRS:
         result['avoid'] = result['scenario'] in ('interop_containment',
+                                                 'interop_hold',
                                                  'interop_asl')
     if result['scenario'] == 'interop_asl':
         # 4.1 原生突击样例：行为与效果判定必须开，且只能逐步运动 + 城市避障。
@@ -488,6 +501,7 @@ class Workbench:
                     version=WORKBENCH_VERSION,
                     features=dict(planner=True,
                                   containment=True,
+                                  hold=True,
                                   interop_scenario='interop_neutral',
                                   plan_schema='0.3'),
                     default_run=default_run,
@@ -536,7 +550,8 @@ def make_handler(app):
                 elif path == '/demos/schematic':
                     file = ROOT.parent / 'outputs' / '任务动态示意_20261027' / 'index.html'
                 elif path in ('/', '/index.html', '/app.js', '/containment.js',
-                              '/task_details.js', '/styles.css', '/favicon.svg'):
+                              '/hold.js', '/task_details.js', '/styles.css',
+                              '/favicon.svg'):
                     file = STATIC / ('index.html' if path == '/' else path[1:])
                 else:
                     raise FileNotFoundError()

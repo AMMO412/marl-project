@@ -326,12 +326,7 @@ class MockFleet:
                    pos=[task["position"][0], task["position"][1]],
                    # 当前执行版本：评估结果绑定 attempt，重试即新版本
                    attempt=m["wire"]["command"].get("attempt", 1))
-        params = self.behavior_params.get(task["job_id"])
-        out = dict(job_id=task["job_id"], type=task["jtype"],
-                   pos=[task["position"][0], task["position"][1]],
-                   # 当前执行版本：评估结果绑定 attempt，重试即新版本
-                   attempt=m["wire"]["command"].get("attempt", 1))
-        params = dict(params or {})
+        params = dict(self.behavior_params.get(task["job_id"]) or {})
         # 融合层计划下发的角色（边界段/门哨/机动组）随指令到达；基座原生
         # 场景没有 roles 字段，行为层按几何自行分工。
         roles = task.get("roles") or {}
@@ -485,6 +480,45 @@ class MockFleet:
                 r['air_altitude'] = dict(behavior.params.get('air_altitude') or {})
                 r['climb_rate'] = behavior.params.get('climb_rate')
                 r['platform_caps'] = dict(getattr(behavior, 'platform_caps', {}) or {})
+            elif behavior.kind == 'hold' and getattr(behavior, 'positions', None):
+                # T-HLD 要点坚守：要点、阵位（含朝向）、威胁方向、预备队/支援位、
+                # 判定口径与自动轮换/增援规则。回放只画这一份结构，不再自己
+                # 按威胁方向重算阵位。
+                r['key_point'] = [round(v, 2) for v in behavior.key_point]
+                r['positions'] = [dict(item) for item in behavior.positions]
+                r['threats'] = [dict(item) for item in behavior.threats]
+                # 威胁扇区按后端同一套角度算好，前端只按顶点画，不重算几何
+                r['threat_sectors'] = [
+                    dict(item, polygon=[
+                        [round(p[0], 2), round(p[1], 2)] for p in
+                        geom.threat_sector(behavior.key_point,
+                                           item.get('bearing_deg', 0.0),
+                                           item.get('width_deg', 60.0),
+                                           behavior.sensor_radius * 0.9)])
+                    for item in behavior.threats]
+                r['observation_samples'] = [
+                    [round(p['point'][0], 2), round(p['point'][1], 2)]
+                    for p in behavior.samples]
+                r['posts'] = [[round(p[0], 2), round(p[1], 2)]
+                              for p in behavior.post_point.values()]
+                r['standby'] = [round(v, 2) for v in behavior.reserve_point]
+                r['support_points'] = [[round(p[0], 2), round(p[1], 2)]
+                                       for p in behavior.support_points]
+                r['relay_point'] = [round(v, 2) for v in behavior.relay_point]
+                r['roles'] = dict(behavior.role)
+                r['min_on_post'] = behavior.min_on_post
+                r['hold_criteria'] = behavior.criteria
+                r['hold_criteria_label'] = behavior.metrics.get(
+                    'hold_criteria_label')
+                r['sensor_radius_m'] = behavior.sensor_radius
+                r['observation_ring_m'] = behavior.observation_ring_m
+                r['observation_gap_max_s'] = behavior.params.get(
+                    'observation_gap_max_s')
+                r['duration_s'] = behavior.params.get('duration_s')
+                r['relief'] = dict(behavior.params.get('relief') or {})
+                r['reinforce'] = dict(behavior.params.get('reinforce') or {})
+                r['withdraw'] = dict(behavior.params.get('withdraw') or {})
+                r['scope'] = behavior.metrics.get('scope')
             elif behavior.kind == 'hold':
                 r['posts'] = [[round(p[0], 2), round(p[1], 2)]
                               for p in behavior.posts]

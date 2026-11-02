@@ -246,6 +246,60 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
               "140×90 米区域封控：2 段占位 + 门哨 + 机动拦截"),
     ]
 
+    # 要点坚守（1028 §2.5）：3 号高地式样例在 580×460 米演示场景里等比缩小为
+    # 一个要点 + 2 条威胁方向 + 3 个预设阵位 + 1 台预备队。坚守 150 s，含 1 次
+    # 自动轮换（接替者到位才撤）、1 次按敌我比触发的增援、1 次按时撤离；
+    # 敌方进攻只作为**输入事件**，反击/压制走桩判定（verified=false）。
+    hold_fleet = build(scene, [1, 2, 21, 22], "PLAN-INTEROP-HLD")
+    hold_assembly = {
+        "U1": {"x": -92.0, "y": -12.0},
+        "U2": {"x": -84.0, "y": -16.0},
+        "U3": {"x": -96.0, "y": -18.0},
+        "U4": {"x": -88.0, "y": -22.0},
+    }
+    for unit in hold_fleet["formation"]["units"]:
+        if unit["unit_id"] in hold_assembly:
+            unit["position"] = dict(hold_assembly[unit["unit_id"]])
+    hold_tasks = [
+        _task("T1", "T-HLD", 1,
+              {"key_point": [0, 40]},
+              (0, 300), {"HLD": 2}, 3, 4,
+              {"hold_duration_s": 150,
+               "threat_directions": [
+                   {"id": "N", "bearing_deg": 0, "width_deg": 70},
+                   {"id": "E", "bearing_deg": 90, "width_deg": 60}],
+               "positions": [
+                   {"id": "P1", "point": [0, 72], "facing_deg": 0,
+                    "min_units": 1},
+                   {"id": "P2", "point": [40, 40], "facing_deg": 90,
+                    "min_units": 1},
+                   {"id": "P3", "point": [22, 14], "facing_deg": 150,
+                    "min_units": 1}],
+               "roles": {"post": 3, "reserve": 1, "support": 0, "relay": 0},
+               "min_on_post": 2,
+               "hold_criteria": "quantity",
+               "sensor_radius_m": 45,
+               "observation_ring_m": 24,
+               "observation_gap_max_s": 8,
+               "relief": {"interval_s": 50, "handover_tol_m": 3,
+                          "swap_requires_arrival": True, "relief_cycles": 2},
+               "reinforce": {"trigger": "position_lost", "enemy_ratio": 1.5,
+                             "arrive_within_s": 60},
+               "withdraw": {"allowed": True,
+                            "route": [[0, 40], [-30, -10]],
+                            "deadline_s": 45},
+               "assembly_point": [-90, -16],
+               "counter_attack": {"authorized": True, "max_range_m": 70,
+                                  "allowed_in_position": True},
+               "effect": {"kinds": ["damage", "suppress"], "adjudicator": "stub",
+                          "required_duration": 8},
+               "enemy_events": [
+                   {"t_s": 55, "kind": "probe", "direction": "N"},
+                   {"t_s": 95, "kind": "assault", "direction": "N", "ratio": 1.6},
+                   {"t_s": 135, "kind": "probe", "direction": "E"}]},
+              "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"),
+    ]
+
     return {
         "patrol_checkpoint": (
             _message("MSG-INTEROP-PATROL-001", patrol_tasks), patrol_fleet),
@@ -258,6 +312,8 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
         "area_containment": (
             _message("MSG-INTEROP-SEC-001", containment_tasks),
             containment_fleet),
+        "key_point_hold": (
+            _message("MSG-INTEROP-HLD-001", hold_tasks), hold_fleet),
     }
 
 
@@ -281,6 +337,21 @@ def _check_targets(message: Dict[str, Any], fleet: Dict[str, Any]) -> List[str]:
         for key in ("defense_positions", "entry_points"):
             for point in (task.get("params", {}).get(key) or []):
                 points.append((float(point[0]), float(point[1])))
+        # 要点坚守的预设阵位/预备队/撤离路线同样不能落在禁入区里
+        for position in (task.get("params", {}).get("positions") or []):
+            if isinstance(position, dict) and position.get("point"):
+                points.append((float(position["point"][0]),
+                               float(position["point"][1])))
+        for key in ("reserve_point", "relay_point", "assembly_point"):
+            value = task.get("params", {}).get(key)
+            if isinstance(value, (list, tuple)) and len(value) == 2:
+                points.append((float(value[0]), float(value[1])))
+        for key in ("support_points",):
+            for point in (task.get("params", {}).get(key) or []):
+                points.append((float(point[0]), float(point[1])))
+        withdraw = task.get("params", {}).get("withdraw") or {}
+        for point in (withdraw.get("route") or []):
+            points.append((float(point[0]), float(point[1])))
         # 区域封控的通道口与目标时间线同样不能落在禁入区里
         for gate in (task.get("params", {}).get("gates") or []):
             if isinstance(gate, dict) and gate.get("point"):

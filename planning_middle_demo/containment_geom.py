@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-"""containment_geom.py —— 区域封控（T-SEC）共用几何。
+"""containment_geom.py —— 区域封控（T-SEC）与要点坚守（T-HLD）共用几何。
 
-规划层（``interop.templates``）与执行层（``behaviors.ContainmentBehavior``）
-必须看到同一条封控边界、同一组边界段和同一个占位点，否则"计划说守东段、
-执行却站到西段"这类偏差无法从数据上区分。因此边界弧段、占位点和监视覆盖
-的计算集中在本文件，两边只记账、不复算。
+规划层（``interop.templates``）与执行层（``behaviors.ContainmentBehavior`` /
+``behaviors.KeepBehavior``）必须看到同一条封控边界、同一组边界段和同一个
+占位点，否则"计划说守东段、执行却站到西段"这类偏差无法从数据上区分。
+因此边界弧段、占位点和监视覆盖的计算集中在本文件，两边只记账、不复算。
+
+T-HLD 的要点阵位也复用本文件（任务书 §9.4/§9.8 要求"不要另写一套几何"）：
+威胁方向 → 方位角/向量、阵位点、威胁扇区、观察采样环都在文末「要点几何」
+一节，与封控边界同用一套角度与坐标约定。
 
 坐标与单位：场景坐标（编成表 ``meta.cell_size_m`` 定义 1 单位=多少米，默认
 1 单位=1 米）；角度为弧度。时间不在本文件内。
@@ -275,3 +279,120 @@ def polygon_center(polygon):
         return [0.0, 0.0]
     return [sum(p[0] for p in polygon) / len(polygon),
             sum(p[1] for p in polygon) / len(polygon)]
+
+
+# ------------------------------------------------------------------
+# 要点几何（T-HLD 要点坚守，1028 §2.5）
+#
+# 角度约定与 compass 一致：**0° 指向 +y（北），90° 指向 +x（东），顺时针增大**。
+# ``bearing_deg`` 表示"威胁来自哪个方位"，阵位朝向 ``facing_deg`` 用同一套角度，
+# 两者之差就是"目标是否落在本阵位的责任扇区里"。规划层与执行层都调这里，
+# 否则计划里"P1 朝北"与执行层"P1 守东"会在数据上对不上。
+# ------------------------------------------------------------------
+def wrap_deg(deg):
+    """把任意角度折到 ``(-180, 180]``。"""
+    return ((float(deg) + 180.0) % 360.0) - 180.0
+
+
+def compass_vector(bearing_deg):
+    """方位角 → 单位向量（0°=+y 北，90°=+x 东，顺时针）。"""
+    angle = math.radians(float(bearing_deg))
+    return (math.sin(angle), math.cos(angle))
+
+
+def bearing_deg(start, end):
+    """``start → end`` 的方位角（度，0–360）。"""
+    return math.degrees(math.atan2(float(end[0]) - float(start[0]),
+                                   float(end[1]) - float(start[1]))) % 360.0
+
+
+def angle_gap_deg(a, b):
+    """两个方位角的最小夹角（0–180）。"""
+    return abs((float(a) - float(b) + 180.0) % 360.0 - 180.0)
+
+
+def in_sector(center, bearing_deg_, width_deg, radius_m, point):
+    """点是否落在 `center` 起、指向 ``bearing_deg_``、张角 ``width_deg`` 的扇区内。
+
+    用于"敌方从哪个方向来"和"该阵位是否正对这股敌人"：只按方位与距离判，
+    不做地形遮挡。
+    """
+    dx = float(point[0]) - float(center[0])
+    dy = float(point[1]) - float(center[1])
+    distance = math.hypot(dx, dy)
+    if distance > float(radius_m) + EPS:
+        return False
+    if distance <= EPS:
+        return True
+    angle = math.degrees(math.atan2(dx, dy)) % 360.0
+    return angle_gap_deg(angle, bearing_deg_) <= float(width_deg) / 2.0
+
+
+def threat_sector(center, bearing_deg_, width_deg, radius_m, step_deg=6.0):
+    """威胁扇区折线（中心 + 弧上采样点），供画图与"进入扇区"判定共用。
+
+    返回闭区间外的多边形顶点序列（首点为中心），前端按同一序列填充即可，
+    不必自己按角度重算。
+    """
+    half = max(0.0, float(width_deg)) / 2.0
+    steps = max(2, int(math.ceil(max(float(width_deg), 1e-6) / max(step_deg, 1e-6))))
+    points = [(float(center[0]), float(center[1]))]
+    for i in range(steps + 1):
+        vec = compass_vector(float(bearing_deg_) - half
+                             + float(width_deg) * i / steps)
+        points.append((float(center[0]) + vec[0] * float(radius_m),
+                       float(center[1]) + vec[1] * float(radius_m)))
+    return points
+
+
+def threat_posts(center, bearings, distance_m):
+    """按威胁方向给出一组阵位点：沿该方位从要点向外偏移 ``distance_m``。"""
+    posts = []
+    for bearing in bearings:
+        vec = compass_vector(bearing)
+        posts.append([round(float(center[0]) + vec[0] * float(distance_m), 3),
+                      round(float(center[1]) + vec[1] * float(distance_m), 3)])
+    return posts
+
+
+def facing_of(post, center):
+    """阵位朝向 = 由要点指向阵位的方位（面朝威胁来向、背靠要点）。"""
+    return round(bearing_deg(center, post), 1)
+
+
+def observation_ring(center, radius_m, count=12):
+    """要点周围的观察采样环（覆盖统计用固定采样集，不用随机点）。
+
+    与封控的 ``boundary_samples`` 同一思路：先定一组固定采样点，再用
+    ``coverage_ratio`` 统计"任一在位平台能否看到"，指标才可复现。
+    """
+    count = max(4, int(count))
+    radius = float(radius_m)
+    samples = [dict(s=0.0, point=(float(center[0]), float(center[1])))]
+    for i in range(count):
+        angle = 2.0 * math.pi * i / count
+        samples.append(dict(
+            s=round(2.0 * math.pi * i / count, 3),
+            point=(float(center[0]) + radius * math.cos(angle),
+                   float(center[1]) + radius * math.sin(angle))))
+    return samples
+
+
+def approach_points(center, threats, radius_m, count=1):
+    """威胁接近采样点：每条威胁方向上按半径取 ``count`` 个点（由外向内）。
+
+    用于"观察是否覆盖来袭方向"：只覆盖要点中心、不覆盖接近路的配置会在
+    这里露出来，而不是被一个圆心采样掩盖掉。
+    """
+    points = []
+    count = max(1, int(count))
+    for threat in threats or []:
+        bearing = float(threat.get("bearing_deg", 0.0))
+        for i in range(count):
+            factor = 1.0 - 0.5 * i / count
+            vec = compass_vector(bearing)
+            points.append(dict(
+                s=round(bearing, 2),
+                point=(float(center[0]) + vec[0] * float(radius_m) * factor,
+                       float(center[1]) + vec[1] * float(radius_m) * factor)))
+    return points

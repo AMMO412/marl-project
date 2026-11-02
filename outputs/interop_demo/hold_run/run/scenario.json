@@ -1,0 +1,1421 @@
+{
+  "protocol": "middle-demo/v2",
+  "objective": "makespan",
+  "H": 310,
+  "K": 8,
+  "_meta": {
+    "source": "interop 4.1 运行视图（不是无损旧场景转换）",
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-HLD-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    },
+    "cell_size_m": 1.0,
+    "formula": "job.work=duration_s×crew；统一层负责规划，基座负责运行",
+    "interop": {
+      "schema_version": "0.3",
+      "authoritative": false,
+      "role": "runtime-view",
+      "note": "v2 字段是运行替身视图；能力/障碍/阵位语义以 bundle 内原始 4.1 消息与编成表为准",
+      "message": {
+        "schema_version": "0.3",
+        "message_id": "MSG-INTEROP-HLD-001",
+        "issued_at": "2026-10-30T08:00:00Z",
+        "source": "UPPER",
+        "tasks": [
+          {
+            "task_id": "T1",
+            "task_type": "T-HLD",
+            "priority": 1,
+            "target": {
+              "key_point": [
+                0,
+                40
+              ]
+            },
+            "window": {
+              "start_s": 0,
+              "end_s": 300
+            },
+            "required_capabilities": {
+              "HLD": 2
+            },
+            "min_units": 3,
+            "max_units": 4,
+            "params": {
+              "hold_duration_s": 150,
+              "threat_directions": [
+                {
+                  "id": "N",
+                  "bearing_deg": 0,
+                  "width_deg": 70
+                },
+                {
+                  "id": "E",
+                  "bearing_deg": 90,
+                  "width_deg": 60
+                }
+              ],
+              "positions": [
+                {
+                  "id": "P1",
+                  "point": [
+                    0,
+                    72
+                  ],
+                  "facing_deg": 0,
+                  "min_units": 1
+                },
+                {
+                  "id": "P2",
+                  "point": [
+                    40,
+                    40
+                  ],
+                  "facing_deg": 90,
+                  "min_units": 1
+                },
+                {
+                  "id": "P3",
+                  "point": [
+                    22,
+                    14
+                  ],
+                  "facing_deg": 150,
+                  "min_units": 1
+                }
+              ],
+              "roles": {
+                "post": 3,
+                "reserve": 1,
+                "support": 0,
+                "relay": 0
+              },
+              "min_on_post": 2,
+              "hold_criteria": "quantity",
+              "sensor_radius_m": 45,
+              "observation_ring_m": 24,
+              "observation_gap_max_s": 8,
+              "relief": {
+                "interval_s": 50,
+                "handover_tol_m": 3,
+                "swap_requires_arrival": true,
+                "relief_cycles": 2
+              },
+              "reinforce": {
+                "trigger": "position_lost",
+                "enemy_ratio": 1.5,
+                "arrive_within_s": 60
+              },
+              "withdraw": {
+                "allowed": true,
+                "route": [
+                  [
+                    0,
+                    40
+                  ],
+                  [
+                    -30,
+                    -10
+                  ]
+                ],
+                "deadline_s": 45
+              },
+              "assembly_point": [
+                -90,
+                -16
+              ],
+              "counter_attack": {
+                "authorized": true,
+                "max_range_m": 70,
+                "allowed_in_position": true
+              },
+              "effect": {
+                "kinds": [
+                  "damage",
+                  "suppress"
+                ],
+                "adjudicator": "stub",
+                "required_duration": 8
+              },
+              "enemy_events": [
+                {
+                  "t_s": 55,
+                  "kind": "probe",
+                  "direction": "N"
+                },
+                {
+                  "t_s": 95,
+                  "kind": "assault",
+                  "direction": "N",
+                  "ratio": 1.6
+                },
+                {
+                  "t_s": 135,
+                  "kind": "probe",
+                  "direction": "E"
+                }
+              ]
+            },
+            "description": "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"
+          }
+        ]
+      },
+      "formation": {
+        "formation": {
+          "formation_id": "INTEROP-container_00",
+          "units": [
+            {
+              "unit_id": "U1",
+              "platform_type": "ifv",
+              "platform_class": "UGV",
+              "robot_id": 1,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 1,
+                "PTL": 2,
+                "HLD": 2
+              },
+              "position": {
+                "x": -92.0,
+                "y": -12.0
+              },
+              "altitude_m": 0.35,
+              "vertical_speed_mps": 0.0,
+              "heading_rad": 0.0,
+              "speed_mps": 8.0,
+              "endurance_s": 21600.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U2",
+              "platform_type": "ifv",
+              "platform_class": "UGV",
+              "robot_id": 2,
+              "capabilities": {
+                "RCN": 2,
+                "STK": 1,
+                "PTL": 2,
+                "HLD": 2
+              },
+              "position": {
+                "x": -84.0,
+                "y": -16.0
+              },
+              "altitude_m": 0.35,
+              "vertical_speed_mps": 0.0,
+              "heading_rad": 0.0,
+              "speed_mps": 8.0,
+              "endurance_s": 21600.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U3",
+              "platform_type": "tank",
+              "platform_class": "TANK",
+              "robot_id": 21,
+              "capabilities": {
+                "RCN": 1,
+                "STK": 3,
+                "PTL": 1,
+                "HLD": 3
+              },
+              "position": {
+                "x": -96.0,
+                "y": -18.0
+              },
+              "altitude_m": 0.35,
+              "vertical_speed_mps": 0.0,
+              "heading_rad": 0.0,
+              "speed_mps": 8.0,
+              "endurance_s": 28800.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U4",
+              "platform_type": "tank",
+              "platform_class": "TANK",
+              "robot_id": 22,
+              "capabilities": {
+                "RCN": 1,
+                "STK": 3,
+                "PTL": 1,
+                "HLD": 3
+              },
+              "position": {
+                "x": -88.0,
+                "y": -22.0
+              },
+              "altitude_m": 0.35,
+              "vertical_speed_mps": 0.0,
+              "heading_rad": 0.0,
+              "speed_mps": 8.0,
+              "endurance_s": 28800.0,
+              "status": "READY"
+            }
+          ]
+        },
+        "constraints": [
+          {
+            "constraint_id": "SDF-env_roadside_planter_01-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  53.8,
+                  12.8
+                ],
+                [
+                  56.2,
+                  12.8
+                ],
+                [
+                  56.2,
+                  15.2
+                ],
+                [
+                  53.8,
+                  15.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_01",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_02-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  53.8,
+                  -15.2
+                ],
+                [
+                  56.2,
+                  -15.2
+                ],
+                [
+                  56.2,
+                  -12.8
+                ],
+                [
+                  53.8,
+                  -12.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_02",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_03-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  78.8,
+                  12.8
+                ],
+                [
+                  81.2,
+                  12.8
+                ],
+                [
+                  81.2,
+                  15.2
+                ],
+                [
+                  78.8,
+                  15.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_03",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_04-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  78.8,
+                  -15.2
+                ],
+                [
+                  81.2,
+                  -15.2
+                ],
+                [
+                  81.2,
+                  -12.8
+                ],
+                [
+                  78.8,
+                  -12.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_04",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_05-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  103.8,
+                  12.8
+                ],
+                [
+                  106.2,
+                  12.8
+                ],
+                [
+                  106.2,
+                  15.2
+                ],
+                [
+                  103.8,
+                  15.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_05",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_06-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  103.8,
+                  -15.2
+                ],
+                [
+                  106.2,
+                  -15.2
+                ],
+                [
+                  106.2,
+                  -12.8
+                ],
+                [
+                  103.8,
+                  -12.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_06",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_07-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  128.8,
+                  12.8
+                ],
+                [
+                  131.2,
+                  12.8
+                ],
+                [
+                  131.2,
+                  15.2
+                ],
+                [
+                  128.8,
+                  15.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_07",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_08-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  128.8,
+                  -15.2
+                ],
+                [
+                  131.2,
+                  -15.2
+                ],
+                [
+                  131.2,
+                  -12.8
+                ],
+                [
+                  128.8,
+                  -12.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_08",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_09-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  53.8
+                ],
+                [
+                  15.2,
+                  53.8
+                ],
+                [
+                  15.2,
+                  56.2
+                ],
+                [
+                  12.8,
+                  56.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_09",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_10-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  53.8
+                ],
+                [
+                  -12.8,
+                  53.8
+                ],
+                [
+                  -12.8,
+                  56.2
+                ],
+                [
+                  -15.2,
+                  56.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_10",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_11-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  78.8
+                ],
+                [
+                  15.2,
+                  78.8
+                ],
+                [
+                  15.2,
+                  81.2
+                ],
+                [
+                  12.8,
+                  81.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_11",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_12-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  78.8
+                ],
+                [
+                  -12.8,
+                  78.8
+                ],
+                [
+                  -12.8,
+                  81.2
+                ],
+                [
+                  -15.2,
+                  81.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_12",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_13-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  103.8
+                ],
+                [
+                  15.2,
+                  103.8
+                ],
+                [
+                  15.2,
+                  106.2
+                ],
+                [
+                  12.8,
+                  106.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_13",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_14-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  103.8
+                ],
+                [
+                  -12.8,
+                  103.8
+                ],
+                [
+                  -12.8,
+                  106.2
+                ],
+                [
+                  -15.2,
+                  106.2
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_14",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_15-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  -56.2
+                ],
+                [
+                  15.2,
+                  -56.2
+                ],
+                [
+                  15.2,
+                  -53.8
+                ],
+                [
+                  12.8,
+                  -53.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_15",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_16-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  -56.2
+                ],
+                [
+                  -12.8,
+                  -56.2
+                ],
+                [
+                  -12.8,
+                  -53.8
+                ],
+                [
+                  -15.2,
+                  -53.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_16",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_17-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  -81.2
+                ],
+                [
+                  15.2,
+                  -81.2
+                ],
+                [
+                  15.2,
+                  -78.8
+                ],
+                [
+                  12.8,
+                  -78.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_17",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_18-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  -81.2
+                ],
+                [
+                  -12.8,
+                  -81.2
+                ],
+                [
+                  -12.8,
+                  -78.8
+                ],
+                [
+                  -15.2,
+                  -78.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_18",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_19-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  12.8,
+                  -106.2
+                ],
+                [
+                  15.2,
+                  -106.2
+                ],
+                [
+                  15.2,
+                  -103.8
+                ],
+                [
+                  12.8,
+                  -103.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_19",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_roadside_planter_20-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -15.2,
+                  -106.2
+                ],
+                [
+                  -12.8,
+                  -106.2
+                ],
+                [
+                  -12.8,
+                  -103.8
+                ],
+                [
+                  -15.2,
+                  -103.8
+                ]
+              ]
+            },
+            "source": "env_roadside_planter_20",
+            "height_m": 1.2
+          },
+          {
+            "constraint_id": "SDF-env_walls_north-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  109.5,
+                  -92.0
+                ],
+                [
+                  110.5,
+                  -92.0
+                ],
+                [
+                  110.5,
+                  -72.0
+                ],
+                [
+                  109.5,
+                  -72.0
+                ]
+              ]
+            },
+            "source": "env_walls_north",
+            "height_m": 15.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_west-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  97.0,
+                  -77.5
+                ],
+                [
+                  107.0,
+                  -77.5
+                ],
+                [
+                  107.0,
+                  -76.5
+                ],
+                [
+                  97.0,
+                  -76.5
+                ]
+              ]
+            },
+            "source": "env_walls_west",
+            "height_m": 15.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_south-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  109.5,
+                  -92.5
+                ],
+                [
+                  126.5,
+                  -92.5
+                ],
+                [
+                  126.5,
+                  -91.5
+                ],
+                [
+                  109.5,
+                  -91.5
+                ]
+              ]
+            },
+            "source": "env_walls_south",
+            "height_m": 15.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_east-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  116.5,
+                  -92.0
+                ],
+                [
+                  117.5,
+                  -92.0
+                ],
+                [
+                  117.5,
+                  -72.0
+                ],
+                [
+                  116.5,
+                  -72.0
+                ]
+              ]
+            },
+            "source": "env_walls_east",
+            "height_m": 15.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_low_1-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  76.0,
+                  -107.0
+                ],
+                [
+                  84.0,
+                  -107.0
+                ],
+                [
+                  84.0,
+                  -105.0
+                ],
+                [
+                  76.0,
+                  -105.0
+                ]
+              ]
+            },
+            "source": "env_walls_low_1",
+            "height_m": 2.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_low_2-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  89.0,
+                  -65.0
+                ],
+                [
+                  91.0,
+                  -65.0
+                ],
+                [
+                  91.0,
+                  -55.0
+                ],
+                [
+                  89.0,
+                  -55.0
+                ]
+              ]
+            },
+            "source": "env_walls_low_2",
+            "height_m": 2.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_low_3-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  114.0,
+                  -58.0
+                ],
+                [
+                  126.0,
+                  -58.0
+                ],
+                [
+                  126.0,
+                  -56.0
+                ],
+                [
+                  114.0,
+                  -56.0
+                ]
+              ]
+            },
+            "source": "env_walls_low_3",
+            "height_m": 2.0
+          },
+          {
+            "constraint_id": "SDF-env_walls_low_4-collision",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  134.0,
+                  -107.0
+                ],
+                [
+                  136.0,
+                  -107.0
+                ],
+                [
+                  136.0,
+                  -93.0
+                ],
+                [
+                  134.0,
+                  -93.0
+                ]
+              ]
+            },
+            "source": "env_walls_low_4",
+            "height_m": 2.0
+          },
+          {
+            "constraint_id": "HOUSE-01",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -145.6,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -191.8
+                ],
+                [
+                  -129.2,
+                  -178.9
+                ],
+                [
+                  -145.6,
+                  -178.9
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 7.69
+          },
+          {
+            "constraint_id": "HOUSE-02",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -60.6,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -190.7
+                ],
+                [
+                  -47.9,
+                  -180.9
+                ],
+                [
+                  -60.6,
+                  -180.9
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 7.23
+          },
+          {
+            "constraint_id": "HOUSE-03",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -144.1,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -109.4
+                ],
+                [
+                  -130.9,
+                  -100.7
+                ],
+                [
+                  -144.1,
+                  -100.7
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 9.17
+          },
+          {
+            "constraint_id": "HOUSE-04",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -60.9,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -111.1
+                ],
+                [
+                  -44.4,
+                  -98.2
+                ],
+                [
+                  -60.9,
+                  -98.2
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 7.69
+          },
+          {
+            "constraint_id": "OFFICE-01",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -173.9,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -153.9
+                ],
+                [
+                  -156.2,
+                  -136.2
+                ],
+                [
+                  -173.9,
+                  -136.2
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 18.66
+          },
+          {
+            "constraint_id": "OFFICE-02",
+            "type": "no_go",
+            "applies_to": "ground",
+            "area": {
+              "polygon": [
+                [
+                  -33.9,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -153.9
+                ],
+                [
+                  -16.2,
+                  -136.2
+                ],
+                [
+                  -33.9,
+                  -136.2
+                ]
+              ]
+            },
+            "source": "city_buildings.csv",
+            "height_m": 18.66
+          },
+          {
+            "constraint_id": "THREAT-DEMO",
+            "type": "threat",
+            "applies_to": "ground",
+            "intensity": 0.7,
+            "area": {
+              "polygon": [
+                [
+                  25,
+                  -40
+                ],
+                [
+                  65,
+                  -40
+                ],
+                [
+                  65,
+                  -10
+                ],
+                [
+                  25,
+                  -10
+                ]
+              ]
+            },
+            "note": "演示威胁区；真实威胁数据到位后替换"
+          }
+        ],
+        "meta": {
+          "cell_size_m": 1,
+          "grid_cell_m": 2.0,
+          "grid_margin_m": 1.5,
+          "plan_id": "PLAN-INTEROP-HLD",
+          "scene": "container_00",
+          "scene_bounds": [
+            -290.0,
+            -230.0,
+            290.0,
+            230.0
+          ],
+          "source_sdf": "container_00_combined_scene.sdf",
+          "obstacle_sources": {
+            "sdf_boxes": 28,
+            "city_buildings_csv": 6,
+            "threat_demo": 1
+          }
+        }
+      }
+    }
+  },
+  "platforms": [
+    {
+      "robot_no": 1,
+      "pos": [
+        -92.0,
+        -12.0
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 2,
+      "pos": [
+        -84.0,
+        -16.0
+      ],
+      "_platform_class": "UGV"
+    },
+    {
+      "robot_no": 21,
+      "pos": [
+        -96.0,
+        -18.0
+      ],
+      "_platform_class": "TANK"
+    },
+    {
+      "robot_no": 22,
+      "pos": [
+        -88.0,
+        -22.0
+      ],
+      "_platform_class": "TANK"
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "T1",
+      "pos": [
+        0.0,
+        40.0
+      ],
+      "work": 450.0,
+      "window": [
+        0,
+        300
+      ],
+      "crew": 3,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "_task_type": "T-HLD",
+      "_target": {
+        "key_point": [
+          0,
+          40
+        ]
+      },
+      "_behavior": {
+        "key_point": [
+          0.0,
+          40.0
+        ],
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              0.0,
+              72.0
+            ],
+            "facing_deg": 0.0,
+            "min_units": 1
+          },
+          {
+            "id": "P2",
+            "point": [
+              40.0,
+              40.0
+            ],
+            "facing_deg": 90.0,
+            "min_units": 1
+          },
+          {
+            "id": "P3",
+            "point": [
+              22.0,
+              14.0
+            ],
+            "facing_deg": 150.0,
+            "min_units": 1
+          }
+        ],
+        "stations": {
+          "reserve": [
+            -21.213,
+            18.787
+          ],
+          "support": [],
+          "relay": [
+            0.0,
+            40.0
+          ]
+        },
+        "threats": [
+          {
+            "id": "N",
+            "bearing_deg": 0,
+            "width_deg": 70
+          },
+          {
+            "id": "E",
+            "bearing_deg": 90,
+            "width_deg": 60
+          }
+        ],
+        "role_counts": {
+          "post": 3,
+          "reserve": 1,
+          "support": 0,
+          "relay": 0
+        },
+        "duration_s": 150.0,
+        "site": [
+          0.0,
+          40.0
+        ],
+        "hold_criteria": "quantity",
+        "min_on_post": 2,
+        "observation_gap_max_s": 8,
+        "observation_ring_m": 24,
+        "sensor_radius_m": 45,
+        "relief": {
+          "interval_s": 50,
+          "handover_tol_m": 3,
+          "swap_requires_arrival": true,
+          "relief_cycles": 2
+        },
+        "reinforce": {
+          "trigger": "position_lost",
+          "enemy_ratio": 1.5,
+          "arrive_within_s": 60
+        },
+        "withdraw": {
+          "allowed": true,
+          "route": [
+            [
+              0,
+              40
+            ],
+            [
+              -30,
+              -10
+            ]
+          ],
+          "deadline_s": 45
+        },
+        "enemy_events": [
+          {
+            "t_s": 55,
+            "kind": "probe",
+            "direction": "N"
+          },
+          {
+            "t_s": 95,
+            "kind": "assault",
+            "direction": "N",
+            "ratio": 1.6
+          },
+          {
+            "t_s": 135,
+            "kind": "probe",
+            "direction": "E"
+          }
+        ],
+        "counter_attack": {
+          "authorized": true,
+          "max_range_m": 70,
+          "allowed_in_position": true
+        },
+        "effect": {
+          "kinds": [
+            "damage",
+            "suppress"
+          ],
+          "adjudicator": "stub",
+          "required_duration": 8
+        },
+        "assembly_point": [
+          -90,
+          -16
+        ]
+      }
+    }
+  ]
+}

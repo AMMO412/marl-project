@@ -59,6 +59,20 @@ BEHAVIOR_EVENT_NAME = {
     "authorized_pass": "授权放行", "control_established": "控制建立",
     "control_interrupted": "控制中断", "control_restored": "控制恢复",
     "containment_result": "封控结果",
+    # 要点坚守（1028 §2.5）的占位/观察/轮换/增援/撤离事件
+    "enemy_attack": "敌方进攻", "post_lost": "阵位失守",
+    "post_suppressed": "阵位被压制", "post_restored": "阵位恢复",
+    "counter_attack": "阵内反击（抽象效果）",
+    "counter_attack_denied": "无反击授权",
+    "counter_attack_out_of_range": "超出反击范围",
+    "effect_adjudicated": "效果桩判定", "attack_repelled": "进攻被击退（桩判定）",
+    "attack_unresolved": "进攻未解除",
+    "reinforce_triggered": "增援触发", "reinforce_arrived": "增援到位",
+    "reinforce_timeout": "增援超时", "reinforce_unavailable": "无可用增援",
+    "reinforce_aborted": "增援中止", "relief_skipped": "轮换跳过",
+    "handover_aborted": "接替中止", "handover_timeout": "接替超时",
+    "observation_gap": "观察中断", "observation_restored": "观察恢复",
+    "hold_result": "坚守结果",
     "behavior_complete": "行为完成", "arrived_area": "进入作业区",
     "route_failed": "路径失败", "behavior_sample": "行为轨迹采样",
     "energy_depleted": "电量耗尽", "start_snapped": "出发点吸附",
@@ -76,6 +90,19 @@ CONTAINMENT_EVENTS = ("target_appeared", "target_detected", "target_authorized",
                       "intercept_denied", "intercepted", "breach",
                       "authorized_pass", "control_established",
                       "control_interrupted", "control_restored")
+
+# 要点坚守页要按时间轴逐条播放的事件（占位/观察/轮换/增援/撤离/桩判定）
+HOLD_EVENTS = ("control_established", "control_interrupted", "control_restored",
+               "control_lost", "observation_gap", "observation_restored",
+               "enemy_attack", "post_lost", "post_suppressed", "post_restored",
+               "counter_attack", "counter_attack_denied",
+               "counter_attack_out_of_range", "effect_adjudicated",
+               "attack_repelled", "attack_unresolved",
+               "handover_start", "handover_complete", "handover_timeout",
+               "handover_aborted", "relief_skipped",
+               "reinforce_triggered", "reinforce_arrived", "reinforce_timeout",
+               "reinforce_unavailable", "reinforce_aborted",
+               "withdraw_started", "withdrawn", "withdraw_timeout")
 
 
 def load_scene_background(scenario, roads_csv=None):
@@ -222,6 +249,51 @@ def _containment_replay(trace):
                 result=result, events=live)
 
 
+def _hold_replay(trace):
+    """从回放审计里抽出要点坚守页需要的三块数据。
+
+    * ``structure``：要点、阵位（含朝向）、威胁方向、预备队/支援位、判定口径
+      （来自行为层启动时记的 ``behavior_structure``）；
+    * ``result``：逐项判定、指标、阵位在位区间与过程时间线（``hold_result``）；
+    * ``events``：可逐条播放的过程事件（占位/观察中断/接替/增援/撤离/桩判定）。
+
+    三者都只从**已有记录**里取，不在前端重算几何或指标；没有坚守结构就返回
+    None，工作台显示"本次运行不含要点坚守"而不是补一张示意图。
+    """
+    structure = None
+    result = None
+    live = []
+    for row in trace:
+        if row.get("kind") != "behavior_event":
+            continue
+        event = row.get("event") or {}
+        kind = event.get("kind")
+        if kind == "behavior_structure" and event.get("type") == "hold" \
+                and event.get("positions"):
+            structure = dict(event)
+            structure["sim_s"] = row.get("sim_s", 0)
+        elif kind == "hold_result":
+            result = dict(event)
+            result["sim_s"] = row.get("sim_s", 0)
+        elif kind in HOLD_EVENTS:
+            live.append(dict(
+                kind=kind, sim_s=row.get("sim_s", event.get("t", 0)),
+                t=event.get("t", row.get("sim_s", 0)),
+                post_id=event.get("post_id"), pid=event.get("pid"),
+                incoming=event.get("incoming"), outgoing=event.get("outgoing"),
+                arrival_s=event.get("arrival_s"), on_time=event.get("on_time"),
+                overall=event.get("overall"), verified=event.get("verified"),
+                attack_kind=event.get("attack_kind"),
+                direction=event.get("direction"),
+                ratio=event.get("ratio"), manned=event.get("manned"),
+                gap_s=event.get("gap_s"), reason=event.get("reason"),
+                posts=event.get("posts")))
+    if structure is None:
+        return None
+    return dict(job_id=structure.get("job_id"), structure=structure,
+                result=result, events=live)
+
+
 def build_replay_data(scenario, report, trace):
     """以场景初始位为起点，最终报告仅补身份，不倒灌最终位置/状态。"""
     final_info = {p["pid"]: p for p in report.get("platforms", [])}
@@ -316,6 +388,7 @@ def build_replay_data(scenario, report, trace):
                 behaviors=[behaviors[j["job_id"]] for j in jobs
                            if j["job_id"] in behaviors],
                 containment=_containment_replay(trace),
+                hold=_hold_replay(trace),
                 end=max(times),
                 background=load_scene_background(scenario),
                 motion=report.get("motion", "teleport"),

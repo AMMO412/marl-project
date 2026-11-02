@@ -13,8 +13,9 @@
            探索示意）。
   assault  机动突击：机动 → 到位（全员齐）→ 执行（收拢到目标环）→
            结果确认（前出观察点确认），阶段推进带全员同步（对应突击阶段）。
-  hold     要点坚守：在位/待命轮换，接替者到位才撤，统计"零人在位"缺口
-           （对应接替示意）。
+  hold     要点坚守：按威胁方向配置阵位、持续观察、接替者到位才撤、增援与
+           撤离，并用桩判定给"反击/压制"这类抽象效果（KeepBehavior）；
+           历史小场景仍走两点轮换的 HoldBehavior。
 
 这一层是**纯决策**：每次 step 只返回每台平台的下一目标点、当前阶段和
 事件，不直接改位姿；运动由 city_nav.PathFollower 执行。这样状态机可以
@@ -2573,7 +2574,1110 @@ class AssaultBehavior(Behavior):
 
 
 # ------------------------------------------------------------------
-# 5. 要点坚守：在位/待命轮换，接替者到位才撤
+# 5. 要点坚守（T-HLD）：阵位占位 + 观察 + 轮换接替 + 增援 + 撤离
+#
+# 1028 §2.5：保持对指定要点/防御区域的控制；按威胁方向配置阵位；持续观察；
+# 触发增援、轮换或撤离。本层能写到的边界（任务书 §9.2）：
+#   * 做：阵位分配、预备队、轮换与接替、增援路线、撤离时序，以及在这些过程上
+#     记账（在位/观察/空窗/增援/接替）；
+#   * 用**抽象效果**表示阵内反击与火力控制可用性（``counter_attack`` 事件 +
+#     ``suppressed`` 状态），判定交 ``assessment.Adjudicator`` 的桩实现并标
+#     ``verified=False``；
+#   * 不做：弹道、命中概率、毁伤/杀伤模型、武器性能参数，规划层也不预测成败。
+# 控制权口径：本层用"有效在位数量 + 阵位状态"近似控制权，是模型近似，不是
+# 对现实控制权的确认（1028 §2.5.2 明确覆盖状态不等于现实控制权）。
+# ------------------------------------------------------------------
+HL_SCOPE_NOTE = ('控制权口径：本层用"有效在位数量 + 阵位状态"近似控制权，'
+                 '只是模型近似，不等于对现实控制权的确认（1028 §2.5.2）；'
+                 '效果类结论均为桩判定·未验证')
+HL_CRITERIA = ('quantity', 'coverage')
+HL_CRITERIA_LABELS = {'quantity': '在位数量', 'coverage': '观察覆盖'}
+
+
+class KeepBehavior(Behavior):
+    """要点坚守：按阵位占位、持续观察、接替轮换、增援与撤离（T-HLD）。
+
+    与 ``HoldBehavior``（历史小场景的两点轮换演示）的分工：
+      * HoldBehavior 保留给旧场景，几何是"作业点外两圈"、参数小场景化；
+      * 本类只在输入给出要点/阵位（``_behavior.positions``）时启用，几何来自
+        4.1 的 ``positions`` / 威胁方向（经 ``containment_geom`` 统一给出）。
+
+    时序（1028 §2.5.4）：机动进场 → 占位（达到 ``min_on_post`` 记
+    ``control_established``）→ 观察（覆盖与中断）→ 接替/轮换（到位才撤）→
+    增援（触发→到达时间）→ 撤离/结束 → ``hold_result`` 结算。
+    """
+
+    kind = 'hold'
+    label = '要点坚守'
+    DEFAULTS = dict(
+        key_point=None,
+        positions=(),
+        stations=None,
+        threats=(),
+        sensor_radius_m=35.0,
+        observation_ring_m=None,
+        observation_samples=12,
+        hold_criteria="quantity",
+        min_on_post=2,
+        observation_gap_max_s=5.0,
+        post_tolerance_m=3.0,
+        handover_tol_m=3.0,
+        handover_timeout_s=60.0,
+        swap_requires_arrival=True,
+        arrive_tol=2.5,
+        relief_interval_s=0.0,
+        relief_cycles=0,
+        reinforce_trigger="position_lost",
+        reinforce_ratio=1.5,
+        reinforce_arrive_within_s=60.0,
+        withdraw_allowed=False,
+        withdraw_route=(),
+        withdraw_deadline_s=30.0,
+        enemy_events=(),
+        counter_attack=None,
+        effect=None,
+        duration_s=180.0,
+        max_steps=600,
+        control_lost_after_s=30.0,
+        min_hold_ratio=0.9,
+        max_control_interruption_s=30.0,
+    )
+
+    def __init__(self, job, nav, pids, params=None, site=None):
+        raw = dict(params or {})
+        super().__init__(job, nav, pids, raw, site)
+        p = self.params
+        # 4.1 的任务参数名是 hold_duration_s；基座行为层内部统一用 duration_s。
+        # 直接按 4.1 参数构造（测试/自建场景）时也要认这个名字，不能悄悄
+        # 退回默认 180 s——那会让"坚守 5 s"的用例等 180 s 还不结算。
+        if 'hold_duration_s' in raw and 'duration_s' not in raw:
+            p['duration_s'] = float(raw['hold_duration_s'])
+        if 'max_steps' not in raw:
+            p['max_steps'] = max(float(p['duration_s']) * 3.0, 120.0)
+        self._normalize_policy()
+        self.key_point = [float(v) for v in (p.get('key_point') or self.site)]
+        self.threats = [dict(item) for item in (p.get('threats') or [])]
+        self.criteria = str(p.get('hold_criteria') or 'quantity')
+        if self.criteria not in HL_CRITERIA:
+            raise ValueError("hold_criteria 必须是 %s" % "/".join(HL_CRITERIA))
+        self.adjudicator = StubAdjudicator()
+        self.post_tolerance = max(0.5, float(p['post_tolerance_m']))
+        self.handover_tol = max(0.5, float(p['handover_tol_m']))
+        self.arrive_tol = max(0.5, float(p['arrive_tol']))
+        self.swap_requires_arrival = bool(p['swap_requires_arrival'])
+        self.sensor_radius = float(p['sensor_radius_m'])
+
+        # ---- 阵位：与规划层同一份点/朝向（经 containment_geom 推出的坐标）----
+        self.positions = []
+        for index, item in enumerate(p.get('positions') or []):
+            if isinstance(item, dict):
+                point = item.get('point') or [0.0, 0.0]
+                position_id = str(item.get('id') or "P%d" % (index + 1))
+                facing = float(item.get('facing_deg') or 0.0)
+                need = int(item.get('min_units') or 1)
+            else:
+                point = item
+                position_id = "P%d" % (index + 1)
+                facing, need = 0.0, 1
+            snapped, offset = self._snap(point)
+            self.positions.append(dict(
+                id=position_id, point=snapped, snap=round(offset, 3),
+                facing_deg=facing % 360.0, min_units=max(0, need)))
+        if not self.positions:
+            self.positions = [dict(id='P1', point=list(self.key_point), snap=0.0,
+                                   facing_deg=0.0, min_units=1)]
+        self.post_ids = [item['id'] for item in self.positions]
+        self.post_point = {item['id']: list(item['point'])
+                           for item in self.positions}
+        self.post_facing = {item['id']: item['facing_deg']
+                            for item in self.positions}
+        self.min_on_post = min(max(1, int(p.get('min_on_post') or 2)),
+                               len(self.positions))
+
+        stations = dict(p.get('stations') or {})
+        self.reserve_point = self._snap(
+            stations.get('reserve') or self._default_reserve())[0]
+        support = [self._snap(point)[0] for point in (stations.get('support') or [])]
+        self.support_points = support
+        self.relay_point = self._snap(
+            stations.get('relay') or self.key_point)[0]
+
+        # ---- 观察采样：固定点集，覆盖统计可复现（与封控同口径）----
+        ring = float(p['observation_ring_m'] or max(10.0,
+                                                   self.sensor_radius * 0.55))
+        self.observation_ring_m = ring
+        self.samples = geom.observation_ring(self.key_point, ring,
+                                             int(p['observation_samples']))
+        self.samples += geom.approach_points(self.key_point, self.threats, ring, 1)
+        self.post_samples = {}
+        for position in self.positions:
+            threat = self._threat_of_position(position)
+            self.post_samples[position['id']] = geom.approach_points(
+                self.key_point,
+                [dict(bearing_deg=position['facing_deg'],
+                      width_deg=(threat or {}).get('width_deg', 60.0))],
+                ring, 3)
+
+        # ---- 分工 ----
+        self.lost_pids = set()
+        self.post_owner = {}
+        self.post_of_pid = {}
+        self.role = {}
+        self._assign_roles()
+        self.on_post = {}
+
+        # ---- 过程记账 ----
+        self.control_established_at = None
+        self.control_released_at = None
+        self.hold_elapsed = 0.0
+        self.control_time = 0.0
+        self.interrupt_time = 0.0
+        self.under_s = 0.0
+        self.control_lost_at = None
+        self.interruption_open = False
+        self.coverage_sum = 0.0
+        self.coverage_t = 0.0
+        self.gap_run = 0.0
+        self.gap_logged = False
+        self.gap_total = 0.0
+        self.gap_max = 0.0
+        self.gaps = []
+        self.post_obs_run = {key: 0.0 for key in self.post_ids}
+        self.post_obs_best = {key: 0.0 for key in self.post_ids}
+        self.occupancy = []            # 在位甘特：post_id/pid/enter_s/leave_s
+        self._open_intervals = {}
+        self.handover = None
+        self.handover_list = []
+        self.relief_done = 0
+        self.relief_cursor = 0
+        self.relief_skipped = 0
+        self.reinforce = None
+        self.reinforce_list = []
+        self.enemy_index = 0
+        self.enemy_events = [dict(item) for item in (p.get('enemy_events') or [])]
+        self.effects = []
+        self.suppressed = set()
+        self.counts = dict(attacks=0, defended=0, repelled=0, breaches=0,
+                           counter_attacks=0, denied=0, post_lost=0)
+        self.withdraw_started_at = None
+        self.withdraw_target = None
+        self.withdraw_deadline = None
+        self.withdraw_reason = None
+        self.withdraw_timed_out = False
+        self.timeline = []
+        self.verdict = None
+        self._last_coverage = 0.0
+        self.metrics.update(
+            key_point=[round(v, 2) for v in self.key_point],
+            positions=[dict(item) for item in self.positions],
+            min_on_post=self.min_on_post,
+            hold_criteria=self.criteria,
+            hold_criteria_label=HL_CRITERIA_LABELS[self.criteria],
+            sensor_radius_m=self.sensor_radius,
+            observation_ring_m=self.observation_ring_m,
+            observation_samples=len(self.samples),
+            threats=[dict(item) for item in self.threats],
+            role_counts=dict(p.get('role_counts') or {}),
+            scope=HL_SCOPE_NOTE,
+        )
+        self.set_phase('机动')
+
+    # ---------------- 工具 ----------------
+    def _normalize_policy(self):
+        """把 4.1 的嵌套策略（relief / reinforce / withdraw）摊平成行为参数。
+
+        4.1 里这三项是 ``{interval_s, handover_tol_m, ...}`` 形式的字典，
+        直接下发即可；行为层内部统一用扁平键，避免"字典给了但没生效"这类
+        静默失效（轮换没跑、增援阈值没读，从产物上看不出来）。
+        """
+        p = self.params
+        relief = dict(p.get('relief') or {})
+        p['relief_interval_s'] = float(relief.get('interval_s')
+                                       or p.get('relief_interval_s') or 0.0)
+        p['relief_cycles'] = int(relief.get('relief_cycles')
+                                 or p.get('relief_cycles') or 0)
+        p['handover_tol_m'] = float(relief.get('handover_tol_m')
+                                    or p.get('handover_tol_m') or 3.0)
+        p['swap_requires_arrival'] = bool(relief.get(
+            'swap_requires_arrival', p.get('swap_requires_arrival', True)))
+        reinforce = dict(p.get('reinforce') or {})
+        p['reinforce_trigger'] = str(reinforce.get('trigger')
+                                     or p.get('reinforce_trigger')
+                                     or 'position_lost')
+        p['reinforce_ratio'] = float(reinforce.get('enemy_ratio')
+                                     or p.get('reinforce_ratio') or 1.5)
+        p['reinforce_arrive_within_s'] = float(
+            reinforce.get('arrive_within_s')
+            or p.get('reinforce_arrive_within_s') or 60.0)
+        withdraw = dict(p.get('withdraw') or {})
+        p['withdraw_allowed'] = bool(withdraw.get('allowed',
+                                                  p.get('withdraw_allowed')))
+        p['withdraw_route'] = [list(point) for point in
+                               (withdraw.get('route') or p.get('withdraw_route')
+                                or [])]
+        p['withdraw_deadline_s'] = float(withdraw.get('deadline_s')
+                                        or p.get('withdraw_deadline_s') or 30.0)
+
+    def _snap(self, point, max_radius=6.0):
+        """阵位点若落在静态障碍里，吸附到最近可通行点（吸附距离进产物）。"""
+        nav = getattr(self, 'nav', None)
+        try:
+            snapped, offset = nav.nearest_free((float(point[0]), float(point[1])),
+                                               max_radius=max_radius)
+            return [round(float(snapped[0]), 3), round(float(snapped[1]), 3)], offset
+        except Exception:      # noqa: BLE001  吸附失败就用原点，交回按原样执行
+            return [float(point[0]), float(point[1])], 0.0
+
+    def _default_reserve(self):
+        threats = self.threats
+        mean = (sum(float(item.get('bearing_deg', 0.0)) for item in threats)
+                / len(threats)) if threats else 180.0
+        back = geom.compass_vector((mean + 180.0) % 360.0)
+        offset = max(10.0, float(self.params.get('reserve_standoff_m')
+                                 or self.params.get('post_radius_m') or 30.0))
+        return [self.key_point[0] + back[0] * offset,
+                self.key_point[1] + back[1] * offset]
+
+    def _threat_of_position(self, position):
+        """阵位朝向最接近的威胁方向（阵位责任扇区）。"""
+        if not self.threats:
+            return None
+        facing = float(position.get('facing_deg') or 0.0)
+        return min(self.threats, key=lambda item: geom.angle_gap_deg(
+            float(item.get('bearing_deg', 0.0)), facing))
+
+    def _assign_roles(self):
+        """把平台分到 阵位 / 预备队 / 支援 / 中继。
+
+        优先用计划下发的角色（``roles[pid]``，如 ``post:P2``）；角色缺失或
+        指向不存在的阵位时才按"空阵位 → 预备队"补位。执行层不擅自把
+        "守 P2"改成"守 P1"。
+        """
+        pids = list(self.pids)
+        declared = {pid: str(role) for pid, role in
+                    (self.params.get('roles') or {}).items() if pid in pids}
+        free = []
+        for pid in pids:
+            kind, _, detail = declared.get(pid, '').partition(':')
+            if kind == 'post' and detail in self.post_point \
+                    and detail not in self.post_owner:
+                self.post_owner[detail] = pid
+                self.post_of_pid[pid] = detail
+                self.role[pid] = 'post:%s' % detail
+            elif kind in ('reserve', 'support', 'relay'):
+                self.role[pid] = declared[pid]
+            else:
+                free.append(pid)
+        for post_id in self.post_ids:
+            if post_id in self.post_owner or not free:
+                continue
+            pid = free.pop(0)
+            self.post_owner[post_id] = pid
+            self.post_of_pid[pid] = post_id
+            self.role[pid] = 'post:%s' % post_id
+        for pid in free:
+            self.role[pid] = 'reserve:standby'
+
+    def _role_kind(self, pid):
+        return str(self.role.get(pid, '')).split(':')[0]
+
+    def _role_label(self, pid):
+        return self.role.get(pid, '未分工')
+
+    def _station_of(self, pid):
+        post_id = self.post_of_pid.get(pid)
+        if post_id:
+            return list(self.post_point[post_id])
+        kind = self._role_kind(pid)
+        if kind == 'support':
+            detail = str(self.role.get(pid, '')).split(':')[1] if ':' in \
+                str(self.role.get(pid, '')) else ''
+            try:
+                index = max(1, int(detail.lstrip('S'))) - 1
+            except ValueError:
+                index = 0
+            spots = self.support_points or [self.reserve_point]
+            return list(spots[index % len(spots)])
+        if kind == 'relay':
+            return list(self.relay_point)
+        return list(self.reserve_point)
+
+    def _reserve_pid(self):
+        for pid in self.pids:
+            if pid in self.lost_pids:
+                continue
+            if self._role_kind(pid) == 'reserve':
+                return pid
+        return None
+
+    def _alive(self, pid):
+        return pid is not None and pid not in self.lost_pids
+
+    # ---------------- 事件与时间线 ----------------
+    def _log(self, t, event, **fields):
+        row = dict(t=round(t, 2), event=event, **fields)
+        self.timeline.append(row)
+        return row
+
+    def report_loss(self, pid, t):
+        """执行期成员失联：不再计在位，并把该阵位留空（空窗照实记账）。"""
+        if pid in self.lost_pids:
+            return
+        self.lost_pids.add(pid)
+        self.metrics['our_losses'] = len(self.lost_pids)
+        post_id = self.post_of_pid.pop(pid, None)
+        if post_id and self.post_owner.get(post_id) == pid:
+            self.post_owner[post_id] = None
+        self.emit('member_lost', pid=pid, role=self._role_label(pid),
+                  post_id=post_id)
+        self._log(t, 'member_lost', pid=pid, post_id=post_id)
+
+    # ---------------- 主循环 ----------------
+    def step(self, poses, t, dt):
+        self.t = t
+        self._refresh_on_post(poses)
+        self._track_posts(t)
+        self._track_control(t, dt)
+        self._track_observation(poses, t, dt)
+        if not self.done:
+            self._step_enemy(poses, t)
+            self._step_relief_schedule(t)
+            self._step_handover(poses, t)
+            self._step_reinforce(poses, t)
+            self._step_end(poses, t)
+        return dict(targets=self._targets_for(), phase=self.phase,
+                    done=self.done)
+
+    def _refresh_on_post(self, poses):
+        """在位判定：按"自己阵位的半径"判，而不是"离作业点 ≤ ε"。"""
+        self.on_post = {}
+        for pid in self.pids:
+            if pid in self.lost_pids:
+                self.on_post[pid] = False
+                continue
+            post_id = self.post_of_pid.get(pid)
+            if not post_id:
+                self.on_post[pid] = False
+                continue
+            self.on_post[pid] = distance(
+                tuple(poses[pid])[:2], tuple(self.post_point[post_id])) \
+                <= self.post_tolerance
+
+    def manned_posts(self):
+        """当前有效占位的阵位清单（有人、在位、且未被压制）。"""
+        manned = []
+        for post_id in self.post_ids:
+            pid = self.post_owner.get(post_id)
+            if not self._alive(pid):
+                continue
+            if not self.on_post.get(pid):
+                continue
+            if post_id in self.suppressed:
+                continue
+            manned.append(post_id)
+        return manned
+
+    def _track_posts(self, t):
+        """阵位占用区间（甘特图数据源）：换人就闭合旧区间、打开新区间。"""
+        for post_id in self.post_ids:
+            pid = self.post_owner.get(post_id)
+            if not self._alive(pid) or not self.on_post.get(pid):
+                pid = None
+            current = self._open_intervals.get(post_id)
+            if current and current['pid'] == pid:
+                continue
+            if current:
+                current['leave_s'] = round(t, 2)
+                current['duration_s'] = round(t - current['enter_s'], 2)
+                self._open_intervals.pop(post_id, None)
+            if pid is not None:
+                row = dict(post_id=post_id, pid=pid,
+                           enter_s=round(t, 2), leave_s=None,
+                           duration_s=None)
+                self._open_intervals[post_id] = row
+                self.occupancy.append(row)
+
+    def _track_control(self, t, dt):
+        p = self.params
+        manned = self.manned_posts()
+        count = len(manned)
+        established = self.control_established_at is not None
+        active = (established and self.withdraw_started_at is None
+                  and self.hold_elapsed < float(p['duration_s']))
+        if not established:
+            if count >= self.min_on_post:
+                self.control_established_at = round(t, 2)
+                self.set_phase('坚守在位')
+                self.emit('control_established', posts=count,
+                          min_on_post=self.min_on_post,
+                          manned=list(manned))
+                self._log(t, 'control_established', posts=count,
+                          min_on_post=self.min_on_post)
+            return
+        if not active:
+            return
+        self.hold_elapsed += dt
+        if count >= self.min_on_post:
+            self.control_time += dt
+            self.under_s = 0.0
+            if self.interruption_open:
+                self.interruption_open = False
+                self.emit('control_restored', posts=count)
+                self._log(t, 'control_restored', posts=count)
+        else:
+            self.under_s += dt
+            self.interrupt_time += dt
+            if not self.interruption_open:
+                self.interruption_open = True
+                self.emit('control_interrupted', posts=count,
+                          min_on_post=self.min_on_post)
+                self._log(t, 'control_interrupted', posts=count)
+            if (self.control_lost_at is None
+                    and self.under_s > float(p['control_lost_after_s'])):
+                self.control_lost_at = round(t, 2)
+                self.emit('control_lost', posts=count,
+                          under_s=round(self.under_s, 1))
+                self._log(t, 'control_lost', posts=count)
+
+    def _track_observation(self, poses, t, dt):
+        p = self.params
+        observers = []
+        for post_id in self.manned_posts():
+            pid = self.post_owner.get(post_id)
+            observers.append(tuple(poses[pid])[:2])
+        coverage = geom.coverage_ratio(self.samples, observers,
+                                       self.sensor_radius)
+        self._last_coverage = coverage
+        if self.control_established_at is not None \
+                and self.withdraw_started_at is None:
+            self.coverage_sum += coverage * dt
+            self.coverage_t += dt
+        # 每个阵位对"自己责任扇区"的连续观察时长（抽象效果判定的过程证据）
+        for position in self.positions:
+            post_id = position['id']
+            pid = self.post_owner.get(post_id)
+            observed = (self._alive(pid) and self.on_post.get(pid)
+                        and post_id not in self.suppressed
+                        and geom.coverage_ratio(
+                            self.post_samples[post_id],
+                            [tuple(poses[pid])[:2]], self.sensor_radius) > 0)
+            if observed:
+                self.post_obs_run[post_id] += dt
+                self.post_obs_best[post_id] = max(
+                    self.post_obs_best[post_id], self.post_obs_run[post_id])
+            else:
+                self.post_obs_run[post_id] = 0.0
+        if self.control_established_at is None or self.withdraw_started_at:
+            return
+        allowance = float(p['observation_gap_max_s'])
+        if coverage <= 1e-9:
+            self.gap_run += dt
+            if self.gap_run > allowance and not self.gap_logged:
+                self.gap_logged = True
+                self.emit('observation_gap', gap_s=round(self.gap_run, 1),
+                          allowance_s=allowance, posts=len(observers))
+                self._log(t, 'observation_gap', gap_s=round(self.gap_run, 1))
+        else:
+            if self.gap_run > 0:
+                self.gap_total += self.gap_run
+                self.gap_max = max(self.gap_max, self.gap_run)
+                self.gaps.append(dict(start_s=round(t - self.gap_run, 2),
+                                      end_s=round(t, 2),
+                                      duration_s=round(self.gap_run, 1)))
+                if self.gap_logged:
+                    self.emit('observation_restored',
+                              gap_s=round(self.gap_run, 1))
+                    self._log(t, 'observation_restored',
+                              gap_s=round(self.gap_run, 1))
+            self.gap_run = 0.0
+            self.gap_logged = False
+
+    # ---------------- 敌方进攻（输入事件 → 抽象效果） ----------------
+    def _bearing_of_direction(self, direction):
+        """敌方来向：优先按威胁方向 id 查角度，其次按数值方位角。"""
+        text = str(direction if direction is not None else '').strip()
+        for threat in self.threats:
+            if str(threat.get('id')) == text:
+                return float(threat.get('bearing_deg', 0.0))
+        try:
+            return float(text) % 360.0
+        except (TypeError, ValueError):
+            return float(self.threats[0].get('bearing_deg', 0.0)) \
+                if self.threats else 0.0
+
+    def _threatened_post(self, bearing):
+        if not self.positions:
+            return None
+        return min(self.positions, key=lambda item: geom.angle_gap_deg(
+            item['facing_deg'], bearing))['id']
+
+    def _step_enemy(self, poses, t):
+        for event in self.enemy_events[self.enemy_index:]:
+            if t < float(event.get('t_s', 0) or 0):
+                break
+            self.enemy_index += 1
+            self._handle_enemy(event, poses, t)
+
+    def _handle_enemy(self, event, poses, t):
+        kind = str(event.get('kind') or 'probe')
+        try:
+            ratio = float(event.get('ratio') or 0.0)
+        except (TypeError, ValueError):
+            ratio = 0.0
+        bearing = self._bearing_of_direction(event.get('direction'))
+        post_id = self._threatened_post(bearing)
+        pid = self.post_owner.get(post_id)
+        manned = self._alive(pid) and bool(self.on_post.get(pid))
+        self.counts['attacks'] += 1
+        self.emit('enemy_attack', attack_kind=kind, post_id=post_id,
+                  bearing_deg=round(bearing, 1), ratio=ratio,
+                  manned=manned,
+                  direction=str(event.get('direction') or ''))
+        self._log(t, 'enemy_attack', attack_kind=kind, post_id=post_id,
+                  ratio=ratio, manned=manned)
+        if not manned:
+            self.counts['post_lost'] += 1
+            self.counts['breaches'] += 1
+            self._suppress_post(post_id, t)
+            self.emit('post_lost', post_id=post_id, reason='进攻时该阵位无人')
+            self._log(t, 'post_lost', post_id=post_id)
+        else:
+            self.counts['defended'] += 1
+            self._counter_attack(post_id, pid, bearing, t)
+        if kind == 'assault' and ratio >= float(self.params['reinforce_ratio']):
+            self._trigger_reinforce(post_id, poses, t, 'enemy_ratio')
+        elif self.params.get('reinforce_trigger') == 'position_lost' and not manned:
+            self._trigger_reinforce(post_id, poses, t, 'position_lost')
+
+    def _counter_attack(self, post_id, pid, bearing, t):
+        """阵内反击/火力控制可用性：只出抽象效果，判定走桩，写 verified=false。"""
+        p = self.params
+        policy = dict(p.get('counter_attack') or {})
+        authorized = bool(policy.get('authorized'))
+        max_range = float(policy.get('max_range_m') or 0.0)
+        if not authorized:
+            self.counts['denied'] += 1
+            self.emit('counter_attack_denied', post_id=post_id, pid=pid,
+                      reason='无阵内反击授权')
+            self._log(t, 'counter_attack_denied', post_id=post_id, pid=pid)
+            self._suppress_post(post_id, t)
+            return
+        approach = geom.approach_points(
+            self.key_point, [dict(bearing_deg=bearing)], self.observation_ring_m, 1)
+        range_m = (distance(self.post_point[post_id],
+                            approach[0]['point']) if approach else 0.0)
+        if max_range > 0 and range_m > max_range:
+            self.counts['denied'] += 1
+            self.emit('counter_attack_out_of_range', post_id=post_id, pid=pid,
+                      range_m=round(range_m, 1), max_range_m=max_range)
+            self._log(t, 'counter_attack_out_of_range', post_id=post_id,
+                      pid=pid, range_m=round(range_m, 1))
+            return
+        self.counts['counter_attacks'] += 1
+        required = float((p.get('effect') or {}).get('required_duration', 10.0))
+        evidence = dict(
+            window=[round(t, 2), round(t + float(p['duration_s']), 2)],
+            effect_achieved_t=round(t, 2),
+            longest_suppression_s=self.post_obs_best[post_id],
+            post_id=post_id,
+            bearing_deg=round(bearing, 1),
+            positions=list(self.post_ids),
+        )
+        ref = dict(job_id=self.job_id, target_id='%s/D%s' % (post_id, int(bearing)),
+                   attempt=1, effect_kind='suppress',
+                   params=dict(required_duration=required))
+        result = self.adjudicator.adjudicate(ref, evidence)
+        self.effects.append(dict(
+            post_id=post_id, pid=pid, effect_kind='suppress',
+            overall=result['overall'], verified=result['verified'],
+            adjudicator=result['adjudicator'], note=result['note'],
+            items=[dict(item) for item in result['items']],
+            at_s=round(t, 2)))
+        self.emit('counter_attack', post_id=post_id, pid=pid,
+                  bearing_deg=round(bearing, 1), range_m=round(range_m, 1))
+        self._log(t, 'counter_attack', post_id=post_id, pid=pid,
+                  overall=result['overall'])
+        self.emit('effect_adjudicated', effect_kind='suppress',
+                  overall=result['overall'], verified=result['verified'],
+                  adjudicator=result['adjudicator'], note=result['note'],
+                  items=[dict(item) for item in result['items']],
+                  post_id=post_id, target_id=ref['target_id'])
+        if result['overall'] == 'succeeded':
+            self.counts['repelled'] += 1
+            self.emit('attack_repelled', post_id=post_id, pid=pid,
+                      verified=False, adjudicator=result['adjudicator'],
+                      note=result['note'])
+            self._log(t, 'attack_repelled', post_id=post_id)
+        else:
+            self.emit('attack_unresolved', post_id=post_id,
+                      overall=result['overall'], verified=False)
+            self._log(t, 'attack_unresolved', post_id=post_id,
+                      overall=result['overall'])
+            self._suppress_post(post_id, t)
+
+    def _suppress_post(self, post_id, t=None):
+        """压制状态：同一阵位只记一条 ``post_suppressed``（恢复后才重新记）。"""
+        if post_id in self.suppressed:
+            return
+        self.suppressed.add(post_id)
+        self.emit('post_suppressed', post_id=post_id)
+        self._log(self.t if t is None else t, 'post_suppressed',
+                  post_id=post_id)
+
+    # ---------------- 轮换/接替 ----------------
+    def _step_handover(self, poses, t):
+        handover = self.handover
+        if not handover:
+            return
+        incoming = handover['incoming']
+        post_id = handover['post_id']
+        if not self._alive(incoming):
+            self.emit('handover_aborted', post_id=post_id, incoming=incoming,
+                      reason='接替者失联')
+            self._log(t, 'handover_aborted', post_id=post_id)
+            self.handover = None
+            return
+        if distance(poses[incoming], self.post_point[post_id]) <= self.handover_tol:
+            self._complete_handover(t)
+            return
+        if t - handover['started_t'] > float(self.params['handover_timeout_s']):
+            self.emit('handover_timeout', post_id=post_id, incoming=incoming,
+                      elapsed_s=round(t - handover['started_t'], 1))
+            self._log(t, 'handover_timeout', post_id=post_id)
+            self.handover = None
+
+    def _complete_handover(self, t):
+        handover = self.handover
+        post_id = handover['post_id']
+        incoming = handover['incoming']
+        outgoing = self.post_owner.get(post_id)
+        self.post_owner[post_id] = incoming
+        self.post_of_pid[incoming] = post_id
+        self.role[incoming] = 'post:%s' % post_id
+        if self._alive(outgoing) and outgoing != incoming:
+            self.role[outgoing] = 'reserve:standby'
+            self.post_of_pid.pop(outgoing, None)
+        arrival = round(t - handover['started_t'], 2)
+        compliant = not handover.get('early_release', False)
+        self.handover_list.append(dict(
+            post_id=post_id, incoming=incoming, outgoing=outgoing,
+            started_s=handover['started_t'], completed_s=round(t, 2),
+            arrival_s=arrival, arrival_before_departure=compliant))
+        self.emit('handover_complete', post_id=post_id, incoming=incoming,
+                  outgoing=outgoing, arrival_s=arrival,
+                  arrival_before_departure=compliant)
+        self._log(t, 'handover_complete', post_id=post_id, incoming=incoming,
+                  outgoing=outgoing, arrival_s=arrival)
+        self.relief_done += 1
+        self.relief_cursor += 1
+        self.handover = None
+        self.set_phase('坚守在位')
+
+    def _step_relief_schedule(self, t):
+        p = self.params
+        interval = float(p['relief_interval_s'] or 0.0)
+        cycles = int(p['relief_cycles'] or 0)
+        if interval <= 0 or cycles <= 0:
+            return
+        if self.control_established_at is None or self.handover \
+                or self.reinforce or self.relief_done >= cycles:
+            return
+        if self.withdraw_started_at is not None or self.control_lost_at is not None:
+            return
+        due = self.control_established_at + interval * (self.relief_done + 1)
+        if t < due:
+            return
+        incoming = self._reserve_pid()
+        if incoming is None:
+            self.relief_skipped += 1
+            self.emit('relief_skipped', reason='无可用预备队',
+                      plan_t=round(due, 1))
+            self._log(t, 'relief_skipped', reason='无可用预备队')
+            self.relief_done += 1
+            return
+        post_id = self.post_ids[self.relief_cursor % len(self.post_ids)]
+        outgoing = self.post_owner.get(post_id)
+        if not self._alive(outgoing):
+            self.relief_cursor += 1
+            return
+        self.handover = dict(incoming=incoming, outgoing=outgoing,
+                             post_id=post_id, started_t=round(t, 2))
+        # 接替者到位才撤：先让出接替者赶路，原占位者继续在岗。
+        early = not self.swap_requires_arrival
+        if early:
+            self.handover['early_release'] = True
+            self.post_owner[post_id] = None
+            self.post_of_pid.pop(outgoing, None)
+            self.role[outgoing] = 'reserve:standby'
+        self.emit('handover_start', post_id=post_id, incoming=incoming,
+                  outgoing=outgoing, swap_requires_arrival=self.swap_requires_arrival,
+                  plan_t=round(due, 1))
+        self._log(t, 'handover_start', post_id=post_id, incoming=incoming,
+                  outgoing=outgoing)
+        self.set_phase('接替')
+
+    # ---------------- 增援 ----------------
+    def _trigger_reinforce(self, post_id, poses, t, reason):
+        if self.reinforce is not None or post_id is None:
+            return
+        policy = dict(self.params.get('reinforce') or {})
+        arrive_within = float(policy.get('arrive_within_s')
+                              or self.params['reinforce_arrive_within_s'])
+        pid = self._pick_reinforce_unit(post_id, poses)
+        if pid is None:
+            self.emit('reinforce_unavailable', post_id=post_id, reason=reason)
+            self._log(t, 'reinforce_unavailable', post_id=post_id)
+            return
+        self.reinforce = dict(pid=pid, post_id=post_id, reason=reason,
+                              started_t=round(t, 2),
+                              arrive_within=arrive_within,
+                              timeout_logged=False)
+        self.emit('reinforce_triggered', post_id=post_id, pid=pid,
+                  reason=reason, arrive_within_s=arrive_within)
+        self._log(t, 'reinforce_triggered', post_id=post_id, pid=pid,
+                  reason=reason)
+        self.set_phase('增援')
+
+    def _pick_reinforce_unit(self, post_id, poses):
+        """选增援台：预备队优先，其次离该阵位最近的可用平台。"""
+        candidates = []
+        for pid in self.pids:
+            if not self._alive(pid):
+                continue
+            if self.post_of_pid.get(pid) == post_id:
+                continue
+            if self.handover and pid == self.handover.get('incoming'):
+                continue
+            candidates.append(pid)
+        if not candidates:
+            return None
+        reserve = [pid for pid in candidates
+                   if self._role_kind(pid) == 'reserve']
+        pool = reserve or candidates
+        return min(pool, key=lambda pid: distance(poses[pid],
+                                                  self.post_point[post_id]))
+
+    def _step_reinforce(self, poses, t):
+        pending = self.reinforce
+        if not pending:
+            return
+        pid = pending['pid']
+        post_id = pending['post_id']
+        if not self._alive(pid):
+            self.emit('reinforce_aborted', post_id=post_id, pid=pid)
+            self._log(t, 'reinforce_aborted', post_id=post_id, pid=pid)
+            self.reinforce = None
+            return
+        if distance(poses[pid], self.post_point[post_id]) <= self.handover_tol:
+            arrival = round(t - pending['started_t'], 2)
+            on_time = arrival <= pending['arrive_within']
+            previous = self.post_owner.get(post_id)
+            self.post_owner[post_id] = pid
+            self.post_of_pid[pid] = post_id
+            self.role[pid] = 'post:%s' % post_id
+            if self._alive(previous) and previous != pid:
+                self.role[previous] = 'reserve:standby'
+                self.post_of_pid.pop(previous, None)
+            self.reinforce_list.append(dict(
+                post_id=post_id, pid=pid, reason=pending['reason'],
+                triggered_s=pending['started_t'], arrived_s=round(t, 2),
+                arrival_s=arrival, on_time=on_time))
+            self.emit('reinforce_arrived', post_id=post_id, pid=pid,
+                      arrival_s=arrival, on_time=on_time,
+                      arrive_within_s=pending['arrive_within'])
+            self._log(t, 'reinforce_arrived', post_id=post_id, pid=pid,
+                      arrival_s=arrival, on_time=on_time)
+            if not on_time:
+                self.emit('reinforce_timeout', post_id=post_id, pid=pid,
+                          arrival_s=arrival,
+                          arrive_within_s=pending['arrive_within'])
+                self._log(t, 'reinforce_timeout', post_id=post_id, pid=pid)
+            self.reinforce = None
+            if post_id in self.suppressed:
+                self.suppressed.discard(post_id)
+                self.emit('post_restored', post_id=post_id)
+                self._log(t, 'post_restored', post_id=post_id)
+            self.set_phase('坚守在位')
+            return
+        if (t - pending['started_t'] > pending['arrive_within']
+                and not pending['timeout_logged']):
+            pending['timeout_logged'] = True
+            self.emit('reinforce_timeout', post_id=post_id, pid=pid,
+                      elapsed_s=round(t - pending['started_t'], 1),
+                      arrive_within_s=pending['arrive_within'])
+            self._log(t, 'reinforce_timeout', post_id=post_id, pid=pid)
+
+    # ---------------- 撤离与结算 ----------------
+    def _step_end(self, poses, t):
+        if self.withdraw_started_at is not None:
+            alive = [pid for pid in self.pids if pid not in self.lost_pids]
+            arrived = all(distance(poses[pid], self.withdraw_target)
+                          <= self.arrive_tol for pid in alive)
+            if not alive or arrived:
+                self.emit('withdrawn',
+                          elapsed_s=round(t - self.withdraw_started_at, 2),
+                          target=[round(v, 2) for v in self.withdraw_target],
+                          reason=self.withdraw_reason)
+                self._log(t, 'withdrawn', reason=self.withdraw_reason)
+                self._finalize(t, 'withdrawn')
+            elif t > self.withdraw_deadline:
+                self.withdraw_timed_out = True
+                self.emit('withdraw_timeout',
+                          elapsed_s=round(t - self.withdraw_started_at, 2),
+                          deadline_s=round(self.withdraw_deadline
+                                           - self.withdraw_started_at, 1))
+                self._log(t, 'withdraw_timeout')
+                self._finalize(t, 'withdraw_timeout')
+            return
+        if self.control_lost_at is not None:
+            self._begin_withdraw(t, 'control_lost')
+            return
+        if (self.control_established_at is not None
+                and t - self.control_established_at
+                >= float(self.params['duration_s'])):
+            self._begin_withdraw(t, 'hold_period_end')
+            return
+        if t > float(self.params['max_steps']):
+            self._finalize(t, 'timeout', timeout=True)
+
+    def _begin_withdraw(self, t, reason):
+        p = self.params
+        allowed = bool(p['withdraw_allowed'])
+        if not allowed:
+            self._finalize(t, 'control_lost' if reason == 'control_lost'
+                           else 'hold_period_end')
+            return
+        route = p.get('withdraw_route') or []
+        target = route[-1] if route else (p.get('assembly_point')
+                                          or self.key_point)
+        deadline = float(p['withdraw_deadline_s'] or 30.0)
+        self.withdraw_target = [float(target[0]), float(target[1])]
+        self.withdraw_started_at = round(t, 2)
+        self.withdraw_deadline = t + deadline
+        self.withdraw_reason = reason
+        self.set_phase('撤离')
+        self.emit('withdraw_started', reason=reason,
+                  target=[round(v, 2) for v in self.withdraw_target],
+                  deadline_s=deadline, allowed=True)
+        self._log(t, 'withdraw_started', reason=reason)
+
+    def _targets_for(self):
+        targets = {}
+        for pid in self.pids:
+            if pid in self.lost_pids:
+                continue
+            if self.withdraw_started_at is not None:
+                targets[pid] = list(self.withdraw_target)
+                continue
+            if self.handover and pid == self.handover['incoming']:
+                targets[pid] = list(self.post_point[self.handover['post_id']])
+                continue
+            if self.handover and pid == self.handover['outgoing'] \
+                    and not self.handover.get('early_release'):
+                # 接替者未到位前不得撤：原占位者仍守本阵位。
+                targets[pid] = list(self.post_point[self.handover['post_id']])
+                continue
+            if self.reinforce and pid == self.reinforce['pid']:
+                targets[pid] = list(self.post_point[self.reinforce['post_id']])
+                continue
+            targets[pid] = self._station_of(pid)
+        return targets
+
+    # ---------------- 结算 ----------------
+    def _finalize(self, t, reason, timeout=False):
+        if self.done:
+            return
+        if self.handover:
+            self.handover = None
+        self.control_released_at = round(t, 2)
+        for row in self._open_intervals.values():
+            row['leave_s'] = round(t, 2)
+            row['duration_s'] = round(t - row['enter_s'], 2)
+        self._open_intervals = {}
+        hold_span = max(self.hold_elapsed, 1e-6)
+        metrics = dict(
+            key_point=[round(v, 2) for v in self.key_point],
+            control_established_at_s=self.control_established_at,
+            control_released_at_s=self.control_released_at,
+            control_lost_at_s=self.control_lost_at,
+            hold_span_s=round(self.hold_elapsed, 1),
+            control_hold_ratio=round(self.control_time / hold_span, 4),
+            control_time_s=round(self.control_time, 1),
+            control_interruption_s=round(self.interrupt_time, 1),
+            observation_coverage_mean=round(
+                self.coverage_sum / max(self.coverage_t, 1e-9), 4),
+            observation_gap_max_s=round(self.gap_max, 1),
+            observation_gap_total_s=round(self.gap_total, 1),
+            observation_gaps=[dict(item) for item in self.gaps],
+            min_on_post=self.min_on_post,
+            hold_criteria=self.criteria,
+            hold_criteria_label=HL_CRITERIA_LABELS[self.criteria],
+            relief_count=len(self.handover_list),
+            relief_skipped=self.relief_skipped,
+            handovers=[dict(item) for item in self.handover_list],
+            reinforcement_count=len(self.reinforce_list),
+            reinforcements=[dict(item) for item in self.reinforce_list],
+            enemy_attacks=self.counts['attacks'],
+            enemy_breaches=self.counts['breaches'],
+            defended=self.counts['defended'],
+            repelled=self.counts['repelled'],
+            counter_attacks=self.counts['counter_attacks'],
+            counter_attack_denied=self.counts['denied'],
+            our_losses=len(self.lost_pids),
+            withdrawals=(1 if self.withdraw_started_at is not None else 0),
+            withdraw_timed_out=self.withdraw_timed_out,
+            positions=[self._position_snapshot(item) for item in self.positions],
+            effects=[dict(item) for item in self.effects],
+            timeline=[dict(row) for row in self.timeline],
+            scope=HL_SCOPE_NOTE,
+        )
+        result = self._verdict(metrics, timeout=timeout, reason=reason)
+        metrics['verdict'] = result
+        self.metrics.update(metrics)
+        self.verdict = result
+        self._log(t, 'hold_result', verdict=result['verdict'],
+                  reason=result['reason'])
+        summary = {k: v for k, v in metrics.items()
+                   if k not in ('positions', 'timeline', 'effects')}
+        self.emit('hold_result', verdict=result['verdict'],
+                  reason=result['reason'], items=result['items'],
+                  metrics=summary, scope=HL_SCOPE_NOTE,
+                  positions=[self._position_snapshot(item)
+                             for item in self.positions],
+                  handovers=[dict(item) for item in self.handover_list],
+                  reinforcements=[dict(item) for item in self.reinforce_list],
+                  effects=[dict(item) for item in self.effects],
+                  timeline=[dict(row) for row in self.timeline])
+        self._finish('hold_timeout' if timeout else 'hold_done')
+
+    def _position_snapshot(self, position):
+        post_id = position['id']
+        rows = [row for row in self.occupancy if row['post_id'] == post_id]
+        occupied = sum((row['duration_s'] or 0.0) for row in rows)
+        span = max(1e-6, self.hold_elapsed or self.t or 1.0)
+        return dict(id=post_id,
+                    point=[round(v, 2) for v in position['point']],
+                    facing_deg=round(position['facing_deg'], 1),
+                    snap=position['snap'],
+                    min_units=position['min_units'],
+                    occupied_s=round(occupied, 1),
+                    occupancy_ratio=round(min(1.0, occupied / span), 4),
+                    occupants=[dict(row) for row in rows])
+
+    def _verdict(self, metrics, timeout=False, reason=''):
+        p = self.params
+        items = []
+
+        def item(item_id, label, value, target, ok, required=True, note=None):
+            return dict(id=item_id, label=label, value=value, target=target,
+                        ok=bool(ok), required=required, note=note)
+
+        established = self.control_established_at is not None
+        ratio_need = float(p['min_hold_ratio'])
+        items.append(item('control_hold_ratio', '控制保持率（控制在位时间/坚守时段）',
+                          metrics['control_hold_ratio'], ratio_need,
+                          metrics['control_hold_ratio'] >= ratio_need,
+                          required=(self.criteria == 'quantity')))
+        items.append(item('control_interruption_s', '控制中断时间(s)',
+                          metrics['control_interruption_s'],
+                          float(p['max_control_interruption_s']),
+                          metrics['control_interruption_s']
+                          <= float(p['max_control_interruption_s'])))
+        gap_need = float(p['observation_gap_max_s'])
+        items.append(item('observation_gap_max_s', '最长观察中断(s)',
+                          metrics['observation_gap_max_s'], gap_need,
+                          metrics['observation_gap_max_s'] <= gap_need,
+                          required=(self.criteria == 'coverage')))
+        if metrics['relief_count'] or metrics['relief_skipped']:
+            bad = [row for row in self.handover_list
+                   if not row.get('arrival_before_departure')]
+            items.append(item(
+                'relief_compliance', '接替合规（到位才撤）',
+                len(self.handover_list) - len(bad), len(self.handover_list),
+                not bad and not self.relief_skipped,
+                note=('未到位的接替 %d 次；无预备队跳过 %d 次'
+                      % (len(bad), self.relief_skipped))))
+        if metrics['reinforcement_count']:
+            late = [row for row in self.reinforce_list if not row.get('on_time')]
+            items.append(item(
+                'reinforce_arrival', '增援到达及时',
+                len(self.reinforce_list) - len(late), len(self.reinforce_list),
+                not late,
+                note='超时 %d 次' % len(late)))
+        items.append(item('enemy_breaches', '敌方突破阵位次数',
+                          metrics['enemy_breaches'], 0,
+                          metrics['enemy_breaches'] == 0))
+        if self.withdraw_started_at is not None:
+            items.append(item('withdraw_compliance', '撤离按时完成',
+                              (0 if self.withdraw_timed_out else 1), 1,
+                              not self.withdraw_timed_out))
+        items.append(item('our_losses', '我方损失台数（代价指标，非失败必要条件）',
+                          metrics['our_losses'], None, True, required=False))
+        items.append(item('effect_verified', '效果类结论待外部裁决',
+                          'pending', 'verified', False, required=False,
+                          note='桩判定·未验证：反击/压制不作战果，只作过程证据'))
+        failed = [row for row in items if row['required'] and not row['ok']]
+        if self.control_lost_at is not None:
+            verdict = 'failed'
+            verdict_reason = ('控制权丧失：有效在位数量低于下限持续 %.1f s'
+                              '（被追撤离）' % (self.under_s,))
+        elif not established:
+            verdict = 'pending'
+            verdict_reason = ('坚守时段内未建立控制（未达到 min_on_post=%d）：'
+                              '只支持"机动到位"结论' % self.min_on_post)
+        elif self.withdraw_timed_out:
+            verdict = 'failed'
+            verdict_reason = '撤离超时：未在时限内到达撤离位置'
+        elif failed:
+            verdict = 'failed'
+            verdict_reason = '；'.join(
+                '%s=%s（要求 %s）' % (row['label'], row['value'], row['target'])
+                for row in failed)
+        elif not self.counts['attacks']:
+            verdict = 'pending'
+            verdict_reason = ('本次未出现敌方进攻事件：只支持"控制维持"结论，'
+                              '不证明击退/增援能力')
+        else:
+            verdict = 'succeeded'
+            verdict_reason = (
+                '必需判据均有过程证据满足（坚守 %s s，在位 %d，判定口径%s，'
+                '敌方进攻 %d 次、突破 %d 次）'
+                % (int(metrics['hold_span_s']), self.min_on_post,
+                   HL_CRITERIA_LABELS[self.criteria], self.counts['attacks'],
+                   self.counts['breaches']))
+        return dict(verdict=verdict, reason=verdict_reason, items=items,
+                    criteria=self.criteria, settle_reason=reason,
+                    timeout=timeout,
+                    evidence='本地行为状态机 + 4.1 输入仿真的过程记录',
+                    scope=HL_SCOPE_NOTE,
+                    effects_verified=False)
+
+    # ---------------- 展示 ----------------
+    def progress_frac(self):
+        if self.done:
+            return 1.0
+        if self.control_established_at is None:
+            return 0.1 * min(1.0, self.t / 30.0)
+        span = max(float(self.params['duration_s']), 1.0)
+        elapsed = self.t - self.control_established_at
+        base = min(1.0, elapsed / span)
+        return min(0.98, 0.1 + 0.85 * base)
+
+    def debug(self):
+        return dict(
+            roles=dict(self.role),
+            post_owner={key: value for key, value in self.post_owner.items()},
+            on_post={pid: bool(v) for pid, v in self.on_post.items()},
+            manned=list(self.manned_posts()),
+            coverage=round(self._last_coverage, 3),
+            handover=(dict(self.handover) if self.handover else None),
+            reinforce=(dict(self.reinforce) if self.reinforce else None),
+            suppressed=sorted(self.suppressed),
+            counts=dict(self.counts))
+
+
+# ------------------------------------------------------------------
+# 5b. 要点坚守（历史小场景）：在位/待命轮换，接替者到位才撤
 # ------------------------------------------------------------------
 class HoldBehavior(Behavior):
     kind = 'hold'
@@ -2675,14 +3779,18 @@ BEHAVIORS = {cls.kind: cls for cls in
 def make_behavior(job, nav, pids, params=None):
     """按作业类型造行为；未知类型退回"原地作业"。
 
-    区域封控有两种几何：历史小场景的"作业点外一圈"（BlockadeBehavior）与
-    1028 的"真实封控边界"（ContainmentBehavior）。后者只在输入给了
-    ``area`` 多边形时启用，避免改变旧样例与历史回放的语义。
+    两类任务各有新旧两种几何，按输入是否带结构参数分派，旧样例不被改写：
+      * 区域封控：历史小场景"作业点外一圈"（BlockadeBehavior）与 1028 的
+        真实封控边界（ContainmentBehavior，仅当输入给了 ``area``）；
+      * 要点坚守：历史两点轮换（HoldBehavior）与 1028 的要点阵位
+        （KeepBehavior，仅当输入给了 ``positions``）。
     """
     merged = dict(job.get('_behavior') or {})
     merged.update(params or {})
     if job.get('type') == 'blockade' and merged.get('area'):
         return ContainmentBehavior(job, nav, pids, merged)
+    if job.get('type') == 'hold' and merged.get('positions'):
+        return KeepBehavior(job, nav, pids, merged)
     cls = BEHAVIORS.get(job.get('type'))
     if cls is None:
         return Behavior(job, nav, pids, merged)

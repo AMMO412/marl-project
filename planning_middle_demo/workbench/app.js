@@ -28,15 +28,27 @@ function setPage(page){state.page=page;$$('.page').forEach(x=>x.classList.toggle
 // 同一个页面与顶部运行选择，不再各自是一个独立路由，避免"换数据源才看到
 // 其它任务"这种两套口径。
 function hasContainment(){return !!(state.run&&state.run.replay&&state.run.replay.containment);}
+function hasHold(){return !!(state.run&&state.run.replay&&state.run.replay.hold);}
+// 任务专属视图（区域封控 / 要点坚守）与"全局分配"并列，共用一个运行和时钟。
+// 一个运行里有什么数据就只开放哪些页签，避免点进去看到空画布。
+function overviewView(){
+  if(state.page!=='overview')return 'map';
+  const want=state.ovView||'map';
+  if(want==='hold'&&hasHold())return 'hold';
+  if(want==='containment'&&hasContainment())return 'containment';
+  return 'map';
+}
+const OVERVIEW_BADGE={map:'全局分配',containment:'区域封控',hold:'要点坚守'};
 function applyOverviewMode(){
-  const ck=state.page==='overview'&&state.ckView&&hasContainment();
-  const mapView=$('#overview-map-view'),ckView=$('#overview-ck-view'),tabs=$('#overview-tabs');
-  if(mapView)mapView.hidden=ck;
+  const view=overviewView(),ck=view==='containment',hl=view==='hold';
+  const mapView=$('#overview-map-view'),ckView=$('#overview-ck-view'),hlView=$('#overview-hold-view'),tabs=$('#overview-tabs');
+  if(mapView)mapView.hidden=view!=='map';
   if(ckView)ckView.hidden=!ck;
-  if(tabs)tabs.hidden=!hasContainment();
-  $$('.ov-tab').forEach(b=>b.classList.toggle('active',(b.dataset.ov==='containment')===ck));
-  $('#overview-view')?.classList.toggle('active',!ck);
-  const badge=$('#view-badge');if(badge&&state.page==='overview')badge.textContent=ck?'区域封控':'全局分配';
+  if(hlView)hlView.hidden=!hl;
+  if(tabs)tabs.hidden=!(hasContainment()||hasHold());
+  $$('.ov-tab').forEach(b=>b.classList.toggle('active',b.dataset.ov===view));
+  $('#overview-view')?.classList.toggle('active',view==='map');
+  const badge=$('#view-badge');if(badge&&state.page==='overview')badge.textContent=OVERVIEW_BADGE[view]||'全局分配';
   if(window.ContainmentPage){
     if(ck){
       // 切进封控视图时沿用主时间轴的时刻；切回全局分配时把时刻带回去。
@@ -47,11 +59,21 @@ function applyOverviewMode(){
       window.ContainmentPage.hide();
     }
   }
-  state.ckViewApplied=ck;
-  if(!ck){state.zoom=1;setBounds();draw();}
+  if(window.HoldPage){
+    if(hl){
+      if(!state.hlViewApplied)window.HoldPage.syncTime(state.t);
+      window.HoldPage.show();
+    }else{
+      if(state.hlViewApplied){const t=window.HoldPage.time();if(Number.isFinite(t))setTime(t);}
+      window.HoldPage.hide();
+    }
+  }
+  state.ckViewApplied=ck;state.hlViewApplied=hl;
+  state.ckView=ck;state.hlView=hl;
+  if(view==='map'){state.zoom=1;setBounds();draw();}
 }
 function showOverviewMode(mode){
-  state.ckView=mode==='containment';
+  state.ovView=(mode==='containment'||mode==='hold')?mode:'map';
   if(state.page!=='overview')setPage('overview');
   else applyOverviewMode();
 }
@@ -59,13 +81,13 @@ function showOverviewMode(mode){
 // 否则用户会以为 T1 这个封控作业也应该画出边界和探测圈。
 function updateCkHint(){
   const box=$('#ck-hint');if(!box)return;
-  if(hasContainment()){box.hidden=true;box.innerHTML='';return;}
+  if(hasContainment()||hasHold()){box.hidden=true;box.innerHTML='';return;}
   const runs=(state.catalog&&state.catalog.runs)||[];
   const candidate=runs.find(r=>r.scenario==='interop_containment'&&r.id!==state.run?.id);
   if(!candidate){box.hidden=true;box.innerHTML='';return;}
   box.hidden=false;
-  box.innerHTML='<span>当前运行没有区域封控的动作记录：这里的 T1 只是历史样例的封控作业（按到点作业执行），'+
-    '边界、探测圈、警告与拦阻只在“区域封控”演示运行里生成。</span>'+
+  box.innerHTML='<span>当前运行没有区域封控/要点坚守的动作记录：这里的任务只是历史样例的作业（按到点作业执行），'+
+    '边界、探测圈、阵位与轮换只在“区域封控”“要点坚守”演示运行里生成。</span>'+
     '<button class="button small primary" data-ck-run="'+esc(candidate.id)+'">打开最近一次区域封控演示 →</button>';
 }
 function eventCategory(e){if(e.kind==='plan_emitted')return 'planning';if(e.kind==='behavior_event')return 'behavior';if(['member_lost','timeout','deviation','job_requeued','job_failed','cancel_sent','command_abandoned','feedback_ignored'].includes(e.kind))return 'exception';return 'task';}
@@ -228,11 +250,13 @@ document.body.classList.toggle('recording-data',!!data.report.recording);state.t
     $('#run-select').value=id;$('#run-mode').textContent=modes[data.report.mode]||data.report.mode;$('#run-semantic').textContent=data.report.recording?data.report.recording_source.note:(data.report.motion==='real'?'逐步运动':'瞬移')+(data.report.avoid?' · 静态建筑绕障':'')+(data.report.behavior?' · 到位行为':'')+' · '+(data.report.objective||'makespan');
     $('#stat-end').textContent=data.replay.end;$('#duration').textContent=data.replay.end;$('#scrubber').max=data.replay.end;$('#timeline-mid').textContent=stamp(data.replay.end/2);$('#timeline-end').textContent=stamp(data.replay.end);$('#task-count').textContent=data.report.jobs.length;$('#side-jobs').textContent=String(data.report.jobs.length).padStart(2,'0');
     $('#fleet-note').textContent=[...new Set(data.replay.workers.map(w=>w.kind_name))].join(' · ');
-    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(taskLabel(j))}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(window.ContainmentPage)window.ContainmentPage.load(data);
+    const options=data.report.jobs.map(j=>`<option value="${esc(j.job_id)}">${esc(j.job_id)} · ${esc(taskLabel(j))}</option>`).join('');$('#task-select').innerHTML='<option value="">选择一项任务，观看执行过程</option>'+options;$('#theater-task').innerHTML=options;$('#model-note').textContent='选任务后打开大画幅执行回放';setBounds();renderTime();renderRuns();renderFiles();draw();if(window.ContainmentPage)window.ContainmentPage.load(data);if(window.HoldPage)window.HoldPage.load(data);
     const ckBtn=$('#open-containment');if(ckBtn)ckBtn.hidden=!data.replay.containment;
-    // 只含区域封控一个作业的运行，默认就站在封控视图：这个运行本身就是
-    // 一次封控演示，"全局分配"只用来对照机动与任务位置。
+    // 只含区域封控/要点坚守一个作业的运行，默认就站在对应的任务视图：这个
+    // 运行本身就是一次演示，"全局分配"只用来对照机动与任务位置。
     state.ckView=!!(data.replay.containment&&data.report.jobs.length===1);
+    state.hlView=!!(data.replay.hold&&data.report.jobs.length===1);
+    state.ovView=state.hlView?'hold':(state.ckView?'containment':'map');
     applyOverviewMode();
     updateCkHint();
     if(autoplay)setPlaying(true);  }catch(e){toast('载入失败：'+e.message);}
@@ -249,6 +273,10 @@ async function refreshCatalog(selectId){
     if(opt){opt.disabled=true;opt.textContent='区域封控 · 需要重启工作台服务（当前服务版本 '+esc(data.version||'未知')+'）';}
     toast('当前工作台服务（'+ (data.version||'未知版本') +'）不含区域封控：请关闭运行中的工作台窗口后重新双击 启动工作台.cmd。');
   }
+  if(!caps.hold){
+    const opt=[...document.querySelectorAll('#config-scenario option')].find(o=>o.value==='interop_hold');
+    if(opt){opt.disabled=true;opt.textContent='要点坚守 · 需要重启工作台服务（当前服务版本 '+esc(data.version||'未知')+'）';}
+  }
   $('#run-select').innerHTML=data.runs.map(r=>{const sc=r.scenario?((data.scenarios&&data.scenarios[r.scenario])||r.scenario):null;return `<option value="${esc(r.id)}">${sc?esc(sc)+' · ':''}${r.total} 个任务 · ${r.behavior_details?'动作与避障细节':r.behavior?'到位动作':'到点作业'} · ${modes[r.mode]||r.mode} · ${esc(shortRun(r.id))}</option>`;}).join('');
   if(selectId||!state.run){const requested=new URLSearchParams(location.search).get('source');const id=selectId||(data.runs.some(r=>r.id===requested)?requested:null)||(data.runs.find(r=>r.id===data.default_run)||data.runs.find(r=>r.behavior)||data.runs[0])?.id;if(id){await loadRun(id);const task=new URLSearchParams(location.search).get('task');if(task&&state.run.report.jobs.some(j=>j.job_id===task)){openTask(task,false);const params=new URLSearchParams(location.search);if(params.get('view')==='spatial')state.taskView='spatial';else if(params.get('view')==='process')state.taskView='process';if(params.has('t'))setTime(Number(params.get('t')));renderTheater();draw();}}else toast('还没有运行记录，点击新建演示开始。');}
   else{$('#run-select').value=state.run.id;renderRuns();}
@@ -256,19 +284,20 @@ async function refreshCatalog(selectId){
   updateCkHint();
   const pageParam=new URLSearchParams(location.search).get('page');
   if(pageParam==='containment')showOverviewMode('containment');
+  if(pageParam==='hold')showOverviewMode('hold');
   else if(pageParam&&titles[pageParam]&&pageParam!==state.page)setPage(pageParam);
 }
 function setBusy(b){state.busy=b;$('#busy-banner').hidden=!b;$('#submit-run').disabled=b;$('#submit-run').textContent=b?'仿真运行中…':'运行演示 →';}
 function watchProcess(id){
   setBusy(true);clearTimeout(pollTimer);
-  async function poll(){try{const data=await api('/api/catalog');if(data.process?.id!==id){setBusy(false);return;}if(data.process.state==='running'){pollTimer=setTimeout(poll,800);return;}setBusy(false);await refreshCatalog();if(data.process.state==='complete'){await loadRun(id,true);setPage('overview');const hasCk=!!(state.run&&state.run.replay&&state.run.replay.containment);toast(hasCk?'本轮结果已保存，已打开“区域封控”视图；可切到“全局分配”对照机动与任务位置。':'本轮结果已保存，正在回放实际反馈。');}else{const log=await fetch('/artifacts/'+encodeURIComponent(id)+'/worker.log').then(r=>r.text());toast('运行失败：'+log.slice(-200));}}catch(e){setBusy(false);toast('状态读取失败：'+e.message);}}
+  async function poll(){try{const data=await api('/api/catalog');if(data.process?.id!==id){setBusy(false);return;}if(data.process.state==='running'){pollTimer=setTimeout(poll,800);return;}setBusy(false);await refreshCatalog();if(data.process.state==='complete'){await loadRun(id,true);setPage('overview');const hasCk=!!(state.run&&state.run.replay&&state.run.replay.containment);const hasHl=!!(state.run&&state.run.replay&&state.run.replay.hold);toast(hasHl?'本轮结果已保存，已打开“要点坚守”视图；可切到“全局分配”对照机动与阵位位置。':hasCk?'本轮结果已保存，已打开“区域封控”视图；可切到“全局分配”对照机动与任务位置。':'本轮结果已保存，正在回放实际反馈。');}else{const log=await fetch('/artifacts/'+encodeURIComponent(id)+'/worker.log').then(r=>r.text());toast('运行失败：'+log.slice(-200));}}catch(e){setBusy(false);toast('状态读取失败：'+e.message);}}
   pollTimer=setTimeout(poll,800);
 }
-function updateConfig(){const scenario=$('#config-scenario').value,interop=scenario.startsWith('interop'),aslInterop=scenario==='interop_asl',containment=scenario==='interop_containment',base=scenario==='asl_city',allow=base||aslInterop||containment;$('#config-avoid').disabled=!allow||aslInterop||containment;if(!allow)$('#config-avoid').checked=false;else if(aslInterop||containment)$('#config-avoid').checked=true;$('#config-behavior').disabled=!allow||aslInterop||containment||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;else if(aslInterop||containment)$('#config-behavior').checked=true;$('#config-effect').disabled=!base;$('#config-effect-field').hidden=!base;for(const id of ['config-avoid','config-behavior'])$('#'+id).closest('label').hidden=!allow;$('#config-scope-note').textContent=containment?'区域封控：融合层规划 + 基座逐步运动与到位行为；占位/警告/拦阻由行为层执行，结果只作本地仿真结论。':aslInterop?'融合版机动突击（T-ASL）：规划器固定 interop，侦察/突击/评估席位由统一层分配；打击与效果判定由基座行为层执行，效果类型以 4.1 消息为准。':interop?'融合层中性任务：规划器固定为 interop，逐步运动；突击效果类型不适用。':'历史城市场景沿用基座规划器与原有行为链；可在运行记录中查看已保存的地图与回放。';
+function updateConfig(){const scenario=$('#config-scenario').value,interop=scenario.startsWith('interop'),aslInterop=scenario==='interop_asl',containment=scenario==='interop_containment',hold=scenario==='interop_hold',taskView=containment||hold,base=scenario==='asl_city',allow=base||aslInterop||taskView;$('#config-avoid').disabled=!allow||aslInterop||taskView;if(!allow)$('#config-avoid').checked=false;else if(aslInterop||taskView)$('#config-avoid').checked=true;$('#config-behavior').disabled=!allow||aslInterop||taskView||!$('#config-avoid').checked;if(!allow||!$('#config-avoid').checked)$('#config-behavior').checked=false;else if(aslInterop||taskView)$('#config-behavior').checked=true;$('#config-effect').disabled=!base;$('#config-effect-field').hidden=!base;for(const id of ['config-avoid','config-behavior'])$('#'+id).closest('label').hidden=!allow;$('#config-scope-note').textContent=containment?'区域封控：融合层规划 + 基座逐步运动与到位行为；占位/警告/拦阻由行为层执行，结果只作本地仿真结论。':hold?'要点坚守：融合层分配阵位与预备队，基座行为层执行占位/观察/轮换/增援/撤离；反击与压制只作桩判定的抽象效果（verified=false），结果只作本地仿真结论。':aslInterop?'融合版机动突击（T-ASL）：规划器固定 interop，侦察/突击/评估席位由统一层分配；打击与效果判定由基座行为层执行，效果类型以 4.1 消息为准。':interop?'融合层中性任务：规划器固定为 interop，逐步运动；突击效果类型不适用。':'历史城市场景沿用基座规划器与原有行为链；可在运行记录中查看已保存的地图与回放。';
   // 仿真步数跟随场景默认（asl_city 机动距离远，需要 620 步）；
   // 用户改过自定义值时只保证 asl_city 不低于 620。
   const ticks=$('#config-form [name=max_ticks]');ticks.max=700;
-  const defaults={asl_city:620,interop_neutral:260,interop_containment:320,interop_asl:700};
+  const defaults={asl_city:620,interop_neutral:260,interop_containment:320,interop_hold:260,interop_asl:700};
   const untouched=Object.values(defaults).includes(Number(ticks.value));
   if(untouched)ticks.value=defaults[$('#config-scenario').value]||200;
   else if($('#config-scenario').value==='asl_city')ticks.value=Math.max(Number(ticks.value),620);}
@@ -420,6 +449,11 @@ function setBounds(){
      &&state.run.report.jobs.length===1){
     const b=containmentBounds();if(b){bounds=b;return;}
   }
+  // 要点坚守的运行同理：按"要点 + 阵位 + 威胁扇区"取景，不套整张场景图。
+  if(!state.focus&&!state.taskWindow&&state.run.replay.hold
+     &&state.run.report.jobs.length===1){
+    const b=holdBounds();if(b){bounds=b;return;}
+  }
   if(!state.focus&&state.run.scene_map?.surfaces?.length){bounds=fullBounds();return;}
   const r=state.run.replay,jid=selectedJobId(),j=r.jobs.find(j=>j.job_id===jid);let points=[];
   if(j&&state.taskWindow){
@@ -542,6 +576,21 @@ function containmentBounds(){
   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),pad=22;
   return [Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)+pad,Math.max(...ys)+pad];
 }
+// 要点坚守运行的取景范围：要点、阵位、威胁扇区、集结地与撤离点。
+function holdBounds(){
+  const hl=state.run&&state.run.replay&&state.run.replay.hold;
+  if(!hl||!hl.structure)return null;
+  const st=hl.structure,pts=[];
+  if(st.key_point)pts.push(st.key_point);
+  for(const p of st.positions||[])if(p.point)pts.push(p.point);
+  for(const s of st.threat_sectors||[])for(const p of s.polygon||[])pts.push(p);
+  for(const w of state.run.replay.workers)if(w.start)pts.push(w.start);
+  if(st.standby)pts.push(st.standby);
+  for(const p of (st.withdraw||{}).route||[])pts.push(p);
+  if(!pts.length)return null;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),pad=22;
+  return [Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)+pad,Math.max(...ys)+pad];
+}
 function fullBounds(){  // 全场景（含 150 m 外的出发阵地）的取景范围，缩略图与"看全图"都用它。
   const r=state.run.replay,pts=[...r.workers.map(w=>w.start),...r.jobs.map(j=>j.pos)];
   for(const o of [...mapGeometry('obstacles'),...mapGeometry('roads'),...mapGeometry('surfaces')])pts.push(...o.polygon);
@@ -573,7 +622,7 @@ function drawMinimap(W,H){
   state.hits.push({type:'fit',x:x0+w/2,y:y0+h/2,w:w,h:h});
 }
 function draw(){
-  if(!state.run||state.page!=='overview'||state.ckView)return;
+  if(!state.run||state.page!=='overview'||state.ckView||state.hlView)return;
   const rect=canvas.getBoundingClientRect();if(rect.width<1)return;const dpr=window.devicePixelRatio||1;
   if(canvas.width!==Math.round(rect.width*dpr)||canvas.height!==Math.round(rect.height*dpr)){canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);}
   ctx.setTransform(dpr,0,0,dpr,0,0);const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);ctx.fillStyle='#edf0e9';ctx.fillRect(0,0,W,H);
@@ -690,6 +739,39 @@ function draw(){
     }
     const cx=ckStructure.center||ckStructure.site;const a=P(cx);
     annotationLabels.push({text:'封控区 · '+num(ckStructure.perimeter_m,0)+' m 边界',x:a[0],y:a[1]-10,color:c,priority:true});
+    ctx.restore();
+  }
+  // 要点坚守覆盖层（1028 §2.5）：要点、阵位（含朝向）、威胁扇区、在位着色。
+  // 与封控一样默认干净：威胁扇区淡填充、阵位用实心/空心区分在位，不画虚线长线。
+  const hlData=state.run.replay.hold;
+  const hlStructure=hlData&&hlData.structure;
+  if(hlStructure&&hlStructure.positions&&$('#show-behaviors').checked){
+    const c=taskColor(hlStructure.job_id);
+    const hlEvents=hlData.events||[];
+    const est=hlEvents.find(e=>e.kind==='control_established');
+    const established=!!est&&state.t>=(est.t||0);
+    ctx.save();
+    for(const sector of hlStructure.threat_sectors||[]){
+      const poly=(sector.polygon||[]).map(P);if(poly.length<3)continue;
+      ctx.beginPath();poly.forEach((p,i)=>{i?ctx.lineTo(...p):ctx.moveTo(...p);});ctx.closePath();
+      ctx.fillStyle='rgba(185,28,28,0.06)';ctx.fill();
+      ctx.strokeStyle='rgba(185,28,28,0.28)';ctx.lineWidth=1;ctx.stroke();
+    }
+    const occupantAt=(postId,t)=>{for(const position of (hlData.result&&hlData.result.positions)||[]){if(position.id!==postId)continue;for(const row of position.occupants||[]){const leave=row.leave_s==null?Infinity:row.leave_s;if(t>=(row.enter_s||0)&&t<leave)return row.pid;}}return null;};
+    for(const position of hlStructure.positions){
+      const q=P(position.point),pid=occupantAt(position.id,state.t);
+      const color=pid?'#0f766e':'#94a3b8';
+      ctx.beginPath();ctx.arc(q[0],q[1],5,0,Math.PI*2);
+      ctx.fillStyle=pid?color:'#ffffff';ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+      const facing=(Number(position.facing_deg)||0)*Math.PI/180;
+      ctx.beginPath();ctx.moveTo(q[0]+Math.sin(facing)*6,q[1]-Math.cos(facing)*6);
+      ctx.lineTo(q[0]+Math.sin(facing)*12,q[1]-Math.cos(facing)*12);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+      annotationLabels.push({text:position.id+(pid?' · '+no(pid):' · 空缺'),x:q[0]+9,y:q[1]-7,color,priority:false});
+    }
+    const kp=P(hlStructure.key_point);
+    ctx.beginPath();ctx.moveTo(kp[0],kp[1]-8);ctx.lineTo(kp[0]+8,kp[1]);ctx.lineTo(kp[0],kp[1]+8);ctx.lineTo(kp[0]-8,kp[1]);ctx.closePath();
+    ctx.fillStyle=established?c:c+'99';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.8;ctx.stroke();
+    annotationLabels.push({text:'要点 · 在位下限 '+num(hlStructure.min_on_post,0)+' 台',x:kp[0]+14,y:kp[1]+10,color:c,priority:true});
     ctx.restore();
   }
   let traceCount=0;for(const w of state.run.replay.workers)for(const segment of trailsFor(w)){line(segment.map(p=>[p.x,p.y]),state.taskWindow?teamColor(w.pid,jid):taskColor(segment.at(-1).job),state.focus?.id===w.pid?2.6:1.8);traceCount++;}

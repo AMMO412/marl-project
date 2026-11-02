@@ -1,0 +1,144 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-HLD-001",
+  "issued_at": "2026-10-30T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-HLD",
+      "priority": 1,
+      "target": {
+        "key_point": [
+          0,
+          40
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 300
+      },
+      "required_capabilities": {
+        "HLD": 2
+      },
+      "min_units": 3,
+      "max_units": 4,
+      "params": {
+        "hold_duration_s": 150,
+        "threat_directions": [
+          {
+            "id": "N",
+            "bearing_deg": 0,
+            "width_deg": 70
+          },
+          {
+            "id": "E",
+            "bearing_deg": 90,
+            "width_deg": 60
+          }
+        ],
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              0,
+              72
+            ],
+            "facing_deg": 0,
+            "min_units": 1
+          },
+          {
+            "id": "P2",
+            "point": [
+              40,
+              40
+            ],
+            "facing_deg": 90,
+            "min_units": 1
+          },
+          {
+            "id": "P3",
+            "point": [
+              22,
+              14
+            ],
+            "facing_deg": 150,
+            "min_units": 1
+          }
+        ],
+        "roles": {
+          "post": 3,
+          "reserve": 1,
+          "support": 0,
+          "relay": 0
+        },
+        "min_on_post": 2,
+        "hold_criteria": "quantity",
+        "sensor_radius_m": 45,
+        "observation_ring_m": 24,
+        "observation_gap_max_s": 8,
+        "relief": {
+          "interval_s": 50,
+          "handover_tol_m": 3,
+          "swap_requires_arrival": true,
+          "relief_cycles": 2
+        },
+        "reinforce": {
+          "trigger": "position_lost",
+          "enemy_ratio": 1.5,
+          "arrive_within_s": 60
+        },
+        "withdraw": {
+          "allowed": true,
+          "route": [
+            [
+              0,
+              40
+            ],
+            [
+              -30,
+              -10
+            ]
+          ],
+          "deadline_s": 45
+        },
+        "assembly_point": [
+          -90,
+          -16
+        ],
+        "counter_attack": {
+          "authorized": true,
+          "max_range_m": 70,
+          "allowed_in_position": true
+        },
+        "effect": {
+          "kinds": [
+            "damage",
+            "suppress"
+          ],
+          "adjudicator": "stub",
+          "required_duration": 8
+        },
+        "enemy_events": [
+          {
+            "t_s": 55,
+            "kind": "probe",
+            "direction": "N"
+          },
+          {
+            "t_s": 95,
+            "kind": "assault",
+            "direction": "N",
+            "ratio": 1.6
+          },
+          {
+            "t_s": 135,
+            "kind": "probe",
+            "direction": "E"
+          }
+        ]
+      },
+      "description": "要点坚守：1 要点 + 2 威胁方向 + 3 阵位 + 1 预备队"
+    }
+  ]
+}

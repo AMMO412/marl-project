@@ -375,35 +375,268 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     raise PlanningError("%s（T-PTL）缺少 route / patrol_area / point" % task.task_id)
 
 
+HLD_ROLE_KEYS = ("post", "reserve", "support", "relay")
+# 兵力上限裁剪顺序：阵位最后裁，否则"裁完没人守要点"（任务书 §9.4）。
+HLD_CROP_ORDER = ("support", "relay", "reserve")
+
+
+def _hld_threats(task: Task) -> List[Dict[str, Any]]:
+    """威胁方向清单：``[{id, bearing_deg, width_deg}]``（0°=北，顺时针）。"""
+    raw = task.params.get("threat_directions")
+    if raw is None:
+        return []
+    if not isinstance(raw, (list, tuple)):
+        raise PlanningError("%s.threat_directions 必须是数组" % task.task_id)
+    threats = []
+    for index, item in enumerate(raw):
+        if not isinstance(item, dict) or "bearing_deg" not in item:
+            raise PlanningError("%s.threat_directions[%d] 必须给出 bearing_deg"
+                                % (task.task_id, index))
+        try:
+            bearing = float(item["bearing_deg"])
+            width = float(item.get("width_deg", 60.0))
+        except (TypeError, ValueError):
+            raise PlanningError("%s.threat_directions[%d] 角度必须是数字"
+                                % (task.task_id, index))
+        if not -360.0 <= bearing <= 720.0:
+            raise PlanningError("%s.threat_directions[%d].bearing_deg 越界"
+                                % (task.task_id, index))
+        threats.append(dict(
+            id=str(item.get("id") or "D%d" % (index + 1)),
+            bearing_deg=bearing % 360.0,
+            width_deg=max(0.0, min(360.0, width)),
+        ))
+    return threats
+
+
+def hld_key_point(task: Task) -> Optional[Point]:
+    """要点：``target.key_point`` / ``point`` / ``defense_area`` 重心。"""
+    point = task_point(task, ("key_point", "point"))
+    if point is not None:
+        return point
+    area = task_polygon(task, ("defense_area", "area"))
+    if area is not None:
+        return polygon_centroid(area)
+    return None
+
+
+def hld_positions(task: Task) -> List[Dict[str, Any]]:
+    """阵位清单：``[{id, point, facing_deg, min_units}]``。
+
+    规划层与执行层共用这一份（执行层通过 ``_behavior.positions`` 拿到同样的
+    点与朝向）。顺序：4.1 ``params.positions`` → 旧样例 ``defense_positions``
+    → 按威胁方向在要点外布点 → 要点本身一个阵位。
+    """
+    import containment_geom as geom
+
+    key_point = hld_key_point(task)
+    threats = _hld_threats(task)
+    raw = task.params.get("positions")
+    legacy = task.params.get("defense_positions",
+                             task.target.get("defense_positions"))
+    if raw is None and legacy is not None:
+        raw = legacy
+        dict_form = False
+    else:
+        dict_form = True
+    positions: List[Dict[str, Any]] = []
+    if raw is not None:
+        if not isinstance(raw, (list, tuple)) or not raw:
+            raise PlanningError("%s.positions 不能为空" % task.task_id)
+        for index, item in enumerate(raw):
+            if isinstance(item, dict):
+                if "point" not in item:
+                    raise PlanningError("%s.positions[%d] 必须给出 point"
+                                        % (task.task_id, index))
+                point = as_point(item["point"])
+                position_id = str(item.get("id") or "P%d" % (index + 1))
+                facing = item.get("facing_deg")
+                min_units = item.get("min_units", 1)
+            else:
+                point = as_point(item)
+                position_id = "P%d" % (index + 1)
+                facing = None
+                min_units = 1
+            if facing is None:
+                # 朝向缺省按"要点 → 阵位"的方位：面朝威胁来向、背靠要点。
+                facing = (geom.facing_of(point, key_point)
+                          if key_point is not None else 0.0)
+            try:
+                facing = float(facing) % 360.0
+                min_units = max(0, int(min_units))
+            except (TypeError, ValueError):
+                raise PlanningError("%s.positions[%d] facing_deg/min_units 非数字"
+                                    % (task.task_id, index))
+            positions.append(dict(id=position_id, point=[float(point[0]),
+                                                         float(point[1])],
+                                  facing_deg=facing, min_units=min_units))
+        return positions
+    if key_point is None:
+        return []
+    radius = float(task.params.get("post_radius_m", 30.0))
+    if threats:
+        bearings = [item["bearing_deg"] for item in threats]
+        for index, point in enumerate(geom.threat_posts(key_point, bearings,
+                                                        radius)):
+            threat = threats[index]
+            positions.append(dict(
+                id="P%d" % (index + 1),
+                point=[float(point[0]), float(point[1])],
+                facing_deg=float(threat["bearing_deg"]) % 360.0,
+                min_units=1))
+        return positions
+    return [dict(id="P1", point=[float(key_point[0]), float(key_point[1])],
+                 facing_deg=0.0, min_units=1)]
+
+
+def _hld_role_counts(task: Task, position_count: int) -> Dict[str, int]:
+    """各路席位台数；未给 ``roles`` 时按"阵位全员 + 无预备队"配。"""
+    raw = task.params.get("roles")
+    if isinstance(raw, dict) and raw:
+        counts = {}
+        for key in HLD_ROLE_KEYS:
+            value = raw.get(key, 0)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise PlanningError("%s.roles.%s 必须是整数" % (task.task_id, key))
+            counts[key] = max(0, int(value))
+        unknown = [k for k in raw if k not in HLD_ROLE_KEYS]
+        if unknown:
+            raise PlanningError("%s.roles 含未知角色 %s（可选 %s）"
+                                % (task.task_id, unknown, "/".join(HLD_ROLE_KEYS)))
+        counts["post"] = min(counts["post"], position_count) or min(1, position_count)
+        if sum(counts.values()) <= 0:
+            raise PlanningError("%s.roles 台数合计必须大于 0" % task.task_id)
+        return counts
+    return dict(post=position_count, reserve=0, support=0, relay=0)
+
+
+def _crop_hld_roles(counts: Dict[str, int], limit: int) -> Dict[str, int]:
+    """按 ``support → relay → reserve → post`` 裁到兵力上限；阵位至少留 1 个。"""
+    for key in HLD_CROP_ORDER:
+        while counts[key] > 0 and sum(counts.values()) > limit:
+            counts[key] -= 1
+    while sum(counts.values()) > limit and counts["post"] > 1:
+        counts["post"] -= 1
+    return counts
+
+
+def hld_stations(task: Task, key_point: Optional[Point] = None,
+                 positions: Optional[Sequence[Dict[str, Any]]] = None
+                 ) -> Dict[str, Any]:
+    """预备队/支援/中继的位置：由威胁方向与要点推出，或用 4.1 给定点。
+
+    返回 ``{reserve: [x, y], support: [[x, y], ...], relay: [x, y]}``。
+    规划层用它摆槽位，运行层把它塞进 ``_behavior.stations``，执行层据此站位
+    ——三处用同一组坐标，不再各算一份。都没有时全部回落到要点本身：宁可
+    "都在要点上"，也不要凭空编一个后方坐标。
+    """
+    import containment_geom as geom
+
+    if key_point is None:
+        key_point = hld_key_point(task)
+    if positions is None:
+        positions = hld_positions(task)
+    anchor = ([float(key_point[0]), float(key_point[1])]
+              if key_point is not None
+              else ([float(positions[0]["point"][0]),
+                     float(positions[0]["point"][1])] if positions
+                    else [0.0, 0.0]))
+    threats = _hld_threats(task)
+    if threats:
+        mean = sum(item["bearing_deg"] for item in threats) / len(threats)
+    else:
+        mean = 180.0
+    standoff = task.params.get("reserve_standoff_m")
+    standoff = (max(10.0, float(standoff)) if standoff is not None
+                else max(10.0, float(task.params.get("post_radius_m", 30.0))))
+    back = geom.compass_vector((mean + 180.0) % 360.0)
+    reserve_point = task.params.get("reserve_point")
+    if reserve_point is not None:
+        reserve_point = list(as_point(reserve_point))
+    else:
+        reserve_point = [anchor[0] + back[0] * standoff,
+                         anchor[1] + back[1] * standoff]
+
+    roles = task.params.get("roles")
+    support_roles = int(roles.get("support") or 0) if isinstance(roles, dict) else 0
+    support_raw = task.params.get("support_points")
+    support_points: List[List[float]] = []
+    if isinstance(support_raw, (list, tuple)) and support_raw:
+        support_points = [list(as_point(p)) for p in support_raw]
+    elif support_roles:
+        # 未给支援位时，在预备队左右各偏 40° 摆开，避免与预备队重叠。
+        for offset in (40.0, -40.0, 0.0):
+            vec = geom.compass_vector((mean + 180.0 + offset) % 360.0)
+            support_points.append([anchor[0] + vec[0] * standoff * 0.8,
+                                   anchor[1] + vec[1] * standoff * 0.8])
+
+    relay_raw = task.params.get("relay_point")
+    relay_point = (list(as_point(relay_raw)) if relay_raw is not None
+                   else list(anchor))
+    return dict(reserve=[round(v, 3) for v in reserve_point],
+                support=[[round(v, 3) for v in p] for p in support_points],
+                relay=[round(v, 3) for v in relay_point])
+
+
 def _decompose_hld(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
+    """T-HLD 分解：阵位 + 预备队 + 支援 + 中继（1028 §2.5）。
+
+    与旧版"只按 defense_positions 摆点"的差别：
+      * 阵位语义升到 4.1 ``params.positions``（``{id, point, facing_deg,
+        min_units}``），角色写 ``Subtask.role`` / ``Assignment.role``
+        （``post:P1`` / ``reserve:standby`` / ``support:S1`` / ``relay:standby``）；
+      * 目标点仍写 4.2 契约里的 ``{"point": [x, y]}``，不往 target 里塞私有字段；
+      * 兵力上限裁剪顺序固定为 ``support → relay → reserve → post``：阵位最后裁，
+        否则会出现"上限裁完没人守要点"；
+      * 阵位几何与朝向由 ``containment_geom`` 统一给出（与执行层同一套角度），
+        不在分解器里另写一份；
+      * 旧样例（只给 ``defense_positions``）仍按点列分解，槽位数不变，只是补上
+        角色与朝向，历史语义不回退。
+    """
     duration = float(task.params.get("hold_duration_s",
                                      task.params.get("duration_s", 600.0)))
     if duration <= 0:
         raise PlanningError("%s.duration_s 必须大于 0" % task.task_id)
     coordination = _coordination(task)
+    key_point = hld_key_point(task)
+    positions = hld_positions(task)
+    if not positions:
+        raise PlanningError("%s（T-HLD）缺少 key_point / defense_area / positions"
+                            % task.task_id)
+    counts = _hld_role_counts(task, len(positions))
+    if task.max_units is not None:
+        _crop_hld_roles(counts, max(1, int(task.max_units)))
+    stations = hld_stations(task, key_point, positions)
+    reserve_point = stations["reserve"]
+    support_points = stations["support"]
+    relay_point = stations["relay"]
 
-    positions = task.params.get("defense_positions",
-                                task.target.get("defense_positions"))
-    if positions:
-        if not isinstance(positions, (list, tuple)) or not positions:
-            raise PlanningError("%s.defense_positions 不能为空" % task.task_id)
-        return [_make_subtask(task, i + 1, {"point": list(as_point(p))},
-                              duration, coordination=coordination)
-                for i, p in enumerate(positions)]
+    items: List[Tuple[Dict[str, Any], str]] = []
+    for index, position in enumerate(positions[:counts["post"]]):
+        items.append(({"point": [float(position["point"][0]),
+                                 float(position["point"][1])]},
+                      "post:%s" % position["id"]))
+    for _ in range(counts["reserve"]):
+        items.append(({"point": [float(reserve_point[0]),
+                                 float(reserve_point[1])]}, "reserve:standby"))
+    for index in range(counts["support"]):
+        point = support_points[index % len(support_points)] if support_points \
+            else reserve_point
+        items.append(({"point": [float(point[0]), float(point[1])]},
+                      "support:S%d" % (index + 1)))
+    for _ in range(counts["relay"]):
+        items.append(({"point": [float(relay_point[0]),
+                                 float(relay_point[1])]}, "relay:standby"))
 
-    point = task_point(task, ("key_point", "point"))
-    if point is not None:
-        return [_make_subtask(task, 1, {"point": list(point)}, duration,
-                              coordination=coordination)]
-
-    area = task_polygon(task, ("defense_area", "area"))
-    if area is not None:
-        center = polygon_centroid(area)
-        return [_make_subtask(task, 1, {"point": list(center)}, duration,
-                              coordination=coordination)]
-
-    raise PlanningError("%s（T-HLD）缺少 key_point / defense_area / defense_positions"
-                        % task.task_id)
+    if not items:
+        raise PlanningError("%s（T-HLD）分解后没有阵位" % task.task_id)
+    subtasks = []
+    for index, (target, role) in enumerate(items):
+        subtask = _make_subtask(task, index + 1, target, duration,
+                                coordination=coordination)
+        subtask.role = role
+        subtasks.append(subtask)
+    return subtasks
 
 
 def _asl_ring_point(center: Point, radius: float, angle: float) -> Point:

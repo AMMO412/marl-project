@@ -1,0 +1,251 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 181,
+  "objective": "makespan",
+  "planner": "interop",
+  "all_succeeded": true,
+  "settled": true,
+  "jobs": [
+    {
+      "job_id": "T1",
+      "jtype": "hold",
+      "pos": [
+        0.0,
+        40.0
+      ],
+      "work": 660.0,
+      "window": [
+        0,
+        300
+      ],
+      "crew": 3,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 660.0,
+      "status": "succeeded",
+      "attempts": 1,
+      "started_at": 18,
+      "planned_end": 168,
+      "behavior": {
+        "key_point": [
+          0.0,
+          40.0
+        ],
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              0.0,
+              72.0
+            ],
+            "facing_deg": 0.0,
+            "min_units": 1
+          },
+          {
+            "id": "P2",
+            "point": [
+              40.0,
+              40.0
+            ],
+            "facing_deg": 90.0,
+            "min_units": 1
+          },
+          {
+            "id": "P3",
+            "point": [
+              22.0,
+              14.0
+            ],
+            "facing_deg": 150.0,
+            "min_units": 1
+          }
+        ],
+        "stations": {
+          "reserve": [
+            -21.213,
+            18.787
+          ],
+          "support": [],
+          "relay": [
+            0.0,
+            40.0
+          ]
+        },
+        "threats": [
+          {
+            "id": "N",
+            "bearing_deg": 0,
+            "width_deg": 70
+          },
+          {
+            "id": "E",
+            "bearing_deg": 90,
+            "width_deg": 60
+          }
+        ],
+        "role_counts": {
+          "post": 3,
+          "reserve": 1,
+          "support": 0,
+          "relay": 0
+        },
+        "duration_s": 150.0,
+        "site": [
+          0.0,
+          40.0
+        ],
+        "hold_criteria": "quantity",
+        "min_on_post": 2,
+        "observation_gap_max_s": 8,
+        "observation_ring_m": 24,
+        "sensor_radius_m": 45,
+        "relief": {
+          "interval_s": 50,
+          "handover_tol_m": 3,
+          "swap_requires_arrival": true,
+          "relief_cycles": 2
+        },
+        "reinforce": {
+          "trigger": "position_lost",
+          "enemy_ratio": 1.5,
+          "arrive_within_s": 60
+        },
+        "withdraw": {
+          "allowed": true,
+          "route": [
+            [
+              0,
+              40
+            ],
+            [
+              -30,
+              -10
+            ]
+          ],
+          "deadline_s": 45
+        },
+        "enemy_events": [
+          {
+            "t_s": 55,
+            "kind": "probe",
+            "direction": "N"
+          },
+          {
+            "t_s": 95,
+            "kind": "assault",
+            "direction": "N",
+            "ratio": 1.6
+          },
+          {
+            "t_s": 135,
+            "kind": "probe",
+            "direction": "E"
+          }
+        ],
+        "counter_attack": {
+          "authorized": true,
+          "max_range_m": 70,
+          "allowed_in_position": true
+        },
+        "effect": {
+          "kinds": [
+            "damage",
+            "suppress"
+          ],
+          "adjudicator": "stub",
+          "required_duration": 8
+        },
+        "assembly_point": [
+          -90,
+          -16
+        ]
+      }
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        -29.849,
+        -9.903
+      ],
+      "battery": 999986.2,
+      "alive": true,
+      "topic": "/container_00/robot_001"
+    },
+    {
+      "pid": "rover_02",
+      "kind": "UGV",
+      "robot_no": 2,
+      "pos": [
+        -29.975,
+        -9.784
+      ],
+      "battery": 999990.7,
+      "alive": true,
+      "topic": "/container_00/robot_002"
+    },
+    {
+      "pid": "rover_21",
+      "kind": "TANK",
+      "robot_no": 21,
+      "pos": [
+        -29.956,
+        -9.895
+      ],
+      "battery": 999978.9,
+      "alive": true,
+      "topic": "/container_00/robot_021"
+    },
+    {
+      "pid": "rover_22",
+      "kind": "TANK",
+      "robot_no": 22,
+      "pos": [
+        -29.85,
+        -9.944
+      ],
+      "battery": 999989.2,
+      "alive": true,
+      "topic": "/container_00/robot_022"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 23,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 22
+  },
+  "done": 1,
+  "used_energy": -3999504.9,
+  "per_task_energy": -3999504.94,
+  "makespan": 181,
+  "spread": 0.08,
+  "need_report": [],
+  "solve_summary": null,
+  "rejected_reasons": {},
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 260,
+  "H": 310,
+  "K": 8,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "behavior_details": true,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": false,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}
