@@ -8,7 +8,9 @@
 
 | 项 | 结果 | 数据来源 |
 | --- | --- | --- |
-| 4.1 样例可解析 / 可分解 / `to_v2_dict` 通过 `check_scenario_v2` | 是（5 个槽位：4 阵位 + 1 预备队，覆盖东南西北 4 条威胁方向） | `interop/scenarios/key_point_hold.*` |
+| 4.1 样例可解析 / 可分解 / `to_v2_dict` 通过 `check_scenario_v2` | 是（6 个槽位：4 阵位 + 1 预备队 + 1 空中观察席，覆盖东南西北 4 条威胁方向） | `interop/scenarios/key_point_hold.*` |
+| 要点全向覆盖 | 100%（按各阵位 45 m **圆形探测圈**统计要点一周，缺口 0 个方位） | `hold_result.metrics.observation_coverage_mean` |
+| 空中观察席（防空警戒） | 1 架固定翼 · 60 m · 盘旋半径 45 m · 在位率 100% | `hold_result.metrics.air_*` |
 | 4.2 产物齐全且字段不变 | `plan.json` / `assignments.csv` / `commands.csv` / `ros2_commands.txt` / `report.md` | [interop_demo/hold_run](../interop_demo/hold_run/report.md) |
 | `commands` 只到 TRANSIT / HOLD / STOP | 是（HOLD、STOP、TRANSIT 分段；STOP 全零） | 同上 `commands.csv` |
 | 控制建立 | T+16 s，在位 4 台（下限 3） | `hold_result.metrics` |
@@ -20,19 +22,19 @@
 | 抽象效果走桩判定 | 4 次反击 / 4 条 `effect_adjudicated`，`verified=false`，adjudicator=`constructed_assessment_stub` | `hold_result.effects` |
 | 判定 | `succeeded`：控制保持率 100%、控制中断 0 s、最长观察中断 0 s、敌方进攻 4 次 / 突破 0 次、我方损失 0 | `hold_result.items` |
 | 工作台页签 + 覆盖层 | 页签切换与时间同步正常，无 console 错误 | 见下方截图 |
-| 单测 | `tests/test_hold.py` 46 项通过；全量 244 项通过（跳过 2） | `python -m unittest discover -s tests` |
+| 单测 | `tests/test_hold.py` 50 项通过；全量 248 项通过（跳过 2） | `python -m unittest discover -s tests` |
 
 ## 2 截图
 
 | 图 | 内容 |
 | --- | --- |
-| [工作台_要点坚守_120s.png](工作台_要点坚守_120s.png) | “要点坚守”页签 T+120 s：要点、4 个阵位（含朝向与在位编号）、东南西北 4 条威胁扇区、预备队、在位甘特、逐项判定、桩判定清单、过程时间线 |
+| [工作台_要点坚守_120s.png](工作台_要点坚守_120s.png) | “要点坚守”页签 T+120 s：要点、4 个阵位（含朝向与在位编号）、4 条威胁扇区、4 个阵位探测圈（圆形覆盖）、空中观察席盘旋圈、预备队、在位甘特、逐项判定、桩判定清单、过程时间线 |
 | [工作台_要点坚守_整页.png](工作台_要点坚守_整页.png) | 同上整页（含 6 项 KPI 与右侧面板全貌） |
 | [工作台_全局分配覆盖层.png](工作台_全局分配覆盖层.png) | “全局分配”页签的要点覆盖层：要点菱形、阵位在位着色、威胁扇区、任务标记 |
 
 ## 3 运行记录
 
-- 工作台运行（页签数据来源）：`planning_middle_demo/outputs/workbench_20261102_163225_793094/`
+- 工作台运行（页签数据来源）：`planning_middle_demo/outputs/workbench_20261102_164530_123868/`
   （`normal` 模式、逐步运动、建筑绕障、行为层开启、规划器 `interop`，179 仿真秒）。
 - 命令行 4.2 计划 + 完整运行链：`outputs/interop_demo/hold_run/`
   （`plan.json`、`assignments.csv`、`commands.csv`、`report.md`、`ros2_commands.txt`，
@@ -45,7 +47,7 @@ python -m interop.tools.build_scenarios
 python -m interop.cli demo `
   --message interop/scenarios/key_point_hold.message.json `
   --formation interop/scenarios/key_point_hold.formation.json `
-  --out ..\outputs\interop_demo\hold_run --motion real --behavior --max-ticks 280
+  --out ..\outputs\interop_demo\hold_run --motion real --behavior --max-ticks 300
 ```
 
 工作台：双击 `启动工作台.cmd` → “新建演示” → 选 **要点坚守演示（T-HLD）** → 运行；

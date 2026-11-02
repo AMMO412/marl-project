@@ -247,16 +247,18 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     ]
 
     # 要点坚守（1028 §2.5）：3 号高地式样例在 580×460 米演示场景里等比缩小为
-    # 一个要点 + 4 条威胁方向（东南西北，后方不留空）+ 4 个预设阵位 + 1 台预备队。
+    # 一个要点 + 4 条威胁方向（东南西北，后方不留空）+ 4 个正对威胁的阵位 +
+    # 1 台预备队 + 1 架空中观察席（防空/对空警戒，定高盘旋）。
     # 坚守 150 s，含 2 次自动轮换（接替者到位才撤）、1 次按敌我比触发的增援、
     # 1 次按时撤离；敌方进攻只作为**输入事件**，反击/压制走桩判定（verified=false）。
-    hold_fleet = build(scene, [1, 2, 3, 21, 22], "PLAN-INTEROP-HLD")
+    hold_fleet = build(scene, [1, 2, 3, 21, 22, 31], "PLAN-INTEROP-HLD")
     hold_assembly = {
         "U1": {"x": -92.0, "y": -12.0},
         "U2": {"x": -84.0, "y": -16.0},
         "U3": {"x": -96.0, "y": -18.0},
         "U4": {"x": -88.0, "y": -22.0},
         "U5": {"x": -80.0, "y": -24.0},
+        "U6": {"x": -86.0, "y": -28.0},
     }
     for unit in hold_fleet["formation"]["units"]:
         if unit["unit_id"] in hold_assembly:
@@ -264,7 +266,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     hold_tasks = [
         _task("T1", "T-HLD", 1,
               {"key_point": [0, 40]},
-              (0, 320), {"HLD": 2}, 4, 5,
+              (0, 320), {"HLD": 2}, 5, 6,
               {"hold_duration_s": 150,
                "threat_directions": [
                    {"id": "N", "bearing_deg": 0, "width_deg": 60},
@@ -280,12 +282,22 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
                     "min_units": 1},
                    {"id": "P4", "point": [-40, 40], "facing_deg": 270,
                     "min_units": 1}],
-               "roles": {"post": 4, "reserve": 1, "support": 0, "relay": 0},
+               "roles": {"post": 4, "reserve": 1, "support": 0, "relay": 0,
+                         "air": 1},
                "min_on_post": 3,
                "hold_criteria": "quantity",
                "sensor_radius_m": 45,
                "observation_ring_m": 24,
                "observation_gap_max_s": 8,
+               # 要点必须被阵位探测圈全向覆盖（圆形口径，不按扇区）
+               "min_key_point_coverage": 0.95,
+               # 空中观察席（防空/对空警戒）：固定到编成表 U6（固定翼）
+               "air_unit": "U6",
+               "air_capabilities": {"RCN": 2},
+               "air_altitude_m": 60,
+               "air_orbit_radius_m": 45,
+               "air_orbit_period_s": 90,
+               "air_speed_mps": 14,
                # 到点后在阵位前方踱步（在岗游走），不是钉在原地
                "patrol_enabled": True,
                "patrol_radius_m": 5,

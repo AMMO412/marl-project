@@ -21,8 +21,8 @@
       "required_capabilities": {
         "HLD": 2
       },
-      "min_units": 4,
-      "max_units": 5,
+      "min_units": 5,
+      "max_units": 6,
       "params": {
         "hold_duration_s": 150,
         "threat_directions": [
@@ -89,13 +89,23 @@
           "post": 4,
           "reserve": 1,
           "support": 0,
-          "relay": 0
+          "relay": 0,
+          "air": 1
         },
         "min_on_post": 3,
         "hold_criteria": "quantity",
         "sensor_radius_m": 45,
         "observation_ring_m": 24,
         "observation_gap_max_s": 8,
+        "min_key_point_coverage": 0.95,
+        "air_unit": "U6",
+        "air_capabilities": {
+          "RCN": 2
+        },
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 45,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
         "patrol_enabled": true,
         "patrol_radius_m": 5,
         "patrol_speed_mps": 1.5,

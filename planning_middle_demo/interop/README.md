@@ -305,8 +305,9 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
   记为 `counter_attack` 事件与 `suppressed` 状态，判定走 `assessment.Adjudicator`
   的桩实现并写 `verified=false`；不建弹道/命中/毁伤模型，也不在规划层判成败。
 - 样例：`scenarios/key_point_hold.{message,formation}.json`（要点 + 东南西北 4 条
-  威胁方向 + 4 个正对威胁的阵位 + 1 台预备队，共 5 台平台；坚守 150 s，含 2 次
-  自动轮换、1 次按敌我比触发的增援、1 次按时撤离、4 次敌方进攻含一次后方试探）。
+  威胁方向 + 4 个正对威胁的阵位 + 1 台预备队 + 1 架空中观察席，共 6 台平台；
+  坚守 150 s，含 2 次自动轮换、1 次按敌我比触发的增援、1 次按时撤离、4 次敌方
+  进攻含一次后方试探；要点按阵位探测圈做全向覆盖判定，空中席 60 m 盘旋）。
 - 运行：`python -m interop.cli demo ... --motion real --behavior --max-ticks 260`；
   工作台场景选 "要点坚守 · T-HLD"，运行后在"演示总览"顶部切到 **要点坚守** 页签
   （阵位在位甘特、增援/接替标记、逐项判定、桩判定清单）。

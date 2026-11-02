@@ -375,9 +375,10 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     raise PlanningError("%s（T-PTL）缺少 route / patrol_area / point" % task.task_id)
 
 
-HLD_ROLE_KEYS = ("post", "reserve", "support", "relay")
+HLD_ROLE_KEYS = ("post", "reserve", "support", "relay", "air")
 # 兵力上限裁剪顺序：阵位最后裁，否则"裁完没人守要点"（任务书 §9.4）。
-HLD_CROP_ORDER = ("support", "relay", "reserve")
+# 空中观察席排在预备队之后、阵位之前：它是加强手段，不是守点的前提。
+HLD_CROP_ORDER = ("support", "relay", "reserve", "air")
 
 
 def _hld_threats(task: Task) -> List[Dict[str, Any]]:
@@ -507,7 +508,7 @@ def _hld_role_counts(task: Task, position_count: int) -> Dict[str, int]:
         if sum(counts.values()) <= 0:
             raise PlanningError("%s.roles 台数合计必须大于 0" % task.task_id)
         return counts
-    return dict(post=position_count, reserve=0, support=0, relay=0)
+    return dict(post=position_count, reserve=0, support=0, relay=0, air=0)
 
 
 def _crop_hld_roles(counts: Dict[str, int], limit: int) -> Dict[str, int]:
@@ -652,6 +653,16 @@ def _decompose_hld(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         items.append(({"point": [float(relay_point[0]),
                                  float(relay_point[1])]}, "relay:standby"))
 
+    # 空中观察席（防空/对空警戒）：绕要点上空定高盘旋。席位固定到 4.1 的
+    # air_unit，能力按 air_capabilities 单独要求——空中席位不能用地面平台的
+    # HLD 门槛去凑，地面平台也没有高度层，飞不上去。
+    air_caps = task.params.get("air_capabilities") or {"RCN": 2}
+    air_unit = task.params.get("air_unit")
+    air_count = int(counts.get("air") or 0)
+    for _ in range(air_count):
+        items.append(({"point": [float(key_point[0]), float(key_point[1])]},
+                      "air:watch"))
+
     if not items:
         raise PlanningError("%s（T-HLD）分解后没有阵位" % task.task_id)
     subtasks = []
@@ -659,6 +670,10 @@ def _decompose_hld(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         subtask = _make_subtask(task, index + 1, target, duration,
                                 coordination=coordination)
         subtask.role = role
+        if role.startswith("air:"):
+            subtask.required_capabilities = dict(air_caps)
+            if air_unit:
+                subtask.pinned_unit = str(air_unit)
         subtasks.append(subtask)
     return subtasks
 

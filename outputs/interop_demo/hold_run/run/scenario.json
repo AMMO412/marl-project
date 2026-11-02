@@ -41,8 +41,8 @@
             "required_capabilities": {
               "HLD": 2
             },
-            "min_units": 4,
-            "max_units": 5,
+            "min_units": 5,
+            "max_units": 6,
             "params": {
               "hold_duration_s": 150,
               "threat_directions": [
@@ -109,13 +109,23 @@
                 "post": 4,
                 "reserve": 1,
                 "support": 0,
-                "relay": 0
+                "relay": 0,
+                "air": 1
               },
               "min_on_post": 3,
               "hold_criteria": "quantity",
               "sensor_radius_m": 45,
               "observation_ring_m": 24,
               "observation_gap_max_s": 8,
+              "min_key_point_coverage": 0.95,
+              "air_unit": "U6",
+              "air_capabilities": {
+                "RCN": 2
+              },
+              "air_altitude_m": 60,
+              "air_orbit_radius_m": 45,
+              "air_orbit_period_s": 90,
+              "air_speed_mps": 14,
               "patrol_enabled": true,
               "patrol_radius_m": 5,
               "patrol_speed_mps": 1.5,
@@ -302,6 +312,28 @@
               "heading_rad": 0.0,
               "speed_mps": 8.0,
               "endurance_s": 28800.0,
+              "status": "READY"
+            },
+            {
+              "unit_id": "U6",
+              "platform_type": "uav_recon",
+              "platform_class": "PLANE",
+              "robot_id": 31,
+              "capabilities": {
+                "RCN": 3,
+                "STK": 0,
+                "PTL": 2,
+                "HLD": 0
+              },
+              "position": {
+                "x": -86.0,
+                "y": -28.0
+              },
+              "altitude_m": 6.0,
+              "vertical_speed_mps": 3.0,
+              "heading_rad": 0.0,
+              "speed_mps": 30.0,
+              "endurance_s": 36000.0,
               "status": "READY"
             }
           ]
@@ -1315,6 +1347,14 @@
         -24.0
       ],
       "_platform_class": "TANK"
+    },
+    {
+      "robot_no": 31,
+      "pos": [
+        -86.0,
+        -28.0
+      ],
+      "_platform_class": "PLANE"
     }
   ],
   "jobs": [
@@ -1324,12 +1364,12 @@
         0.0,
         40.0
       ],
-      "work": 600.0,
+      "work": 750.0,
       "window": [
         0,
         320
       ],
-      "crew": 4,
+      "crew": 5,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
@@ -1420,7 +1460,8 @@
           "post": 4,
           "reserve": 1,
           "support": 0,
-          "relay": 0
+          "relay": 0,
+          "air": 1
         },
         "duration_s": 150.0,
         "site": [
@@ -1496,7 +1537,20 @@
         "assembly_point": [
           -90,
           -16
-        ]
+        ],
+        "patrol_enabled": true,
+        "patrol_radius_m": 5,
+        "patrol_speed_mps": 1.5,
+        "patrol_period_s": 50,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 45,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_capabilities": {
+          "RCN": 2
+        },
+        "air_unit": "U6",
+        "min_key_point_coverage": 0.95
       }
     }
   ]

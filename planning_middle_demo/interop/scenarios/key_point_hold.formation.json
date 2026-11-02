@@ -111,6 +111,28 @@
         "speed_mps": 8.0,
         "endurance_s": 28800.0,
         "status": "READY"
+      },
+      {
+        "unit_id": "U6",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 31,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -86.0,
+          "y": -28.0
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
       }
     ]
   },

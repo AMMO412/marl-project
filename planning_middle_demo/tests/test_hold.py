@@ -102,11 +102,15 @@ DEFAULT_ROLES = {"U1": "post:P1", "U2": "post:P2", "U3": "post:P3",
                  "U4": "reserve:standby"}
 
 
-def _behavior(pid_roles=None, **overrides):
+def _behavior(pid_roles=None, pids=None, caps=None, **overrides):
     params = _base_params(**overrides)
     params["roles"] = dict(pid_roles or DEFAULT_ROLES)
     job = dict(job_id="T1", type="hold", pos=list(KEY))
-    return KeepBehavior(job, _Nav(), ["U1", "U2", "U3", "U4"], params)
+    behavior = KeepBehavior(job, _Nav(), list(pids or ["U1", "U2", "U3", "U4"]),
+                            params)
+    if caps:
+        behavior.set_platform_caps(caps)
+    return behavior
 
 
 def _run(behavior, steps=120, hold=None, start=None):
@@ -562,6 +566,53 @@ class HoldBehaviorTests(unittest.TestCase):
         self.assertIn("handover_aborted", kinds)
         self.assertNotIn("handover_timeout", kinds)
 
+    def test_air_seat_orbits_and_reports_alive(self):
+        """空中观察席：绕要点定高盘旋，并计入在位率。"""
+        roles = dict(DEFAULT_ROLES)
+        roles["U5"] = "air:watch"
+        behavior = _behavior(pid_roles=roles, pids=["U1", "U2", "U3", "U4", "U5"],
+                             hold_duration_s=30, air_altitude_m=60,
+                             air_orbit_radius_m=40)
+        poses = {pid: (0.0, 0.0, 0.0) for pid in behavior.pids}
+        for pid, post_id in behavior.post_of_pid.items():
+            poses[pid] = (float(behavior.post_point[post_id][0]),
+                          float(behavior.post_point[post_id][1]), 0.0)
+        out = behavior.step(poses, 10.0, 1.0)
+        target = out["targets"]["U5"]
+        radius = ((target[0] - KEY[0]) ** 2 + (target[1] - KEY[1]) ** 2) ** 0.5
+        self.assertAlmostEqual(radius, 40.0, delta=0.5)
+        self.assertIn("U5", behavior.params["air_altitude"])
+        self.assertEqual(len(behavior.air_pids), 1)
+        self.assertGreater(behavior.air_watch_s, 0.0)
+
+    def test_air_seat_reassigned_when_platform_cannot_climb(self):
+        roles = dict(DEFAULT_ROLES)
+        roles["U5"] = "air:watch"
+        behavior = _behavior(pid_roles=roles, pids=["U1", "U2", "U3", "U4", "U5"])
+        caps = {pid: dict(can_climb=False) for pid in behavior.pids}
+        caps["U5"] = dict(can_climb=False)          # 地面平台误占空中席位
+        behavior.set_platform_caps(caps)
+        self.assertEqual(behavior.air_pids, [])
+        self.assertEqual(behavior.role["U5"], "reserve:standby")
+        self.assertIn("air_seat_reassigned", _kinds(behavior))
+
+    def test_coverage_gap_detected_and_judged(self):
+        """只用一侧阵位时，要点全向覆盖出现缺口，判据应判失败。"""
+        behavior = _behavior(
+            positions=[dict(id="P1", point=[0.0, 80.0], facing_deg=0.0),
+                       dict(id="P2", point=[20.0, 80.0], facing_deg=45.0)],
+            pid_roles={"U1": "post:P1", "U2": "post:P2", "U3": "post:P1",
+                       "U4": "post:P2"},
+            min_on_post=1, sensor_radius_m=20, observation_ring_m=24,
+            min_key_point_coverage=0.95, hold_duration_s=20)
+        _run(behavior, steps=40)
+        metrics = _result(behavior)["metrics"]
+        self.assertGreater(metrics["coverage_gap_count"], 0)
+        item = next(it for it in _result(behavior)["items"]
+                    if it["id"] == "key_point_coverage")
+        self.assertTrue(item["required"])
+        self.assertFalse(item["ok"])
+
 
 # ----------------------------------------------------------------------
 # 5. 回放
@@ -631,11 +682,20 @@ class HoldSampleTests(unittest.TestCase):
         formation = json.loads(HOLD_FORMATION.read_text(encoding="utf-8"))
         scenario = parse_message(message, formation)
         subtasks = decompose(scenario)
-        self.assertEqual(len(subtasks), 5)
+        self.assertEqual(len(subtasks), 6)
         self.assertEqual(sorted(s.role for s in subtasks),
-                         ["post:P1", "post:P2", "post:P3", "post:P4",
-                          "reserve:standby"])
+                         ["air:watch", "post:P1", "post:P2", "post:P3",
+                          "post:P4", "reserve:standby"])
         check_scenario_v2(to_v2_dict(scenario, message, formation))
+
+    def test_sample_air_slot_pinned_to_air_unit(self):
+        message = json.loads(HOLD_MESSAGE.read_text(encoding="utf-8"))
+        formation = json.loads(HOLD_FORMATION.read_text(encoding="utf-8"))
+        scenario = parse_message(message, formation)
+        air = [s for s in decompose(scenario) if s.role == "air:watch"]
+        self.assertEqual(len(air), 1)
+        self.assertEqual(air[0].pinned_unit, "U6")
+        self.assertEqual(air[0].required_capabilities, {"RCN": 2})
 
     def test_sample_covers_all_threat_directions(self):
         """后方不能空着：每个威胁方向都要有一个正对它的阵位。"""

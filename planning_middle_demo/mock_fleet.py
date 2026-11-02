@@ -519,6 +519,13 @@ class MockFleet:
                 r['patrol_radius_m'] = getattr(behavior, 'patrol_radius', 0.0)
                 r['patrol_speed_mps'] = getattr(behavior, 'patrol_speed', None)
                 r['post_tolerance_m'] = getattr(behavior, 'post_tolerance', None)
+                # 空中观察席（防空/对空警戒）：席位、盘旋半径/高度与周期
+                r['air_units'] = list(getattr(behavior, 'air_pids', []))
+                r['air_altitude_m'] = getattr(behavior, 'air_altitude_m', None)
+                r['air_orbit_radius_m'] = behavior.params.get('air_orbit_radius_m')
+                r['air_orbit_period_s'] = behavior.params.get('air_orbit_period_s')
+                r['min_key_point_coverage'] = behavior.params.get(
+                    'min_key_point_coverage')
                 r['duration_s'] = behavior.params.get('duration_s')
                 r['relief'] = dict(behavior.params.get('relief') or {})
                 r['reinforce'] = dict(behavior.params.get('reinforce') or {})

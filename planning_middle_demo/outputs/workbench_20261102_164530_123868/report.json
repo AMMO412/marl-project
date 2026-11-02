@@ -14,16 +14,16 @@
         0.0,
         40.0
       ],
-      "work": 810.0,
+      "work": 900.0,
       "window": [
         0,
         320
       ],
-      "crew": 4,
+      "crew": 5,
       "need_payload": 0.0,
       "need_sensor": null,
       "altitude": 0.0,
-      "progress": 810.0,
+      "progress": 900.0,
       "status": "succeeded",
       "attempts": 1,
       "started_at": 18,
@@ -108,7 +108,8 @@
           "post": 4,
           "reserve": 1,
           "support": 0,
-          "relay": 0
+          "relay": 0,
+          "air": 1
         },
         "duration_s": 150.0,
         "site": [
@@ -188,7 +189,16 @@
         "patrol_enabled": true,
         "patrol_radius_m": 5,
         "patrol_speed_mps": 1.5,
-        "patrol_period_s": 50
+        "patrol_period_s": 50,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 45,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_capabilities": {
+          "RCN": 2
+        },
+        "air_unit": "U6",
+        "min_key_point_coverage": 0.95
       }
     }
   ],
@@ -252,6 +262,18 @@
       "battery": 999988.7,
       "alive": true,
       "topic": "/container_00/robot_022"
+    },
+    {
+      "pid": "rover_31",
+      "kind": "PLANE",
+      "robot_no": 31,
+      "pos": [
+        -30.0,
+        -10.0
+      ],
+      "battery": 999955.2,
+      "alive": true,
+      "topic": "/container_00/robot_031"
     }
   ],
   "active_commands": 0,
@@ -267,8 +289,8 @@
     "periodic": 22
   },
   "done": 1,
-  "used_energy": -4999396.2,
-  "per_task_energy": -4999396.24,
+  "used_energy": -5999031.5,
+  "per_task_energy": -5999031.48,
   "makespan": 179,
   "spread": 0.06,
   "need_report": [],

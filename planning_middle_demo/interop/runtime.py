@@ -268,7 +268,10 @@ def _hld_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
                 "relief", "reinforce", "withdraw", "enemy_events",
                 "counter_attack", "effect", "assembly_point",
                 "post_tolerance_m", "patrol_enabled", "patrol_radius_m",
-                "patrol_speed_mps", "patrol_period_s", "max_steps"):
+                "patrol_speed_mps", "patrol_period_s",
+                "air_altitude_m", "air_orbit_radius_m", "air_orbit_period_s",
+                "air_speed_mps", "air_capabilities", "air_unit",
+                "min_key_point_coverage", "max_steps"):
         if key in params:
             out[key] = params[key]
     return out

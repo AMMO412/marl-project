@@ -5,8 +5,8 @@
   "inputs": {
     "message": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.message.json",
     "formation": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.formation.json",
-    "message_sha256": "d3c93f97f193977bbdf50dfef86d153cb4a12bd15abb94d3595493519e8eb1d7",
-    "formation_sha256": "48f58f7bff3fe1277da6e949ead30d6ec62565819a3356b97c8cafd7e56c1af6"
+    "message_sha256": "0d88ca2745bc2a34c03ebb906c5bf1a76c6ad072462d64a3cfaea029159a4d13",
+    "formation_sha256": "5b4cff12669fff612fb0df6a918f4c8dda556e201b1af1f138cb438435fa1cda"
   },
   "plan_files": [
     "plan.json",
@@ -15,9 +15,9 @@
     "report.md",
     "ros2_commands.txt"
   ],
-  "scenario_sha256": "f4fb174c702d6b634fce388f72173a1f79ab4b4591d76ebff03b2dea3e97919f",
-  "source_scenario_sha256": "d3c93f97f193977bbdf50dfef86d153cb4a12bd15abb94d3595493519e8eb1d7",
-  "generated_at": "2026-11-02T16:32:34.941555+08:00",
+  "scenario_sha256": "eeb816a1c323501859e6d4edafd22096a87940d3971c2f9bf82736e3af708343",
+  "source_scenario_sha256": "0d88ca2745bc2a34c03ebb906c5bf1a76c6ad072462d64a3cfaea029159a4d13",
+  "generated_at": "2026-11-02T16:45:38.826886+08:00",
   "backend": "mock_only",
   "external_integration_verified": false,
   "planner": "interop",

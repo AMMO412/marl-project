@@ -2783,6 +2783,10 @@ class KeepBehavior(Behavior):
         self.timeline = []
         self.verdict = None
         self._last_coverage = 0.0
+        self._last_gaps = []
+        self._worst_gaps = []
+        self._min_coverage = 1.0
+        self.air_watch_s = 0.0
         self.metrics.update(
             key_point=[round(v, 2) for v in self.key_point],
             positions=[dict(item) for item in self.positions],
@@ -2885,7 +2889,7 @@ class KeepBehavior(Behavior):
                 self.post_owner[detail] = pid
                 self.post_of_pid[pid] = detail
                 self.role[pid] = 'post:%s' % detail
-            elif kind in ('reserve', 'support', 'relay'):
+            elif kind in ('reserve', 'support', 'relay', 'air'):
                 self.role[pid] = declared[pid]
             else:
                 free.append(pid)
@@ -2898,9 +2902,57 @@ class KeepBehavior(Behavior):
             self.role[pid] = 'post:%s' % post_id
         for pid in free:
             self.role[pid] = 'reserve:standby'
+        # 空中观察席：绕要点上空定高盘旋（防空/对空警戒）。地面平台没有
+        # 高度层，不能顶这个席位——计划层用 pinned_unit/air_capabilities 保证，
+        # 这里再复核一次，避免"地面上站了个空中席位"。
+        self.air_pids = [pid for pid in pids
+                         if str(self.role.get(pid, '')).startswith('air')]
+        if self.air_pids:
+            altitude = float(self.params.get('air_altitude_m') or 60.0)
+            # 能力复核：平台画像里有 can_climb 时才据它过滤（测试替身没有画像，
+            # 不做过滤）；地面平台被误分到空中席位时这里会把它退回。
+            if self.platform_caps:
+                allowed = [pid for pid in self.air_pids
+                           if (self.platform_caps.get(pid) or {}).get('can_climb')]
+                if allowed:
+                    self.air_pids = allowed
+            self.params['air_altitude'] = {pid: altitude for pid in self.air_pids}
+            self.air_altitude_m = altitude
+        else:
+            self.air_altitude_m = None
 
     def _role_kind(self, pid):
         return str(self.role.get(pid, '')).split(':')[0]
+
+    def set_platform_caps(self, caps):
+        """平台画像到齐后复核空中席位：飞不起来的平台不能占空中观察席。
+
+        计划层已经用 ``air_unit`` / ``air_capabilities`` 固定了席位，但指令
+        在下发途中可能被改写；这里按"能不能爬升"再挡一次，挡下来就退回预备队
+        并留痕，而不是让它在地面上假装在飞。
+        """
+        super().set_platform_caps(caps)
+        air = list(getattr(self, 'air_pids', []) or [])
+        if not air:
+            return
+        caps = caps or {}
+        keep = [pid for pid in air if (caps.get(pid) or {}).get('can_climb')]
+        if len(keep) == len(air):
+            return
+        for pid in air:
+            if pid in keep:
+                continue
+            self.role[pid] = 'reserve:standby'
+            self.emit('air_seat_reassigned', pid=pid,
+                      reason='平台不具备爬升能力，空中观察席退回预备队')
+            self._log(self.t, 'air_seat_reassigned', pid=pid)
+        self.air_pids = keep
+        if keep:
+            altitude = float(self.params.get('air_altitude_m') or 60.0)
+            self.params['air_altitude'] = {pid: altitude for pid in keep}
+        else:
+            self.params.pop('air_altitude', None)
+            self.air_altitude_m = None
 
     def _role_label(self, pid):
         return self.role.get(pid, '未分工')
@@ -2921,6 +2973,8 @@ class KeepBehavior(Behavior):
             return list(spots[index % len(spots)])
         if kind == 'relay':
             return list(self.relay_point)
+        if kind == 'air':
+            return list(self.key_point)
         return list(self.reserve_point)
 
     def _reserve_pid(self):
@@ -2970,8 +3024,12 @@ class KeepBehavior(Behavior):
                     done=self.done, speed_scale=self._step_speed_scale())
 
     def _step_speed_scale(self):
-        """在岗游走限速：按 patrol_speed_mps 走，前出增援/接替/撤离恢复全速。"""
-        if not self.patrol_enabled or self.patrol_radius <= 0:
+        """在岗游走限速：按 patrol_speed_mps 走，前出增援/接替/撤离恢复全速。
+
+        空中观察席不受地面游走限速影响，单独按 air_speed_mps 限速。
+        """
+        patrol_on = self.patrol_enabled and self.patrol_radius > 0
+        if not patrol_on and not getattr(self, 'air_pids', []):
             return {}
         busy = set()
         if self.handover:
@@ -2984,7 +3042,15 @@ class KeepBehavior(Behavior):
                 continue
             if self.withdraw_started_at is not None:
                 continue
+            if pid in getattr(self, 'air_pids', []):
+                # 空中观察席按自己的盘旋速度走，不受地面游走限速影响
+                air_speed = float(self.params.get('air_speed_mps') or 14.0)
+                scale[pid] = min(1.0, air_speed
+                                 / max(self._speed_of(pid), 0.1))
+                continue
             if not self.post_of_pid.get(pid) or not self.on_post.get(pid):
+                continue
+            if not patrol_on:
                 continue
             scale[pid] = min(1.0, self.patrol_speed
                              / max(self._speed_of(pid), 0.1))
@@ -3110,6 +3176,26 @@ class KeepBehavior(Behavior):
                           under_s=round(self.under_s, 1))
                 self._log(t, 'control_lost', posts=count)
 
+    def _gap_bearings(self, observers):
+        """要点周围哪些方位没有被"在位阵位"的探测圈覆盖（度，0°=北）。
+
+        覆盖按阵位平台的圆形探测半径算，不是按扇区：扇区只表示"威胁来自哪里"，
+        真正拦住斜向空隙的是各阵位探测圈对要点一周的覆盖。
+        """
+        if not observers:
+            return [0, 90, 180, 270]
+        gaps = []
+        squared = self.sensor_radius ** 2
+        for sample in self.samples:
+            px, py = sample['point']
+            if any((px - ox) ** 2 + (py - oy) ** 2 <= squared
+                   for ox, oy in observers):
+                continue
+            bearing = math.degrees(math.atan2(px - self.key_point[0],
+                                              py - self.key_point[1])) % 360.0
+            gaps.append(round(bearing))
+        return sorted(set(gaps))
+
     def _track_observation(self, poses, t, dt):
         p = self.params
         observers = []
@@ -3119,10 +3205,27 @@ class KeepBehavior(Behavior):
         coverage = geom.coverage_ratio(self.samples, observers,
                                        self.sensor_radius)
         self._last_coverage = coverage
+        self._last_gaps = self._gap_bearings(observers)        # 空中观察席在位：只要还有活的空中平台绕要点盘旋就计时（高度由运动层
+        # 控制，行为层只拿得到二维位姿，因此按"是否在盘旋半径内"记账）。
+        air_alive = [pid for pid in getattr(self, 'air_pids', [])
+                     if pid not in self.lost_pids]
+        air_ok = bool(air_alive)
+        if air_ok:
+            radius = float(p.get('air_orbit_radius_m') or 45.0) * 1.6
+            air_ok = any(distance(tuple(poses[pid])[:2], tuple(self.key_point))
+                         <= radius for pid in air_alive)
         if self.control_established_at is not None \
                 and self.withdraw_started_at is None:
             self.coverage_sum += coverage * dt
             self.coverage_t += dt
+            if air_ok:
+                self.air_watch_s += dt
+            # 覆盖缺口按"坚守时段内最差的一拍"记账：撤离后大家离开阵位，
+            # 那一刻的空覆盖不能算成"守的时候漏了"。
+            if coverage < self._min_coverage:
+                self._min_coverage = coverage
+            if len(self._last_gaps) > len(self._worst_gaps):
+                self._worst_gaps = list(self._last_gaps)
         # 每个阵位对"自己责任扇区"的连续观察时长（抽象效果判定的过程证据）
         for position in self.positions:
             post_id = position['id']
@@ -3561,11 +3664,25 @@ class KeepBehavior(Behavior):
             if self.reinforce and pid == self.reinforce['pid']:
                 targets[pid] = list(self.post_point[self.reinforce['post_id']])
                 continue
+            if pid in getattr(self, 'air_pids', []):
+                # 空中观察席：绕要点定高盘旋（高度由 BehaviorRunner 的
+                # air_altitude 参数控制，2D 画面按投影画）。
+                targets[pid] = self._air_target(pid, self.t)
+                continue
             # 只占位才游走：预备队/支援/中继在各自站位待机，不到处走。
             walk = self._post_target(pid, self.t) if self.post_of_pid.get(pid) \
                 else None
             targets[pid] = walk if walk is not None else self._station_of(pid)
         return targets
+
+    def _air_target(self, pid, t):
+        """空中观察席的盘旋目标：绕要点、半径与周期可配。"""
+        radius = float(self.params.get('air_orbit_radius_m') or 45.0)
+        period = max(20.0, float(self.params.get('air_orbit_period_s') or 90.0))
+        phase = self.patrol_phase.get(pid, 0.0)
+        theta = 2 * math.pi * t / period + phase
+        return [round(self.key_point[0] + radius * math.cos(theta), 3),
+                round(self.key_point[1] + radius * math.sin(theta), 3)]
 
     # ---------------- 结算 ----------------
     def _finalize(self, t, reason, timeout=False):
@@ -3593,6 +3710,15 @@ class KeepBehavior(Behavior):
             observation_gap_max_s=round(self.gap_max, 1),
             observation_gap_total_s=round(self.gap_total, 1),
             observation_gaps=[dict(item) for item in self.gaps],
+            # 全向覆盖：按各阵位圆形探测圈对要点一周的覆盖统计，不是按扇区。
+            coverage_gap_bearings=list(getattr(self, '_worst_gaps', [])),
+            coverage_gap_count=len(getattr(self, '_worst_gaps', [])),
+            coverage_min_instant=round(getattr(self, '_min_coverage', 1.0), 4),
+            air_units=len(getattr(self, 'air_pids', [])),
+            air_altitude_m=getattr(self, 'air_altitude_m', None),
+            air_watch_s=round(self.air_watch_s, 1),
+            air_watch_ratio=round(min(1.0, self.air_watch_s
+                                      / max(hold_span, 1e-6)), 4),
             min_on_post=self.min_on_post,
             hold_criteria=self.criteria,
             hold_criteria_label=HL_CRITERIA_LABELS[self.criteria],
@@ -3675,6 +3801,27 @@ class KeepBehavior(Behavior):
                           metrics['observation_gap_max_s'], gap_need,
                           metrics['observation_gap_max_s'] <= gap_need,
                           required=(self.criteria == 'coverage')))
+        # 要点全向覆盖：按阵位圆形探测圈对要点一周的覆盖，不按扇区。任务给了
+        # min_key_point_coverage 才作为必需判据（旧样例不受影响）。
+        coverage_need = p.get('min_key_point_coverage')
+        if coverage_need is not None or self.criteria == 'coverage':
+            need = float(coverage_need if coverage_need is not None else 0.95)
+            items.append(item(
+                'key_point_coverage', '要点全向覆盖（按阵位探测圈）',
+                metrics.get('observation_coverage_mean', 0.0), need,
+                metrics.get('observation_coverage_mean', 0.0) >= need,
+                required=True,
+                note=('未覆盖方位 %d 个（°）：%s'
+                      % (metrics.get('coverage_gap_count', 0),
+                         metrics.get('coverage_gap_bearings', [])[:6]))))
+        if metrics.get('air_units'):
+            need = float(p.get('min_air_watch_ratio') or 0.9)
+            items.append(item(
+                'air_watch', '空中观察在位率（防空警戒席）',
+                metrics.get('air_watch_ratio', 0.0), need,
+                metrics.get('air_watch_ratio', 0.0) >= need,
+                required=True,
+                note='平均高度 %s m' % (metrics.get('air_altitude_m'),)))
         if metrics['relief_count'] or metrics['relief_skipped']:
             bad = [row for row in self.handover_list
                    if not row.get('arrival_before_departure')]
@@ -3757,6 +3904,8 @@ class KeepBehavior(Behavior):
             on_post={pid: bool(v) for pid, v in self.on_post.items()},
             manned=list(self.manned_posts()),
             coverage=round(self._last_coverage, 3),
+            coverage_gaps=list(getattr(self, '_last_gaps', [])),
+            air=list(getattr(self, 'air_pids', [])),
             handover=(dict(self.handover) if self.handover else None),
             reinforce=(dict(self.reinforce) if self.reinforce else None),
             suppressed=sorted(self.suppressed),

@@ -17,7 +17,7 @@
 
 ```powershell
 # 在项目根目录
-node .work/hold_20261102/verify.cjs workbench_20261102_163225_793094
+node .work/hold_20261102/verify.cjs workbench_20261102_164530_123868
 ```
 
 说明：Playwright 用本机 Edge（`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`），

@@ -19,7 +19,7 @@
     key: '#1d4ed8', post: '#0f766e', postOff: '#94a3b8',
     reserve: '#7c3aed', support: '#0891b2', relay: '#64748b',
     threat: '#b91c1c', enemy: '#b91c1c', reinforce: '#ea580c',
-    withdraw: '#475569', effect: '#b45309',
+    withdraw: '#475569', effect: '#b45309', air: '#2563eb',
   };
   const EVENT_TICK = {
     control_established: '#0f766e', control_interrupted: '#b45309',
@@ -261,6 +261,10 @@
           '<span>要点 ' + (st.key_point || []).map((v) => num(v, 0)).join(', ') + '</span>' +
           '<span>' + (st.positions || []).length + ' 个阵位</span>' +
           '<span>在位下限 ' + num(st.min_on_post, 0) + ' 台</span>' +
+          '<span>全向覆盖 ' + num((m.observation_coverage_mean || 0) * 100, 0) + '%</span>' +
+          (st.air_units && st.air_units.length
+            ? '<span>空中观察 ' + st.air_units.length + ' 架 · ' +
+              num(st.air_altitude_m, 0) + ' m</span>' : '') +
           '<span>判定口径 ' + esc(st.hold_criteria_label || st.hold_criteria) + '</span>' +
           '<span>坚守时段 ' + num(st.duration_s, 0) + ' s</span>' +
           '<span>控制建立 ' + (est == null ? '未建立' : num(est, 1) + ' s') + '</span>' +
@@ -284,7 +288,9 @@
             '<span><i style="background:' + COLORS.key + '"></i>要点</span>' +
             '<span><i style="background:' + COLORS.post + '"></i>阵位在位</span>' +
             '<span><i style="background:' + COLORS.postOff + '"></i>阵位空缺</span>' +
+            '<span><i style="background:' + COLORS.post + '55"></i>探测圈（全向覆盖）</span>' +
             '<span><i style="background:' + COLORS.threat + '"></i>威胁方向</span>' +
+            '<span><i style="background:' + COLORS.air + '"></i>空中观察</span>' +
             '<span><i style="background:' + COLORS.reinforce + '"></i>增援</span>' +
             '<span><i style="background:' + COLORS.withdraw + '"></i>撤离</span>' +
           '</div>' +
@@ -473,8 +479,12 @@
     }
     if (!pts.length) return [0, 0, 100, 100];
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    // 探测圈/盘旋圈比阵位本身大得多：按半径外扩，否则"圆形覆盖"被画布裁掉。
+    const ringPad = Math.max(Number(st.sensor_radius_m) || 0,
+                             Number(st.air_orbit_radius_m) || 0) * 0.9;
     const pad = Math.max(10, Math.max(Math.max(...xs) - Math.min(...xs),
-                                      Math.max(...ys) - Math.min(...ys)) * 0.08);
+                                      Math.max(...ys) - Math.min(...ys)) * 0.08,
+                         ringPad);
     return [Math.min(...xs) - pad, Math.min(...ys) - pad,
             Math.max(...xs) + pad, Math.max(...ys) + pad];
   }
@@ -621,6 +631,32 @@
               COLORS.relay);
     }
 
+    // 阵位探测圈（圆形覆盖）：扇区只表示"威胁来自哪里"，真正保证要点不被
+    // 从斜向空隙钻进来的是各阵位探测圈对要点一周的覆盖，所以按半径画实线圆。
+    const sensorR = (Number(st.sensor_radius_m) || 0) * scale;
+    if (sensorR > 4) {
+      for (const position of (st.positions || [])) {
+        const q = P(position.point);
+        ctx.beginPath();
+        ctx.arc(q[0], q[1], sensorR, 0, Math.PI * 2);
+        ctx.strokeStyle = COLORS.post + '3d';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+    // 空中观察席的盘旋圈与高度标注
+    if ((st.air_units || []).length) {
+      const orbit = (Number(st.air_orbit_radius_m) || 45) * scale;
+      const kp0 = P(st.key_point);
+      if (orbit > 4) {
+        ctx.beginPath();
+        ctx.arc(kp0[0], kp0[1], orbit, 0, Math.PI * 2);
+        ctx.strokeStyle = COLORS.air + '55';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+
     // 阵位：环 + 朝向刻线；在位=实心，空缺=空心
     for (const position of (st.positions || [])) {
       const q = P(position.point);
@@ -674,7 +710,8 @@
       const kind = String(roles[pid] || '').split(':')[0];
       const color = kind === 'reserve' ? COLORS.reserve
         : kind === 'support' ? COLORS.support
-          : kind === 'relay' ? COLORS.relay : COLORS.post;
+          : kind === 'relay' ? COLORS.relay
+            : kind === 'air' ? COLORS.air : COLORS.post;
       if (typeof window.drawPlatformIcon === 'function') {
         window.drawPlatformIcon(ctx, w ? w.kind : 'UGV', q[0], q[1], 11, a.yaw, color);
       } else {
@@ -682,6 +719,11 @@
         ctx.arc(q[0], q[1], 5, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
+      }
+      if (kind === 'air') {
+        placeLabel('空中观察 ' + shortPid(pid) + ' · ' +
+          num(st.air_altitude_m, 0) + ' m', q[0], q[1] - 16, COLORS.air);
+        continue;
       }
       // 平台只在"不在自己阵位"时补编号：在位的身份已经由阵位标签给出，
       // 预备队/支援/中继的身份已经由站位标签给出，再标一遍只会糊成一团。
