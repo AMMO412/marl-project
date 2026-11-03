@@ -88,46 +88,6 @@
 .task-order .order-meta span{font-size:9px;color:#6f8577;background:#fff;border:1px solid #e5eee7;border-radius:4px;padding:1px 5px}
 .task-order p{margin:0;font-size:9px;color:#8b9d90;line-height:1.5}
 
-/* Workbench layout refinement: scoped to the overview, separate from replay logic. */
-@media (min-width:1101px) {
-  main {padding:22px 24px 0;max-width:none}
-  .sidebar {width:200px;padding-top:24px}
-  main {margin-left:200px}
-  .topbar {margin-bottom:16px;flex-wrap:wrap}
-  .context-strip {margin-bottom:14px;padding:9px 14px;flex-wrap:wrap}
-  .context-strip>div {flex-wrap:wrap}
-  #page-overview .stats {gap:12px;margin-bottom:16px}
-  #page-overview .stat {min-height:108px;padding:12px 16px}
-  #page-overview .stat-number {font-size:28px}
-  #page-overview .overview-grid {grid-template-columns:minmax(0,1fr) minmax(260px,300px);gap:16px;align-items:start}
-  #page-overview .map-card {margin-bottom:0;min-width:0}
-  #page-overview .map-card .canvas-wrap {flex:none;height:clamp(380px,48vh,720px);min-height:380px}
-  #page-overview .right-column {display:flex;flex-direction:column;gap:16px;min-width:0}
-  #page-overview .right-column .card {margin-bottom:0;min-width:0}
-  #page-overview .task-list {max-height:440px;overflow-y:auto;overscroll-behavior:contain}
-  #page-overview .inspector {max-height:380px;overflow-y:auto;overflow-wrap:anywhere}
-}
-.run-strip,.run-choice,.run-right {flex-wrap:wrap}
-#page-overview .map-selection {flex-wrap:wrap}
-#page-overview .map-selection label {min-width:0;max-width:100%}
-#page-overview .map-selection select {min-width:0;max-width:100%}
-#page-overview .map-selection>span {overflow-wrap:anywhere}
-@media (min-width:1600px) {
-  #page-overview .overview-grid {grid-template-columns:minmax(0,1fr) 340px}
-  #page-overview .task-list {max-height:520px}
-}
-@media (max-width:1100px) {
-  .topbar {flex-wrap:wrap}
-  .top-actions {flex-wrap:wrap;margin-top:0}
-  .context-strip,.context-strip>div {flex-wrap:wrap}
-}
-@media (max-width:550px) {
-  .topbar h1 {white-space:normal}
-  .top-actions {width:100%;justify-content:flex-end}
-  #page-overview .player-top {flex-wrap:wrap;gap:8px}
-  #page-overview .player-top>.button-group {flex-wrap:wrap}
-}
-
 /* Shared platform icons and readable legend, including narrow layouts. */
 .map-card .map-legend{font-size:11px;line-height:1.5;gap:8px 16px;padding:12px 16px;color:#52685e}
 .map-card .map-legend>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}

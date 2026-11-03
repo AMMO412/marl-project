@@ -75,6 +75,9 @@ class BehaviorRunner:
         self._followers = {}
         # 行为层给出的"限速系数"（默认 1.0 = 平台全速）
         self._speed_scale = {}
+        # 空中平台的盘旋限速单独放一张表：地面跟随器读 _speed_scale，
+        # 空中直飞读这张，互不干扰（封控/坚守的既有速度不受影响）。
+        self._air_speed_scale = {}
         self.behavior.speeds = speeds
         self._last_phase = None
         self._job = behavior.job_id
@@ -214,6 +217,7 @@ class BehaviorRunner:
         speeds = {pid: a.speed for pid, a in self.agents.items()}
         out = self.behavior.step(poses, self.time, 1.0)
         self._speed_scale = out.get('speed_scale') or {}
+        self._air_speed_scale = out.get('air_speed_scale') or {}
         debug = self.behavior.debug() if hasattr(self.behavior, 'debug') else {}
         targets = out.get('targets') or {}
         phase = out.get('phase') or self.behavior.phase
@@ -243,7 +247,9 @@ class BehaviorRunner:
                         d = math.hypot(dx, dy)
                         if d > 1e-9:
                             agent.yaw = math.atan2(dy, dx)
-                            step = min(agent.speed * self.dt, d)
+                            speed = agent.speed * float(
+                                self._air_speed_scale.get(agent.pid, 1.0))
+                            step = min(speed * self.dt, d)
                             agent.x += dx / d * step
                             agent.y += dy / d * step
                             agent.odometer += step

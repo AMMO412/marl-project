@@ -479,7 +479,20 @@ class MockFleet:
                     if getattr(behavior, 'assessment_post', None) else None)
                 r['air_altitude'] = dict(behavior.params.get('air_altitude') or {})
                 r['climb_rate'] = behavior.params.get('climb_rate')
+                # 探测半径：工作台画"智能体探测范围"用，不参与判定
+                r['sensor_radius_m'] = behavior.params.get('sensor_radius_m')
                 r['platform_caps'] = dict(getattr(behavior, 'platform_caps', {}) or {})
+                # 观感层参数：观察位/观察环、集结环、到位后的游走与盘旋半径。
+                # 前端只按这些记录值画圈，不自己推半径（半径一律来自场景/行为参数）。
+                r['observation'] = (
+                    [round(v, 2) for v in behavior.observation]
+                    if getattr(behavior, 'observation', None) else None)
+                for key in ('observe_radius', 'confirm_radius', 'staging_radius',
+                            'loiter_radius_m', 'loiter_period_s',
+                            'air_orbit_radius_m', 'air_orbit_period_s'):
+                    value = behavior.params.get(key)
+                    if value is not None:
+                        r[key] = value
             elif behavior.kind == 'hold' and getattr(behavior, 'positions', None):
                 # T-HLD 要点坚守：要点、阵位（含朝向）、威胁方向、预备队/支援位、
                 # 判定口径与自动轮换/增援规则。回放只画这一份结构，不再自己

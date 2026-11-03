@@ -1,0 +1,30 @@
+{
+  "passed": [
+    "served UI version",
+    "navigate tasks",
+    "navigate platforms",
+    "navigate runs",
+    "navigate files",
+    "navigate overview",
+    "selection preserves clock/speed/play",
+    "path without modal",
+    "fold persists on replay refresh",
+    "closed fold stays closed",
+    "keyboard divider",
+    "divider saved",
+    "labels enabled",
+    "labels persist",
+    "altitude timestamp visible",
+    "custom ticks preserved",
+    "load failure visible",
+    "rapid load last selection wins",
+    "multi-task selection survives refresh",
+    "no overflow 1366",
+    "no overflow 1920",
+    "no overflow 640",
+    "entry preview works",
+    "empty catalog navigation",
+    "no browser errors"
+  ],
+  "errors": []
+}

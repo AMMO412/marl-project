@@ -867,7 +867,7 @@
     requestAnimationFrame(() => {
       resize();
       draw();
-      if (C.data && !C.autoPlayed) { C.autoPlayed = true; setPlaying(true); }
+      // View changes do not start replay automatically.
     });
   }
 

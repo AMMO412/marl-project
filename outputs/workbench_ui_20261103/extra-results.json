@@ -1,0 +1,21 @@
+{
+  "passed": [
+    "play advances",
+    "pause stable",
+    "scrub updates detail",
+    "mouse divider",
+    "duplicate submission prevented",
+    "hidden effect omitted",
+    "submit restored after error",
+    "view switch no autoplay",
+    "view switch keeps clock",
+    "no horizontal overflow 1366",
+    "controls visible 1366",
+    "no horizontal overflow 1920",
+    "controls visible 1920",
+    "no horizontal overflow 640",
+    "reload retains valid task",
+    "no errors"
+  ],
+  "errors": []
+}

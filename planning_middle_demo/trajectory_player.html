@@ -40,8 +40,8 @@ svg text{paint-order:stroke;stroke:#f9fbfd;stroke-width:4px;stroke-linejoin:roun
 <div class="muted">默认 1× 每秒播放 2 个仿真步。<span class="kbd">空格</span> 播放/暂停 · <span class="kbd">←</span> <span class="kbd">→</span> 逐步查看 · 点击下方事件可跳转</div>
 </section>
 <div class="workspace"><section class="panel"><div class="panel-head"><h2>位置与已行轨迹</h2><div class="options"><label><input id="show-background" type="checkbox" checked>场景底图</label><label><input id="show-landmarks" type="checkbox" checked>地标</label><label><input id="show-trails" type="checkbox" checked>已行轨迹</label><label><input id="show-labels" type="checkbox" checked>平台编号</label><label><input id="show-starts" type="checkbox">初始位置</label></div></div>
-<div class="map-wrap"><svg id="map" viewBox="0 0 1000 650" role="img" aria-label="按时间回放平台运动的二维坐标图"><title>平台运动回放</title><desc>圆环为作业点，带编号的形状为平台；播放后轨迹随时间增长。</desc><defs><clipPath id="scene-clip"><rect x="50" y="48" width="900" height="552"/></clipPath><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8fa3bc"/></marker></defs><g id="grid"></g><g id="scene-background" clip-path="url(#scene-clip)"></g><g id="jobs-map"></g><g id="behaviors-map"></g><g id="trails-map"></g><g id="targets-map"></g><g id="starts-map"></g><g id="workers-map"></g></svg></div>
-<div class="map-foot"><span id="scene-label"></span><span>颜色区分单台平台，编号与下表对应</span><span>■ 轮式车　◆ 履带车　▲ 固定翼　✕ 飞翼</span><span>箭头为反馈航向；空心环为作业点</span><span class="hint" style="cursor:pointer" id="behaviors-toggle">行为结构：开</span></div></section>
+<div class="map-wrap"><svg id="map" viewBox="0 0 1000 650" role="img" aria-label="按时间回放平台运动的二维坐标图"><title>平台运动回放</title><desc>圆环为作业点，带编号的形状为平台；播放后轨迹随时间增长。</desc><defs><clipPath id="scene-clip"><rect x="50" y="48" width="900" height="552"/></clipPath><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8fa3bc"/></marker></defs><g id="grid"></g><g id="scene-background" clip-path="url(#scene-clip)"></g><g id="jobs-map"></g><g id="behaviors-map"></g><g id="trails-map"></g><g id="targets-map"></g><g id="starts-map"></g><g id="workers-map"></g><g id="effects-map"></g></svg></div>
+<div class="map-foot"><span id="scene-label"></span><span>颜色区分单台平台，编号与下表对应</span><span>■ 轮式车　◆ 履带车　▲ 固定翼　✕ 飞翼</span><span>箭头为反馈航向；空心环为作业点</span><span class="hint" style="cursor:pointer" id="behaviors-toggle">行为结构：开</span><span class="hint" id="assault-hud"></span></div></section>
 <aside class="side"><section class="panel summary"><div class="side-content stats"><div><strong id="count-moving">0</strong><small>在途平台</small></div><div><strong id="count-working">0</strong><small>作业中</small></div><div><strong id="count-done">0</strong><small>作业完成</small></div></div></section>
 <section class="panel"><div class="panel-head"><h2>平台追踪</h2><button id="clear-focus" class="mini">显示全部</button></div><div class="side-content" id="focus-content"><div class="empty">点击图上平台或表格行，查看它正在做什么。</div></div></section>
 <section class="panel"><div class="panel-head"><h2>作业状态</h2><span class="mini">随当前时间更新</span></div><div class="side-content" id="jobs-list"></div></section></aside></div>
@@ -162,6 +162,62 @@ function shape(w){
   if(w.shape==='cross')return '<path d="M-6,-6 6,6 M-6,6 6,-6" fill="none" stroke="currentColor" stroke-width="4"/>';
   return '<rect x="-7" y="-7" width="14" height="14" rx="2"/>';
 }
+// ---- 机动突击齐射：发射效果（演示口径，不是弹道/命中模型）---------------
+// 只读已记录事实：salvo_fired 事件（pids/rounds/hits/damage_level）+ 该时刻
+// 平台位置（stateAt 按 t 取样）+ 行为结构里的目标点 site 与 objective 环。
+// 命中仍按行为层桩判定（占位在环内且有弹），这里只把"谁在何时开火"画出来。
+const ASSAULT_EFFECT={damage:'#ea580c',suppress:'#b45309',seize:'#7c3aed'};
+function assaultStructure(){return (D.behaviors||[]).find(b=>b.type==='assault')||null;}
+function drawEffects(){
+  const g=$('effects-map'),hud=$('assault-hud');if(!g)return;
+  const b=assaultStructure(),site=b&&(b.site||((b.objective||[])[0]));
+  if(!site){g.innerHTML='';if(hud)hud.textContent='';return;}
+  if(!showBehaviors){g.innerHTML='';if(hud)hud.textContent='';return;}
+  const color=ASSAULT_EFFECT[b.effect_kind]||'#ea580c';
+  const tw=Math.max(6,(b.objective&&b.objective.length?Math.hypot(b.objective[0][0]-site[0],b.objective[0][1]-site[1]):8)*scale);
+  const tx=px(site[0]),ty=py(site[1]),out=[];
+  out.push(`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="${tw.toFixed(1)}" fill="${color}" fill-opacity=".05" stroke="${color}" stroke-opacity=".5" stroke-dasharray="4 3"><title>突击目标环（objective_radius，桩判定范围）</title></circle>`);
+  // 观察环：侦察指示组的观察位落在这个半径上（params.observe_radius），
+  // 与目标环是两个参数；半径只取记录值，不在前端推算。
+  const obsR=Number(b.observe_radius)||0;
+  if(obsR>0&&b.observation){
+    out.push(`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="${(obsR*scale).toFixed(1)}" fill="none" stroke="#4f7f8f" stroke-opacity=".38" stroke-width="1.2" stroke-dasharray="2 6"><title>观察环：params.observe_radius = ${obsR}</title></circle>`);
+    out.push(`<circle cx="${px(b.observation[0]).toFixed(1)}" cy="${py(b.observation[1]).toFixed(1)}" r="3.2" fill="#4f7f8f"><title>侦察指示组观察位</title></circle>`);
+    out.push(`<text x="${tx.toFixed(1)}" y="${(ty+tw+16).toFixed(1)}" text-anchor="middle" font-size="11" fill="#7c6a55">目标环 R=${fmt(tw/scale)} · 观察环 R=${fmt(obsR)}（任务参数）</text>`);
+  }
+  const salvos=D.events.filter(e=>e.kind==='behavior_event'&&e.event&&e.event.kind==='salvo_fired');
+  let count=0,shots=0,level=null;
+  for(const e of salvos){
+    if(e.sim_s>time)continue;
+    count++;
+    const ev=e.event,pids=ev.pids||[],rounds=ev.rounds||1;
+    shots+=pids.length*rounds;
+    if(ev.damage_level!=null)level=ev.damage_level;
+    const age=time-e.sim_s;if(age<0||age>1.6)continue;
+    const fade=Math.max(0,1-age/1.6);
+    for(const pid of pids){
+      const w=D.workers.find(x=>x.pid===pid);if(!w)continue;
+      const s=stateAt(w,e.sim_s),x0=px(s.x),y0=py(s.y);
+      if(age<=.35){
+        const f=Math.max(.12,Math.min(1,age/.35)),xm=x0+(tx-x0)*f,ym=y0+(ty-y0)*f;
+        out.push(`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${xm.toFixed(1)}" y2="${ym.toFixed(1)}" stroke="${color}" stroke-width="2.6" stroke-opacity="${(.9*fade).toFixed(2)}" stroke-linecap="round"><title>${esc(pid+' 齐射 '+rounds+' 发（示意，非弹道）')}</title></line>`);
+        out.push(`<circle cx="${x0.toFixed(1)}" cy="${y0.toFixed(1)}" r="${(3+6*(1-age/.35)).toFixed(1)}" fill="#fff7ed" fill-opacity="${fade.toFixed(2)}" stroke="${color}" stroke-width="1.5"/>`);
+      }
+      if(age>=.28){
+        const k=Math.min(1,(age-.28)/.9);
+        out.push(`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="${(4+14*k).toFixed(1)}" fill="none" stroke="${color}" stroke-width="${(2*(1-k*.6)).toFixed(1)}" stroke-opacity="${(.85*(1-k)).toFixed(2)}"/>`);
+      }
+    }
+    if(age<.9)out.push(`<text x="${(tx+16).toFixed(1)}" y="${(ty-18).toFixed(1)}" font-size="12" font-weight="700" fill="${color}" opacity="${fade.toFixed(2)}">齐射 ${pids.length} 台 · ${rounds} 发/台${ev.damage_level!=null?' · 等级 '+fmt(ev.damage_level):''}</text>`);
+  }
+  g.innerHTML=out.join('');
+  if(hud){
+    const kind=b.effect_kind==='suppress'?'压制':b.effect_kind==='seize'?'夺占':'毁伤';
+    hud.textContent=count
+      ? `突击 · 齐射 ${count} 次 · ${shots} 发${level!=null?' · 累计毁伤 '+fmt(level):''} · ${kind}（桩判定，非弹道）`
+      : `突击 · 等待齐射 · ${kind}（桩判定：占位在环内且有弹即命中，非弹道）`;
+  }
+}
 function draw(){
   $('clock').textContent=time.toFixed(1);$('timeline').value=time;$('timeline').setAttribute('aria-valuetext',`第 ${time.toFixed(1)} 步`);
   const states=D.workers.map(w=>stateAt(w,time)),jobStates=D.jobs.map(j=>jobState(j,time));
@@ -193,6 +249,7 @@ function draw(){
     }
   });
   $('trails-map').innerHTML=trails.join('');$('workers-map').innerHTML=markers.join('')+labels.join('');$('starts-map').innerHTML=starts.join('');$('targets-map').innerHTML=targets.join('');
+  drawEffects();
   D.workers.forEach((w,i)=>{
     const s=states[i],row=$('row-'+i);row.classList.toggle('selected',selected===w.pid);
     row.cells[2].textContent=s.label;row.cells[3].textContent=s.job||'—';
@@ -239,6 +296,6 @@ document.addEventListener('keydown',e=>{if(['INPUT','SELECT','BUTTON'].includes(
 });
 function frame(now){if(playing){if(lastFrame!==null){const elapsed=Math.min((now-lastFrame)/1000,.25);seek(time+elapsed*Number($('speed').value));if(time>=D.end)setPlaying(false);}lastFrame=now;}requestAnimationFrame(frame);}
 drawGrid();drawBackground();drawBehaviors();draw();requestAnimationFrame(frame);
-$('behaviors-toggle').onclick=()=>{showBehaviors=!showBehaviors;$('behaviors-toggle').textContent='行为结构：'+(showBehaviors?'开':'关');drawBehaviors();};
+$('behaviors-toggle').onclick=()=>{showBehaviors=!showBehaviors;$('behaviors-toggle').textContent='行为结构：'+(showBehaviors?'开':'关');drawBehaviors();draw();};
 if(!D.behavior){$('model-note').textContent='本轮未开启到位后行为，执行器采用“到点后累加工作量”模型。';$('behaviors-toggle').style.display='none';}
 </script></body></html>

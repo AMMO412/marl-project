@@ -1453,6 +1453,8 @@ class AssaultBehavior(Behavior):
         # 几何
         staging_center=None, staging_radius=4.2, objective_radius=1.4,
         confirm_radius=3.0, arrive_tol=0.7, sync_tol=1.0,
+        # 探测半径：只用于工作台画"智能体探测范围"，不参与到位与效果判定
+        sensor_radius_m=35.0,
         # 侦察/指示组（信息保障单元）
         scout_pid=None, observe_radius=25.0, observe_angle=-math.pi / 2,
         # 评估组（独立评估单元）：随队机动，执行期前出评估观察位
@@ -1471,6 +1473,16 @@ class AssaultBehavior(Behavior):
         assault_payload_required=0.0,
         # 空中分队高度（pid → 巡航高度）与爬升率；未列出的空中平台用初始高度
         air_altitude=None, climb_rate=8.0,
+        # 到位后的"游走/盘旋"：只改变到位后的观感与站位，不改进位判定口径。
+        #   地面平台沿目标环切向小幅踱步（径向几乎不变，不会走出判定环）；
+        #   空中平台绕观察位/评估位定半径盘旋。
+        loiter_radius_m=1.2, loiter_period_s=24.0,
+        # 空中盘旋：半径/周期缺省 0 = 自动推算。
+        # 盘旋速度取 air_orbit_speed_mps（编成表里飞机是 25/30 场景单位每秒，
+        # 2.0 的是本工作台场景的简装值），按它反推半径 v²/(g·tan 坡度)；
+        # 目标点线速度与盘旋速度一致，飞机才是"跟着圆飞"而不是一步冲过圆心。
+        air_orbit_radius_m=0.0, air_orbit_period_s=0.0,
+        air_orbit_speed_mps=6.0, air_bank_deg=15.0,
         # 终止条件（弹药耗尽/执行截止；目标消失/被迫撤离仅预留接口字段）
         execute_deadline=None, target_vanish=False, forced_withdraw=False,
         # 任务输入（2.4.8）：交战规则、附带损伤、正识别、波次、作用对象
@@ -2254,6 +2266,105 @@ class AssaultBehavior(Behavior):
                 return cand
         return q
 
+    # ---- 到位后的游走/盘旋（只改观感与站位，不改判定口径） ----
+    def _is_air(self, pid):
+        """与 BehaviorRunner 同一套判据：能爬升且配了巡航高度才算空中。"""
+        caps = (self.platform_caps or {}).get(pid) or {}
+        if not caps.get('can_climb'):
+            return False
+        alt = (self.params.get('air_altitude') or {}).get(pid)
+        return float(alt or 0.0) > 0.0
+
+    def _station_loiter(self, pid, point, t, phase=0.0):
+        """站点附近的小幅游走目标。
+
+        地面沿**切向**踱步：径向距离几乎不变，``objective_radius +
+        arrive_tol`` 的判定环不会因为游走把平台挤出去，开火与在位记账仍成立。
+        空中绕站点定半径盘旋（只影响 2D 投影，高度由运动层控制）。
+        """
+        p = self.params
+        if self._is_air(pid):
+            cruise = max(0.1, float(
+                (getattr(self, 'speeds', None) or {}).get(pid, 1.0) or 1.0))
+            speed = min(cruise, max(0.2, float(
+                p.get('air_orbit_speed_mps') or 6.0)))
+            radius = float(p.get('air_orbit_radius_m') or 0.0)
+            if radius <= 0.0:
+                bank = math.radians(max(5.0, min(45.0, float(
+                    p.get('air_bank_deg') or 15.0))))
+                radius = (speed * speed) / (9.8 * math.tan(bank))
+            # 下限 10 是画面可读性下限（慢速平台按物理半径只有 1–2 单位），
+            # 上限 80 避免高速平台把圈画到视图外。
+            radius = min(80.0, max(10.0, radius))
+            period = float(p.get('air_orbit_period_s') or 0.0)
+            if period <= 0.0:
+                # 目标点线速度与盘旋速度一致时，飞机才是在"跟着圆飞"，
+                # 而不是一步冲过圆心再折回来。
+                period = 2.0 * math.pi * radius / max(speed, 1e-3)
+            period = max(6.0, period)
+            ang = 2.0 * math.pi * t / period + phase
+            return [point[0] + radius * math.cos(ang),
+                    point[1] + radius * math.sin(ang)]
+        amp = max(0.0, float(p.get('loiter_radius_m') or 0.0))
+        period = max(8.0, float(p.get('loiter_period_s') or 24.0))
+        if amp <= 0.0:
+            return list(point)
+        dx, dy = point[0] - self.site[0], point[1] - self.site[1]
+        radius = math.hypot(dx, dy)
+        if radius <= 1e-6:
+            return [point[0], point[1] + amp * math.sin(
+                2.0 * math.pi * t / period + phase)]
+        # 切向振幅上限：径向最多多用半个到达容差
+        tol = max(0.0, float(p['arrive_tol'])) * 0.5
+        amp = min(amp, math.sqrt(max(0.0, (radius + tol) ** 2 - radius ** 2)))
+        off = amp * math.sin(2.0 * math.pi * t / period + phase)
+        tx, ty = -dy / radius, dx / radius
+        return [point[0] + tx * off, point[1] + ty * off]
+
+    def _apply_station_loiter(self, targets, t):
+        """只给**已到位**的席位加游走目标；未到位时仍去原站点，到达时刻不变。"""
+        out = dict(targets)
+        for index, pid in enumerate(self.pids):
+            point = out.get(pid)
+            if point is None:
+                continue
+            if pid == self.scout:
+                if 'observation' not in self.arrivals[pid]:
+                    continue
+            elif pid == self.assessor:
+                if 'assessment_post' not in self.arrivals[pid]:
+                    continue
+            elif 'objective' not in self.arrivals[pid]:
+                continue
+            out[pid] = self._station_loiter(pid, point, t, index * 1.1)
+        return out
+
+    def _air_speed_scale_now(self):
+        """盘旋中的空中平台按配置减速；还没到位的仍全速飞向站位。
+
+        只影响空中直飞分支（BehaviorRunner._air_speed_scale），地面游走的
+        限速仍走 speed_scale，两套互不覆盖。
+        """
+        scale = {}
+        if self.phase not in ('机动', '执行', '坚守', '结果确认'):
+            return scale        # 撤离/收尾不减速，撤离时限仍按全速核验
+        for pid in self.pids:
+            if not self._is_air(pid):
+                continue
+            if pid == self.scout:
+                ready = 'observation' in self.arrivals[pid]
+            elif pid == self.assessor:
+                ready = 'assessment_post' in self.arrivals[pid]
+            else:
+                ready = False
+            if ready:
+                cruise = max(0.1, float(
+                    (getattr(self, 'speeds', None) or {}).get(pid, 1.0) or 1.0))
+                target = max(0.2, float(
+                    self.params.get('air_orbit_speed_mps') or 6.0))
+                scale[pid] = max(0.05, min(1.0, target / cruise))
+        return scale
+
     # ---- 目标分配 ----
     def _targets_at(self, points):
         out = {}
@@ -2550,7 +2661,10 @@ class AssaultBehavior(Behavior):
             self._set_status('超时')
             self.emit('task_timeout', timeout_s=p['timeout_s'])
             self._terminate(t, 'timeout', status='超时')
-        return dict(targets=targets, phase=self.phase, done=self.done)
+        if self.phase in ('机动', '执行', '坚守', '结果确认'):
+            targets = self._apply_station_loiter(targets, t)
+        return dict(targets=targets, phase=self.phase, done=self.done,
+                    air_speed_scale=self._air_speed_scale_now())
 
     def progress_frac(self):
         if self.done:

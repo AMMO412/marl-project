@@ -90,7 +90,7 @@ def _js_escape(value):
     return json.dumps(value, ensure_ascii=False)
 
 
-def render_html(scenario, report, audit):
+def render_html(scenario, report, audit, extra_files=None):
     jobs_rows = []
     for j in report["jobs"]:
         pct = (100.0 * j["progress"] / j["work"]) if j["work"] else 0.0
@@ -147,6 +147,32 @@ def render_html(scenario, report, audit):
                         for k, v in report["rejected_reasons"].items())
                 or "<li>无</li>")
 
+    # Gazebo / ROS2 对接：把"控制平台怎么走"的速度指令文件顶到报告最前面。
+    # 只在文件确实存在时给链接，基座单独跑时不会出现死链。
+    have = dict(extra_files or {})
+    gazebo_block = ""
+    if "commands.csv" in have:
+        def _link(name, label, primary=False):
+            style = ("display:inline-block;padding:8px 14px;border-radius:8px;"
+                     "text-decoration:none;margin:0 8px 4px 0;"
+                     + ("background:#0f766e;color:#fff" if primary
+                        else "border:1px solid #cfe3dc;color:#0f766e"))
+            return "<a href='%s' style='%s'>%s</a>" % (have[name], style, label)
+        links = [_link("commands.csv", "↓ commands.csv · 速度指令（cmd_vel）", True)]
+        if "ros2_commands.txt" in have:
+            links.append(_link("ros2_commands.txt",
+                               "ros2_commands.txt · 可直接粘贴"))
+        if "plan.json" in have:
+            links.append(_link("plan.json", "plan.json · 完整计划"))
+        gazebo_block = (
+            "<div style='border:1px solid #cfe3dc;background:#f4faf7;"
+            "border-radius:8px;padding:12px 14px;margin:12px 0'>"
+            "<b>Gazebo / ROS2 对接 · 控制平台怎么走</b>"
+            "<div class='small' style='margin:4px 0 8px'>每行一条 cmd_vel"
+            "（话题 / 时刻 / 时长 / 线速度 / 角速度）；目标点闭环在驱动侧，"
+            "本层只生成文件、不发布。</div>"
+            + "".join(links) + "</div>")
+
     doc = """<!DOCTYPE html>
 <html lang="zh"><head><meta charset="utf-8">
 <title>规划能力版中间层报告 %s</title>
@@ -178,6 +204,7 @@ details{margin-top:10px}pre{background:#f6f8fa;padding:10px;
 <p><a href="trajectory.html" style="display:inline-block;background:#2563eb;color:white;
 padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动回放</a>
 <span class="small"> 播放 / 时间轴 / 单台追踪 / 实时位置与路程</span></p>
+%s
 <div class='cards'>%s</div>
 <h2>重规划触发源</h2><div>%s</div>
 <h2>作业表</h2>
@@ -197,7 +224,7 @@ padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动
                            report.get("motion"), report.get("motion")),
                        report["simulated_until_s"], report["retries"],
                        report["timeouts"])),
-        cards, triggers,
+        gazebo_block, cards, triggers,
         "".join("<th>%s</th>" % h for h in _JOB_HEADERS),
         "".join(jobs_rows), need_report, rejected,
         "".join(timeline_rows),

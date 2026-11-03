@@ -310,6 +310,8 @@ def _asl_job(task: Task, scenario: Scenario) -> Dict[str, Any]:
         confirm_radius=float(params.get("confirm_radius", 18.0)),
         arrive_tol=float(params.get("arrive_tol", 0.8)),
         sync_tol=float(params.get("sync_tol", 14.0)),
+        # 探测半径：只给工作台画"智能体探测范围"，不参与规划与判定
+        sensor_radius_m=float(params.get("sensor_radius_m", 35.0)),
         scout_pid=scout_pid,
         observe_radius=float(params.get("observe_radius", 25.0)),
         observe_angle=float(params.get("observe_angle", 0.0)),

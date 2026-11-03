@@ -55,7 +55,12 @@ class CoordinatorV2:
         from contracts_v2 import build_jobs, build_platforms
         self.platforms = {p.pid: p for p in build_platforms(scenario)}
         self.jobs = {j.job_id: j for j in build_jobs(scenario)}
-        self.initial_energy = sum(p.battery for p in self.platforms.values())
+        # 电量记账基准：一台平台“见过的最大电量”即其满电容量。不能只用
+        # 初始化时的 fleet 默认值——上层适配器会把电池抬到很大的值来表示
+        # “不对续航做强约束”（见 interop/adapters/base_v2.py），那样报告会
+        # 拿 860 去减 600 万，得出百万级负能耗。
+        self.energy_capacity = {p.pid: float(p.battery)
+                                for p in self.platforms.values()}
 
         self.active = {}            # command_id -> Command
         self.platform_cmd = {}      # pid -> command_id（单一指令源）
@@ -177,7 +182,11 @@ class CoordinatorV2:
         if battery is not None:
             if type(battery) not in (int, float) or battery < 0:
                 return ignore("invalid_battery")
-            self.platforms[command.worker_id].battery = float(battery)
+            platform = self.platforms[command.worker_id]
+            platform.battery = float(battery)
+            # 容量随读数上抬（适配器接管电量标度时），只增不减。
+            self.energy_capacity[platform.pid] = max(
+                self.energy_capacity.get(platform.pid, 0.0), float(battery))
 
         self.seen.add(event_id)
         self.last_fb_time[command_id] = stamp
@@ -427,8 +436,12 @@ class CoordinatorV2:
     def report(self):
         jobs = [asdict(j) for j in self.jobs.values()]
         done = [j for j in self.jobs.values() if j.status == "succeeded"]
-        used_energy = self.initial_energy - sum(
-            p.battery for p in self.platforms.values())
+        # 耗电 = Σ(满电容量 − 当前电量)。用容量基准而不是初始化电量，
+        # 适配器中途改写电池标度也不会算出负值。
+        used_energy = sum(
+            max(0.0, self.energy_capacity.get(p.pid, float(p.battery))
+                - float(p.battery))
+            for p in self.platforms.values())
         makespan = max(self.succeeded_at.values()) if self.succeeded_at else None
         alive = [p for p in self.platforms.values() if p.alive]
         if len(alive) >= 2:

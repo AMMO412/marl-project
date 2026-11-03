@@ -188,8 +188,15 @@ def cmd_demo(args) -> int:
         json.dump(v2, fh, ensure_ascii=False, indent=2)
     with open(os.path.join(run_dir, "summary.txt"), "w", encoding="utf-8") as fh:
         fh.write(render_text(v2, report, audit, include_events=False))
+    # 计划产物在 out/ 下，报告在 out/run/ 下：文件名按实际位置给相对链接。
+    _gz = {}
+    for _name in ("commands.csv", "ros2_commands.txt", "plan.json"):
+        if os.path.isfile(os.path.join(run_dir, _name)):
+            _gz[_name] = _name
+        elif os.path.isfile(os.path.join(os.path.dirname(run_dir), _name)):
+            _gz[_name] = "../" + _name
     with open(os.path.join(run_dir, "report.html"), "w", encoding="utf-8") as fh:
-        fh.write(render_html(v2, report, audit))
+        fh.write(render_html(v2, report, audit, extra_files=_gz))
     try:
         import trajectory_v2
         trajectory_v2.render(run_dir)

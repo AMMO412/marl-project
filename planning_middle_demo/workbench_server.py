@@ -47,10 +47,12 @@ ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
              'behavior_trace.json', 'behavior_demo.html',
              'plan.json', 'assignments.csv', 'commands.csv', 'report.md',
              'ros2_commands.txt'}
-SOURCES = {'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
+SOURCES = {'entry': ROOT.parent / 'README.md',
+           'interop_readme': ROOT / 'interop' / 'README.md',
+           'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
            'coordinator': ROOT / 'coordinator_v2.py', 'fleet': ROOT / 'mock_fleet.py',
            'contracts': ROOT / 'contracts_v2.py'}
-WORKBENCH_VERSION = '2026-11-02-hold-task-view'
+WORKBENCH_VERSION = '2026-11-03-workbench-ui'
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -243,7 +245,10 @@ def run_worker(out):
     (out / 'trace.jsonl').write_text(''.join(json.dumps(e, ensure_ascii=False) + '\n'
                                            for e in audit), encoding='utf-8')
     (out / 'summary.txt').write_text(render_text(scenario, report, audit), encoding='utf-8')
-    (out / 'report.html').write_text(render_html(scenario, report, audit), encoding='utf-8')
+    _gz = {n: n for n in ('commands.csv', 'ros2_commands.txt', 'plan.json')
+           if (out / n).is_file()}
+    (out / 'report.html').write_text(
+        render_html(scenario, report, audit, extra_files=_gz), encoding='utf-8')
     render(out)
 
 
@@ -551,6 +556,7 @@ def make_handler(app):
                     file = ROOT.parent / 'outputs' / '任务动态示意_20261027' / 'index.html'
                 elif path in ('/', '/index.html', '/app.js', '/containment.js',
                               '/hold.js', '/task_details.js', '/styles.css',
+                              '/workbench_ui.js', '/workbench_ui.css',
                               '/favicon.svg'):
                     file = STATIC / ('index.html' if path == '/' else path[1:])
                 else:
