@@ -289,7 +289,7 @@
             '<span><i style="background:' + COLORS.post + '"></i>阵位在位</span>' +
             '<span><i style="background:' + COLORS.postOff + '"></i>阵位空缺</span>' +
             '<span><i style="background:' + COLORS.post + '55"></i>探测圈（跟随在位平台）</span>' +
-            '<span><i style="background:' + COLORS.threat + '"></i>威胁方向</span>' +
+            '<span><i style="background:' + COLORS.threat + '"></i>威胁方向（责任扇区，非探测范围）</span>' +
             '<span><i style="background:' + COLORS.threat + '"></i>敌方进攻（输入事件）</span>' +
             '<span><i style="background:' + COLORS.effect + '"></i>反击 / 击退（桩判定）</span>' +
             '<span><i style="background:' + COLORS.air + '"></i>空中观察</span>' +
@@ -575,8 +575,10 @@
         st.key_point[0] + Math.sin(offsetRad) * radius,
         st.key_point[1] + Math.cos(offsetRad) * radius];
       const q = P(labelPoint);
+      const halfWidth = Math.round((Number(sector.width_deg) || 0) / 2);
       const text = '威胁 ' + (sector.id || '') + ' · ' +
-        num(sector.bearing_deg, 0) + '°';
+        num(sector.bearing_deg, 0) + '°' +
+        (halfWidth > 0 && halfWidth < 180 ? '±' + halfWidth + '°' : '');
       ctx.font = '600 11px "Segoe UI","Microsoft YaHei"';
       const textW = ctx.measureText(text).width + 8;
       placed.push({ x: q[0] - textW / 2, y: q[1] - 9, w: textW, h: 18 });
