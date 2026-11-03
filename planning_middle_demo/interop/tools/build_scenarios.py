@@ -194,19 +194,9 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     # 选点依据：街区四边都有楼遮挡视线但地面是连通的空地，边界与占位点全部
     # 落在楼间空地（build_scenarios 的 _check_targets 会校验不在禁入区）。
     containment_fleet = build(scene, [1, 2, 3, 21, 22, 31], "PLAN-INTEROP-SEC")
-    # 集结待机区：街区南侧约 55 m 的空地，运行链能完整展示"集结 → 规划路径 →
-    # 到达占位点 → 开始封控"。坐标取场景空地上的固定点，不随机。
-    assembly_positions = {
-        "U1": {"x": -95.0, "y": -60.0},
-        "U2": {"x": -88.0, "y": -62.0},
-        "U3": {"x": -102.0, "y": -62.0},
-        "U4": {"x": -95.0, "y": -55.0},
-        "U5": {"x": -86.0, "y": -56.0},
-        "U6": {"x": -104.0, "y": -56.0},
-    }
-    for unit in containment_fleet["formation"]["units"]:
-        if unit["unit_id"] in assembly_positions:
-            unit["position"] = dict(assembly_positions[unit["unit_id"]])
+    # 出发点 = 编成表里 SDF 的出生位（机器人模型在场景里的固定摆放），不按任务
+    # 另编"集结区"：同一批平台不管接哪类任务都从同一处出发，跑到作业点才算机动。
+    # 六个出生位约 (0,-22)…(-15,-22)，见 formation.units[].position。
     containment_tasks = [
         _task("T1", "T-SEC", 1,
               {"defense_area": [[-125, -115], [-65, -115],
@@ -233,7 +223,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
                "standoff_m": 14,
                "intercept_post": [-95, -145],
                "max_leak_rate": 0.0,
-               "assembly_point": [-95, -60],
+               "assembly_point": [-2.5, -19],
                "assembly_radius_m": 30,
                "intruders": [
                    {"target_id": "IN-1", "start": [-95, -90], "goal": [-95, -130],
@@ -255,17 +245,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
     # 坚守 150 s，含 2 次自动轮换（接替者到位才撤）、1 次按敌我比触发的增援、
     # 1 次按时撤离；敌方进攻只作为**输入事件**，反击/压制走桩判定（verified=false）。
     hold_fleet = build(scene, [1, 2, 3, 21, 22, 31], "PLAN-INTEROP-HLD")
-    hold_assembly = {
-        "U1": {"x": -95.0, "y": -60.0},
-        "U2": {"x": -88.0, "y": -62.0},
-        "U3": {"x": -102.0, "y": -62.0},
-        "U4": {"x": -95.0, "y": -55.0},
-        "U5": {"x": -86.0, "y": -56.0},
-        "U6": {"x": -104.0, "y": -56.0},
-    }
-    for unit in hold_fleet["formation"]["units"]:
-        if unit["unit_id"] in hold_assembly:
-            unit["position"] = dict(hold_assembly[unit["unit_id"]])
+    # 出发点同样取 SDF 出生位（与 T-SEC / T-ASL 同一条起跑线）；撤离目标取街区南侧\n    # 的空地而不是原点——从南侧阵位撤回原点那条腿会在楼缝里卡住（跟车器原地打转），\n    # 撤到街区外待命更稳，也不必假装要原路返回。
     hold_tasks = [
         _task("T1", "T-HLD", 1,
               {"key_point": [-95, -145]},
@@ -313,7 +293,7 @@ def scenarios(scene) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
                "withdraw": {"allowed": True,
                             "route": [[-95, -145], [-95, -60]],
                             "deadline_s": 45},
-               "assembly_point": [-95, -60],
+               "assembly_point": [-2.5, -19],
                "counter_attack": {"authorized": True, "max_range_m": 70,
                                   "allowed_in_position": True},
                "effect": {"kinds": ["damage", "suppress"], "adjudicator": "stub",

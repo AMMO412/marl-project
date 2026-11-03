@@ -1,0 +1,19 @@
+fix(samples): start every task from the formation spawn, not a per-task assembly
+
+The T-SEC/T-HLD samples used to rewrite formation.units[].position to a hand-made
+"assembly area" near the objective, so the same platforms started from different
+places depending on the task. The assault sample always used the SDF spawn row,
+which is the fixed starting point.
+
+- build_scenarios: drop both position overrides; units now start at their SDF
+  spawn poses ((0,-22.5) (0,-17.5) (0,-12.5) (-10,-22.5) (-10,-17.5) (-15,-22.5)),
+  the same row the T-ASL sample uses. assembly_point is now only an annotation
+  (( -2.5,-19)).
+- T-HLD withdrawal goes to the empty ground south of the block (-95,-60) instead
+  of back through the streets to the spawn: the P3 -> origin leg wedges the
+  follower between buildings and times out. Deadline stays 45 s.
+- Effects: ingress is now ~150 m, control established at T+21 (T-SEC) / T+23
+  (T-HLD); both verdicts still succeeded (T-SEC coverage 0.92, T-HLD 100%).
+- docs + outputs: times, distances, metrics and screenshots refreshed for the
+  fixed start.
+- tests: full suite unchanged, 248 pass.

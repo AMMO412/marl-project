@@ -136,8 +136,8 @@
           "deadline_s": 45
         },
         "assembly_point": [
-          -95,
-          -60
+          -2.5,
+          -19
         ],
         "counter_attack": {
           "authorized": true,

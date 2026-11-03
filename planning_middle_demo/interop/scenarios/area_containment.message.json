@@ -88,8 +88,8 @@
         ],
         "max_leak_rate": 0.0,
         "assembly_point": [
-          -95,
-          -60
+          -2.5,
+          -19
         ],
         "assembly_radius_m": 30,
         "intruders": [

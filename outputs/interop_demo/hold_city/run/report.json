@@ -1,7 +1,7 @@
 {
   "protocol": "middle-demo/v2",
   "run_id": "demo-v2",
-  "simulated_until_s": 179,
+  "simulated_until_s": 189,
   "objective": "makespan",
   "planner": "interop",
   "all_succeeded": true,
@@ -26,8 +26,8 @@
       "progress": 900.0,
       "status": "succeeded",
       "attempts": 1,
-      "started_at": 16,
-      "planned_end": 166,
+      "started_at": 26,
+      "planned_end": 176,
       "behavior": {
         "key_point": [
           -95.0,
@@ -183,8 +183,8 @@
           "required_duration": 8
         },
         "assembly_point": [
-          -95,
-          -60
+          -2.5,
+          -19
         ],
         "patrol_enabled": true,
         "patrol_radius_m": 5,
@@ -208,10 +208,10 @@
       "kind": "UGV",
       "robot_no": 1,
       "pos": [
-        -94.98,
-        -60.118
+        -94.996,
+        -60.217
       ],
-      "battery": 999991.7,
+      "battery": 999985.7,
       "alive": true,
       "topic": "/container_00/robot_001"
     },
@@ -220,10 +220,10 @@
       "kind": "UGV",
       "robot_no": 2,
       "pos": [
-        -94.996,
-        -60.114
+        -94.896,
+        -60.198
       ],
-      "battery": 999988.5,
+      "battery": 999984.7,
       "alive": true,
       "topic": "/container_00/robot_002"
     },
@@ -232,10 +232,10 @@
       "kind": "UGV",
       "robot_no": 3,
       "pos": [
-        -95.04,
-        -60.1
+        -95.023,
+        -60.114
       ],
-      "battery": 999990.1,
+      "battery": 999987.3,
       "alive": true,
       "topic": "/container_00/robot_003"
     },
@@ -244,10 +244,10 @@
       "kind": "TANK",
       "robot_no": 21,
       "pos": [
-        -94.921,
-        -60.197
+        -94.992,
+        -60.222
       ],
-      "battery": 999979.9,
+      "battery": 999982.5,
       "alive": true,
       "topic": "/container_00/robot_021"
     },
@@ -256,10 +256,10 @@
       "kind": "TANK",
       "robot_no": 22,
       "pos": [
-        -95.02,
-        -60.1
+        -95.043,
+        -60.108
       ],
-      "battery": 999983.5,
+      "battery": 999978.8,
       "alive": true,
       "topic": "/container_00/robot_022"
     },
@@ -271,13 +271,13 @@
         -95.0,
         -60.0
       ],
-      "battery": 999956.8,
+      "battery": 999947.7,
       "alive": true,
       "topic": "/container_00/robot_031"
     }
   ],
   "active_commands": 0,
-  "plans": 23,
+  "plans": 24,
   "retries": 0,
   "timeouts": 0,
   "triggers": {
@@ -286,19 +286,19 @@
     "exec_fail": 0,
     "timeout": 0,
     "deviation": 0,
-    "periodic": 22
+    "periodic": 23
   },
   "done": 1,
-  "used_energy": -5999030.4,
-  "per_task_energy": -5999030.42,
-  "makespan": 179,
-  "spread": 0.05,
+  "used_energy": -5999006.7,
+  "per_task_energy": -5999006.74,
+  "makespan": 189,
+  "spread": 0.09,
   "need_report": [],
   "solve_summary": null,
   "rejected_reasons": {},
   "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
   "mode": "normal",
-  "max_ticks": 300,
+  "max_ticks": 320,
   "H": 330,
   "K": 8,
   "dev_threshold": 4.0,

@@ -108,8 +108,8 @@
               ],
               "max_leak_rate": 0.0,
               "assembly_point": [
-                -95,
-                -60
+                -2.5,
+                -19
               ],
               "assembly_radius_m": 30,
               "intruders": [
@@ -180,8 +180,8 @@
                 "HLD": 2
               },
               "position": {
-                "x": -95.0,
-                "y": -60.0
+                "x": 0.0,
+                "y": -22.5
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -202,8 +202,8 @@
                 "HLD": 2
               },
               "position": {
-                "x": -88.0,
-                "y": -62.0
+                "x": 0.0,
+                "y": -17.5
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -224,8 +224,8 @@
                 "HLD": 2
               },
               "position": {
-                "x": -102.0,
-                "y": -62.0
+                "x": 0.0,
+                "y": -12.5
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -246,8 +246,8 @@
                 "HLD": 3
               },
               "position": {
-                "x": -95.0,
-                "y": -55.0
+                "x": -10.0,
+                "y": -22.5
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -268,8 +268,8 @@
                 "HLD": 3
               },
               "position": {
-                "x": -86.0,
-                "y": -56.0
+                "x": -10.0,
+                "y": -17.5
               },
               "altitude_m": 0.35,
               "vertical_speed_mps": 0.0,
@@ -290,8 +290,8 @@
                 "HLD": 0
               },
               "position": {
-                "x": -104.0,
-                "y": -56.0
+                "x": -15.0,
+                "y": -22.5
               },
               "altitude_m": 6.0,
               "vertical_speed_mps": 3.0,
@@ -1275,48 +1275,48 @@
     {
       "robot_no": 1,
       "pos": [
-        -95.0,
-        -60.0
+        0.0,
+        -22.5
       ],
       "_platform_class": "UGV"
     },
     {
       "robot_no": 2,
       "pos": [
-        -88.0,
-        -62.0
+        0.0,
+        -17.5
       ],
       "_platform_class": "UGV"
     },
     {
       "robot_no": 3,
       "pos": [
-        -102.0,
-        -62.0
+        0.0,
+        -12.5
       ],
       "_platform_class": "UGV"
     },
     {
       "robot_no": 21,
       "pos": [
-        -95.0,
-        -55.0
+        -10.0,
+        -22.5
       ],
       "_platform_class": "TANK"
     },
     {
       "robot_no": 22,
       "pos": [
-        -86.0,
-        -56.0
+        -10.0,
+        -17.5
       ],
       "_platform_class": "TANK"
     },
     {
       "robot_no": 31,
       "pos": [
-        -104.0,
-        -56.0
+        -15.0,
+        -22.5
       ],
       "_platform_class": "PLANE"
     }
