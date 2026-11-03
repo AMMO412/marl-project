@@ -1,0 +1,261 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 192,
+  "objective": "makespan",
+  "planner": "interop",
+  "all_succeeded": true,
+  "settled": true,
+  "jobs": [
+    {
+      "job_id": "T1",
+      "jtype": "blockade",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "work": 1080.0,
+      "window": [
+        0,
+        600
+      ],
+      "crew": 6,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 1080.0,
+      "status": "succeeded",
+      "attempts": 1,
+      "started_at": 13,
+      "planned_end": 193,
+      "behavior": {
+        "area": [
+          [
+            -125,
+            -115
+          ],
+          [
+            -65,
+            -115
+          ],
+          [
+            -65,
+            -175
+          ],
+          [
+            -125,
+            -175
+          ]
+        ],
+        "gates": [
+          {
+            "gate_id": "G-A",
+            "point": [
+              -95,
+              -115
+            ],
+            "width": 14,
+            "direction": [
+              0,
+              -1
+            ]
+          },
+          {
+            "gate_id": "G-B",
+            "point": [
+              -65,
+              -145
+            ],
+            "width": 14,
+            "direction": [
+              -1,
+              0
+            ]
+          }
+        ],
+        "control_level": "block",
+        "engagement_authority": "on_order",
+        "control_objective": "deny_entry",
+        "sensor_radius_m": 40,
+        "standoff_m": 14,
+        "intercept_post": [
+          -95,
+          -145
+        ],
+        "intruders": [
+          {
+            "target_id": "IN-1",
+            "start": [
+              -95,
+              -90
+            ],
+            "goal": [
+              -95,
+              -130
+            ],
+            "speed_mps": 2.5,
+            "t_start_s": 45,
+            "authorized": false,
+            "compliance": false
+          },
+          {
+            "target_id": "IN-2",
+            "start": [
+              -40,
+              -145
+            ],
+            "goal": [
+              -70,
+              -145
+            ],
+            "speed_mps": 2.0,
+            "t_start_s": 70,
+            "authorized": false,
+            "compliance": true
+          },
+          {
+            "target_id": "AU-1",
+            "start": [
+              -95,
+              -90
+            ],
+            "goal": [
+              -95,
+              -135
+            ],
+            "speed_mps": 2.5,
+            "t_start_s": 100,
+            "authorized": true,
+            "compliance": false
+          }
+        ],
+        "max_leak_rate": 0.0,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 55,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_unit": "U6",
+        "roles": {
+          "boundary": 2,
+          "gate": 2,
+          "intercept": 1,
+          "reserve": 0,
+          "air": 1
+        },
+        "duration_s": 180.0,
+        "site": [
+          -95.0,
+          -145.0
+        ]
+      }
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        -101.822,
+        -149.192
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_001"
+    },
+    {
+      "pid": "rover_02",
+      "kind": "UGV",
+      "robot_no": 2,
+      "pos": [
+        -94.338,
+        -129.0
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_002"
+    },
+    {
+      "pid": "rover_03",
+      "kind": "UGV",
+      "robot_no": 3,
+      "pos": [
+        -110.999,
+        -147.181
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_003"
+    },
+    {
+      "pid": "rover_21",
+      "kind": "TANK",
+      "robot_no": 21,
+      "pos": [
+        -93.318,
+        -121.0
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_021"
+    },
+    {
+      "pid": "rover_22",
+      "kind": "TANK",
+      "robot_no": 22,
+      "pos": [
+        -71.0,
+        -150.123
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_022"
+    },
+    {
+      "pid": "rover_31",
+      "kind": "PLANE",
+      "robot_no": 31,
+      "pos": [
+        -149.325,
+        -136.409
+      ],
+      "battery": 1000000.0,
+      "alive": true,
+      "topic": "/container_00/robot_031"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 25,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 24
+  },
+  "done": 1,
+  "used_energy": -5999140.0,
+  "per_task_energy": -5999140.0,
+  "makespan": 192,
+  "spread": 22.66,
+  "need_report": [],
+  "solve_summary": null,
+  "rejected_reasons": {},
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 340,
+  "H": 610,
+  "K": 8,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "behavior_details": true,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": false,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}

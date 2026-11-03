@@ -1,6 +1,7 @@
 # 要点坚守（T-HLD）记录 · 2026-11-02
 
 > 口径：**本地替身 + 行为状态机 + 4.1 输入回放**，不是真实平台 / ROS / Gazebo 联调。
+> 位置：2026-11-03 起样例搬到**小十字路口建筑区**（`asl_city` 的 (-95,-145) 一带，四栋楼围出的街区），本文数字与截图均为搬迁后重跑。
 > 效果类结论（反击、压制、击退）全部来自 `assessment.Adjudicator` 的**桩判定**，
 > 标 `verified=false`，只作过程证据，不作战果。
 
@@ -9,15 +10,15 @@
 | 项 | 结果 | 数据来源 |
 | --- | --- | --- |
 | 4.1 样例可解析 / 可分解 / `to_v2_dict` 通过 `check_scenario_v2` | 是（6 个槽位：4 阵位 + 1 预备队 + 1 空中观察席，覆盖东南西北 4 条威胁方向） | `interop/scenarios/key_point_hold.*` |
-| 要点全向覆盖 | 100%（按各阵位 45 m **圆形探测圈**统计要点一周，缺口 0 个方位） | `hold_result.metrics.observation_coverage_mean` |
+| 要点全向覆盖 | 99.9%（按各阵位 45 m **圆形探测圈**统计要点一周，最差一拍 1 个方位缺口，判据门限 0.95） | `hold_result.metrics.observation_coverage_mean` |
 | 空中观察席（防空警戒） | 1 架固定翼 · 60 m · 盘旋半径 45 m · 在位率 100% | `hold_result.metrics.air_*` |
 | 4.2 产物齐全且字段不变 | `plan.json` / `assignments.csv` / `commands.csv` / `ros2_commands.txt` / `report.md` | [interop_demo/hold_run](../interop_demo/hold_run/report.md) |
 | `commands` 只到 TRANSIT / HOLD / STOP | 是（HOLD、STOP、TRANSIT 分段；STOP 全零） | 同上 `commands.csv` |
-| 控制建立 | T+16 s，在位 4 台（下限 3） | `hold_result.metrics` |
+| 控制建立 | T+12 s，在位 4 台（下限 3） | `hold_result.metrics` |
 | 在岗游走 | 到点后在阵位前方左右踱步（振幅 5 m、1.5 m/s），在位判定不被打穿 | `hold_result.metrics.patrol_*` |
-| 至少 1 次"到位才撤"的轮换 | 2 次：P1 66→69 s、P2 116→124 s，均 `arrival_before_departure=true` | `hold_result.handovers` |
+| 至少 1 次"到位才撤"的轮换 | 2 次：P1 62→67 s、P2 112→120 s，均 `arrival_before_departure=true` | `hold_result.handovers` |
 | 1 次增援（按敌我比触发） | 是：T+95 触发，T+100 到位（5 s，时限 60 s，准时） | `hold_result.reinforcements` |
-| 撤离 | 坚守满 150 s → T+166 撤离 → T+178 到位（时限 45 s） | 时间线 `withdraw_started` / `withdrawn` |
+| 撤离 | 坚守满 150 s → T+162 撤离 → T+174 回到集结区（时限 45 s） | 时间线 `withdraw_started` / `withdrawn` |
 | 四个方向都有阵位 | `sample` 的每条威胁方向都有正对它的阵位（含后方 S） | 测试 `test_sample_covers_all_threat_directions` |
 | 抽象效果走桩判定 | 4 次反击 / 4 条 `effect_adjudicated`，`verified=false`，adjudicator=`constructed_assessment_stub` | `hold_result.effects` |
 | 判定 | `succeeded`：控制保持率 100%、控制中断 0 s、最长观察中断 0 s、敌方进攻 4 次 / 突破 0 次、我方损失 0 | `hold_result.items` |
@@ -28,7 +29,7 @@
 
 | 图 | 内容 |
 | --- | --- |
-| [工作台_要点坚守_120s.png](工作台_要点坚守_120s.png) | “要点坚守”页签 T+120 s：要点、4 个阵位（含朝向与在位编号）、4 条威胁扇区、**跟随在位平台的探测圈**、空中观察席盘旋航线、预备队、在位甘特、逐项判定、桩判定清单、过程时间线 |
+| [工作台_要点坚守_120s.png](工作台_要点坚守_120s.png) | “要点坚守”页签 T+120 s（小十字路口街区）：要点、4 个阵位（含朝向与在位编号）、4 条威胁扇区、**跟随在位平台的探测圈**、空中观察席盘旋航线、预备队、在位甘特、逐项判定、桩判定清单、过程时间线；底图为楼体/道路 |
 | [工作台_T3_尚未占位无探测圈.png](工作台_T3_尚未占位无探测圈.png) | 同一轮运行 T+3 s（还没建立控制）：四个阵位都“空缺”，**没有任何探测圈**——说明圈是跟着在位平台画的，不是预先画在阵位点上的参考圈 |
 | [工作台_进攻与击退_桩判定.png](工作台_进攻与击退_桩判定.png) | 同一轮运行 T+56 s（N 方向试探进行中）：红色进攻箭头指向 P1、阵位上红色接触环与琥珀色反击脉冲、“击退（桩判定·未验证）”文字；底部状态条同步显示“敌方进攻 N · 试探 / 击退（桩判定·未验证）” |
 | [工作台_要点坚守_整页.png](工作台_要点坚守_整页.png) | 同上整页（含 6 项 KPI 与右侧面板全貌） |

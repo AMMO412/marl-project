@@ -277,7 +277,7 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
 监视 → 警告 → 拦阻 → 处置，产出控制时间线与逐项判定。
 
 - 样例：`scenarios/area_containment.{message,formation}.json`（集结待机区 →
-  140×90 m 区域，2 段占位 + 2 个门哨 + 1 个机动组，2 条未授权目标 + 1 条授权目标）。
+  小十字路口 60×60 m 街区，2 段占位 + 2 个门哨 + 1 个机动组 + 1 架空中监视，2 条未授权目标 + 1 条授权目标）。
 - 运行：`python -m interop.cli demo ... --motion real --behavior`；工作台场景选
   "区域封控 · T-SEC"，运行后在"演示总览"顶部切到 **区域封控** 页签查看
   （占位平台在岗巡视，警告/拦阻/放行按时间轴播放）。

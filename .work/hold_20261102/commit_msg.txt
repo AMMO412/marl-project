@@ -1,0 +1,20 @@
+feat(samples): move T-SEC/T-HLD to the crossroads building block
+
+Both fused samples used to sit on open ground (140x90 m box at [40..180]x[20..110]
+and key point (0,40)). They now use the little-crossroads block that the asl_city
+sample already calls its objective: key point (-95,-145).
+
+- T-SEC: 60x60 m block between the six buildings, gates on the north/east
+  streets, mobile group post at the centre, assembly 55 m south, intruders
+  re-routed through the two gates. 240 m perimeter, control established 11 s.
+- T-HLD: key point at the crossroads, four posts at the road approaches
+  (-95,-113), (-55,-145), (-95,-177), (-135,-145), assembly 85 m south,
+  withdraw back to the assembly. Control established 12 s, coverage 99.9%.
+- build_scenarios: coordinates + unit start positions; capability_gap keeps its
+  own (0,40) point so that sample is unchanged.
+- workbench: containment/hold pages now draw the static SDF backdrop
+  (roads/buildings/planters) behind the schematic layers, so the block is
+  recognisable instead of a bare box.
+- docs + outputs: numbers, coordinates and screenshots refreshed for the new
+  location; old T-SEC screenshots marked as pre-move history.
+- tests: full suite 248 pass.

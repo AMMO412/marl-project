@@ -528,6 +528,25 @@
     const P = (p) => [W / 2 + (p[0] - cx) * scale, H / 2 - (p[1] - cy) * scale];
     const t = C.t;
     const roles = st.roles || {};
+    // 静态底图（楼体/花坛/道路）：只作参照，不参与判定。有点位的运行才有；
+    // 没有就跳过，不补示意图。
+    const backdrop = (currentRun() || {}).scene_map;
+    if (backdrop && !backdrop.error) {
+      const poly = (points, fill, stroke) => {
+        if (!points || points.length < 3) return;
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          const q = P(p);
+          if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
+        });
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+      };
+      for (const road of (backdrop.roads || [])) poly(road.polygon, '#eef1ec', null);
+      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, '#eaf1e6', null);
+      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, '#e3e8e2', '#cfd8cc');
+    }
     const labels = [];
     const placed = [];
     const placeLabel = (text, x, y, color) => {

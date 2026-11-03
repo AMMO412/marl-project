@@ -1,5 +1,9 @@
 # 区域封控（T-SEC）实现记录 · 2026-10-31
 
+> 2026-11-03：样例已搬到**小十字路口建筑区**（`asl_city` 的 (-95,-145) 一带），
+> 封控区改为 60×60 m 街区；`区域封控_*.png`、`总览_*.png` 是搬迁前的历史截图，
+> 新位置的画面见 `街区封控_在位.png` / `街区封控_全页.png`。
+
 依据：[无人集群编队五类任务定义](../../资料/需求与任务/无人集群编队五类任务定义_1028.docx) 2.2 节。
 实现与参数说明：[区域封控任务_20261031.md](../../docs/区域封控任务_20261031.md)。
 
@@ -10,7 +14,7 @@
 | `planning_middle_demo/containment_geom.py` | 边界弧长分段、占位点、覆盖统计（规划层与执行层共用） |
 | `planning_middle_demo/interop/templates.py` | T-SEC 按 `roles` 拆成 边界段 / 通道哨位 / 机动拦截 / 预备队 / 空中监视 |
 | `planning_middle_demo/behaviors.py` | `ContainmentBehavior`：监视→警告→拦阻→处置、在岗巡视、空中盘旋、逐项判定 |
-| `planning_middle_demo/interop/scenarios/area_containment.*` | 4.1 样例：集结待机区 → 140×90 m 封控区；5 台地面 + 1 架无人机，2 未授权 + 1 授权目标 |
+| `planning_middle_demo/interop/scenarios/area_containment.*` | 4.1 样例：集结待机区 → 小十字路口 60×60 m 街区；5 台地面 + 1 架无人机，2 未授权 + 1 授权目标 |
 | `planning_middle_demo/workbench/containment.js` | 区域封控页签：全程/封控区镜头、控制画面、指标、目标闭合、时间线 |
 | `planning_middle_demo/tests/test_containment.py` | 21 项测试（几何/分解/执行/巡视/空中监视/回放/样例一致性） |
 

@@ -10,8 +10,8 @@
       "priority": 1,
       "target": {
         "key_point": [
-          0,
-          40
+          -95,
+          -145
         ]
       },
       "window": {
@@ -51,8 +51,8 @@
           {
             "id": "P1",
             "point": [
-              0,
-              72
+              -95,
+              -113
             ],
             "facing_deg": 0,
             "min_units": 1
@@ -60,8 +60,8 @@
           {
             "id": "P2",
             "point": [
-              40,
-              40
+              -55,
+              -145
             ],
             "facing_deg": 90,
             "min_units": 1
@@ -69,8 +69,8 @@
           {
             "id": "P3",
             "point": [
-              0,
-              8
+              -95,
+              -177
             ],
             "facing_deg": 180,
             "min_units": 1
@@ -78,8 +78,8 @@
           {
             "id": "P4",
             "point": [
-              -40,
-              40
+              -135,
+              -145
             ],
             "facing_deg": 270,
             "min_units": 1
@@ -125,19 +125,19 @@
           "allowed": true,
           "route": [
             [
-              0,
-              40
+              -95,
+              -145
             ],
             [
-              -30,
-              -10
+              -95,
+              -60
             ]
           ],
           "deadline_s": 45
         },
         "assembly_point": [
-          -90,
-          -16
+          -95,
+          -60
         ],
         "counter_attack": {
           "authorized": true,

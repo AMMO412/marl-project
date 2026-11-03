@@ -1,0 +1,67 @@
+{
+  "generator": "planning_middle_demo/interop",
+  "interop_version": "1.0.0",
+  "backend": "unified",
+  "objective": "timeliness",
+  "weights": {
+    "time": 1.0,
+    "risk": 0.0,
+    "energy": 0.0
+  },
+  "plan_id": "PLAN-INTEROP-HLD",
+  "generated_at": "2026-11-03T10:24:05.631+08:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "scenario": {
+    "formation_id": "INTEROP-container_00",
+    "cell_size_m": 1.0,
+    "platforms": 6,
+    "tasks": 1,
+    "message": {
+      "schema_version": "0.3",
+      "message_id": "MSG-INTEROP-HLD-001",
+      "issued_at": "2026-10-30T08:00:00Z",
+      "source": "UPPER"
+    }
+  },
+  "inputs": {
+    "message": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.message.json",
+      "sha256": "da4c4641e92436cf343017c84ec8c0d6f4d5df7e2468630cfd1ac229ec367506"
+    },
+    "formation": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\planning_middle_demo\\interop\\scenarios\\key_point_hold.formation.json",
+      "sha256": "ba5ae336d35b7d24cad7d294c1e0ed8dcdcb1f2d6c57346d13000c6512125c13"
+    }
+  },
+  "outputs": {
+    "plan_json": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\plan.json",
+      "sha256": "8077c0f448551890b1fa89837661ce06a3bb61fb622bbb56d6fdfd3c17450132",
+      "bytes": 22490
+    },
+    "assignments_csv": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\assignments.csv",
+      "sha256": "2f95222231fa4386a9c866704093475e732910e2eba5a6c942a844372a0c97b9",
+      "bytes": 1357
+    },
+    "commands_csv": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\commands.csv",
+      "sha256": "d38622de20fa79fdff964576076fb307255137cfb78a4f0ec272d0e362c2916b",
+      "bytes": 3462
+    },
+    "report_md": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\report.md",
+      "sha256": "a91defde60dd88800dae8f1591501c856034b74a343a44a0bdbcb641ac032faf",
+      "bytes": 3260
+    },
+    "ros2_commands": {
+      "path": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\ros2_commands.txt",
+      "sha256": "2f7b773d4cbbfed809d08fad1ee8f61770832852fe324e14a7b0d6a535a51143",
+      "bytes": 6598
+    }
+  },
+  "command": "demo --message interop/scenarios/key_point_hold.message.json --formation interop/scenarios/key_point_hold.formation.json --out ..\\outputs\\interop_demo\\hold_city --motion real --behavior --max-ticks 300",
+  "planner": "interop",
+  "runtime_report": "C:\\Users\\ammo\\.dsh\\worktrees\\marl-c1bc814f\\hold-task\\outputs\\interop_demo\\hold_city\\run\\report.json"
+}

@@ -596,6 +596,25 @@
     const [P, scale] = projectFactory(canvas);
     const t = C.t;
     const labelBoxes = [];
+    // 静态底图（楼体/花坛/道路）：只作参照，不参与判定；没有底图就跳过，
+    // 不补示意图——否则"这栋楼在不在封控区里"会被一张假底图带偏。
+    const backdrop = (currentRun() || {}).scene_map;
+    if (backdrop && !backdrop.error) {
+      const poly = (points, fill, stroke) => {
+        if (!points || points.length < 3) return;
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          const q = P(p);
+          if (i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]);
+        });
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+      };
+      for (const road of (backdrop.roads || [])) poly(road.polygon, '#eef1ec', null);
+      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, '#eaf1e6', null);
+      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, '#e3e8e2', '#cfd8cc');
+    }
     // 标注避让：同一时刻各平台/目标可能挤在一起（如集结待命时），
     // 逐字叠加会糊成一团，按矩形碰撞跳过次要标注。
     const placeLabel = (text, x, y, color) => {

@@ -4,7 +4,7 @@ const path = require('path');
 
 (async () => {
   const runId = process.argv[2];
-  const base = 'http://127.0.0.1:8899';
+  const base = process.argv[3] || 'http://127.0.0.1:8899';
   const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' });
   const page = await browser.newPage({ viewport: { width: 1680, height: 1280 } });
   const errors = [];

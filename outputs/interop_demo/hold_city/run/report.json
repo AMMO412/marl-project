@@ -1,0 +1,313 @@
+{
+  "protocol": "middle-demo/v2",
+  "run_id": "demo-v2",
+  "simulated_until_s": 179,
+  "objective": "makespan",
+  "planner": "interop",
+  "all_succeeded": true,
+  "settled": true,
+  "jobs": [
+    {
+      "job_id": "T1",
+      "jtype": "hold",
+      "pos": [
+        -95.0,
+        -145.0
+      ],
+      "work": 900.0,
+      "window": [
+        0,
+        320
+      ],
+      "crew": 5,
+      "need_payload": 0.0,
+      "need_sensor": null,
+      "altitude": 0.0,
+      "progress": 900.0,
+      "status": "succeeded",
+      "attempts": 1,
+      "started_at": 16,
+      "planned_end": 166,
+      "behavior": {
+        "key_point": [
+          -95.0,
+          -145.0
+        ],
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              -95.0,
+              -113.0
+            ],
+            "facing_deg": 0.0,
+            "min_units": 1
+          },
+          {
+            "id": "P2",
+            "point": [
+              -55.0,
+              -145.0
+            ],
+            "facing_deg": 90.0,
+            "min_units": 1
+          },
+          {
+            "id": "P3",
+            "point": [
+              -95.0,
+              -177.0
+            ],
+            "facing_deg": 180.0,
+            "min_units": 1
+          },
+          {
+            "id": "P4",
+            "point": [
+              -135.0,
+              -145.0
+            ],
+            "facing_deg": 270.0,
+            "min_units": 1
+          }
+        ],
+        "stations": {
+          "reserve": [
+            -105.607,
+            -134.393
+          ],
+          "support": [],
+          "relay": [
+            -95.0,
+            -145.0
+          ]
+        },
+        "threats": [
+          {
+            "id": "N",
+            "bearing_deg": 0,
+            "width_deg": 60
+          },
+          {
+            "id": "E",
+            "bearing_deg": 90,
+            "width_deg": 60
+          },
+          {
+            "id": "S",
+            "bearing_deg": 180,
+            "width_deg": 60
+          },
+          {
+            "id": "W",
+            "bearing_deg": 270,
+            "width_deg": 60
+          }
+        ],
+        "role_counts": {
+          "post": 4,
+          "reserve": 1,
+          "support": 0,
+          "relay": 0,
+          "air": 1
+        },
+        "duration_s": 150.0,
+        "site": [
+          -95.0,
+          -145.0
+        ],
+        "hold_criteria": "quantity",
+        "min_on_post": 3,
+        "observation_gap_max_s": 8,
+        "observation_ring_m": 24,
+        "sensor_radius_m": 45,
+        "relief": {
+          "interval_s": 50,
+          "handover_tol_m": 3,
+          "swap_requires_arrival": true,
+          "relief_cycles": 2
+        },
+        "reinforce": {
+          "trigger": "position_lost",
+          "enemy_ratio": 1.5,
+          "arrive_within_s": 60
+        },
+        "withdraw": {
+          "allowed": true,
+          "route": [
+            [
+              -95,
+              -145
+            ],
+            [
+              -95,
+              -60
+            ]
+          ],
+          "deadline_s": 45
+        },
+        "enemy_events": [
+          {
+            "t_s": 55,
+            "kind": "probe",
+            "direction": "N"
+          },
+          {
+            "t_s": 95,
+            "kind": "assault",
+            "direction": "N",
+            "ratio": 1.6
+          },
+          {
+            "t_s": 125,
+            "kind": "probe",
+            "direction": "E"
+          },
+          {
+            "t_s": 150,
+            "kind": "probe",
+            "direction": "S"
+          }
+        ],
+        "counter_attack": {
+          "authorized": true,
+          "max_range_m": 70,
+          "allowed_in_position": true
+        },
+        "effect": {
+          "kinds": [
+            "damage",
+            "suppress"
+          ],
+          "adjudicator": "stub",
+          "required_duration": 8
+        },
+        "assembly_point": [
+          -95,
+          -60
+        ],
+        "patrol_enabled": true,
+        "patrol_radius_m": 5,
+        "patrol_speed_mps": 1.5,
+        "patrol_period_s": 50,
+        "air_altitude_m": 60,
+        "air_orbit_radius_m": 45,
+        "air_orbit_period_s": 90,
+        "air_speed_mps": 14,
+        "air_capabilities": {
+          "RCN": 2
+        },
+        "air_unit": "U6",
+        "min_key_point_coverage": 0.95
+      }
+    }
+  ],
+  "platforms": [
+    {
+      "pid": "rover_01",
+      "kind": "UGV",
+      "robot_no": 1,
+      "pos": [
+        -94.98,
+        -60.118
+      ],
+      "battery": 999991.7,
+      "alive": true,
+      "topic": "/container_00/robot_001"
+    },
+    {
+      "pid": "rover_02",
+      "kind": "UGV",
+      "robot_no": 2,
+      "pos": [
+        -94.996,
+        -60.114
+      ],
+      "battery": 999988.5,
+      "alive": true,
+      "topic": "/container_00/robot_002"
+    },
+    {
+      "pid": "rover_03",
+      "kind": "UGV",
+      "robot_no": 3,
+      "pos": [
+        -95.04,
+        -60.1
+      ],
+      "battery": 999990.1,
+      "alive": true,
+      "topic": "/container_00/robot_003"
+    },
+    {
+      "pid": "rover_21",
+      "kind": "TANK",
+      "robot_no": 21,
+      "pos": [
+        -94.921,
+        -60.197
+      ],
+      "battery": 999979.9,
+      "alive": true,
+      "topic": "/container_00/robot_021"
+    },
+    {
+      "pid": "rover_22",
+      "kind": "TANK",
+      "robot_no": 22,
+      "pos": [
+        -95.02,
+        -60.1
+      ],
+      "battery": 999983.5,
+      "alive": true,
+      "topic": "/container_00/robot_022"
+    },
+    {
+      "pid": "rover_31",
+      "kind": "PLANE",
+      "robot_no": 31,
+      "pos": [
+        -95.0,
+        -60.0
+      ],
+      "battery": 999956.8,
+      "alive": true,
+      "topic": "/container_00/robot_031"
+    }
+  ],
+  "active_commands": 0,
+  "plans": 23,
+  "retries": 0,
+  "timeouts": 0,
+  "triggers": {
+    "init": 1,
+    "member_change": 0,
+    "exec_fail": 0,
+    "timeout": 0,
+    "deviation": 0,
+    "periodic": 22
+  },
+  "done": 1,
+  "used_energy": -5999030.4,
+  "per_task_energy": -5999030.42,
+  "makespan": 179,
+  "spread": 0.05,
+  "need_report": [],
+  "solve_summary": null,
+  "rejected_reasons": {},
+  "limitation": "规则规划消息闭环演示；平台能力参数为我方暂定，未连接 ROS/Gazebo 真实执行；指标只用于内部相对比较",
+  "mode": "normal",
+  "max_ticks": 300,
+  "H": 330,
+  "K": 8,
+  "dev_threshold": 4.0,
+  "motion": "real",
+  "avoid": true,
+  "behavior": true,
+  "behavior_details": true,
+  "timeline": [],
+  "rules": {},
+  "limit_reached": false,
+  "scope": "规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）"
+}
