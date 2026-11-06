@@ -29,6 +29,10 @@ Thumbs.db
 /desktop_app/verify*/
 /desktop_app/**/start.log
 
+# Historical v0.3 desktop artifacts; source moved to desktop_app/.
+/outputs/desktop_ui_20261104/
+/outputs/desktop_ui_20261104.zip
+
 # Office temporary lock files
 ~$*
 
