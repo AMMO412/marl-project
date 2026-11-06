@@ -2,6 +2,17 @@
 
 当前主程序是 **融合版**：`planning_middle_demo/interop/` 负责统一输入和规划，复用 `planning_middle_demo/` 的执行协调、反馈与工作台。目录名保留以兼容现有导入、脚本及历史报告。
 
+## 桌面演示端（2026-11-06）
+
+`desktop_app/` 是面向展示的 Windows 桌面端，保留原界面布局，并把本地工作台的真实运行回放接入“任务视图”。它定位为规划中间层的本地可视化演示；真实平台展示目标是接入 Gazebo、在 UE5 中呈现，不代表真实平台联调完成。
+
+- 构建：`desktop_app\build.cmd`
+- 运行：`desktop_app\dist\MARL界面预览.exe`
+- 验证：`MARL界面预览.exe --verify <目录>` 或 `--live-verify <目录>`
+- 便携发布包：`powershell -NoProfile -ExecutionPolicy Bypass -File desktop_app\packaging\build_release.ps1`
+- 说明：[桌面端 README](desktop_app/README.md) · [架构](desktop_app/ARCHITECTURE.md)
+- 交付资料骨架：[执行文档](docs/交付/执行文档_20261106.md) · [需求追踪矩阵](docs/交付/需求追踪矩阵.md)
+
 ## 启动
 
 - 双击根目录 `启动工作台.cmd`：唯一推荐启动入口；启动后打开融合版新建演示（规划器固定 `interop`、逐步运动）。场景下拉可选区域封控、要点坚守、巡逻警戒、协同侦察、十字路口接力处置、中性任务、机动突击及 `asl_city` 历史入口；历史回放仍可在运行下拉中选择。

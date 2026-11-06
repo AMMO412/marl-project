@@ -21,6 +21,14 @@ Thumbs.db
 # they currently contain unique sources and historical evidence.
 # Review and stage specific paths for later commits; no automatic snapshots.
 
+# Desktop build and packaging artifacts; keep source, scripts and licenses.
+/desktop_app/dist/
+/desktop_app/release/
+/desktop_app/.cache/
+/desktop_app/data/
+/desktop_app/verify*/
+/desktop_app/**/start.log
+
 # Office temporary lock files
 ~$*
 
