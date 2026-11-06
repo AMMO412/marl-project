@@ -13,7 +13,7 @@
 
 产物目录：outputs/run_YYYYmmdd_HHMMSS_ffffff/（每次新建，禁止覆盖）
   manifest.json / scenario.json / report.json / trace.jsonl /
-  summary.txt / report.html
+  summary.txt
 """
 import argparse
 from datetime import datetime
@@ -27,8 +27,7 @@ from contracts_v2 import (PROTOCOL_V2, check_scenario_v2, resolve_rules,
 from coordinator_v2 import CoordinatorV2
 import fleet
 from mock_fleet import MockFleet
-from reporting_v2 import render_html, render_text
-import trajectory_v2
+from reporting_v2 import render_text
 
 ROOT = Path(__file__).resolve().parent
 
@@ -101,11 +100,18 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
     core = CoordinatorV2(scenario, max_attempts=max_attempts, grace_s=grace_s,
                          H=H, K=K, dev_threshold=dev_threshold, motion=motion,
                          behavior=behavior, planner=planner)
+    behavior_params = {j["job_id"]: dict(j.get("_behavior") or {}) for j in scenario["jobs"]}
+    for params in behavior_params.values():
+        if "search_deadline_s" in params:
+            params["search_deadline_s"] = min(params["search_deadline_s"], max_ticks - 1)
     fleet = MockFleet(fail_once=fail_once, delay_once=delay_once,
                       slow_once=slow_once, motion=motion,
                       timed_events=job_events, nav=nav, behavior=behavior,
-                      behavior_params={j["job_id"]: j.get("_behavior", {})
-                                       for j in scenario["jobs"]})
+                      behavior_params=behavior_params,
+                      relay_spec=(scenario.get("_meta") or {}).get("relay_target"),
+                      home={pid: p.pos for pid, p in core.platforms.items()})
+    observe_event = getattr(planner, "observe_behavior_event", None)
+    reserve_unplanned = getattr(planner, "reserve_unplanned", None)
 
     kill_at = None
     kill_pid = None
@@ -142,15 +148,59 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
         # 不经过 coordinator 的反馈校验通道，直接作为审计事件追加，
         # 供工作台回放展示"到位后按任务类型行动"的细分阶段。
         for ev in fleet.drain_behavior_events():
-            core.audit.append(dict(kind="behavior_event",
-                                   sim_s=ev.get("recorded_at_sim_s", now), event=ev))
-        commands = core.step(now)
+            row = dict(kind="behavior_event", sim_s=ev.get("recorded_at_sim_s", now), event=ev)
+            core.audit.append(row)
+            if observe_event:
+                observe_event(core, row)
+        relay_sample = fleet.relay_sample(now)
+        if relay_sample:
+            core.audit.append(dict(kind="behavior_event", sim_s=now, event=relay_sample))
+        commands = []
+        if core.settled():
+            core.advance(now)
+        else:
+            commands = core.step(now)
         for event in fleet.submit(commands, now):
             core.receive(event, now)
-        if core.report()["settled"]:
+        pending = {j.job_id for j in core.jobs.values() if j.status == "pending"}
+        assignments = {a.job_id: a.pids for a in core.plan.assignments
+                       if a.job_id in pending} if core.plan else {}
+        reserved = set().union(*assignments.values())
+        unplanned = pending - assignments.keys()
+        if unplanned:
+            reserved.update(reserve_unplanned(unplanned) if reserve_unplanned else core.platforms)
+        fleet.step_returns(now, reserved)
+        for ev in fleet.drain_behavior_events():
+            core.audit.append(dict(kind="behavior_event", sim_s=now, event=ev))
+        for pid in fleet.return_state:
+            st = fleet.platforms[pid]
+            live = core.platforms[pid]
+            live.pos, live.yaw, live.battery = st["pos"], st["yaw"], st["battery"]
+        if core.settled() and not fleet.returns_pending():
             break
 
     report = core.report()
+    recon_reports = {}
+    for row in core.audit:
+        event = row.get("event") or {}
+        if (row["kind"] == "behavior_event" and event.get("kind") == "report_sent"
+                and "remaining_cells" in event):
+            recon_reports[event["job_id"]] = dict(event, sim_s=row["sim_s"])
+    if recon_reports:
+        report["recon_reports"] = recon_reports
+    if fleet.relay_target:
+        report["relay_handoffs"] = [dict(row["event"], sim_s=row["sim_s"])
+                                    for row in core.audit
+                                    if (row.get("event") or {}).get("kind") == "relay_handoff"]
+    for platform in report["platforms"]:
+        pid = platform["pid"]
+        st = fleet.platforms.get(pid, {})
+        platform.update(z=st.get("z", 0.0), home=list(fleet.home[pid]),
+                        return_status=fleet.return_state.get(pid, {}).get("status", "not_started"))
+    report["returns"] = {pid: {k: v for k, v in state.items() if k not in ("path", "index", "cruise")}
+                         for pid, state in fleet.return_state.items()}
+    report["return_complete"] = report["settled"] and all(
+        state["status"] == "returned" for state in fleet.return_state.values())
     report.update(mode=mode, max_ticks=max_ticks, H=H, K=K,
                   dev_threshold=dev_threshold,
                   motion=motion, avoid=bool(avoid), behavior=behavior,
@@ -159,7 +209,7 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
                                        for e in core.audit),
                   timeline=[dict(e) for e in timeline],
                   rules=dict(rules),
-                  limit_reached=not report["settled"],
+                  limit_reached=not report["settled"] or fleet.returns_pending(),
                   scope="规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）")
     return report, core.audit
 
@@ -251,16 +301,10 @@ def main(argv=None):
                 handle.write(json.dumps(event, ensure_ascii=False) + "\n")
         (out / "summary.txt").write_text(
             render_text(scenario, report, audit), encoding="utf-8")
-        (out / "report.html").write_text(
-            render_html(scenario, report, audit), encoding="utf-8")
-        # 运动轨迹图：从本次 trace 还原各平台逐拍位姿并可视化
-        trajectory_v2.render(str(out))
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(2, "运行失败：%s\n" % error)
     print(render_text(scenario, report, audit, include_events=not args.quiet))
     print("产物：%s" % out.resolve())
-    print("可视报告：%s" % (out / "report.html").resolve())
-    print("动态运动回放：%s" % (out / "trajectory.html").resolve())
     return 0 if report["all_succeeded"] else 2
 
 

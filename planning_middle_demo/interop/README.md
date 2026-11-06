@@ -81,10 +81,10 @@ python run_demo_v2.py --scenario <场景.json> --planner auto
 python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统一层
 ```
 
-工作台：`启动工作台.cmd` 打开“融合版中性任务”的新建演示；场景下拉现有三个入口：
-融合版中性任务（`interop_neutral`）、融合版机动突击（`interop_asl`，4.1 T-ASL 样例）、
-以及 `asl_city` 历史入口。两个融合样例固定 `interop` + 逐步运动，`interop_asl`
-自动开行为与城市避障。运行完成后，4.2 的 `plan.json` / `assignments.csv` /
+工作台：根目录 `启动工作台.cmd` 打开融合版新建演示；场景下拉提供中性任务、
+区域封控、要点坚守、巡逻警戒、协同侦察、十字路口接力处置、机动突击，
+以及 `asl_city` 历史入口。融合样例固定 `interop` + 逐步运动，专项演示
+自动开启行为与静态地图避障。运行完成后，4.2 的 `plan.json` / `assignments.csv` /
 `commands.csv` / `report.md` / `ros2_commands.txt` 会和反馈轨迹一起保存在
 `planning_middle_demo/outputs/workbench_*/`，可在“项目文件”页直接下载。
 `asl_city` 继续用基座 `planner_v2` 作历史对照。
@@ -142,6 +142,48 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
 `to-v2` 仍是**无损性检查**：缺能力就拒绝并不写文件。运行对接不走它，
 而是在内存里生成带 `_meta.interop` 的 v2 运行视图；该视图只用于基座
 协调/进度/回放，不冒充等价旧场景。
+
+### 巡逻警戒专项演示（T-PTL）
+
+工作台的「巡逻警戒演示（T-PTL）」读取 `area_patrol.message.json` 和对应编成表。
+启用 `follow_boundary` 后，`target.patrol_area` 的四个角点同时定义区域边界、
+巡逻环线和起巡位置，空地平台共用这组坐标。
+两台轮式无人车、两台飞翼无人机在环线上交错布置，同类平台按弧长差独立调速。
+感知圈使用地面投影距离，半径由 `sensor_radius_m` 分组配置。
+
+目标从 `observation_target.start` 以 `speed_mps` 匀速驶向 `goal`。
+每台平台在发现目标时立即发出 `patrol_position_report`，持续感知时每秒上报
+一次，失去感知后停报。感知与上报不改变平台的巡逻路线。事件保存在
+`trace.jsonl` 的 `behavior_event.event` 中，字段包括 `job_id`、`target_id`、
+`pid`、`pos`、`coordinate_frame`、`source`。外层 `sim_s` 是全局仿真时刻。
+本地演示仅写日志，外部仿真适配器可消费同一事件。
+
+### 协同侦察专项演示（T-RCN）
+
+工作台的「协同侦察演示（T-RCN）」读取 `crossroad_recon.message.json` 和对应
+编成表。四台平台从主十字路口北侧相邻位置出发，在同一片四角区域分头侦察。
+工作台显示感知范围扫过的连续足迹。覆盖率按足迹命中的室外采样点估算，重叠只计
+一次，地面探测考虑建筑遮挡。专项演示以 99% 为达标线。
+区内目标首次被发现时回传坐标，静置一段时间后向区外驶离，优先由无人机跟踪。
+跟踪时按秒回传位置，目标在区外且保持感知达到规定时长后结算跟踪。
+达标或截止时均发出 `report_sent`。`report.json` 的 `recon_reports` 包含
+覆盖率、达标状态、已覆盖和剩余网格中心，坐标单位为场景米。命令行仿真使用
+`interop.cli demo` 的 `--motion real --behavior` 参数启用侦察动作。
+
+### 十字路口接力处置演示
+
+工作台在「融合版 · 4.1 统一接口」下读取 `crossroad_relay` 消息与编成表。
+各编组从同一片集结区起步。侦察成功回传后启动巡逻，巡逻首次位置上报触发东侧
+封控，封控判定成功后启动要点坚守。接力由任务的 `after_event` 指定，仿真日志
+保存实际触发来源与时刻。
+巡逻、侦察和封控引用同一个移动目标。封控接管后，目标沿实际处置轨迹继续移动。
+工作台可在关键节点跳转交接，`report.json` 的 `relay_handoffs` 保存交接记录。
+4.2 计划文件给出预排分配，实际派遣与交接时刻见 `trace.jsonl`。
+
+所有工作台任务共用返航逻辑。空闲成员在没有后续分配后返回各自初始位置。
+逐步运动且启用避障时，地面按静态地图绕行，空中先返至起点上方再降至零高度。
+任务完成与返航完成分别结算，`report.json` 的 `returns` 保存各平台状态，
+全局回放用虚线展示返航轨迹。
 
 ## 2 输入契约
 
@@ -205,7 +247,7 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
 | 父任务→子任务→分配→指令分层 | `templates.py` / `scheduler.py` / `model.py` | 保留，便于追溯 |
 | 能力闸门与拒绝原因 | `gate.py`、`unassigned[].reason` | 保留 |
 | 协同组匈牙利匹配 | `assignment.py`、`scheduler._solve_group` | **修**：统一开始时刻，组内平台预留 |
-| 三目标（时效/风险/能耗） | `cost.py` | 保留，系数仍为演示值 |
+| 三目标（时效/暴露/能耗） | `cost.py` | 保留，系数仍为演示值；2026-11 起“暴露度”取代旧的“空间分散度”（`dispersion` 仅作别名） |
 | 风险感知栅格 A* | `routing.py` | 保留，改 8 邻域 + octile |
 | 结构化冲突/未分配 | `model.Conflict`、`validate.py` | 保留并补路径穿障碍检查 |
 | JSON 全量 + CSV 字段子集 + report | `output.py` | 保留并补 manifest |
@@ -218,6 +260,22 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
   把所有槽位对齐到同一开始时刻；
 - 协同组匹配后平台可能被别的任务抢走 → interop 在组内落实前预留平台；
 - 子任务目标在禁入区时整组拒绝（父任务目标同样检查）。
+
+### 4.1 暴露度目标的口径（2026-11）
+
+- 暴露量 = Σ_威胁区 强度 × 区内停留秒数 × 平台信号特征 × (1 − 防护)；
+  在途穿区与作业区内停留都计入（`cost.path_risk`）。
+- 被侦测概率 P = 1 − exp(−0.1 × 暴露量)，只用于报告；规划按暴露量线性
+  排序——P 是暴露量的单调函数，且线性项不会因概率饱和而把“已接近必被
+  发现”的平台当成免费。
+- 暴露度目标把 `risk_weight` 设为 1：地面路径在威胁区内加权绕行；空中平台
+  对 `applies_to=ground` 的威胁不计暴露。威胁区不是禁入区，绕行是代价
+  权衡，不是硬约束。
+- 空间分散本身不再是目标：现有场景只有威胁区多边形和强度，没有传感器
+  作用距离/探测概率场，扎堆不会直接提高被侦测概率；分散只是“少派平台
+  进威胁区、缩短区内停留”的结果。
+- 系数与 λ 都是演示值，真实传感器数据到位后只改 `cost.py` 的表，报告须
+  保留“演示值”标注。
 
 ## 5 与基座的关系
 

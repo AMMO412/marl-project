@@ -41,7 +41,8 @@ V2_JOB_TO_TASK = {
 }
 ASSAULT_JOB_TYPES = {"assault"}
 OBJECTIVE_MAP = {"makespan": "timeliness", "timeliness": "timeliness",
-                 "energy": "energy", "dispersion": "balanced",
+                 "energy": "energy", "exposure": "exposure",
+                 "dispersion": "exposure",
                  "risk": "risk", "balanced": "balanced"}
 
 
@@ -84,7 +85,7 @@ def _platform_from_v2(item) -> Platform:
         platform_type=kind.lower(), heading_rad=heading, altitude_m=altitude,
         vertical_speed_mps=3.0 if kind in ("PLANE", "WING") else 0.0,
         payload=float(params["payload"]), sensor=str(params["sensor"]),
-        battery=1.0e9, work_rate=1.0,
+        battery=float(params["battery"]), work_rate=1.0,
         move_cost=float(profile["move_cost"]),
         work_cost=float(profile["work_cost"]),
     )
@@ -385,9 +386,41 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
             _target=task.target,
         )
         behavior = _sec_behavior_params(task) or _hld_behavior_params(task)
+        if task.task_type == "T-RCN" and "search_starts" in task.params:
+            from fleet import pid_of
+            from .templates import recon_starts, task_polygon
+            starts = recon_starts(task)
+            behavior = dict(
+                area=task_polygon(task, ("area",)),
+                search_starts={pid_of(p.robot_id): starts[p.unit_id]
+                               for p in scenario.platforms if p.unit_id in starts},
+                air_altitude={pid_of(p.robot_id): p.altitude_m
+                              for p in scenario.platforms if p.is_air},
+                search_deadline_s=min(task.window_end_s,
+                                      float(task.params.get("search_deadline_s",
+                                                            task.window_end_s))),
+            )
+            for key in ("cell", "coverage_target", "sensor_radius_m", "tracking_target"):
+                if key in task.params:
+                    behavior[key] = task.params[key]
+        if task.task_type == "T-PTL" and (task.params.get("follow_boundary")
+                                          or "checkpoints" in task.params):
+            from fleet import pid_of
+            from .templates import patrol_loop
+            area, checkpoints, cycles = patrol_loop(task)
+            behavior = dict(area=area, waypoints=checkpoints, cycles=cycles,
+                            air_altitude={pid_of(p.robot_id): p.altitude_m
+                                          for p in scenario.platforms if p.is_air})
+            if task.params.get("follow_boundary"):
+                behavior["corner_lookahead_m"] = 3.0
+            for key in ("sensor_radius_m", "observation_target"):
+                if key in task.params:
+                    behavior[key] = task.params[key]
         if behavior is not None:
             # 运行视图的作业参数（非 4.1 契约字段，只给基座行为层读）。
             job["_behavior"] = behavior
+            if task.task_type in ("T-SEC", "T-HLD") and task.params.get("relay_verdict"):
+                behavior["relay_verdict"] = True
         jobs.append(job)
     horizon = int(max([t.window_end_s for t in scenario.tasks] + [1.0])) + 10
     interop_meta = {"schema_version": "0.3", "authoritative": False,
@@ -405,6 +438,12 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
         "formula": "job.work=duration_s×crew；统一层负责规划，基座负责运行",
         "interop": interop_meta,
     }
+    for task in scenario.tasks:
+        relay = task.params.get("relay_target")
+        if relay:
+            spec = relay if isinstance(relay, dict) else task.params["observation_target"]
+            meta["relay_target"] = dict(spec, source_job_id=task.task_id)
+            break
     if any(task.task_type == "T-ASL" for task in scenario.tasks):
         # 突击任务要跑基座行为层，必须给 city_nav 一张真地图；用与 asl_city
         # 相同的 SDF/包围盒，不把中性样例的 simple_city 变换套到城市坐标上。
@@ -430,13 +469,17 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
 
 
 def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
-                      radius: float = 1.5, resolution: float = 1.0):
+                      radius: float = 1.5, resolution: float = 1.0,
+                      avoid_threats: bool = False):
     """用 4.1 编成表的 no_go 约束构造基座静态地图（NavMap）。
 
     融合层的中性样例不写 ``_meta.sdf``，基座 ``city_nav.build_nav`` 会退到
     simple_city 的世界坐标，等于用错地图。这里改为**只用权威输入**：
     平台与任务几何定边界，编成表的 ``no_go`` 约束当障碍，不解析 SDF、
     不猜坐标。范围只包住本次作业区，A* 栅格因此保持 1 m 级而不爆内存。
+
+    ``avoid_threats=True`` 时把 threat 多边形也当障碍：暴露度目标的执行
+    行为应与计划路径一致地避开威胁区，而不是只让计划层绕行。
     """
     import city_nav
 
@@ -451,7 +494,7 @@ def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
                 points.extend((float(p[0]), float(p[1])) for p in polygon)
             except (TypeError, ValueError, IndexError):
                 pass
-        for key in ("gates", "intruders", "entry_points", "defense_positions",
+        for key in ("gates", "intruders", "tracking_target", "entry_points", "defense_positions",
                     "posts", "intercept_post", "reserve_post", "positions",
                     "reserve_point", "support_points", "relay_point",
                     "threat_directions"):
@@ -485,7 +528,8 @@ def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
               max(xs) + margin, max(ys) + margin]
     obstacles = []
     for item in scenario.constraints:
-        if item.get("type") != "no_go":
+        kind = item.get("type")
+        if kind != "no_go" and not (avoid_threats and kind == "threat"):
             continue
         area = item.get("area") or {}
         polygon = area.get("polygon") if isinstance(area, dict) else area
@@ -507,6 +551,49 @@ class InteropPlanner(object):
         self.scenario = scenario
         self.data = data or {}
         self.objective = OBJECTIVE_MAP.get(objective, "timeliness")
+        self.activation_rules = {task.task_id: task.params["after_event"]
+                                 for task in scenario.tasks if "after_event" in task.params}
+        task_ids = {task.task_id for task in scenario.tasks}
+        for job_id, rule in self.activation_rules.items():
+            if (not isinstance(rule, dict) or not isinstance(rule.get("task_id"), str)
+                    or rule["task_id"] not in task_ids - {job_id}
+                    or not isinstance(rule.get("kind"), str) or not rule["kind"]):
+                raise InteropPlannerError("%s 的 after_event 须指定另一项任务和事件类型" % job_id)
+
+    def observe_behavior_event(self, coord, row):
+        event = row["event"]
+        for job_id, rule in self.activation_rules.items():
+            if (event.get("job_id") != rule["task_id"] or event.get("kind") != rule["kind"]
+                    or any(event.get(key) != rule[key]
+                           for key in ("target_id", "verdict", "overall") if key in rule)):
+                continue
+            activated = getattr(coord, "_interop_handoffs", None)
+            if activated is None:
+                coord._interop_handoffs = activated = {}
+            if job_id in activated:
+                continue
+            activated[job_id] = row["sim_s"]
+            handoff = dict(kind="relay_handoff", job_id=job_id,
+                           from_job_id=rule["task_id"], source_event=event["kind"])
+            for key in ("target_id", "pid", "pos", "verdict"):
+                if key in event:
+                    handoff[key] = event[key]
+            coord.audit.append(dict(kind="behavior_event", sim_s=row["sim_s"], event=handoff))
+            coord.pending.append(("handoff", "%s → %s" % (rule["task_id"], job_id)))
+
+    def reserve_unplanned(self, job_ids):
+        """等待依赖或事件的作业仍保留可执行其席位的成员。"""
+        from fleet import pid_of
+        from .gate import gate_platform
+        from .templates import decompose
+        if not hasattr(self, "_return_candidates"):
+            self._return_candidates = {}
+            for slot in decompose(self.scenario):
+                candidates = self._return_candidates.setdefault(slot.parent_task_id, set())
+                for platform in self.scenario.platforms:
+                    if gate_platform(platform, slot, self.scenario)[0]:
+                        candidates.add(pid_of(platform.robot_id))
+        return set().union(*(self._return_candidates.get(jid, set()) for jid in job_ids))
 
     # ------------------------------------------------------------------
     def _snapshot(self, coord) -> Scenario:
@@ -531,7 +618,10 @@ class InteropPlanner(object):
                 # 执行按 fleet 默认”的两套参数。
                 live.payload = float(item.payload)
                 live.sensor = str(item.sensor)
-                live.battery = max(float(live.battery), 1.0e6)
+                # 电量以 4.1 编成表为准，不再人为抬到 1e6；否则界面和续航
+                # 判定都会显示成“几乎满电”。真实电量不足时由基座记
+                # energy_depleted 事件，规划层的续航校验另行拦截。
+                live.battery = float(item.battery)
                 live.can_climb = bool(item.is_air)
             # 在途指令把平台占到 expected_end；重规划必须把它当“最早可用时刻”，
             # 否则会把新作业排给正在执行旧作业的平台，下发时又被协调器挡回。
@@ -546,6 +636,9 @@ class InteropPlanner(object):
             job = coord.jobs.get(task.task_id)
             if job is None or job.status != "pending":
                 continue   # 已在途/已完成/已失败的作业不在本层重排
+            if (task.task_id in self.activation_rules
+                    and task.task_id not in getattr(coord, "_interop_handoffs", {})):
+                continue
             # 依赖未完成：本轮跳过，等前置作业成功后的下一次滚动再排。
             if any(coord.jobs.get(d) is None
                    or coord.jobs[d].status != "succeeded"

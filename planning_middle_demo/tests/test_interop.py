@@ -222,6 +222,14 @@ class RoutingTests(unittest.TestCase):
         route = router.route((-10.0, 0.0), (30.0, 0.0), is_air=True)
         self.assertEqual(len(route.path), 2)
 
+    def test_risk_weight_keeps_straight_when_no_threat_on_line(self):
+        # 只有 risk_weight>0、但直线不穿威胁区时，不应为了“风险”改走栅格 A*：
+        # 栅格路径会略长，等于凭空增加时效成本（2026-11 暴露度目标踩过）。
+        scenario = self._scenario()
+        router = Router(scenario, [], risk_weight=1.0)
+        route = router.route((0.0, 0.0), (0.0, 20.0), is_air=False)
+        self.assertEqual(len(route.path), 2)
+
 
 class PlannerTests(unittest.TestCase):
     def setUp(self):
@@ -298,6 +306,34 @@ class PlannerTests(unittest.TestCase):
     def test_objective_switch_is_recorded(self):
         plan = Planner(self.scenario, objective="risk").plan()
         self.assertEqual(plan.objective, "risk")
+
+    def _exposure_scenario(self):
+        """单台地面平台、去程必经一个威胁区：用来区分时效与暴露度。"""
+        data = formation(constraints=[{
+            "constraint_id": "THREAT", "type": "threat",
+            "applies_to": "ground", "intensity": 1.0,
+            "area": {"polygon": [[10, -5], [20, -5], [20, 5], [10, 5]]},
+        }])
+        data["formation"]["units"] = [data["formation"]["units"][0]]
+        return parse_message(message(tasks=[point_task()]), data)
+
+    def test_exposure_objective_avoids_threat(self):
+        scenario = self._exposure_scenario()
+        fast = Planner(scenario, objective="timeliness").plan()
+        safe = Planner(scenario, objective="exposure").plan()
+        self.assertEqual(safe.objective, "exposure")
+        # 时效目标走直线穿威胁区；暴露度目标绕行，暴露量必须更低。
+        self.assertGreater(fast.objective_metrics["total_exposure"], 0.0)
+        self.assertLess(safe.objective_metrics["total_exposure"],
+                        fast.objective_metrics["total_exposure"])
+        self.assertGreaterEqual(
+            safe.objective_metrics["detection_probability"], 0.0)
+        self.assertLessEqual(
+            safe.objective_metrics["detection_probability"], 1.0)
+
+    def test_dispersion_alias_maps_to_exposure(self):
+        plan = Planner(self._exposure_scenario(), objective="dispersion").plan()
+        self.assertEqual(plan.objective, "exposure")
 
 
 class OutputTests(unittest.TestCase):

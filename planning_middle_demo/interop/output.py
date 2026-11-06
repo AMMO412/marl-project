@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from . import __version__
+from .cost import OBJECTIVE_LABELS
 from .model import Plan, Scenario
 
 
@@ -63,8 +64,10 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
     lines.append("- 计划编号：`%s`；计划版本：%d；后端：`%s`"
                  % (plan.plan_id, plan.plan_version, plan.backend))
     lines.append("- 生成时间：%s" % plan.generated_at)
-    lines.append("- 目标：`%s`；权重 time/risk/energy = %.2f / %.2f / %.2f"
-                 % (plan.objective, plan.weights.get("time", 1.0),
+    lines.append("- 目标：`%s`（%s）；权重 time/risk/energy = %.2f / %.2f / %.2f"
+                 % (plan.objective,
+                    OBJECTIVE_LABELS.get(plan.objective, plan.objective),
+                    plan.weights.get("time", 1.0),
                     plan.weights.get("risk", 0.0),
                     plan.weights.get("energy", 0.0)))
     lines.append("- 结果口径：`%s` / `%s`（计划层默认口径，不是外部执行确认）"
@@ -92,7 +95,16 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
     if plan.objective_metrics:
         om = plan.objective_metrics
         lines.append("| 总能耗（模型值） | %s |" % _fmt(om.get("total_energy", 0)))
-        lines.append("| 总风险（模型值） | %s |" % _fmt(om.get("total_risk", 0)))
+        lines.append("| 总暴露量（模型值） | %s |"
+                     % _fmt(om.get("total_exposure", om.get("total_risk", 0))))
+        if "detection_probability" in om:
+            lines.append("| 被侦测概率（模型值） | %.1f%% |"
+                         % (100.0 * om["detection_probability"]))
+            lines.append("| 单平台最高被侦测概率 | %.1f%% |"
+                         % (100.0 * om.get(
+                             "max_platform_detection_probability", 0.0)))
+            lines.append("| 期望被侦测平台数 | %.2f |"
+                         % om.get("expected_detections", 0.0))
     lines.append("")
 
     lines.append("## 2 分配")

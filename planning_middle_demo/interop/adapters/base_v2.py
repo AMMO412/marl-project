@@ -10,7 +10,8 @@
 
 已知差异（对比时必须在报告里写明）：
   * 基座计划层不含路径几何，无法做“路径穿障碍”静态校验；
-  * 基座目标只有 makespan/energy/dispersion，没有 risk/balanced；
+  * 基座目标只有 makespan/energy（exposure 在基座无威胁区输入时退化为
+    时效），没有 risk/balanced；
   * 基座是滚动时域规划器，这里用 now=0、足够大的 H 跑单次全量计划。
 """
 
@@ -48,8 +49,9 @@ def run(scenario, objective: str = "timeliness",
         motion: str = "real") -> Dict[str, Any]:
     if objective not in BASE_OBJECTIVES:
         raise BaseAdapterError(
-            "基座 planner_v2 不支持 objective=%r（只有 makespan/energy/dispersion）"
-            % objective)
+            "基座 planner_v2 适配器只支持 %s；exposure/risk/balanced 需要"
+            "威胁区数据，基座适配器没有输入"
+            % "/".join(sorted(BASE_OBJECTIVES)))
     try:
         import contracts_v2
         import planner_v2

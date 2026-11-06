@@ -204,3 +204,59 @@
 .ck-ticker .ck-chip.out{background:#fbfbfb;border-color:#e6e6e6;color:#8c9a90}
 .ck-ticker .ck-chip.warn{background:#fdf1e3;border-color:#ecd3ac;color:#9a5a12}
 .ck-ticker .ck-chip.phase{font-weight:600;background:#eef4ff;border-color:#cfdcf5;color:#2b4f8f}
+
+/* 四目标对比：同一输入只切换目标，不执行仿真 */
+.compare-panel{margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:#fbfdfb}
+.compare-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.compare-head b{font-size:13px;color:#234437}
+.compare-head span{font-size:11px;color:#7f9588}
+.compare-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.compare-table th,.compare-table td{padding:6px 8px;border-bottom:1px solid #e3eae2;text-align:right;white-space:nowrap}
+.compare-table th:first-child,.compare-table td:first-child{text-align:left}
+.compare-table thead th{background:#eef4ee;color:#486456;font-weight:600}
+.compare-table tr.best td{background:#f3faf1}
+
+/* 本轮结果：优化目标 + 状态并排 */
+.pill-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* 威胁区图例：与地图上的淡红虚线区一致 */
+.legend-threat i{width:18px;height:13px;background:#fde8e0;border:1.5px dashed #c2410c;border-radius:2px}
+
+/* 地图任务栏的威胁区提示 */
+.threat-note{font-size:11px;color:#9a3412;background:#fff4ec;border:1px solid #f3c9b4;border-radius:10px;padding:1px 8px;white-space:nowrap}
+.threat-note:empty{display:none}
+
+/* 地图标题旁的威胁区徽标 */
+.threat-tag{background:#fff1e8!important;color:#9a3412!important;border:1px solid #f0c4ad!important}
+
+/* 右侧执行明细：平台、关键时间、事件时间线共用一个纵向滚动区 */
+.exec-card{display:flex;flex-direction:column;min-height:0}
+.execution-detail{max-height:560px;overflow:auto;padding:4px 2px 2px;scrollbar-gutter:stable}
+.exec-section{padding:0 0 12px;margin:0 0 12px;border-bottom:1px solid var(--line)}
+.exec-section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.exec-section h3{font-size:12px;margin:0 0 7px;color:#36584a;display:flex;justify-content:space-between;gap:8px}
+.exec-section h3 small{font-weight:400;color:#8a9d91;font-size:10px}
+.exec-platforms{display:grid;gap:5px}
+.exec-platform{display:grid;grid-template-columns:auto 1fr;gap:2px 7px;padding:6px 8px;background:#f8fbf7;border:1px solid #e3ebe1;border-radius:6px;font-size:10.5px}
+.exec-platform b{font-size:11px;color:#274d3e}
+.exec-platform span{color:#6d8275;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exec-platform em{font-style:normal;color:#9a3412}
+.exec-key{width:100%;border-collapse:collapse;font-size:10.5px}
+.exec-key th,.exec-key td{padding:4px 5px;border-bottom:1px solid #edf1ec;text-align:left;white-space:nowrap}
+.exec-key th{color:#819688;font-weight:500;font-size:10px}
+.exec-timeline{display:grid;gap:3px;max-height:240px;overflow:auto;padding-right:3px}
+.exec-event{border:0;background:none;text-align:left;padding:5px 6px;border-left:2px solid #cbd8cc;color:#395b4b;font-size:10.5px;line-height:1.45;border-radius:0 5px 5px 0}
+.exec-event:hover{background:#f2f8ef}
+.exec-event.future{opacity:.45;border-left-color:#d7dfd7}
+.exec-event strong{display:block;font-size:11px;color:#284b3c;font-weight:600}
+.exec-event span{color:#8a9c90}
+
+/* workbench_ui 的右栏是定高 flex；执行明细不能被压缩成 0 高 */
+.right-column>.exec-card{flex:0 0 auto}
+.execution-detail{max-height:560px}
+
+/* 平台/时间线已并入执行明细，隐藏右栏重复面板，避免两套明细 */
+#rail-members,#rail-events{display:none!important}
+
+/* 计划暴露与实际执行暴露不一致时明确提示 */
+#exec-exposure-note.warning{color:#9a3412;background:#fff4ec;border:1px solid #f3c9b4;border-radius:6px;padding:6px 8px}

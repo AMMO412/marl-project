@@ -25,6 +25,7 @@
 统一先吸附到最近可通行点（NavMap.nearest_free），吸附距离记在 metrics 里。
 """
 import math
+from itertools import accumulate
 
 from assessment import EFFECT_KINDS, StubAdjudicator, normalize_effect_kind
 from city_nav import NavError, distance
@@ -53,6 +54,8 @@ class Behavior:
 
     def __init__(self, job, nav, pids, params=None, site=None):
         self.job_id = job.get('job_id', 'J?')
+        self.relay_target = job.get('_relay_target')
+        self.relay_origin_s = job.get('_relay_origin_s', 0)
         self.nav = nav
         self.pids = list(pids)
         self.params = dict(self.DEFAULTS)
@@ -138,7 +141,17 @@ class PatrolBehavior(Behavior):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.loop = self._build_loop()
+        waypoints = self.params.get('waypoints')
+        self.continuous = bool(waypoints)
+        self.patrol_started_at = None
+        self.target_started = False
+        self.target_last_reports = {}
+        self.patrol_groups = {'ground': self.pids, 'air': []}
+        self.sensor_radii = {}
+        self.loop = [tuple(p) for p in waypoints] if waypoints else self._build_loop()
+        if waypoints:
+            lengths = (distance(a, b) for a, b in zip(self.loop, self.loop[1:] + self.loop[:1]))
+            self.loop_distances = list(accumulate(lengths, initial=0.0))
         self.metrics['radius'] = round(self.params['radius'], 2)
         self.metrics['checkpoints'] = len(self.loop)
         self.metrics['loop'] = [[round(v, 2) for v in q] for q in self.loop]
@@ -149,7 +162,22 @@ class PatrolBehavior(Behavior):
         # 多机沿环路均匀错开，避免挤在同一个检查点
         for k, pid in enumerate(self.pids):
             self.idx[pid] = (k * len(self.loop) // max(1, len(self.pids))) % len(self.loop)
+            if waypoints:
+                role = self.params.get('roles', {}).get(pid, '')
+                start = int(role.split(':')[1]) - 1 if role.startswith('patrol:') else self.idx[pid]
+                self.idx[pid] = (start - 1) % len(self.loop)
         self.set_phase('机动')
+
+    def set_platform_caps(self, caps):
+        super().set_platform_caps(caps)
+        self.patrol_groups = {'ground': [], 'air': []}
+        self.sensor_radii = {}
+        for pid in self.pids:
+            group = 'air' if caps.get(pid, {}).get('can_climb') else 'ground'
+            self.patrol_groups[group].append(pid)
+            radius = (self.params.get('sensor_radius_m') or {}).get(group)
+            if radius:
+                self.sensor_radii[pid] = float(radius)
 
     def _build_loop(self):
         p = self.params
@@ -180,20 +208,31 @@ class PatrolBehavior(Behavior):
         self.t = t
         targets = {}
         n = len(self.loop)
-        if (self.phase == '机动'
+        explicit_loop = self.continuous
+        if (not explicit_loop and self.phase == '机动'
                 and distance(poses[self.pids[0]], self.site)
                 <= self.params['radius'] + 1.0):
             self.set_phase('巡逻')
         for pid in self.pids:
+            if explicit_loop and self.phase == '机动' and self.visits[pid]:
+                targets[pid] = self.loop[self.idx[pid]]
+                continue
             i = self.idx[pid]
             target = self.loop[(i + 1) % n]
             targets[pid] = target
-            if distance(poses[pid], target) <= self.params['arrive_tol']:
+            tolerance = (self.params.get('corner_lookahead_m', 1.8)
+                         if explicit_loop and self.phase == '巡逻' else self.params['arrive_tol'])
+            if distance(poses[pid], target) <= tolerance:
                 self.idx[pid] = (i + 1) % n
+                if explicit_loop and self.phase == '巡逻':
+                    targets[pid] = self.loop[(i + 2) % n]
                 self.visits[pid].append(dict(index=(i + 1) % n, t=round(t, 2)))
                 self.emit('checkpoint_visited', pid=pid,
                           index=(i + 1) % n, cycle=self.cycles[pid])
-                if self.idx[pid] == 0:
+                legs = len(self.visits[pid]) - 1
+                completed_lap = (legs > 0 and legs % n == 0 if explicit_loop
+                                 else self.idx[pid] == 0)
+                if completed_lap:
                     self.cycles[pid] += 1
                     interval = t - self.last_cycle_t[pid]
                     self.last_cycle_t[pid] = t
@@ -202,9 +241,83 @@ class PatrolBehavior(Behavior):
                               revisit_s=round(interval, 2))
                     if self.cycles[pid] >= int(self.params['cycles']):
                         self.metrics['revisit_s'] = round(interval, 2)
+        if explicit_loop and self.phase == '机动' and all(self.visits.values()):
+            self.last_cycle_t = dict.fromkeys(self.pids, t)
+            self.patrol_started_at = t
+            self.set_phase('巡逻')
+        ground_scale, air_scale = {}, {}
+        if explicit_loop and self.phase == '巡逻':
+            ground_scale, air_scale = self._spacing_speed(poses)
+        if explicit_loop:
+            self._observe_target(poses)
         if all(self.cycles[pid] >= int(self.params['cycles']) for pid in self.pids):
             self._finish('patrol_cycles_done')
-        return dict(targets=targets, phase=self.phase, done=self.done)
+        return dict(targets=targets, phase=self.phase, done=self.done,
+                    speed_scale=ground_scale, air_speed_scale=air_scale)
+
+    def _spacing_speed(self, poses):
+        """比较各车从自己起巡点走过的弧长，领先的车减速等队形。"""
+        perimeter = self.loop_distances[-1]
+        progress = {}
+        for pid, i in self.idx.items():
+            start = self.visits[pid][0]['index']
+            arc = (self.loop_distances[i] - self.loop_distances[start]) % perimeter
+            a, b = self.loop[i], self.loop[(i + 1) % len(self.loop)]
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            x, y = poses[pid][:2]
+            length = self.loop_distances[i + 1] - self.loop_distances[i]
+            projection = ((x - a[0]) * dx + (y - a[1]) * dy) / length
+            ahead = min(length, max(0.0, projection))
+            progress[pid] = self.cycles[pid] * perimeter + arc + ahead
+
+        scales = []
+        for group in self.patrol_groups.values():
+            slowest = min((progress[pid] for pid in group), default=0.0)
+            # 容许少量间距误差，避免在拐弯处反复急加速、急减速。
+            scales.append({pid: max(0.65, 1.0 - max(0.0, progress[pid] - slowest - 4.0) / 24.0)
+                           for pid in group})
+        return scales
+
+    def _observe_target(self, poses):
+        target = self.params.get('observation_target')
+        if not target:
+            return
+        target_id = target['target_id']
+        start = target.get('start', target.get('point'))
+        goal = target.get('goal', start)
+        if 'start' not in target:
+            # 兼容旧场景中在起巡后一段时间出现的定点目标。
+            if (self.patrol_started_at is None
+                    or self.t - self.patrol_started_at < target['appear_after_s']):
+                return
+            duration = 0.0
+        else:
+            duration = distance(start, goal) / target['speed_mps']
+        fraction = min(1.0, self.t / duration) if duration else 1.0
+        if self.relay_target:
+            pos = [round(v, 3) for v in self.relay_target.position(self.relay_origin_s + self.t)]
+        else:
+            pos = [round(a + (b - a) * fraction, 3) for a, b in zip(start, goal)]
+        if not self.target_started:
+            self.target_started = True
+            self.emit('patrol_target_started', target_id=target_id,
+                      pos=pos if self.relay_target else start, goal=goal,
+                      duration_s=(distance(pos, goal) / target['speed_mps']
+                                  if self.relay_target else duration))
+        for pid, radius in self.sensor_radii.items():
+            last = self.target_last_reports.get(pid)
+            if distance(poses[pid], pos) > radius:
+                if last is not None:
+                    del self.target_last_reports[pid]
+                    self.emit('patrol_target_lost', target_id=target_id, pid=pid)
+                continue
+            if last is None:
+                self.emit('target_detected', target_id=target_id, pid=pid, pos=pos)
+            elif self.t - last < 1.0 - 1e-9:
+                continue
+            self.target_last_reports[pid] = self.t
+            self.emit('patrol_position_report', target_id=target_id, pid=pid, pos=pos,
+                      coordinate_frame='scenario_xy_m', source='simulation')
 
     def progress_frac(self):
         if self.done:
@@ -911,6 +1024,10 @@ class ContainmentBehavior(Behavior):
         if not target.appeared:
             if t < target.t_start:
                 return
+            relay = self.relay_target
+            if relay and target.id == relay.spec["target_id"]:
+                target.pos = relay.position(self.relay_origin_s + t)
+                relay.containment = target
             target.appeared = True
             self.counts['unauthorized' if not target.authorized
                         else 'authorized'] += 1
@@ -1315,20 +1432,7 @@ class ReconBehavior(Behavior):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         p = self.params
-        cell = p['cell']
-        x0, y0, x1, y1 = self.nav.bounds
-        cx, cy = self.site
-        r = p['area_radius']
-        self.cells = []
-        nx = int(2 * r / cell)
-        for i in range(nx + 1):
-            for j in range(nx + 1):
-                q = [cx - r + i * cell, cy - r + j * cell]
-                if not (x0 <= q[0] <= x1 and y0 <= q[1] <= y1):
-                    continue
-                if self.nav.clearance(q) < 0.2:
-                    continue
-                self.cells.append((round(q[0], 2), round(q[1], 2)))
+        self.cells = self._grid_cells()
         self.unknown = set(self.cells)
         self.explored = set()
         self.claimed = {}
@@ -1338,6 +1442,24 @@ class ReconBehavior(Behavior):
         self.metrics.update(cells=len(self.cells),
                             sensor_radius=p['sensor_radius'],
                             area_radius=p['area_radius'])
+
+    def _grid_cells(self):
+        p = self.params
+        cell = p['cell']
+        x0, y0, x1, y1 = self.nav.bounds
+        cx, cy = self.site
+        r = p['area_radius']
+        cells = []
+        nx = int(2 * r / cell)
+        for i in range(nx + 1):
+            for j in range(nx + 1):
+                q = [cx - r + i * cell, cy - r + j * cell]
+                if not (x0 <= q[0] <= x1 and y0 <= q[1] <= y1):
+                    continue
+                if self.nav.clearance(q) < 0.2:
+                    continue
+                cells.append((round(q[0], 2), round(q[1], 2)))
+        return cells
 
     def _mark(self, point):
         r = self.params['sensor_radius']
@@ -1430,6 +1552,200 @@ class ReconBehavior(Behavior):
         return dict(coverage=round(self.coverage(), 3),
                     explored=len(self.explored),
                     targets={k: v for k, v in self.claimed.items() if v})
+
+
+class AreaReconBehavior(ReconBehavior):
+    """空地平台在同一份室外网格上分区搜索、共享覆盖并补盲。"""
+    continuous = True
+    DEFAULTS = dict(ReconBehavior.DEFAULTS, cell=4.0, frontier_tol=1.2,
+                    sensor_radius_m={'ground': 9.0, 'air': 13.0})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not 0 < self.params['coverage_target'] <= 1:
+            raise ValueError('侦察覆盖目标须大于 0 且不超过 1')
+        starts = self.params['search_starts']
+        self.claimed = {pid: tuple(starts[pid]) for pid in self.pids}
+        self.sector = {cell: min(self.pids, key=lambda pid: (distance(starts[pid], cell), pid))
+                       for cell in self.cells}
+        self.ground_cells = {cell for cell in self.cells if self.nav.free(cell)}
+        self.air_pids = set()
+        self.sensor_radii = {}
+        self.sweep_samples = {}
+        self.result = None
+        self.coverage_reached = False
+        self.tracking_target = self.params.get('tracking_target')
+        if self.tracking_target:
+            target = self.tracking_target
+            if (not geom.inside(self.area, target['start']) or geom.inside(self.area, target['goal'])
+                    or target['speed_mps'] <= 0 or target['move_after_s'] < 0
+                    or target['track_outside_s'] <= 0):
+                raise ValueError('跟踪目标须从区内驶向区外，并给出正速度和跟踪时长')
+        self.detected_at = None
+        self.track_pid = None
+        self.track_seconds = 0.0
+        self.track_complete = False
+        self.last_track_report = -math.inf
+        self.target_entered_area = False
+        self.acquire_pid = None
+
+    def _grid_cells(self):
+        self.area = self.params['area']
+        xs, ys = zip(*self.area)
+        x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+        cell = float(self.params['cell'])
+        if not math.isfinite(cell) or cell <= 0 or x0 >= x1 or y0 >= y1:
+            raise ValueError('侦察区和网格尺寸须为有效的正数范围')
+        nx, ny = math.ceil((x1 - x0) / cell), math.ceil((y1 - y0) / cell)
+        dx, dy = (x1 - x0) / nx, (y1 - y0) / ny
+        cells = [(round(x0 + (i + 0.5) * dx, 3), round(y0 + (j + 0.5) * dy, 3))
+                 for i in range(nx) for j in range(ny)]
+        cells = [q for q in cells if geom.inside(self.area, q) and self.nav.free(q, radius=0)]
+        if not cells:
+            raise ValueError('侦察区内没有可侦察的室外网格')
+        return cells
+
+    def set_platform_caps(self, caps):
+        super().set_platform_caps(caps)
+        self.air_pids = {pid for pid in self.pids if caps.get(pid, {}).get('can_climb')}
+        radii = self.params['sensor_radius_m']
+        self.sensor_radii = {pid: float(radii['air' if pid in self.air_pids else 'ground'])
+                             for pid in self.pids}
+
+    def _scan(self, pid, pose):
+        air = pid in self.air_pids
+        radius = self.sensor_radii[pid]
+        self.sweep_samples.setdefault(pid, []).append(
+            [round(self.t % 1, 2), round(pose[0], 3), round(pose[1], 3)])
+        new_cells = sorted(q for q in self.unknown if distance(pose, q) <= radius
+                           and (air or self.nav.segment_free(pose, q, radius=0)))
+        if new_cells:
+            self.unknown.difference_update(new_cells)
+            self.explored.update(new_cells)
+            self.emit('frontier_mapped', pid=pid, pos=list(pose[:2]), new_cells=new_cells,
+                      newly=len(new_cells), coverage=round(self.coverage(), 4))
+
+    def drain_sweep(self):
+        samples, self.sweep_samples = self.sweep_samples, {}
+        return samples
+
+    def _next_cell(self, pid, pose):
+        claimed = set(self.claimed.values())
+        candidates = self.unknown if pid in self.air_pids else self.unknown & self.ground_cells
+        return min(candidates - claimed,
+                   key=lambda q: (self.sector[q] != pid, distance(pose, q), q),
+                   default=None)
+
+    def _track_target(self, poses, dt):
+        target = self.tracking_target
+        if not target or self.track_complete:
+            return None
+        start, goal = target['start'], target['goal']
+        target_id = target['target_id']
+        relay = self.relay_target
+        pos = relay.position(self.relay_origin_s + self.t) if relay else start
+        self.target_entered_area |= geom.inside(self.area, pos)
+        if self.detected_at is None:
+            observers = [pid for pid, pose in poses.items()
+                         if distance(pose, pos) <= self.sensor_radii[pid]
+                         and (pid in self.air_pids or self.nav.segment_free(pose, pos, radius=0))]
+            if observers:
+                observer = min(observers, key=lambda pid: (distance(poses[pid], pos), pid))
+                self.detected_at = self.t
+                self.emit('target_detected', target_id=target_id, pid=observer, pos=pos)
+                self.emit('recon_target_report', target_id=target_id, pid=observer, pos=pos,
+                          coordinate_frame='scenario_xy_m', source='simulation')
+            return None
+
+        elapsed = self.t - self.detected_at - target['move_after_s']
+        if elapsed < 0:
+            return None
+        length = distance(start, goal)
+        if not relay:
+            fraction = min(1.0, elapsed * target['speed_mps'] / length)
+            pos = [a + (b - a) * fraction for a, b in zip(start, goal)]
+        if self.track_pid is None:
+            self.track_pid = min(self.air_pids or self.pids,
+                                 key=lambda pid: (distance(poses[pid], pos), pid))
+            self.claimed[self.track_pid] = None
+            self.emit('recon_track_started', target_id=target_id, pid=self.track_pid,
+                      pos=pos, goal=goal, speed_mps=target['speed_mps'])
+        pid = self.track_pid
+        visible = distance(poses[pid], pos) <= self.sensor_radii[pid] and (
+            pid in self.air_pids or self.nav.segment_free(poses[pid], pos, radius=0))
+        if visible and self.target_entered_area and not geom.inside(self.area, pos):
+            self.track_seconds += dt
+        else:
+            self.track_seconds = 0.0
+        if visible and self.t - self.last_track_report >= 1.0 - 1e-9:
+            self.last_track_report = self.t
+            self.emit('recon_track_report', target_id=target_id, pid=pid,
+                      pos=[round(v, 3) for v in pos], coordinate_frame='scenario_xy_m',
+                      source='simulation')
+        if self.track_seconds + 1e-9 >= target['track_outside_s']:
+            self.track_complete = True
+            self.emit('recon_track_completed', target_id=target_id, pid=pid,
+                      pos=[round(v, 3) for v in pos], tracked_outside_s=round(self.track_seconds, 2))
+            return None
+        # 跟在目标后方半个感知半径，避免飞到目标点上。
+        standoff = self.sensor_radii[pid] / 2
+        return [p - (b - a) * standoff / length for p, a, b in zip(pos, start, goal)]
+
+    def step(self, poses, t, dt):
+        self.t = t
+        if self.phase == '展开':
+            self.emit('map_initialised', cells=len(self.cells), coverage=0.0)
+            self.set_phase('探索')
+        for pid in self.pids:
+            self._scan(pid, poses[pid])
+        coverage = self.coverage()
+        if coverage - self.last_coverage_emit >= 0.1:
+            self.last_coverage_emit = coverage
+            self.emit('map_shared', coverage=round(coverage, 4), explored=len(self.explored))
+        track_point = self._track_target(poses, dt)
+        follow_pid, follow_point = self.track_pid, track_point
+        if self.relay_target and self.tracking_target and self.detected_at is None and self.air_pids:
+            follow_point = self.relay_target.position(self.relay_origin_s + t)
+            if self.acquire_pid is None:
+                self.acquire_pid = min(self.air_pids,
+                                       key=lambda pid: (distance(poses[pid], follow_point), pid))
+                self.claimed[self.acquire_pid] = None
+            follow_pid = self.acquire_pid
+        reached = coverage >= self.params['coverage_target']
+        if reached and not self.coverage_reached:
+            self.coverage_reached = True
+            self.emit('coverage_reached', coverage=round(coverage, 4))
+        complete = reached and (not self.tracking_target or self.track_complete)
+        if complete or t >= self.params['search_limit_s']:
+            self.set_phase('回传')
+            reason = 'coverage_reached' if complete else 'search_deadline'
+            self.result = dict(overall='succeeded' if complete else 'failed',
+                               termination=reason, coverage=round(coverage, 4),
+                               coverage_target=self.params['coverage_target'],
+                               cells=len(self.cells), covered_cells=sorted(self.explored),
+                               remaining_cells=sorted(self.unknown),
+                               coordinate_frame='scenario_xy_m', source='simulation')
+            if self.tracking_target:
+                self.result['tracking'] = dict(
+                    target_id=self.tracking_target['target_id'], detected=self.detected_at is not None,
+                    tracker=self.track_pid, completed=self.track_complete,
+                    tracked_outside_s=round(self.track_seconds, 2))
+            self.emit('report_sent', **self.result)
+            self._finish(reason)
+            return dict(targets={}, phase=self.phase, done=True)
+        for pid in self.pids:
+            if follow_point is not None and pid == follow_pid:
+                continue
+            target = self.claimed.get(pid)
+            if target is None or distance(poses[pid], target) <= self.params['frontier_tol']:
+                self.claimed[pid] = self._next_cell(pid, poses[pid])
+        targets = {pid: self.claimed[pid] or poses[pid] for pid in self.pids}
+        if follow_point is not None:
+            targets[follow_pid] = follow_point
+        return dict(targets=targets, phase=self.phase, done=False)
+
+    def progress_frac(self):
+        return min(1.0, self.coverage() / self.params['coverage_target'])
 
 
 # ------------------------------------------------------------------
@@ -4137,6 +4453,8 @@ def make_behavior(job, nav, pids, params=None):
     """
     merged = dict(job.get('_behavior') or {})
     merged.update(params or {})
+    if job.get('type') == 'recon' and merged.get('search_starts'):
+        return AreaReconBehavior(job, nav, pids, merged)
     if job.get('type') == 'blockade' and merged.get('area'):
         return ContainmentBehavior(job, nav, pids, merged)
     if job.get('type') == 'hold' and merged.get('positions'):

@@ -42,7 +42,7 @@ py -3.14 planning_middle_demo/workbench_server.py --open
 1. **按任务观看执行**：不显示道路底图；任务窗口可在“图层设置”中单独开关避障碰撞盒。原“跟踪平台”改为“选择任务”。选择任务或点击任务卡片，直接打开接近整窗的大画幅执行回放，从该任务下发时刻以1倍速播放。只显示该任务的成员、路线/检查点/岗位或已记录探索点，不混入其他任务。
 2. **大画幅任务回放**：顶部可切换任务，选择“从任务下发看起”或主动“跳到到位后动作”；时间轴仅覆盖所选区间，并显示区间经过时间，绝对仿真时刻在右侧。右侧显示阶段、工作量、行为指标、成员反馈和最近事件。任务结束自动停止，最终动作结构保留；点播放可重播，关闭或Esc返回总览。任务视图复用同一个画布，不新增第二套播放器。窄屏可在窗口内部向下滚动查看细节。
 3. **新建演示**：选择场景、异常模式、运动方式、目标及建筑绕障/到位后行为开关，后台复用现有 `run_demo_v2.simulate()`；新结果保存到独立 `outputs/workbench_<时间>/`。到位行为需城市场景逐步运动和建筑绕障。旧记录未启用动作时会明确显示“到点工作量模型”，可点击“载入动作演示”返回已有动作记录。暂停只暂停回放。
-4. **实验与报告 / 项目文件**：查看各轮最终统计、下载原始 JSON/JSONL、独立窗口打开本轮报告。原 `trajectory.html` 保留为原始产物；历史行为示例和固定时间轴示意在“项目文件”的参考资料链接中，不另设重复的工作台回放页。
+4. **实验与报告 / 项目文件**：查看各轮最终统计、下载原始 JSON/JSONL；执行明细（平台、关键时间、事件时间线）在工作台地图右侧查看，不再单独生成 `report.html` / `trajectory.html`。历史行为示例和固定时间轴示意在“项目文件”的参考资料链接中，不另设重复的工作台回放页。
 
 前端在 `workbench/`，服务在 `workbench_server.py`。工作台复用 `trajectory_v2.build_replay_data()` 的反馈数据、动作结构与地标，并读取本地 SDF 盒体。未接 ROS/Gazebo。已有动作记录与历史工作量模型分别标注，不据页面完成数推断物理执行或验收结果。
 
@@ -87,7 +87,7 @@ py -3.14 planning_middle_demo/workbench_server.py --open
 | 作业语义 | 工单（`duration_s`） | 通用任务（工作量/时间窗/协同人数/载荷/传感器/目标高度） |
 | 分配 | 先来先服务，交给空闲工位 | 六步规划器 + 匈牙利一对一最优（crew==1） |
 | 平台 | 抽象 worker | 下游 50 台编成（UGV/TANK/PLANE/WING 号段） |
-| 优化目标 | 无 | makespan / energy / dispersion（可切换） |
+| 优化目标 | 无 | makespan / energy / exposure（可切换；exposure=暴露度，旧名 dispersion；另保留 balanced 第四选项） |
 | 成员变化 | 无 | 局中失联 → member_change 重规划 |
 | 偏差检测 | 无 | 进度落后 → deviation 重规划 |
 | 触发源 | — | init / member_change / exec_fail / timeout / deviation / periodic |
@@ -140,7 +140,7 @@ v1 的 17 项测试原样保留并通过，v2 另加 17 项。
 
 `behavior_demo.py` 把整条链路串起来：`planner_v2` 出指派 → 每台平台按 A* 绕障机动 → 到位执行对应行为 → 输出 `behavior_trace.json` + 自包含 `behavior_demo.html`（建筑、绕行路径、直线对比、逐拍回放、阶段时间条）。作业按计划开工顺序串行重放，便于看清同一平台跨作业的先后。
 
-**行为层已接入工作台主链**（`--behavior`，2026-10-28）：`run_demo_v2.simulate(behavior=True)` 在真实运动 + 绕障下，平台到位后由 `mock_fleet` 驱动对应 `Behavior` 状态机（不再原地刷 `work_rate`），行为目标点经 `nav.plan` 做 A* 绕障后逐拍跟随。行为推进度（圈数/覆盖率/阶段）经 `progress_frac` 映射回作业进度，行为完成（`behavior_complete`）即作业 `succeeded`；行为细分事件走独立审计通道（`behavior_event`），由工作台时间轴与 `trajectory.html` 展示。规划器的作业时长改用 `BEHAVIOR_DURATION` 经验预估（行为完成由状态机判定，与 `work` 线性模型解耦），行为作业不参与 deviation/timeout 误判（行为层自带 `max_steps`/圈数兜底），时间窗只作排程参考。
+**行为层已接入工作台主链**（`--behavior`，2026-10-28）：`run_demo_v2.simulate(behavior=True)` 在真实运动 + 绕障下，平台到位后由 `mock_fleet` 驱动对应 `Behavior` 状态机（不再原地刷 `work_rate`），行为目标点经 `nav.plan` 做 A* 绕障后逐拍跟随。行为推进度（圈数/覆盖率/阶段）经 `progress_frac` 映射回作业进度，行为完成（`behavior_complete`）即作业 `succeeded`；行为细分事件走独立审计通道（`behavior_event`），由工作台时间轴与右侧执行明细展示。规划器的作业时长改用 `BEHAVIOR_DURATION` 经验预估（行为完成由状态机判定，与 `work` 线性模型解耦），行为作业不参与 deviation/timeout 误判（行为层自带 `max_steps`/圈数兜底），时间窗只作排程参考。
 
 避障的边界也要说清：这是**已知静态地图**上的路径规划，不是 SLAM/动态避障；地图只含上述 7 个盒体，其余建筑因碰撞体是网格而未建图。扩大地图只需往 `assets/city/models/` 放盒体碰撞的 SDF，不用改代码。
 
@@ -226,25 +226,19 @@ py -3.14 -m unittest discover -s planning_middle_demo/tests -v
 | `--out` | 新建带时间名称目录 | 必须尚不存在，避免覆盖原实验 |
 | `--quiet` | 关闭 | 控制台略去逐条事件 |
 
-产物目录含 `manifest.json / scenario.json / report.json / trace.jsonl / summary.txt / report.html / trajectory.html`（HTML 离线自包含）。
+产物目录含 `manifest.json / scenario.json / report.json / trace.jsonl / summary.txt`。工作台运行不再生成独立的 `report.html` / `trajectory.html`；平台明细、关键时间和事件时间线已并入工作台右侧“执行明细”面板（纵向滚动）。
 
-### 动态运动回放
+### 执行明细
 
-打开 `trajectory.html`，点击“播放”即可看各平台如何移动；支持暂停、重播、倍速、逐步前后查看及拖动时间轴。点击图中编号、表格行或平台下拉框，可突出单台轨迹，查看当前作业、坐标、高度及电量。报告顶部也有回放入口。
+在工作台地图右侧查看：
 
-- 颜色区分单台平台，形状区分类别；编号按 `robot_no` 与编成表对齐。全部平台均显示，包括未分配或没有位置反馈的平台。
-- simple_city 回放内嵌本地 `roads.csv` 的道路和场景中的地标，按 `_meta` 映射到反馈坐标，可分别开关；缺失素材时退回坐标网格。底图展示不等于已实现沿道路寻路。
-- 轨迹只画到当前时间；累计路程为位置反馈的逐段平面距离总和，另列起终点位移。高度独立显示；电量是电量单位，不是百分比。
-- `real` 是本地逐步运动模拟。播放只对相邻逐步位置记录做显示插值；`teleport` 按时刻跳变，不补画运动。反馈稀疏时保留最近位置，不推测轨迹。
-- 已有运行可以只重建回放，不重跑模拟或改动原始 JSON/JSONL（在项目根目录运行）：
+- **平台明细**：编号、类别、位置、模型电量、当前作业/阶段；
+- **关键时间**：各任务的下发、执行、完成时刻；
+- **事件时间线**：点击任意事件跳到对应回放时刻。
 
-```powershell
-py -3.14 planning_middle_demo/trajectory_v2.py planning_middle_demo/outputs/<运行目录名>
-```
+`summary.txt` 仍保留文本结果；历史运行目录里的旧 `report.html` / `trajectory.html` 仅作为归档，不再更新。
 
-`trajectory_player.html` 是播放器模板，须随 `trajectory_v2.py` 一起保留；生成的 `trajectory.html` 本身不依赖模板或网络。
-
-执行器对五类任务的执行有两种口径，由 `--behavior` 区分：默认（关闭）沿用"到点后按效率累加工作量"的抽象，类型区别来自工作量、时间窗、协同人数、载荷、传感器与高度参数；开启 `--behavior`（需 `--motion real --avoid`）后，到位由 `behaviors.py` 的对应状态机接管，完成判定由行为语义给出（巡逻 3 圈、封控拦截处置、侦察覆盖回传、突击结果确认、坚守换班轮换）。回放遵循原日志，`trajectory.html` 与工作台时间轴会展示行为阶段与细分事件。
+执行器对五类任务的执行有两种口径，由 `--behavior` 区分：默认（关闭）沿用"到点后按效率累加工作量"的抽象，类型区别来自工作量、时间窗、协同人数、载荷、传感器与高度参数；开启 `--behavior`（需 `--motion real --avoid`）后，到位由 `behaviors.py` 的对应状态机接管，完成判定由行为语义给出（巡逻 3 圈、封控拦截处置、侦察覆盖回传、突击结果确认、坚守换班轮换）。回放遵循原日志，工作台时间轴与右侧执行明细会展示行为阶段与细分事件。
 
 ## 文件职责
 
@@ -359,6 +353,8 @@ py -3.14 behavior_demo.py --scenario scenarios/asl_city.json --out outputs/asl_c
 
 **电量口径（2026-10-29 已加续航闸门）**：移动电按行为层实际行程记账（行程 / 速度 × move_cost），不再"到达即一次记清"。早期规划期只按"到作业点"的直线距离估电，于是行为段（集结→执行环→撤离）的电量完全没算进去，那版 300 m 几何下 16 台有 15 台在 t≈318–364 s 电量归零而作业仍判成功。现在 `planner_v2` 的行为模式改用全程里程估电：`_behavior_mileage` = 当前位→集结环 + 集结→执行环 + 目标→撤离环（撤离开关关闭时不计返程），assault 直接读场景 `_behavior` 的几何，其余四类用保守经验里程兜底；`feasible` 的续航检查与方案级叠加检查都用它，所以"派不出去"会明确写成"续航不足(全程…需…剩…)"。机动时间 `_approach_time` 也改为算到集结区，规划里的 start 与行为层实际到位时刻对得上（此前少 27 s）。回归用例 `EnduranceGateTests` 三条：里程口径含撤离、旧几何必被拒、当前几何 16 台全过。
 
+**电量初值与显示（2026-11-05 调整）**：interop 运行不再把执行平台电量抬到 1e6，改用 4.1 编成表值：UGV 100、TANK 120、PLANE 320、WING 280；ASL 长航时样例在 `asl_junction.formation.json` 显式设为 UGV 300、TANK 360、PLANE 1000、WING 900，避免 700 s 任务耗尽。工作台按各平台初始值归一显示百分比，保留三位小数；旧运行仍保留当时记录的电量。
+
 ### 效果判定与逐项结算（2026-10-29）
 
 按《T-ASL 效果判定与逐项结算实现规范》补齐"任务目标=对指定目标产生规定效果并在时间窗内完成，效果由评估接口判定"这一层。此前的实现只有一个构造桩，且只要行为走完就判成功——弹药耗尽、超时、评估未回传都不影响结论，等于把"动作结束"冒充"效果达成"。
@@ -389,7 +385,7 @@ py -3.14 -m unittest discover -s tests -q
 - **行为层从下发时刻接管**：`MockFleet._ensure_behavior` 在指令下发当步就建 runner，不再等"全员到达"才起表；机动/集结/突击/撤离全部由行为层推进，替身不另算一条不会执行的路线。
 - **运行列表带场景标签（2026-10-29）**：catalog 每条记录标注"场景名 · 任务数 · 细节类型 · 模式"（`_scenario_label` 读工作台请求里的场景键，退回 manifest 的场景文件名）；旧的下拉只有时间戳，看不出哪条是 J1–J6 多任务、哪条是单突击，用户以为"以前的任务没了"。多任务记录没消失，选 `simple_city` 的 6 任务运行（如 `workbench_20261029_150444_820307`，111 s 六作业全部收尾）即可回到五类任务齐全的画面；默认载入优先最新 `asl_city` 行为运行（效果判定演示主场），没有时退回最新含行为细节的运行。注意：改 `workbench_server.py` 后必须重启服务，运行中的旧进程不会热加载新代码。
 - **已验证一次完整工作台运行**：`workbench_20261029_145325_801085`（asl_city、6 台、13 处障碍、real+avoid+behavior），350 s、`settled=true`、无 `energy_depleted`；T-ASL 事件齐全；任务面板步骤条为五段：机动集结 0 s / 全员到位 183 s / 执行动作 184 s / 结果确认 291 s / 撤离收拢 354 s（以受领时刻为 0 的相对时间）。16 台版运行 `workbench_20261029_140712_509952` 保留作容量对照。**当前默认运行**为新编成版 `workbench_20261029_162314_901547`（349 s，含评估组与逐项结算）。
-- **回放底图同源**：`trajectory_v2.load_sdf_background` 用与寻路同一套 `load_sdf_obstacles` 把 13 处占地画进 `trajectory.html`，取景范围也把障碍算进去，图上所见即规划避开的那几块。工作台画布上的建筑/花坛属"显示障碍"图层（`#show-obstacles`），取消勾选即隐藏。
+- **回放底图同源**：`trajectory_v2.load_sdf_background` 用与寻路同一套 `load_sdf_obstacles` 把 13 处占地画进历史 `trajectory.html`，取景范围也把障碍算进去，图上所见即规划避开的那几块。工作台画布上的建筑/花坛属“显示障碍”图层（`#show-obstacles`），取消勾选即隐藏。
 - **测试**：109 项通过（原 97 项 + 效果判定 12 项，2026-10-29 晚增至 120 项，见文末多类型兵力包一节），含"机动不是瞬移"、三条续航闸门用例、simple_city 六作业收尾回归，以及规范 §8 的十条验收（毁伤成功/弹药耗尽/执行超时/确认超时/压制中断重计/夺占与坚守分算/部分达成不冒充/评估组归属与桩标注/默认运行为 asl_city）。两条校验历史混合录制（J1–J6、累计换班）的用例改为固定 `workbench_20261028_213551_310530`，该目录缺失时 skip，不再随默认运行漂移。
 - **仍未接**：`behavior_trace.json`（`behavior_demo.py` 的独立产物）不是工作台要求的 `report.json + trace.jsonl`，`asl_city_behavior` 这类目录不会出现在 catalog；要么加只读 adapter，要么统一走主链。
 

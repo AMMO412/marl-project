@@ -204,7 +204,8 @@ class CoordinatorV2:
             self._release_command(command)
         elif status == "failed":
             self._release_command(command)
-            self._job_after_failure(job, now, event.get("note"))
+            self._job_after_failure(job, now, event.get("note"),
+                                    terminal=event.get("terminal") is True)
         elif status == "cancelled":
             self._release_command(command)
             self._job_after_command_released(command)
@@ -245,13 +246,13 @@ class CoordinatorV2:
                 self.record("job_failed", job_id=job.job_id,
                             cause="cancelled_attempts_exhausted")
 
-    def _job_after_failure(self, job, now, note):
+    def _job_after_failure(self, job, now, note, terminal=False):
         """任务级失败：在途指令由下层逐条回 failed，本函数只做作业级处置。"""
         if self._job_active_cmds(job.job_id):
             return                  # 还有成员未回终态，等齐再处置
         if job.status == "succeeded":
             return
-        if job.attempts < self.max_attempts:
+        if not terminal and job.attempts < self.max_attempts:
             job.status = "pending"
             self.record("job_requeued", job_id=job.job_id, cause="failed",
                         next_attempt=job.attempts + 1, note=note)
@@ -259,7 +260,8 @@ class CoordinatorV2:
         else:
             job.status = "failed"
             self.record("job_failed", job_id=job.job_id,
-                        cause="failed_attempts_exhausted", note=note)
+                        cause="terminal_result" if terminal else "failed_attempts_exhausted",
+                        note=note)
 
     # ---------------- 偏差与超时 ----------------
     def _deviation(self, now):

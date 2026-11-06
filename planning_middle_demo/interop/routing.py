@@ -109,10 +109,34 @@ class Router(object):
             return Route([start, goal], 0.0)
         if is_air:
             return Route([start, goal], _dist(start, goal))
-        if self.risk_weight <= 1e-9 and self._los_free(start, goal):
+        los_free = self._los_free(start, goal)
+        if los_free and (self.risk_weight <= 1e-9
+                         or not self._segment_hits_threat(start, goal)):
+            # 直线既不穿障碍也不穿威胁区时直接走直线。以前只要
+            # risk_weight>0 就一律跑栅格 A*，栅格化路径比直线略长，
+            # 会让暴露度/风险目标在“本来就没有暴露”的场景里凭空变慢。
             return Route([start, goal], _dist(start, goal))
         path = self._astar(start, goal)
         return Route(path, _path_length(path))
+
+    def _segment_hits_threat(self, start: Point, goal: Point,
+                             sample_m: float = 5.0) -> bool:
+        """直线段按暴露量的采样口径判断是否进入威胁区。
+
+        必须和 cost.path_risk 用同一套 5 m 中点采样：否则擦过角点的直线
+        会被这里判成“进威胁区”而触发 A* 绕行，暴露量却仍是 0，白白变慢。
+        威胁区不是 no_go，不能用 _los_free 代替。
+        """
+        length = _dist(start, goal)
+        steps = max(1, int(math.ceil(length / max(sample_m, 1e-6))))
+        for polygon, _intensity in self.threats:
+            for k in range(steps):
+                t = (k + 0.5) / steps
+                point = (start[0] + (goal[0] - start[0]) * t,
+                         start[1] + (goal[1] - start[1]) * t)
+                if point_in_polygon(point, polygon):
+                    return True
+        return False
 
     # ------------------------------------------------------------------
     def _ensure_grid(self) -> None:
@@ -262,22 +286,31 @@ class Router(object):
                 points.append(center)
         if _dist(points[-1], goal) > 1e-6:
             points.append(goal)
-        if self.risk_weight > 1e-9:
-            return points
-        return self._los_simplify(points)
+        # 暴露度/风险目标下也要做视线捷径平滑，只是捷径不能重新穿回威胁区。
+        # 以前 risk_weight>0 直接返回原始栅格点，路径比实际需要长 5% 左右，
+        # 会让“本来没有暴露”的场景凭空变慢。
+        return self._los_simplify(points, avoid_threats=self.risk_weight > 1e-9)
 
-    def _los_simplify(self, points: List[Point]) -> List[Point]:
+    def _los_simplify(self, points: List[Point],
+                      avoid_threats: bool = False) -> List[Point]:
         if len(points) <= 2:
             return points
         result = [points[0]]
         index = 1
         while index < len(points):
             far = len(points) - 1
-            while far > index and not self._los_free(result[-1], points[far]):
+            while far > index and not self._clear(result[-1], points[far],
+                                                  avoid_threats):
                 far -= 1
             result.append(points[far])
             index = far + 1
         return result
+
+    def _clear(self, start: Point, goal: Point, avoid_threats: bool) -> bool:
+        """捷径检查：不穿障碍；avoid_threats 时也不能重新穿进威胁区。"""
+        if not self._los_free(start, goal):
+            return False
+        return not (avoid_threats and self._segment_hits_threat(start, goal))
 
 
 def _polygon_of(item: Dict) -> Optional[List[Point]]:

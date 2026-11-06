@@ -133,8 +133,980 @@
         "speed_mps": 30.0,
         "endurance_s": 36000.0,
         "status": "READY"
+      },
+      {
+        "unit_id": "UGV-04",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 4,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": -7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-05",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 5,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": -2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-06",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 6,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": 2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-07",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 7,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": 7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-08",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 8,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": 12.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-09",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 9,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": 17.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-10",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 10,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": 0.0,
+          "y": 22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-11",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 11,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": -22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-12",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 12,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": -17.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-13",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 13,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": -12.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-14",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 14,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": -7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-15",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 15,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": -2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-16",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 16,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": 2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-17",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 17,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": 7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-18",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 18,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": 12.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-19",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 19,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": 17.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "UGV-20",
+        "platform_type": "ifv",
+        "platform_class": "UGV",
+        "robot_id": 20,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 1,
+          "PTL": 2,
+          "HLD": 2
+        },
+        "position": {
+          "x": -5.0,
+          "y": 22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-23",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 23,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": -12.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-24",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 24,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": -7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-25",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 25,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": -2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-26",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 26,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": 2.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-27",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 27,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": 7.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-28",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 28,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": 12.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-29",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 29,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": 17.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "TANK-30",
+        "platform_type": "tank",
+        "platform_class": "TANK",
+        "robot_id": 30,
+        "capabilities": {
+          "RCN": 1,
+          "STK": 3,
+          "PTL": 1,
+          "HLD": 3
+        },
+        "position": {
+          "x": -10.0,
+          "y": 22.5
+        },
+        "altitude_m": 0.35,
+        "vertical_speed_mps": 0.0,
+        "heading_rad": 0.0,
+        "speed_mps": 8.0,
+        "endurance_s": 28800.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-32",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 32,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": -17.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-33",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 33,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": -12.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-34",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 34,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": -7.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-35",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 35,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": -2.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-36",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 36,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": 2.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-37",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 37,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": 7.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-38",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 38,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": 12.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-39",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 39,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": 17.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "PLANE-40",
+        "platform_type": "uav_recon",
+        "platform_class": "PLANE",
+        "robot_id": 40,
+        "capabilities": {
+          "RCN": 3,
+          "STK": 0,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -15.0,
+          "y": 22.5
+        },
+        "altitude_m": 6.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 30.0,
+        "endurance_s": 36000.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-41",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 41,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -22.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-42",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 42,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -17.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-43",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 43,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -12.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-44",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 44,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -7.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-45",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 45,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": -2.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-46",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 46,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": 2.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-47",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 47,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": 7.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-48",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 48,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": 12.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-49",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 49,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": 17.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
+      },
+      {
+        "unit_id": "WING-50",
+        "platform_type": "uav_strike",
+        "platform_class": "WING",
+        "robot_id": 50,
+        "capabilities": {
+          "RCN": 2,
+          "STK": 2,
+          "PTL": 2,
+          "HLD": 0
+        },
+        "position": {
+          "x": -20.0,
+          "y": 22.5
+        },
+        "altitude_m": 10.0,
+        "vertical_speed_mps": 3.0,
+        "heading_rad": 0.0,
+        "speed_mps": 25.0,
+        "endurance_s": 21600.0,
+        "status": "READY"
       }
-    ]
+    ],
+    "meta": {
+      "roster_total": 50,
+      "roster_source": "container_00_combined_scene.sdf（按出生位全编成）"
+    }
   },
   "constraints": [
     {
@@ -1063,24 +2035,24 @@
       "area": {
         "polygon": [
           [
-            25,
+            -60,
             -40
           ],
           [
-            65,
+            -25,
             -40
           ],
           [
-            65,
-            -10
+            -25,
+            -80
           ],
           [
-            25,
-            -10
+            -60,
+            -80
           ]
         ]
       },
-      "note": "演示威胁区；真实威胁数据到位后替换"
+      "note": "演示威胁区（场景专用）；真实威胁数据到位后替换"
     }
   ],
   "meta": {

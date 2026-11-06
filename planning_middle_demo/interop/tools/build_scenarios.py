@@ -15,6 +15,7 @@ import os
 from typing import Any, Dict, List, Tuple
 
 from interop.sdf_scene import build_fleet, parse_sdf
+from interop.tools.full_roster import append_full_roster
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SDF_PATH = os.path.join(os.path.dirname(ROOT), "资料", "接口说明",
@@ -85,6 +86,9 @@ def _task(task_id: str, task_type: str, priority: int, target: Dict[str, Any],
 def build(scene, robot_numbers: List[int], plan_id: str) -> Dict[str, Any]:
     fleet = build_fleet(scene, robot_numbers, plan_id=plan_id,
                         grid_cell_m=2.0, grid_margin_m=1.5)
+    # 编成表保留 SDF 解析出的全部平台：参战平台在前（unit_id 不变），
+    # 其余按出生位补齐，演示一开始就能在地图上看到 50 台。
+    append_full_roster(fleet["formation"], scene)
     constraints = list(fleet["constraints"])
     constraints.extend(_rect_constraint(*item) for item in CITY_BUILDINGS)
     constraints.append(dict(DEMO_THREAT))

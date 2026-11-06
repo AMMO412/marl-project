@@ -37,6 +37,11 @@ BEHAVIOR_EVENT_NAME = {
     "intercepted": "拦截成功", "breach": "越界",
     "map_initialised": "地图初始化", "frontier_mapped": "前沿测绘",
     "coverage_reached": "覆盖达标", "report_sent": "成果回传",
+    "recon_target_report": "侦察目标位置上报", "recon_track_started": "开始跟踪目标",
+    "recon_track_report": "跟踪位置上报", "recon_track_completed": "完成区外跟踪",
+    "relay_handoff": "任务接力",
+    "return_started": "开始返航", "return_completed": "已返回出发点",
+    "return_failed": "返航失败", "return_interrupted": "返航中接到新任务",
     "map_shared": "共享地图更新", "all_staged": "全员到位",
     "assault_started": "突击开始", "effect_started": "效果施加开始",
     "effect_applied": "动作结束", "confirmed": "结果确认",
@@ -52,6 +57,9 @@ BEHAVIOR_EVENT_NAME = {
     "handover_complete": "接替完成", "relief": "换班",
     # 区域封控（1028 §2.2）的控制过程事件
     "target_appeared": "目标出现", "target_detected": "发现目标",
+    "patrol_position_report": "模拟上报目标位置",
+    "patrol_target_started": "移动目标进入场景",
+    "patrol_target_lost": "目标离开感知范围",
     "target_authorized": "识别为已授权", "target_unauthorized": "识别为未授权",
     "warning_issued": "发出警告", "warning_effective": "警告有效·目标撤离",
     "intercept_assigned": "指派拦阻", "intercept_denied": "授权不足未拦阻",
@@ -315,9 +323,12 @@ def build_replay_data(scenario, report, trace):
                             start=list(p["pos"]), start_z=p.get("z", 0),
                             initial_battery=p.get("battery"), samples=[])
     for row in trace:
-        if row.get("kind") != "feedback_applied":
-            continue
         ev = row.get("event") or {}
+        if row.get("kind") == "behavior_event" and ev.get("kind") == "return_sample":
+            ev = dict(ev, worker_id=ev["pid"], command_id="return:" + ev["pid"],
+                      status="succeeded" if ev["phase"] == "returned" else "progress")
+        elif row.get("kind") != "feedback_applied":
+            continue
         pid, pos = ev.get("worker_id"), ev.get("pos")
         if not pid or pos is None or len(pos) < 2:
             continue
@@ -352,14 +363,24 @@ def build_replay_data(scenario, report, trace):
                       kind_name=KIND_NAME.get(worker["kind"], "未登记类别"),
                       shape=KIND_SHAPE.get(worker["kind"], "square"))
         ordered.append(worker)
-    jobs = [dict(j, label=TYPE_NAME.get(j.get("type"), j.get("type", "作业")),
-                 landmark=landmark_label(j),
-                 color=TYPE_COLOR.get(j.get("type"), "#64748b"))
-            for j in scenario.get("jobs", [])]
+    reported_types = {j["job_id"]: j.get("jtype") for j in report.get("jobs", [])}
+    jobs = []
+    for item in scenario.get("jobs", []):
+        kind = item.get("type") or reported_types.get(item["job_id"]) or "custom"
+        job = dict(item, type=kind)
+        jobs.append(dict(job, label=TYPE_NAME.get(kind, "作业"),
+                         landmark=landmark_label(job),
+                         color=TYPE_COLOR.get(kind, "#64748b")))
     events = []
+    relay_samples = []
     behaviors = {}      # job_id -> 行为结构（巡逻环/封控岗/侦察区/突击点/坚守岗）
     for r in trace:
         kind = r.get("kind")
+        if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "return_sample":
+            continue
+        if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "relay_target_sample":
+            relay_samples.append([r["sim_s"], *r["event"]["pos"]])
+            continue
         # 行为结构：单独收集，不进入事件列表（供主地图画动作结构）
         if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "behavior_structure":
             ev = r.get("event") or {}
@@ -388,11 +409,18 @@ def build_replay_data(scenario, report, trace):
     times = [0, report.get("simulated_until_s", 0)]
     times += [s["t"] for w in ordered for s in w["samples"]]
     times += [e.get("sim_s", 0) for e in events]
+    relay_spec = (scenario.get("_meta") or {}).get("relay_target")
+    relay_track = None
+    if relay_spec and relay_samples:
+        relay_track = dict(target_id=relay_spec["target_id"],
+                           samples=[[relay_samples[0][0] - 1, *relay_spec["start"]],
+                                    *relay_samples])
     return dict(workers=ordered, jobs=jobs, events=events,
                 behaviors=[behaviors[j["job_id"]] for j in jobs
                            if j["job_id"] in behaviors],
                 containment=_containment_replay(trace),
                 hold=_hold_replay(trace),
+                relay_track=relay_track,
                 end=max(times),
                 background=load_scene_background(scenario),
                 motion=report.get("motion", "teleport"),

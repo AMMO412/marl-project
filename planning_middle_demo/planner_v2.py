@@ -5,7 +5,7 @@ planner_v2.py —— 六步规则规划器（自 planning/planner.py 移植）
 一次规划 6 步，每步留痕（events）：
 
   1 能力过滤   剔除不可行的 (平台, 作业) 组合
-  2 代价打分   按当前优化目标（makespan / dispersion / energy）
+  2 代价打分   按当前优化目标（makespan / exposure / energy）
   3 分配求解   crew>=N 前提下指派；crew==1 走一对一最优（匈牙利）
   4 时序排程   排入时间窗，协同作业等人齐
   5 冲突消解   同平台重叠串行后移；排不进窗口时加人→换人→上报
@@ -70,8 +70,16 @@ W_TIME_ENERGY = 0.3
 
 COST_TERMS = {
     "makespan":   dict(time=1.0, energy=0.0, spread=0.0, crowd=0.0),
-    "energy":     dict(time=W_TIME_ENERGY, energy=1.0, spread=0.0, crowd=0.0),
+    # 2026-11：工作台第三目标改为“暴露度（被侦测概率）”。基座计划层只拿得到
+    # 平台/作业，没有场景的威胁区约束，无法计算暴露量；历史场景（simple_city/
+    # asl_city）也确实没有 constraints。因此这里按完工时间排序，并在报告中
+    # 注明退化；真正按威胁区规避/压低暴露的是融合层 interop/cost.py。
+    "exposure":   dict(time=1.0, energy=0.0, spread=0.0, crowd=0.0),
+    # 基座没有均衡代价（0.5/0.3/0.2 只在融合层 cost.py），按完工时间处理。
+    "balanced":   dict(time=1.0, energy=0.0, spread=0.0, crowd=0.0),
+    # dispersion 是 exposure 的旧名，只为旧场景/脚本兼容保留。
     "dispersion": dict(time=W_TIME_DISP, energy=0.0, spread=W_SPREAD, crowd=W_CROWD),
+    "energy":     dict(time=W_TIME_ENERGY, energy=1.0, spread=0.0, crowd=0.0),
 }
 
 

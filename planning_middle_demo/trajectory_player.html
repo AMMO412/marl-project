@@ -59,7 +59,9 @@ const fmt=v=>v==null?'—':Number(v).toFixed(2), short=w=>w.no==null?w.pid:'#'+S
 let time=0,playing=false,selected='',lastFrame=null;
 const terminal=new Set(['succeeded','failed','cancelled']);
 const statusNames={succeeded:'本次指令完成',failed:'本次指令失败',cancelled:'本次指令取消'};
-const allPositions=[...D.workers.flatMap(w=>[w.start,...w.samples.map(s=>[s.x,s.y])]),...D.jobs.map(j=>j.pos)];
+const allPositions=[...D.workers.flatMap(w=>[w.start,...w.samples.map(s=>[s.x,s.y])]),
+  ...D.jobs.flatMap(j=>[j.pos,...(['patrol','recon'].includes(j.type)?j._behavior?.area||[]:[])])];
+for(const b of D.behaviors||[])if(b.tracking_target)allPositions.push(b.tracking_target.goal);
 // 场景底图的静态占地参与取景，避免建筑被裁到画面外
 for(const o of (D.background?.obstacles||[])) for(const p of o.polygon) allPositions.push(p);
 if(!allPositions.length) allPositions.push([0,0],[1,1]);
@@ -105,9 +107,17 @@ const BNAMES={patrol:'巡逻环',blockade:'封控圈',recon:'侦察区',assault:
 let showBehaviors=true;
 function drawBehaviors(){
   if(!showBehaviors){$('behaviors-map').innerHTML='';return;}
-  if(!D.behaviors||!D.behaviors.length){$('behaviors-map').innerHTML='';return;}
   let out='';
-  for(const b of D.behaviors){
+  for(const job of D.jobs){
+    const area=['patrol','recon'].includes(job.type)?job._behavior?.area:null;
+    if(!area?.length)continue;
+    const pts=area.map(p=>`${px(p[0])},${py(p[1])}`).join(' ');
+    const isRecon=job.type==='recon', color=isRecon?'#583c91':BCOLORS.patrol;
+    if(isRecon)out+=`<polygon points="${pts}" fill="none" stroke="white" stroke-width="7"/>`;
+    out+=`<polygon points="${pts}" fill="${color}" fill-opacity=".12" stroke="${color}" stroke-width="4"><title>${esc(job.job_id)} · ${isRecon?'侦察区域':'巡逻区域'}</title></polygon>`;
+    if(isRecon)out+=`<text x="${px(area[3][0])}" y="${py(area[3][1])-10}" fill="${color}" font-size="14" font-weight="700">侦察区</text>`;
+  }
+  for(const b of (D.behaviors||[])){
     const c=BCOLORS[b.type]||'#64748b',name=BNAMES[b.type]||b.type;
     const title=`<title>${esc(b.job_id+' · '+name)}</title>`;
     if(b.type==='patrol'&&b.loop){
@@ -143,7 +153,8 @@ function stateAt(w,t){
   }
   state.index=index;state.sampleTime=a?.t;state.displacement=Math.hypot(state.x-w.start[0],state.y-w.start[1]);
   const lost=D.events.some(e=>e.kind==='member_lost'&&e.pid===w.pid&&e.sim_s<=t);
-  state.label=lost?'失联':!a?(w.initial_unknown?'尚无位置记录':'待命 / 无位置反馈'):terminal.has(a.status)?statusNames[a.status]:a.phase==='work'?'作业中':a.phase==='travel'?'在途':'已接收反馈';
+  const returnPhase={return:'返航中',landing:'降落中',returned:'已返回出发点'};
+  state.label=lost?'失联':!a?(w.initial_unknown?'尚无位置记录':'待命 / 无位置反馈'):returnPhase[a.phase]||(terminal.has(a.status)?statusNames[a.status]:a.phase==='work'?'作业中':a.phase==='travel'?'在途':'已接收反馈');
   state.lost=lost;return state;
 }
 function jobState(j,t){
@@ -227,6 +238,30 @@ function draw(){
   $('jobs-map').innerHTML=D.jobs.map((j,i)=>{const x=px(j.pos[0]),y=py(j.pos[1]),s=jobStates[i];return `<g><title>${esc(j.job_id+' · '+j.label+' · '+s.state+' · '+(j._src_landmark||''))}</title><circle cx="${x}" cy="${y}" r="18" fill="${j.color}" fill-opacity=".08" stroke="${j.color}" stroke-width="2" stroke-dasharray="${s.cls==='done'?'':'4 3'}"/><text x="${x}" y="${y-26}" text-anchor="middle" fill="${j.color}" font-size="13" font-weight="700">${esc(j.job_id)}${s.cls==='done'?' ✓':''}</text>${$('show-landmarks').checked&&j.landmark?`<text x="${x}" y="${y+34}" text-anchor="middle" fill="#736750" font-size="11">${esc(j.landmark)}</text>`:''}</g>`;}).join('');
   $('jobs-list').innerHTML=D.jobs.map((j,i)=>`<div class="job"><div><span class="dot" style="--c:${j.color}"></span><b>${esc(j.job_id)}</b> <small>${esc(j.label)}</small></div><span class="job-state ${jobStates[i].cls}">${jobStates[i].state}</span></div>`).join('');
   const trails=[],markers=[],starts=[],targets=[],labels=[];
+  if(D.relay_track){
+    const samples=D.relay_track.samples;
+    const next=samples.findIndex(s=>s[0]>time);
+    const path=samples.slice(0,next<0?samples.length:Math.max(1,next)).map(([,x,y])=>[x,y]);
+    const pos=path.at(-1);
+    if(next>0){
+      const a=samples[next-1],b=samples[next],f=(time-a[0])/(b[0]-a[0]);
+      pos[0]=a[1]+(b[1]-a[1])*f;pos[1]=a[2]+(b[2]-a[2])*f;
+    }
+    const [x,y]=[px(pos[0]),py(pos[1])];
+    targets.push(`<polyline points="${points(path)}" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${x}" cy="${y}" r="6" fill="#fbbf24" stroke="#b45309"/><text x="${x+9}" y="${y-9}" fill="#92400e" font-size="12">${esc(D.relay_track.target_id)}</text>`);
+  }
+  for(const b of D.behaviors||[]){
+    const target=b.tracking_target;
+    if(!target||target.target_id===D.relay_track?.target_id)continue;
+    const track=D.events.findLast(e=>e.job_id===b.job_id&&e.sim_s<=time&&e.event?.kind==='recon_track_started');
+    const completed=D.events.some(e=>e.job_id===b.job_id&&e.sim_s<=time&&e.event?.kind==='recon_track_completed');
+    const d=Math.hypot(target.goal[0]-target.start[0],target.goal[1]-target.start[1]);
+    const elapsed=track?Math.max(0,time-track.sim_s+1-(track.event.t%1)):0;
+    const fraction=Math.min(1,elapsed*target.speed_mps/d);
+    const pos=target.start.map((v,i)=>v+(target.goal[i]-v)*fraction);
+    const [x,y]=[px(pos[0]),py(pos[1])],status=completed?'跟踪完成':track?'跟踪中':'侦察目标';
+    targets.push(`<polyline points="${points([target.start,pos])}" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${x}" cy="${y}" r="6" fill="#fbbf24" stroke="#b45309"/><text x="${x+9}" y="${y-9}" fill="#92400e" font-size="12">${esc(target.target_id+' · '+status)}</text>`);
+  }
   // 标签避让仅移动文字和引线，平台中心始终保留真实坐标。
   const occupied=[];
   D.workers.forEach((w,i)=>{

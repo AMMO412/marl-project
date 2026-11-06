@@ -8,6 +8,18 @@ from contracts_v2 import JOB_TYPE_LABELS
 
 _JOB_HEADERS = ["作业", "类型", "工作量", "进度", "窗口", "crew",
                 "尝试", "状态"]
+_OBJECTIVE_LABELS = {
+    "makespan": "完工时间",
+    "timeliness": "完工时间",
+    "energy": "模型能耗",
+    "exposure": "暴露度",
+    "balanced": "均衡",
+    "dispersion": "空间分散度（旧口径）",
+}
+
+
+def _objective_label(value):
+    return _OBJECTIVE_LABELS.get(str(value), str(value))
 
 
 def _cell(value, width=9):
@@ -21,9 +33,10 @@ def render_text(scenario, report, audit, include_events=True):
     motion_label = {"teleport": "瞬移（规划快进）",
                     "real": "真实运动（GoalController 闭环）"}.get(
         report.get("motion"), report.get("motion", "teleport"))
-    lines.append("目标：%s   H=%s   在途语义：%s   仿真推进到 t=%s"
-                 % (report["objective"], scenario.get("H", 20),
-                    motion_label, report["simulated_until_s"]))
+    lines.append("目标：%s（%s）   H=%s   在途语义：%s   仿真推进到 t=%s"
+                 % (_objective_label(report["objective"]), report["objective"],
+                    scenario.get("H", 20), motion_label,
+                    report["simulated_until_s"]))
     lines.append("")
     lines.append("作业：共 %d，完成 %d，失败 %d，未结束 %d"
                  % (len(report["jobs"]),
@@ -35,15 +48,28 @@ def render_text(scenario, report, audit, include_events=True):
                         if j["status"] not in ("succeeded", "failed"))))
     lines.append("规划：共 %d 次；重试 %d 次；超时 %d 次"
                  % (report["plans"], report["retries"], report["timeouts"]))
+    if "returns" in report:
+        returned = sum(state["status"] == "returned" for state in report["returns"].values())
+        lines.append("返航：已归队 %d 台；返航结算%s" %
+                     (returned, "完成" if report["return_complete"] else "未完成"))
     lines.append("重规划触发源（各自独立，同一轮可多条）：%s"
                  % {k: v for k, v in report["triggers"].items() if v})
     per = report.get("per_task_energy")
-    lines.append("成绩单：总能耗 %.1f，每作业能耗 %s，完成时刻 %s，分散度 %.2f"
-                 % (report["used_energy"],
-                    "%.2f" % per if per is not None else "无完成作业",
-                    report["makespan"] if report["makespan"] is not None
-                    else "未完成",
-                    report["spread"]))
+    plan = report.get("plan_objective_metrics") or {}
+    score = ("成绩单：总能耗 %.1f，每作业能耗 %s，完成时刻 %s"
+             % (report["used_energy"],
+                "%.2f" % per if per is not None else "无完成作业",
+                report["makespan"] if report["makespan"] is not None
+                else "未完成"))
+    if plan.get("makespan_s") is not None:
+        score += "，计划 makespan %.1f s" % plan["makespan_s"]
+    if plan.get("total_exposure") is not None:
+        score += "，总暴露量 %.2f" % plan["total_exposure"]
+    if plan.get("detection_probability") is not None:
+        score += "，被侦测概率 %.1f%%" % (100.0 * plan["detection_probability"])
+    if report.get("objective") == "dispersion":
+        score += "，空间分散度（旧口径）%.2f" % report.get("spread", 0.0)
+    lines.append(score)
     lines.append("（比总能耗会被\"干得少\"骗到；完成数不一致时先看完成数）")
     if report.get("rejected_reasons"):
         lines.append("派不出去的原因分布：%s"
@@ -129,16 +155,25 @@ def render_html(scenario, report, audit, extra_files=None):
                 % (e.get("sim_s"), html.escape(str(e.get("kind"))), detail))
 
     per = report.get("per_task_energy")
+    plan = report.get("plan_objective_metrics") or {}
+    plan_makespan = ("%.1f s" % plan["makespan_s"]
+                     if plan.get("makespan_s") is not None else "—")
+    exposure = ("%.2f" % plan["total_exposure"]
+                if plan.get("total_exposure") is not None else "—")
+    probability = ("%.1f%%" % (100.0 * plan["detection_probability"])
+                   if plan.get("detection_probability") is not None else "—")
     cards = """
       <div class='card'><div class='num'>%d/%d</div><div>完成作业</div></div>
       <div class='card'><div class='num'>%d</div><div>规划次数</div></div>
       <div class='card'><div class='num'>%s</div><div>每作业能耗</div></div>
       <div class='card'><div class='num'>%s</div><div>完成时刻</div></div>
-      <div class='card'><div class='num'>%.2f</div><div>分散度</div></div>
+      <div class='card'><div class='num'>%s</div><div>计划 makespan</div></div>
+      <div class='card'><div class='num'>%s</div><div>总暴露量</div></div>
+      <div class='card'><div class='num'>%s</div><div>被侦测概率</div></div>
     """ % (report["done"], len(report["jobs"]), report["plans"],
             "%.2f" % per if per is not None else "—",
             report["makespan"] if report["makespan"] is not None else "—",
-            report["spread"])
+            plan_makespan, exposure, probability)
 
     need_report = ("".join("<li>%s</li>" % html.escape(j)
                            for j in report["need_report"])
@@ -201,6 +236,7 @@ details{margin-top:10px}pre{background:#f6f8fa;padding:10px;
 </style></head><body>
 <h1>任务规划中间层 · 规划能力版报告</h1>
 <p>%s</p>
+<p class="small">暴露量、被侦测概率为计划层模型值；执行链不模拟探测，不作为实际发现概率。</p>
 <p><a href="trajectory.html" style="display:inline-block;background:#2563eb;color:white;
 padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动回放</a>
 <span class="small"> 播放 / 时间轴 / 单台追踪 / 实时位置与路程</span></p>
@@ -218,12 +254,14 @@ padding:10px 18px;border-radius:8px;text-decoration:none">▶ 打开动态运动
 <p class='warn'>%s</p>
 </body></html>""" % (
         html.escape(str(report["run_id"])),
-        html.escape("目标 %s · H=%s · 在途语义 %s · 仿真至 t=%s · 重试 %d · 超时 %d"
-                    % (report["objective"], scenario.get("H", 20),
+        html.escape("目标 %s（%s） · H=%s · 在途语义 %s · 仿真至 t=%s · 重试 %d · 超时 %d"
+                    " · 计划 makespan %s · 暴露量 %s · P %s"
+                    % (_objective_label(report["objective"]), report["objective"],
+                       scenario.get("H", 20),
                        {"teleport": "瞬移", "real": "真实运动"}.get(
                            report.get("motion"), report.get("motion")),
                        report["simulated_until_s"], report["retries"],
-                       report["timeouts"])),
+                       report["timeouts"], plan_makespan, exposure, probability)),
         gazebo_block, cards, triggers,
         "".join("<th>%s</th>" % h for h in _JOB_HEADERS),
         "".join(jobs_rows), need_report, rejected,

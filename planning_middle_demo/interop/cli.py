@@ -150,21 +150,24 @@ def cmd_demo(args) -> int:
     raw_formation = load_json(args.formation)
     scenario = parse_message(raw_message, raw_formation)
     v2 = to_v2_dict(scenario, raw_message, raw_formation)
-    v2["objective"] = ("energy" if args.objective == "energy" else "makespan")
+    v2["objective"] = {"energy": "energy", "exposure": "exposure"}.get(
+        args.objective, "makespan")
     engine = InteropPlanner(scenario, objective=args.objective, data=v2)
     from run_demo_v2 import simulate
     # T-ASL 的打击与效果判定在基座行为层，运行必须开行为、城市避障和逐步运动；
     # 其余任务沿用命令行参数（--behavior 时用编成表 no_go 约束现造 NavMap）。
     has_asl = any(task.task_type == "T-ASL" for task in scenario.tasks)
+    has_relay = bool(v2["_meta"].get("relay_target"))
     nav = None
-    if args.behavior and not has_asl:
+    if (args.behavior or has_relay) and not has_asl:
         from .runtime import nav_from_scenario
         nav = nav_from_scenario(scenario)
-    report, audit = simulate(v2, mode=args.mode, max_ticks=args.max_ticks,
-                             motion=("real" if has_asl else args.motion),
+    max_ticks = args.max_ticks if args.max_ticks is not None else (380 if has_relay else 200)
+    report, audit = simulate(v2, mode=args.mode, max_ticks=max_ticks,
+                             motion=("real" if has_asl or has_relay else args.motion),
                              avoid=(True if has_asl else nav is not None),
                              behavior=(True if has_asl else
-                                       (args.behavior and nav is not None)),
+                                       ((args.behavior or has_relay) and nav is not None)),
                              planner=engine, nav=nav)
     # 同一份 4.1 输入的计划层产物（4.2），与运行报告分开放
     plan = Planner(scenario, objective=args.objective).plan()
@@ -254,7 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--formation", required=True)
     plan.add_argument("--out", required=True)
     plan.add_argument("--objective", default="timeliness",
-                      choices=("timeliness", "energy", "risk", "balanced"))
+                      choices=("timeliness", "exposure", "energy", "risk", "balanced"))
     plan.add_argument("--weights", default="", help="time,risk,energy")
     plan.add_argument("--assignment", default="hungarian",
                       choices=("hungarian", "greedy"))
@@ -284,12 +287,12 @@ def build_parser() -> argparse.ArgumentParser:
     demo.add_argument("--formation", required=True)
     demo.add_argument("--out", required=True)
     demo.add_argument("--objective", default="timeliness",
-                      choices=("timeliness", "energy", "risk", "balanced"))
+                      choices=("timeliness", "exposure", "energy", "risk", "balanced"))
     demo.add_argument("--mode", default="normal",
                       choices=("normal", "failure", "timeout", "kill", "deviation"))
     demo.add_argument("--motion", default="teleport",
                       choices=("teleport", "real"))
-    demo.add_argument("--max-ticks", type=int, default=200)
+    demo.add_argument("--max-ticks", type=int)
     demo.add_argument("--behavior", action="store_true",
                       help="到位后运行基座行为状态机（区域封控的占位/警告/拦阻"
                            "等任务段动作只有开启后才会执行）")

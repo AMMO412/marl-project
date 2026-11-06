@@ -119,6 +119,17 @@ class PlannerInvariantTests(unittest.TestCase):
             for (s0, e0), (s1, e1) in zip(spans, spans[1:]):
                 self.assertLessEqual(e0, s1, "平台 %s 串行被破坏" % pid)
 
+    def test_exposure_objective_falls_back_to_timeliness(self):
+        # 基座场景没有 constraints/威胁区，exposure 没有暴露量可算，
+        # 只能与完工时间同解；这里锁住该退化行为，避免以后悄悄变成别的东西。
+        plats, jobs = self._plats(), self._jobs()
+        base, _ = planner_v2.plan(plats, jobs, 0, H=20)
+        expo, _ = planner_v2.plan(plats, jobs, 0, H=20, objective="exposure")
+        self.assertEqual(expo.objective, "exposure")
+        self.assertEqual(
+            [(a.job_id, a.pids, a.start, a.end) for a in expo.assignments],
+            [(a.job_id, a.pids, a.start, a.end) for a in base.assignments])
+
     def test_altitude_requires_air_platform(self):
         plats, jobs = self._plats(), self._jobs()
         # 造一个带高度、crew=1 的作业，只允许 PLANE/WING 接

@@ -239,6 +239,9 @@ def compare_scenario(scenario: Scenario, objectives=("timeliness", "energy"),
                 metrics = raw.get("objective_metrics") or {}
                 result["model_risk"] = metrics.get("total_risk")
                 result["model_energy"] = metrics.get("total_energy")
+                result["model_exposure"] = metrics.get("total_exposure")
+                result["model_detection_probability"] = metrics.get(
+                    "detection_probability")
             except Exception as exc:
                 result = dict(backend=backend, objective=objective,
                               error="%s: %s" % (type(exc).__name__, exc),
@@ -290,14 +293,14 @@ def build_markdown(comparisons: List[Dict[str, Any]]) -> str:
                         comparison["platforms"], comparison["tasks"]))
         lines.append("")
         lines.append("| 目标 | 后端 | 落实任务 | 行数 | 未分配 | makespan / s "
-                     "| 里程 / m | 模型风险 | 模型能耗 | 硬违规 | 能力缺口 "
-                     "| 协同未对齐 | 路径几何 | 规划耗时 / ms |")
+                     "| 里程 / m | 模型风险 | 模型能耗 | 被侦测概率 | 硬违规 "
+                     "| 能力缺口 | 协同未对齐 | 路径几何 | 规划耗时 / ms |")
         lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: "
-                     "| ---: | ---: | ---: | ---: | --- | ---: |")
+                     "| ---: | ---: | ---: | ---: | ---: | --- | ---: |")
         for item in comparison["results"]:
             if "error" in item:
                 lines.append("| %s | %s | - | - | - | - | - | - | - | - | - "
-                             "| - | - | - |" % (item["objective"], item["backend"]))
+                             "| - | - | - | - |" % (item["objective"], item["backend"]))
                 lines.append("")
                 lines.append("> %s：%s" % (item["backend"], item["error"]))
                 lines.append("")
@@ -307,12 +310,15 @@ def build_markdown(comparisons: List[Dict[str, Any]]) -> str:
                     if item.get("model_risk") is not None else "—")
             energy = ("%.1f" % item["model_energy"]
                       if item.get("model_energy") is not None else "—")
+            detection = ("%.1f%%" % (100.0 * item["model_detection_probability"])
+                         if item.get("model_detection_probability") is not None
+                         else "—")
             lines.append("| %s | %s | %d/%d | %d | %d | %.1f | %s | %s | %s "
-                         "| %d | %d | %d | %s | %.0f |"
+                         "| %s | %d | %d | %d | %s | %.0f |"
                          % (item["objective"], item["backend"],
                             item["tasks_assigned"], item["tasks_total"],
                             item["rows"], item["unassigned_count"],
-                            item["makespan_s"], travel, risk, energy,
+                            item["makespan_s"], travel, risk, energy, detection,
                             item["violation_count"],
                             item.get("capability_gap_count", 0),
                             item["coordination_unaligned_groups"],

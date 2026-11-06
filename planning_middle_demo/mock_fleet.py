@@ -32,6 +32,7 @@ mock_fleet.py —— 模拟下层（独立消息替身）
 import json
 import math
 
+from behaviors import AreaReconBehavior
 from contracts_v2 import PROTOCOL_V2
 import containment_geom as geom
 import motion
@@ -42,10 +43,26 @@ import motion
 TWIST_TICKS_PER_STEP = 20
 
 
+class RelayTarget:
+    """一个随仿真时钟推进的目标，封控接管后沿用其处置状态。"""
+
+    def __init__(self, spec):
+        self.spec = spec
+        self.started_at = None
+        self.containment = None
+        self.travel_s = math.dist(spec["start"], spec["goal"]) / spec["speed_mps"]
+
+    def position(self, now):
+        if self.containment is not None:
+            return list(self.containment.pos)
+        fraction = min(1.0, max(0.0, now - self.started_at) / self.travel_s)
+        return [a + (b - a) * fraction for a, b in zip(self.spec["start"], self.spec["goal"])]
+
+
 class MockFleet:
     def __init__(self, fail_once=None, delay_once=None, slow_once=None,
                  motion="teleport", timed_events=None, nav=None, behavior=False,
-                 behavior_params=None):
+                 behavior_params=None, relay_spec=None, home=None):
         self.fail_once = dict(fail_once or {})
         self.delay_once = dict(delay_once or {})
         self.slow_once = dict(slow_once or {})   # {job_id: 进度折扣系数}
@@ -59,6 +76,9 @@ class MockFleet:
         # 任务级参数，避免把任务模板塞进每台平台的消息里。
         self.behavior_params = {k: dict(v or {})
                                 for k, v in (behavior_params or {}).items()}
+        self.relay_target = RelayTarget(relay_spec) if relay_spec else None
+        self.home = dict(home or {})
+        self.return_state = {}
         # 绝对步时间线事件：已按 t 升序；同一步多事件全部处理，不吞。
         # member_lost 不在本层处理（见 _apply_timed_events）。
         self.timed_events = sorted(timed_events or [], key=lambda e: e["t"])
@@ -125,6 +145,9 @@ class MockFleet:
         if st is not None:
             st["dead"] = True
             st["active"] = False
+        if (st and st.get("return_profile") and pid in self.home
+                and self.return_state.get(pid, {}).get("status") != "returned"):
+            self.return_state.setdefault(pid, dict(home=list(self.home[pid])))["status"] = "lost"
         for job in self.jobs.values():
             runner = job.get("bh_runner")
             if runner is None:
@@ -217,7 +240,12 @@ class MockFleet:
                         note="目标高度%.0f超出平台能力（无 linear.z）"
                              % task["altitude"]))
                 else:
+                    previous_return = self.return_state.pop(command["worker_id"], None)
+                    if previous_return and previous_return["status"] == "returning":
+                        self.behavior_events.append(dict(kind="return_interrupted",
+                            pid=command["worker_id"], recorded_at_sim_s=now))
                     st["active"] = True
+                    st["return_profile"] = {k: delivery[k] for k in ("can_climb", "speed", "move_cost")}
                     start = st["pos"]
                     delay = 0
                     if command["attempt"] == 1:
@@ -355,6 +383,15 @@ class MockFleet:
         from behaviors import make_behavior
         from behavior_runtime import BehaviorRunner
         bh_job = self._behavior_job_dict(job)
+        relay = self.relay_target
+        if relay and bh_job["job_id"] == relay.spec["source_job_id"] and relay.started_at is None:
+            relay.started_at = now - 1
+        if relay and relay.started_at is not None:
+            bh_job["_relay_target"] = relay
+            bh_job["_relay_origin_s"] = now - 1
+        params = bh_job.get("_behavior") or {}
+        if bh_job["type"] == "recon" and "search_deadline_s" in params:
+            params["search_limit_s"] = max(0, params["search_deadline_s"] - now)
         pids = [m["wire"]["command"]["worker_id"]
                 for m in members.values()]
         behavior = make_behavior(bh_job, self.nav, pids)
@@ -409,6 +446,9 @@ class MockFleet:
             if behavior.kind == 'patrol':
                 r['loop'] = [[round(p[0], 2), round(p[1], 2)]
                              for p in behavior.loop]
+                if behavior.sensor_radii:
+                    r['sensor_radii'] = dict(behavior.sensor_radii)
+                    r['air_pids'] = list(behavior.patrol_groups['air'])
             elif behavior.kind == 'blockade':
                 if getattr(behavior, 'polygon', None):
                     # 1028 区域封控：真实边界 + 分段占位 + 门哨 + 机动组
@@ -457,8 +497,17 @@ class MockFleet:
                                            for v in behavior.intruder_start]
                     r['ring_radius'] = behavior.params.get('ring_radius')
             elif behavior.kind == 'recon':
-                r['area_radius'] = behavior.params.get('area_radius')
-                r['sensor_radius'] = behavior.params.get('sensor_radius')
+                if isinstance(behavior, AreaReconBehavior):
+                    r.update(area=behavior.area,
+                             sensor_radii=behavior.sensor_radii,
+                             air_pids=sorted(behavior.air_pids),
+                             cells=len(behavior.cells),
+                             coverage_target=behavior.params['coverage_target'])
+                    if behavior.tracking_target:
+                        r['tracking_target'] = behavior.tracking_target
+                else:
+                    r['area_radius'] = behavior.params.get('area_radius')
+                    r['sensor_radius'] = behavior.params.get('sensor_radius')
             elif behavior.kind == 'assault':
                 r['staging'] = [[round(p[0], 2), round(p[1], 2)]
                                 for p in behavior.staging]
@@ -578,6 +627,8 @@ class MockFleet:
                       local_t=round(runner.time, 3), phase=behavior.phase,
                       debug=behavior.debug() if hasattr(behavior, 'debug') else {},
                       params=dict(behavior.params), routes=new_routes)
+        if isinstance(behavior, AreaReconBehavior):
+            detail["recon_sweep"] = behavior.drain_sweep()
         self.behavior_events.append(json.loads(json.dumps(detail)))
         # 位姿写回（行为层在场景坐标推进；空中平台 z 为当前高度）
         for pid, agent in runner.agents.items():
@@ -650,7 +701,17 @@ class MockFleet:
         progress = job["progress"]
         status, note = "succeeded", None
         result = getattr(behavior, "result", None)
-        if done and result is not None:
+        recon_result = done and isinstance(behavior, AreaReconBehavior)
+        relay_verdict = done and behavior.params.get("relay_verdict")
+        if recon_result:
+            status = result["overall"]
+            note = "侦察覆盖 %.1f%%，目标 %.1f%%" % (
+                result["coverage"] * 100, result["coverage_target"] * 100)
+        elif relay_verdict:
+            verdict = behavior.verdict
+            status = "succeeded" if verdict["verdict"] == "succeeded" else "failed"
+            note = verdict["reason"]
+        elif done and result is not None:
             verified = "已验证" if result.get("verified") else "桩判定·未验证"
             adjudicator = result.get("adjudicator")
             if result.get("overall") == "succeeded":
@@ -672,8 +733,12 @@ class MockFleet:
             if st is None or st["dead"]:
                 continue
             if done:
-                events.append(self._event(m["wire"], now, status,
-                                          job["work"], phase=phase, note=note))
+                event = self._event(m["wire"], now, status,
+                                    progress if recon_result else job["work"],
+                                    phase=phase, note=note)
+                if (recon_result or relay_verdict) and status == "failed":
+                    event["terminal"] = True
+                events.append(event)
                 st["active"] = False
                 members.pop(key, None)
             else:
@@ -686,6 +751,87 @@ class MockFleet:
         """取出并清空行为层累计事件，供 simulate 层合并进审计。"""
         out, self.behavior_events = self.behavior_events, []
         return out
+
+    def relay_sample(self, now):
+        relay = self.relay_target
+        if relay and relay.started_at is not None:
+            return dict(kind="relay_target_sample", job_id=relay.spec["source_job_id"],
+                        target_id=relay.spec["target_id"],
+                        pos=[round(v, 3) for v in relay.position(now)])
+
+    def returns_pending(self):
+        return any(state["status"] == "returning" for state in self.return_state.values())
+
+    def step_returns(self, now, reserved):
+        """推进无后续分配的空闲成员；地面绕障，空中到家后再降落。"""
+        from city_nav import NavError
+        for pid, st in self.platforms.items():
+            if pid not in self.home or pid in reserved or st["active"] or st["dead"]:
+                continue
+            profile = st.get("return_profile")
+            if not profile:
+                continue
+            home = self.home[pid]
+            air = profile["can_climb"]
+            state = self.return_state.get(pid)
+            if state is None:
+                pos, z = st["pos"], st["z"]
+                path = [pos, home]
+                if (self.motion == "real" and self.nav is not None
+                        and not air and math.dist(pos, home) > 1e-6):
+                    try:
+                        path = self.nav.plan(pos, home, densify=0)["path"]
+                    except NavError as exc:
+                        self.return_state[pid] = dict(status="failed", home=list(home))
+                        self.behavior_events.append(dict(kind="return_failed", pid=pid,
+                            recorded_at_sim_s=now, pos=list(pos), z=z, reason=str(exc)))
+                        continue
+                cruise = max(z, 25.0) if air and self.nav is not None else z
+                index = len(path) if math.dist(pos, home) <= 1e-6 else 1
+                state = dict(status="returning", home=list(home), path=path, index=index,
+                             started=now, cruise=cruise)
+                self.return_state[pid] = state
+                self.behavior_events.append(dict(kind="return_started", pid=pid,
+                    recorded_at_sim_s=now, pos=list(pos), z=z, home=[*home, 0.0],
+                    path=[list(p) for p in path]))
+                if self.motion == "real" and (index < len(path) or (air and z > 0)):
+                    continue
+            if state["status"] != "returning":
+                continue
+            phase = "return"
+            if self.motion == "teleport":
+                st["pos"], st["z"], state["index"] = home, 0.0, len(state["path"])
+            elif air and state["index"] < len(state["path"]) and st["z"] < state["cruise"] - 1e-6:
+                st["z"] = min(state["cruise"], st["z"] + 3.0)
+            elif state["index"] < len(state["path"]):
+                remaining = max(0.01, float(profile["speed"]))
+                while remaining > 1e-6 and state["index"] < len(state["path"]):
+                    target = state["path"][state["index"]]
+                    x, y = st["pos"]
+                    dx, dy = target[0] - x, target[1] - y
+                    length = math.hypot(dx, dy)
+                    if length > 1e-6:
+                        st["yaw"] = math.atan2(dy, dx)
+                    if length <= remaining:
+                        st["pos"] = tuple(target)
+                        state["index"] += 1
+                        remaining -= length
+                    else:
+                        st["pos"] = (x + dx * remaining / length, y + dy * remaining / length)
+                        remaining = 0.0
+                st["battery"] = max(0.0, st["battery"] - float(profile["move_cost"]))
+            elif air and st["z"] > 0:
+                phase = "landing"
+                st["z"] = max(0.0, st["z"] - 3.0)
+            arrived = state["index"] >= len(state["path"]) and (not air or st["z"] <= 1e-6)
+            self.behavior_events.append(dict(kind="return_sample", pid=pid,
+                phase="returned" if arrived else phase,
+                recorded_at_sim_s=now, pos=[round(v, 3) for v in st["pos"]],
+                z=round(st["z"], 3), yaw=round(st["yaw"], 4), battery=round(st["battery"], 3)))
+            if arrived:
+                state.update(status="returned", finished=now)
+                self.behavior_events.append(dict(kind="return_completed", pid=pid,
+                    recorded_at_sim_s=now, pos=list(st["pos"]), z=st["z"], landed=bool(air)))
 
     # ---------------- 推进与反馈 ----------------
     def poll(self, now):

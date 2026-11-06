@@ -4,11 +4,13 @@ from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
 import sys
+import tempfile
 import threading
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from workbench_server import LocalServer, Workbench, load_run, make_handler, validate_config
+from workbench_server import (LocalServer, Workbench, load_run, make_handler,
+                              run_worker, validate_config)
 
 # 这两条用例校验"历史混合任务录制"（J1–J6、含累计换班）的读取口径。
 # 默认运行会随最新实验变化，因此固定在录制的 run 上，缺失时跳过。
@@ -29,6 +31,30 @@ class ConfigTests(unittest.TestCase):
                         {'command': 'arbitrary command'}]:
             with self.subTest(request=request), self.assertRaises(ValueError):
                 validate_config(request)
+
+    def test_objective_exposure_and_legacy_dispersion(self):
+        c = validate_config({'scenario': 'simple_city', 'objective': 'exposure'})
+        self.assertEqual(c['objective'], 'exposure')
+        # 2026-11：旧名 dispersion 归一为 exposure，旧请求仍可复跑。
+        c = validate_config({'scenario': 'simple_city', 'objective': 'dispersion'})
+        self.assertEqual(c['objective'], 'exposure')
+
+    def test_balanced_is_a_fourth_objective(self):
+        c = validate_config({'scenario': 'simple_city', 'objective': 'balanced'})
+        self.assertEqual(c['objective'], 'balanced')
+
+    def test_run_no_longer_emits_standalone_html(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            request = dict(scenario='simple_city', mode='normal', motion='teleport',
+                           avoid=False, behavior=False, max_ticks=12,
+                           objective='makespan', planner='base')
+            (out / 'request.json').write_text(json.dumps(request), encoding='utf-8')
+            run_worker(out)
+            self.assertTrue((out / 'report.json').is_file())
+            self.assertTrue((out / 'summary.txt').is_file())
+            self.assertFalse((out / 'report.html').exists())
+            self.assertFalse((out / 'trajectory.html').exists())
 
     def test_fleet_fast_demo(self):
         c = validate_config(dict(scenario='fleet_demo', motion='teleport', avoid=False,
@@ -98,7 +124,7 @@ class HttpTests(unittest.TestCase):
         cls.thread.join()
 
     def request(self, method, url, body=None, headers=None):
-        conn = HTTPConnection('127.0.0.1', self.server.server_port, timeout=5)
+        conn = HTTPConnection('127.0.0.1', self.server.server_port, timeout=30)
         conn.request(method, url, body=body, headers=headers or {})
         r = conn.getresponse()
         result = (r.status, r.read())
@@ -111,13 +137,31 @@ class HttpTests(unittest.TestCase):
         self.assertIn('runs', json.loads(body))
         code, body = self.request('GET', '/')
         self.assertEqual(code, 200)
-        self.assertIn('动作回放', body.decode())
-        self.assertNotIn('id="page-original"', body.decode())
+        html = body.decode()
+        self.assertIn('动作回放', html)
+        self.assertIn('value="balanced"', html)
+        self.assertIn('id="compare-panel"', html)
+        self.assertIn('id="report-objective"', html)
+        self.assertIn('id="run-compare-card"', html)
+        self.assertIn('id="show-threats"', html)
+        self.assertNotIn('id="overview-tabs"', html)
+        self.assertNotIn('id="page-original"', html)
 
     def test_bad_body_and_external_origin_are_rejected(self):
         self.assertEqual(self.request('POST', '/api/runs', '[]')[0], 400)
         self.assertEqual(self.request('POST', '/api/runs', '{}',
                                      {'Origin': 'https://example.com'})[0], 403)
+
+    def test_objective_compare_endpoint(self):
+        body = json.dumps({'scenario': 'interop_patrol'})
+        code, payload = self.request('POST', '/api/compare', body)
+        self.assertEqual(code, 200)
+        data = json.loads(payload)
+        self.assertEqual([x['objective'] for x in data['results']],
+                         ['timeliness', 'energy', 'balanced', 'exposure'])
+        self.assertTrue(data['threats'])
+        self.assertEqual(self.request('POST', '/api/compare',
+                                      json.dumps({'scenario': 'asl_city'}))[0], 400)
 
     def test_files_cannot_escape_allowlist(self):
         for path in ['/artifacts/avoid_run/../../workbench_server.py',

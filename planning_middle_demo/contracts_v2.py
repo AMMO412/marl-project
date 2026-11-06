@@ -211,7 +211,7 @@ def delivery_block(p: Platform) -> dict:
 # ------------------------------------------------------------------
 _SCENARIO_TUNING = {"H", "K", "dev_threshold", "grace_s", "max_attempts",
                     "objective", "max_ticks", "timeline", "rules"}
-_OBJECTIVES = ("makespan", "dispersion", "energy")
+_OBJECTIVES = ("makespan", "balanced", "exposure", "dispersion", "energy")
 
 # ------------------------------------------------------------------
 # timeline（实验事件时间线）——数据驱动的导调事件，减少改演示脚本的需要

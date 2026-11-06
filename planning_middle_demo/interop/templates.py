@@ -170,6 +170,15 @@ def _decompose_rcn(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     if duration <= 0:
         raise PlanningError("%s.duration_s 必须大于 0" % task.task_id)
     coordination = _coordination(task)
+    if "search_starts" in task.params:
+        slots = []
+        for index, (unit, point) in enumerate(recon_starts(task).items(), 1):
+            slot = _make_subtask(task, index, {"point": list(point)}, duration,
+                                 coordination=coordination)
+            slot.pinned_unit = unit
+            slot.role = "search:%d" % index
+            slots.append(slot)
+        return slots
 
     raw_list = task.target.get("target_list", task.params.get("target_list"))
     if raw_list is not None:
@@ -344,6 +353,20 @@ def _decompose_sec(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
             for i, p in enumerate(points)]
 
 
+def recon_starts(task: Task):
+    """校验专项侦察的分区起点，规划和执行使用同一份分配。"""
+    import containment_geom as geom
+    area = task_polygon(task, ("area",))
+    raw = task.params["search_starts"]
+    if not area or not isinstance(raw, dict) or len(raw) != task.min_units:
+        raise PlanningError("%s 需要区域和与兵力匹配的侦察起点" % task.task_id)
+    starts = {unit: as_point(point) for unit, point in raw.items()}
+    if len(set(starts.values())) != len(starts) or not all(
+            geom.inside(area, point) for point in starts.values()):
+        raise PlanningError("%s 的侦察起点须互异且位于区域内" % task.task_id)
+    return starts
+
+
 def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     duration = float(task.params.get("duration_s", 300.0))
     if duration <= 0:
@@ -351,6 +374,30 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     coordination = _coordination(task)
     if task.params.get("handover_points"):
         coordination = list(dict.fromkeys(coordination + ["handover"]))
+
+    if task.params.get("follow_boundary") or "checkpoints" in task.params:
+        _, checkpoints, _ = patrol_loop(task)
+        # 固定任务所需起巡位，缺员由调度器报告，重规划时也不缩编。
+        count = task.min_units
+        if count > len(checkpoints):
+            raise PlanningError("%s 的巡逻检查点不足以分配起巡位" % task.task_id)
+        start_units = task.params.get("start_units")
+        if start_units is not None and (
+                not isinstance(start_units, list) or len(start_units) != count
+                or not all(isinstance(unit, str) and unit for unit in start_units)
+                or len(set(start_units)) != count):
+            raise PlanningError("%s.start_units 需为每个起巡位给出不同的平台编号" % task.task_id)
+        coordination = list(dict.fromkeys(coordination + ["simultaneous_arrival"]))
+        slots = []
+        for i in range(count):
+            index = i * len(checkpoints) // count
+            slot = _make_subtask(task, i + 1, {"point": list(checkpoints[index])},
+                                 duration, coordination=coordination)
+            slot.role = "patrol:%d" % (index + 1)
+            if start_units:
+                slot.pinned_unit = start_units[i]
+            slots.append(slot)
+        return slots
 
     route = task_route(task)
     if route is not None:
@@ -373,6 +420,23 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
                               coordination=coordination)]
 
     raise PlanningError("%s（T-PTL）缺少 route / patrol_area / point" % task.task_id)
+
+
+def patrol_loop(task: Task):
+    """读取区域巡逻的有序检查点，供规划与执行共用。"""
+    import containment_geom as geom
+    area = task_polygon(task, ("patrol_area", "area"))
+    follow_boundary = task.params.get("follow_boundary")
+    checkpoints = (area or []) if follow_boundary else target_points(
+        {"route": task.params["checkpoints"]})
+    cycles = task.params.get("cycles", 1)
+    if (not area or len(set(checkpoints)) < 3
+            or len(set(checkpoints)) != len(checkpoints)
+            or (not follow_boundary and not all(geom.inside(area, p) for p in checkpoints))):
+        raise PlanningError("%s 需要至少三个互异的巡逻点，取自区域顶点或位于区内" % task.task_id)
+    if type(cycles) is not int or cycles < 1:
+        raise PlanningError("%s.cycles 必须是正整数" % task.task_id)
+    return area, checkpoints, cycles
 
 
 HLD_ROLE_KEYS = ("post", "reserve", "support", "relay", "air")

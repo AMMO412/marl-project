@@ -1,0 +1,345 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-CROSSROAD-RELAY-001",
+  "issued_at": "2026-11-04T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "RCN-1",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -31,
+            -23
+          ],
+          [
+            31,
+            -23
+          ],
+          [
+            31,
+            39
+          ],
+          [
+            -31,
+            39
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 300
+      },
+      "required_capabilities": {
+        "RCN": 2
+      },
+      "min_units": 4,
+      "max_units": 4,
+      "params": {
+        "duration_s": 145,
+        "search_deadline_s": 180,
+        "search_starts": {
+          "U5": [
+            -22,
+            -14
+          ],
+          "U6": [
+            20,
+            29
+          ],
+          "U7": [
+            -24,
+            4
+          ],
+          "U8": [
+            22,
+            -14
+          ]
+        },
+        "cell": 4,
+        "sensor_radius_m": {
+          "ground": 9,
+          "air": 12
+        },
+        "coverage_target": 0.99,
+        "tracking_target": {
+          "target_id": "RELAY-OBS-1",
+          "start": [
+            -24,
+            0
+          ],
+          "goal": [
+            128,
+            0
+          ],
+          "move_after_s": 0,
+          "speed_mps": 1.1,
+          "track_outside_s": 15
+        },
+        "relay_target": {
+          "target_id": "RELAY-OBS-1",
+          "start": [
+            -40,
+            0
+          ],
+          "goal": [
+            128,
+            0
+          ],
+          "speed_mps": 1.1
+        }
+      },
+      "description": "先展开区域侦察，发现并跟踪目标，覆盖与跟踪结算成功后交接给巡逻。"
+    },
+    {
+      "task_id": "PTL-1",
+      "task_type": "T-PTL",
+      "priority": 1,
+      "target": {
+        "patrol_area": [
+          [
+            40,
+            -5
+          ],
+          [
+            84,
+            -5
+          ],
+          [
+            84,
+            5
+          ],
+          [
+            40,
+            5
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 600
+      },
+      "required_capabilities": {
+        "PTL": 1
+      },
+      "min_units": 4,
+      "max_units": 4,
+      "params": {
+        "duration_s": 130,
+        "follow_boundary": true,
+        "cycles": 2,
+        "start_units": [
+          "U1",
+          "U3",
+          "U2",
+          "U4"
+        ],
+        "sensor_radius_m": {
+          "ground": 16,
+          "air": 23
+        },
+        "observation_target": {
+          "target_id": "RELAY-OBS-1",
+          "start": [
+            -40,
+            0
+          ],
+          "goal": [
+            128,
+            0
+          ],
+          "speed_mps": 1.1
+        },
+        "after_event": {
+          "task_id": "RCN-1",
+          "kind": "report_sent",
+          "overall": "succeeded"
+        }
+      },
+      "description": "侦察完成后沿东侧通道巡逻，接力发现同一目标并上报封控组。",
+      "depends_on": [
+        "RCN-1"
+      ]
+    },
+    {
+      "task_id": "SEC-1",
+      "task_type": "T-SEC",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            92,
+            -11
+          ],
+          [
+            124,
+            -11
+          ],
+          [
+            124,
+            11
+          ],
+          [
+            92,
+            11
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 420
+      },
+      "required_capabilities": {
+        "HLD": 3
+      },
+      "min_units": 4,
+      "max_units": 4,
+      "params": {
+        "hold_duration_s": 125,
+        "roles": {
+          "boundary": 2,
+          "gate": 1,
+          "intercept": 1
+        },
+        "gates": [
+          {
+            "gate_id": "WEST",
+            "point": [
+              92,
+              0
+            ],
+            "width": 12,
+            "direction": [
+              1,
+              0
+            ]
+          }
+        ],
+        "standoff_m": 4,
+        "intercept_post": [
+          101,
+          0
+        ],
+        "sensor_radius_m": 32,
+        "warn_range_m": 10,
+        "control_objective": "deny_entry",
+        "control_level": "block",
+        "engagement_authority": "on_order",
+        "max_leak_rate": 0,
+        "intruders": [
+          {
+            "target_id": "RELAY-OBS-1",
+            "start": [
+              55,
+              0
+            ],
+            "goal": [
+              128,
+              0
+            ],
+            "speed_mps": 1.1,
+            "t_start_s": 0,
+            "authorized": false,
+            "compliance": true
+          }
+        ],
+        "after_event": {
+          "task_id": "PTL-1",
+          "kind": "patrol_position_report",
+          "target_id": "RELAY-OBS-1"
+        },
+        "relay_verdict": true
+      },
+      "description": "收到巡逻位置上报后部署通道，向同一目标发出模拟警告。"
+    },
+    {
+      "task_id": "HLD-1",
+      "task_type": "T-HLD",
+      "priority": 1,
+      "target": {
+        "key_point": [
+          110,
+          0
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 580
+      },
+      "required_capabilities": {
+        "HLD": 3
+      },
+      "min_units": 4,
+      "max_units": 4,
+      "depends_on": [
+        "SEC-1"
+      ],
+      "params": {
+        "hold_duration_s": 35,
+        "roles": {
+          "post": 4
+        },
+        "min_on_post": 3,
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              102,
+              0
+            ],
+            "facing_deg": 270,
+            "min_units": 1
+          },
+          {
+            "id": "P2",
+            "point": [
+              110,
+              7
+            ],
+            "facing_deg": 0,
+            "min_units": 1
+          },
+          {
+            "id": "P3",
+            "point": [
+              118,
+              0
+            ],
+            "facing_deg": 90,
+            "min_units": 1
+          },
+          {
+            "id": "P4",
+            "point": [
+              110,
+              -7
+            ],
+            "facing_deg": 180,
+            "min_units": 1
+          }
+        ],
+        "hold_criteria": "quantity",
+        "sensor_radius_m": 24,
+        "observation_ring_m": 14,
+        "observation_gap_max_s": 8,
+        "patrol_enabled": false,
+        "enemy_events": [
+          {
+            "t_s": 22,
+            "kind": "probe",
+            "direction": "E"
+          }
+        ],
+        "after_event": {
+          "task_id": "SEC-1",
+          "kind": "containment_result",
+          "verdict": "succeeded"
+        },
+        "relay_verdict": true
+      },
+      "description": "封控成功后复用释放的平台，部署关键通道阵位并保持观察。"
+    }
+  ]
+}

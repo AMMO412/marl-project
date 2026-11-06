@@ -45,6 +45,7 @@ class BehaviorRunner:
                  ticks_per_step=10, caps=None):
         self.nav = nav
         self.behavior = behavior
+        self.continuous = getattr(behavior, 'continuous', False)
         self.dt = dt
         self.ticks_per_step = ticks_per_step
         speeds = speeds or {}
@@ -109,8 +110,10 @@ class BehaviorRunner:
         该平台一直占着不放，连带 J5 每轮都因"成员忙"派不出去。吸附位移
         用 start_snapped 事件显式记录，不悄悄挪点、不计里程。
         """
+        # 连续巡逻与侦察用平滑后的折点，避免密集短航点在高速转向时诱发绕点。
+        options = {'densify': 0} if self.continuous else {}
         try:
-            return self.nav.plan((agent.x, agent.y), target)
+            return self.nav.plan((agent.x, agent.y), target, **options)
         except city_nav.NavError as exc:
             if str(exc) != 'start_in_obstacle':
                 self._log_route_failed(agent, target, str(exc))
@@ -130,7 +133,7 @@ class BehaviorRunner:
                 note='出生/当前点在膨胀障碍内，吸附到最近可通行点'))
             agent.x, agent.y = float(snapped[0]), float(snapped[1])
             try:
-                return self.nav.plan((agent.x, agent.y), target)
+                return self.nav.plan((agent.x, agent.y), target, **options)
             except city_nav.NavError as exc2:
                 self._log_route_failed(agent, target, str(exc2))
                 return None
@@ -212,10 +215,9 @@ class BehaviorRunner:
                                 mode='ground_astar'))
 
     # ---- 单步 ----
-    def step(self):
+    def _advance_behavior(self, t, dt):
         poses = {pid: (a.x, a.y, a.yaw) for pid, a in self.agents.items()}
-        speeds = {pid: a.speed for pid, a in self.agents.items()}
-        out = self.behavior.step(poses, self.time, 1.0)
+        out = self.behavior.step(poses, t, dt)
         self._speed_scale = out.get('speed_scale') or {}
         self._air_speed_scale = out.get('air_speed_scale') or {}
         debug = self.behavior.debug() if hasattr(self.behavior, 'debug') else {}
@@ -223,10 +225,15 @@ class BehaviorRunner:
         phase = out.get('phase') or self.behavior.phase
         if phase != self._last_phase:
             self._last_phase = phase
-            self.events.append(dict(t=round(self.time, 2), kind='phase',
+            self.events.append(dict(t=round(t, 2), kind='phase',
                                     job_id=self._job, phase=phase))
         for pid, agent in self.agents.items():
             self._set_target(agent, targets.get(pid))
+        return out, phase, debug
+
+    def step(self):
+        out, phase, debug = self._advance_behavior(
+            self.time, self.dt if self.continuous else 1.0)
         if (not self._inside and self.behavior.kind != 'assault'
                 and distance((self.agents[self.behavior.pids[0]].x,
                               self.agents[self.behavior.pids[0]].y),
@@ -238,6 +245,10 @@ class BehaviorRunner:
                                     job_id=self._job))
         # 步内 10 拍闭环跟随
         for k in range(self.ticks_per_step):
+            if k and self.continuous and not out.get('done'):
+                out, phase, debug = self._advance_behavior(self.time + k * self.dt, self.dt)
+            if self.continuous and out.get('done'):
+                break
             for agent in self.agents.values():
                 if agent.can_climb and agent.altitude > 0:
                     # 空中直飞：两点线段按速度推进；高度按爬升率趋近巡航高

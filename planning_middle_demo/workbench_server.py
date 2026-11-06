@@ -4,6 +4,7 @@ from datetime import datetime
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 import mimetypes
 from pathlib import Path
 import re
@@ -12,6 +13,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 from urllib.parse import unquote, urlparse
 from urllib.request import urlopen
 import webbrowser
@@ -24,10 +26,13 @@ SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场
              'interop_neutral': '融合版五类任务样例（4.1 统一接口）',
              'interop_containment': '区域封控演示（T-SEC）',
              'interop_hold': '要点坚守演示（T-HLD）',
+             'interop_patrol': '巡逻警戒演示（T-PTL）',
+             'interop_recon': '协同侦察演示（T-RCN）',
+             'interop_relay': '十字路口接力处置演示',
              'interop_asl': '融合版机动突击样例（T-ASL）'}
 # 融合统一层覆盖五类任务：中性四类 + T-ASL（打击/判定仍由基座行为层执行）。
 INTEROP_SCENARIOS = {'interop_neutral', 'interop_containment', 'interop_hold',
-                     'interop_asl'}
+                     'interop_patrol', 'interop_recon', 'interop_relay', 'interop_asl'}
 # 4.1 原生场景：工作台直接读消息+编成表，规划走 interop，运行时用派生 v2 视图。
 INTEROP_PAIRS = {'interop_neutral': ('mixed_inspection.message.json',
                                      'mixed_inspection.formation.json'),
@@ -35,11 +40,18 @@ INTEROP_PAIRS = {'interop_neutral': ('mixed_inspection.message.json',
                                          'area_containment.formation.json'),
                  'interop_hold': ('key_point_hold.message.json',
                                   'key_point_hold.formation.json'),
+                 'interop_patrol': ('area_patrol.message.json',
+                                    'area_patrol.formation.json'),
+                 'interop_recon': ('crossroad_recon.message.json',
+                                   'crossroad_recon.formation.json'),
+                 'interop_relay': ('crossroad_relay.message.json',
+                                    'crossroad_relay.formation.json'),
                  'interop_asl': ('asl_junction.message.json',
                                  'asl_junction.formation.json')}
 # 带静态障碍地图、可以开绕障的场景（其余场景没有真实障碍，绕障无意义）
 AVOID_SCENARIOS = {'simple_city', 'asl_city', 'interop_containment',
-                   'interop_hold', 'interop_asl'}
+                   'interop_hold', 'interop_patrol', 'interop_recon', 'interop_relay',
+                   'interop_asl'}
 MODES = {'normal': '正常执行', 'failure': '失败重试', 'timeout': '超时恢复',
          'kill': '成员失联', 'deviation': '进度偏差'}
 ARTIFACTS = {'manifest.json', 'scenario.json', 'report.json', 'trace.jsonl',
@@ -52,7 +64,7 @@ SOURCES = {'entry': ROOT.parent / 'README.md',
            'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
            'coordinator': ROOT / 'coordinator_v2.py', 'fleet': ROOT / 'mock_fleet.py',
            'contracts': ROOT / 'contracts_v2.py'}
-WORKBENCH_VERSION = '2026-11-03-workbench-ui'
+WORKBENCH_VERSION = '2026-11-04-workbench-return'
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -79,6 +91,10 @@ def validate_config(data):
                   avoid=True, max_ticks=200, objective='makespan',
                   behavior=True, effect_kind='damage', planner='base')
     result.update(data)
+    # 2026-11：工作台第三目标由“空间分散度”改为“暴露度（被侦测概率）”。
+    # 旧请求/旧脚本里的 dispersion 统一归一为 exposure，旧运行仍可复跑。
+    if result.get('objective') == 'dispersion':
+        result['objective'] = 'exposure'
     # Disabled browser fields may arrive as null from older clients.
     if result['scenario'] != 'asl_city' and result['effect_kind'] is None:
         result['effect_kind'] = 'damage'
@@ -86,7 +102,7 @@ def validate_config(data):
                          ('motion', ('real', 'teleport')),
                          ('planner', {'base': '基座 planner_v2',
                                       'interop': '融合统一层'}),
-                         ('objective', ('makespan', 'energy', 'dispersion'))]:
+                         ('objective', ('makespan', 'energy', 'balanced', 'exposure'))]:
         if not isinstance(result[key], str) or result[key] not in choices:
             raise ValueError('无效参数：' + key)
     if result['planner'] == 'interop' and result['scenario'] not in INTEROP_SCENARIOS:
@@ -126,9 +142,17 @@ def validate_config(data):
             result['max_ticks'] = 280
     if 'max_ticks' not in data and result['scenario'] == 'interop_asl':
         result['max_ticks'] = 700
+    if result['scenario'] in ('interop_patrol', 'interop_recon', 'interop_relay'):
+        result.update(motion='real', avoid=True, behavior=True)
+        if 'max_ticks' not in data:
+            result['max_ticks'] = {'interop_recon': 220, 'interop_relay': 380}.get(
+                result['scenario'], 320)
     if 'avoid' not in data and result['scenario'] in INTEROP_PAIRS:
         result['avoid'] = result['scenario'] in ('interop_containment',
                                                  'interop_hold',
+                                                 'interop_patrol',
+                                                 'interop_recon',
+                                                 'interop_relay',
                                                  'interop_asl')
     if result['scenario'] == 'interop_asl':
         # 4.1 原生突击样例：行为与效果判定必须开，且只能逐步运动 + 城市避障。
@@ -151,11 +175,62 @@ def validate_config(data):
     return result
 
 
+def compare_objectives(scenario_key):
+    """Plan the same scenario under four objectives; no simulation is started."""
+    if scenario_key not in INTEROP_PAIRS:
+        raise ValueError('四目标对比只支持融合版场景（interop_*）')
+    from interop.cost import OBJECTIVE_LABELS
+    from interop.message import parse_message
+    from interop.scheduler import Planner
+
+    message_name, formation_name = INTEROP_PAIRS[scenario_key]
+    raw_message = read_json(ROOT / 'interop' / 'scenarios' / message_name)
+    raw_formation = read_json(ROOT / 'interop' / 'scenarios' / formation_name)
+    scenario = parse_message(raw_message, raw_formation)
+    order = ('timeliness', 'energy', 'balanced', 'exposure')
+    results = []
+    for objective in order:
+        started = time.perf_counter()
+        plan = Planner(scenario, objective=objective).plan()
+        elapsed = (time.perf_counter() - started) * 1000.0
+        metrics = plan.objective_metrics or {}
+        results.append(dict(
+            objective=objective,
+            label=OBJECTIVE_LABELS.get(objective, objective),
+            assigned=plan.metrics.assigned_subtasks,
+            total=plan.metrics.assigned_subtasks + plan.metrics.unassigned_subtasks,
+            makespan_s=plan.metrics.makespan_s,
+            total_energy=metrics.get('total_energy', 0.0),
+            total_exposure=metrics.get('total_exposure', 0.0),
+            detection_probability=metrics.get('detection_probability', 0.0),
+            unassigned=[u.get('reason') for u in plan.unassigned],
+            runtime_ms=round(elapsed, 1),
+        ))
+    threats = []
+    for item in scenario.constraints:
+        if item.get('type') != 'threat':
+            continue
+        polygon = (item.get('area') or {}).get('polygon') or []
+        threats.append(dict(
+            id=item.get('constraint_id'),
+            intensity=item.get('intensity', 1.0),
+            applies_to=item.get('applies_to', 'ground'),
+            polygon=polygon,
+        ))
+    return dict(
+        scenario=scenario_key,
+        objectives=list(order),
+        results=results,
+        threats=threats,
+        note='规划层结果，未执行；同一场景、同一编成，仅切换目标。'
+             '不同目标可能给出相同计划，需结合完成数与硬约束看。',
+    )
+
+
 def run_worker(out):
     """Reuse the planner and its exporters; retain every run in a fresh directory."""
     from run_demo_v2 import simulate
-    from reporting_v2 import render_html, render_text
-    from trajectory_v2 import render
+    from reporting_v2 import render_text
     config = validate_config(read_json(out / 'request.json'))
     custom = None
     scenario41 = None
@@ -173,8 +248,10 @@ def run_worker(out):
         raw_formation = read_json(formation_path)
         scenario41 = parse_message(raw_message, raw_formation)
         scenario = to_v2_dict(scenario41, raw_message, raw_formation)
-        scenario['objective'] = ('energy' if config['objective'] == 'energy'
-                                 else 'makespan')
+        scenario['objective'] = {'energy': 'energy',
+                                 'exposure': 'exposure',
+                                 'balanced': 'balanced'}.get(
+                                     config['objective'], 'makespan')
         custom = InteropPlanner(scenario41, objective=config['objective'],
                                 data=scenario)
         source = message_path
@@ -185,7 +262,8 @@ def run_worker(out):
         # 行为层（绕障/占位）才在同一张地图上跑，不去猜 simple_city 坐标。
         if config['avoid']:
             from interop.runtime import nav_from_scenario
-            nav = nav_from_scenario(scenario41)
+            nav = nav_from_scenario(
+                scenario41, avoid_threats=(config['objective'] == 'exposure'))
     else:
         source = ROOT / 'scenarios' / (config['scenario'] + '.json')
         scenario = read_json(source)
@@ -207,6 +285,11 @@ def run_worker(out):
     report, audit = simulate(scenario, mode=config['mode'], motion=config['motion'],
                              avoid=config['avoid'], max_ticks=config['max_ticks'],
                              behavior=config['behavior'], planner=custom, nav=nav)
+    if config['planner'] == 'base' and config['objective'] in ('exposure', 'balanced'):
+        # 基座历史场景（simple_city/asl_city）没有 constraints，也没有均衡代价；
+        # 这两个目标在基座都会退化为完工时间，必须在报告里说明。
+        report['limitation'] = (report.get('limitation', '')
+                                + '；本场景无威胁区/均衡代价，目标按完工时间处理')
 
     plan_files = []
     if scenario41 is not None:
@@ -214,9 +297,15 @@ def run_worker(out):
         # ros2_commands.txt 与 run 的反馈轨迹是两份不同来源的数据。
         from interop.output import write_outputs
         from interop.scheduler import Planner
-        objective = {'makespan': 'timeliness', 'dispersion': 'balanced'}.get(
+        objective = {'makespan': 'timeliness'}.get(
             config['objective'], config['objective'])
         plan = Planner(scenario41, objective=objective).plan()
+        # 把计划层指标挂到运行报告，结果卡可直接显示目标、makespan、
+        # 总暴露量与 P；不改动仿真报告原有字段。
+        report['plan_objective'] = plan.objective
+        report['plan_objective_metrics'] = plan.objective_metrics
+        report['plan_assignments'] = len(plan.assignments)
+        report['plan_unassigned'] = len(plan.unassigned)
         bundle = out / '.plan_bundle'
         write_outputs(plan, scenario41, str(bundle),
                       input_paths={'message': inputs.get('message'),
@@ -228,6 +317,12 @@ def run_worker(out):
                 (out / name).write_bytes((bundle / name).read_bytes())
                 plan_files.append(name)
         shutil.rmtree(bundle, ignore_errors=True)
+    if scenario41 is not None:
+        from trajectory_v2 import build_replay_data
+        replay = build_replay_data(scenario, report, audit)
+        exec_x, exec_p = execution_exposure(replay, scenario41.constraints)
+        report['execution_exposure'] = round(exec_x, 3)
+        report['execution_detection_probability'] = round(exec_p, 4)
     manifest = dict(protocol=report['protocol'], python=sys.version,
                     scenario=str(source),
                     inputs=inputs,
@@ -245,11 +340,6 @@ def run_worker(out):
     (out / 'trace.jsonl').write_text(''.join(json.dumps(e, ensure_ascii=False) + '\n'
                                            for e in audit), encoding='utf-8')
     (out / 'summary.txt').write_text(render_text(scenario, report, audit), encoding='utf-8')
-    _gz = {n: n for n in ('commands.csv', 'ros2_commands.txt', 'plan.json')
-           if (out / n).is_file()}
-    (out / 'report.html').write_text(
-        render_html(scenario, report, audit, extra_files=_gz), encoding='utf-8')
-    render(out)
 
 
 def compact_plan(doc, max_points=90):
@@ -277,6 +367,75 @@ def compact_plan(doc, max_points=90):
                 makespan_s=(doc.get('metrics') or {}).get('makespan_s'))
 
 
+def _inside_polygon(polygon, x, y):
+    inside = False
+    for i in range(len(polygon)):
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[(i + 1) % len(polygon)]
+        if (y1 > y) != (y2 > y):
+            cross = (x2 - x1) * (y - y1) / ((y2 - y1) or 1e-12) + x1
+            if x < cross:
+                inside = not inside
+    return inside
+
+
+def execution_exposure(replay, constraints):
+    """Exposure actually accumulated by recorded execution samples.
+
+    Planning exposure is computed from planned routes.  The behavior layer can
+    choose a different route, so this second metric is needed to avoid showing
+    "plan 0" while the recorded trajectory visibly crosses a threat zone.
+    """
+    threats = []
+    for item in constraints or []:
+        if item.get('type') != 'threat':
+            continue
+        polygon = (item.get('area') or {}).get('polygon') or []
+        if len(polygon) >= 3:
+            threats.append((float(item.get('intensity', 1.0)),
+                            str(item.get('applies_to', 'ground')), polygon))
+    if not threats:
+        return 0.0, 0.0
+    from interop.cost import CLASS_PROTECTION, CLASS_SIGNATURE
+    total = 0.0
+    for worker in replay.get('workers') or []:
+        kind = str(worker.get('kind'))
+        if kind not in ('UGV', 'TANK', 'PLANE', 'WING'):
+            continue
+        factor = CLASS_SIGNATURE.get(kind, 1.0) * max(
+            0.0, 1.0 - CLASS_PROTECTION.get(kind, 0.0))
+        samples = sorted((p for p in worker.get('samples') or []
+                          if math.isfinite(float(p.get('t', 0)))),
+                         key=lambda p: float(p['t']))
+        for first, second in zip(samples, samples[1:]):
+            dt = float(second['t']) - float(first['t'])
+            if dt <= 0:
+                continue
+            x = (float(first['x']) + float(second['x'])) / 2.0
+            y = (float(first['y']) + float(second['y'])) / 2.0
+            for intensity, applies_to, polygon in threats:
+                # ground 威胁默认只作用于地面平台；all 才把空中平台计入。
+                if applies_to != 'all' and kind not in ('UGV', 'TANK'):
+                    continue
+                if _inside_polygon(polygon, x, y):
+                    total += intensity * dt * factor
+                    break
+    probability = 1.0 - math.exp(-0.1 * total)
+    return total, probability
+
+
+def plan_objective_metrics(out):
+    """Read plan-level metrics from an existing plan.json, if present."""
+    path = out / 'plan.json'
+    if not path.is_file():
+        return {}
+    try:
+        doc = read_json(path)
+        return doc.get('objective_metrics') or {}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+
+
 def run_path(run_id):
     if not re.fullmatch(r'[A-Za-z0-9_-]+', run_id):
         raise ValueError('无效运行编号')
@@ -297,6 +456,7 @@ def load_run(run_id):
              if line.strip()]
     replay = build_replay_data(scenario, report, trace)
     obstacles, geometry_note = [], ''
+    threats = []
     roads, landmarks, fleet_state = [], [], {}
     meta = scenario.get('_meta', {})
     bundle = meta.get('interop') or {}
@@ -310,6 +470,12 @@ def load_run(run_id):
                 obstacles.append(dict(id=item.get('constraint_id'),
                                       label=item.get('source') or item.get('constraint_id'),
                                       source='interop_constraint', polygon=polygon))
+            elif item.get('type') == 'threat' and polygon:
+                threats.append(dict(id=item.get('constraint_id') or 'THREAT',
+                                    label=item.get('constraint_id') or '威胁区',
+                                    intensity=item.get('intensity', 1.0),
+                                    applies_to=item.get('applies_to', 'ground'),
+                                    polygon=polygon))
         geometry_note = '障碍来自本轮编成表 no_go 约束；道路和地标仅作同源场景底图。'
         scene_meta = formation.get('meta') or {}
         state_path = ROOT / 'scenarios' / 'sdf_initial_state.json'
@@ -394,15 +560,29 @@ def load_run(run_id):
     except (OSError, ValueError, KeyError) as exc:
         backdrop = dict(error=str(exc))
     plan_payload = None
+    plan_doc = None
     plan_path = out / 'plan.json'
     if plan_path.is_file():
         try:
-            plan_payload = compact_plan(read_json(plan_path))
+            plan_doc = read_json(plan_path)
+            plan_payload = compact_plan(plan_doc)
         except (OSError, ValueError, KeyError, TypeError) as exc:
             plan_payload = dict(error=str(exc))
+    # 旧运行报告没有 plan_objective_metrics；若 plan.json 仍在，直接补出来，
+    # 结果卡/对比表就能显示当时计划的目标、暴露量与 P，无需重跑。
+    if isinstance(plan_doc, dict) and not report.get('plan_objective_metrics'):
+        metrics = plan_doc.get('objective_metrics') or {}
+        if metrics:
+            report['plan_objective_metrics'] = metrics
+            report['plan_objective'] = plan_doc.get('objective')
+    if 'execution_exposure' not in report:
+        exec_x, exec_p = execution_exposure(replay, (formation or {}).get('constraints'))
+        report['execution_exposure'] = round(exec_x, 3)
+        report['execution_detection_probability'] = round(exec_p, 4)
     return dict(id=run_id, scenario=scenario, report=report, trace=trace, replay=replay,
                 manifest=read_json(out / 'manifest.json') if (out / 'manifest.json').exists() else {},
                 obstacles=obstacles, geometry_note=geometry_note, scene_map=backdrop,
+                threats=threats,
                 roads=roads, landmarks=landmarks, fleet_state=fleet_state, plan=plan_payload,
                 files=[n for n in sorted(ARTIFACTS) if (out / n).is_file()])
 
@@ -461,19 +641,28 @@ class Workbench:
                 continue
             if not (out / 'trace.jsonl').is_file():
                 continue
-            if out.name.startswith('workbench_') and not (out / 'trajectory.html').is_file():
+            if out.name.startswith('workbench_') and not (out / 'report.json').is_file():
                 continue
             # Do not expose a partial run before the subprocess finishes exporting.
             if self.process and out.name == self.current and self.process.poll() is None:
                 continue
             try:
                 r = read_json(out / 'report.json')
+                metrics = r.get('plan_objective_metrics') or plan_objective_metrics(out)
                 runs.append(dict(id=out.name, done=r['done'], total=len(r['jobs']),
                                  scenario=self._scenario_label(out),
                                  mode=r.get('mode', 'normal'), motion=r.get('motion', 'teleport'),
                                  avoid=r.get('avoid', False), behavior=r.get('behavior', False),
                                  behavior_details=r.get('behavior_details', False),
                                  objective=r.get('objective'),
+                                 plan_objective=r.get('plan_objective'),
+                                 makespan=metrics.get('makespan_s') or r.get('makespan'),
+                                 plan_energy=metrics.get('total_energy') or r.get('used_energy'),
+                                 exposure=metrics.get('total_exposure'),
+                                 execution_exposure=r.get('execution_exposure'),
+                                 execution_detection_probability=r.get(
+                                     'execution_detection_probability'),
+                                 detection_probability=metrics.get('detection_probability'),
                                  planner=r.get('planner', 'base_v2'),
                                  end=r.get('simulated_until_s'), energy=r.get('used_energy'),
                                  settled=r.get('settled'), retries=r.get('retries', 0),
@@ -588,12 +777,17 @@ def make_handler(app):
             expected = 'http://' + self.headers.get('Host', '')
             if origin and origin != expected:
                 return self.send({'error': '仅允许工作台本身发起运行'}, code=403)
-            if self.path != '/api/runs':
+            if self.path not in ('/api/runs', '/api/compare'):
                 return self.send({'error': '接口不存在'}, code=404)
             try:
                 if length < 1 or length > 4096:
                     raise ValueError('请求大小无效')
                 data = json.loads(body)
+                if self.path == '/api/compare':
+                    scenario = data.get('scenario')
+                    if not isinstance(scenario, str):
+                        raise ValueError('缺少场景')
+                    return self.send(compare_objectives(scenario))
                 self.send(app.start(data), code=202)
             except RuntimeError as exc:
                 self.send({'error': str(exc)}, code=409)
