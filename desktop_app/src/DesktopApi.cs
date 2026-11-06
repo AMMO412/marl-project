@@ -94,6 +94,7 @@ namespace MarlDesktopPreview
 
         private string Post(string path, string body)
         {
+            ServicePointManager.Expect100Continue = false;
             using (WebClient client = new WebClient())
             {
                 client.Encoding = Encoding.UTF8;
@@ -329,8 +330,18 @@ namespace MarlDesktopPreview
                 }
                 process = new Process();
                 process.StartInfo = info;
-                process.OutputDataReceived += delegate(object s, DataReceivedEventArgs e) { if (!string.IsNullOrEmpty(e.Data)) log(e.Data); };
-                process.ErrorDataReceived += delegate(object s, DataReceivedEventArgs e) { if (!string.IsNullOrEmpty(e.Data)) log("[stderr] " + e.Data); };
+                process.OutputDataReceived += delegate(object s, DataReceivedEventArgs e)
+                {
+                    if (string.IsNullOrEmpty(e.Data)) return;
+                    log(e.Data);
+                    AppendBackendLog(e.Data);
+                };
+                process.ErrorDataReceived += delegate(object s, DataReceivedEventArgs e)
+                {
+                    if (string.IsNullOrEmpty(e.Data)) return;
+                    log("[stderr] " + e.Data);
+                    AppendBackendLog("[stderr] " + e.Data);
+                };
                 if (!process.Start()) throw new InvalidOperationException("本地后端进程启动失败。");
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
@@ -379,6 +390,16 @@ namespace MarlDesktopPreview
                 catch (Exception) { }
             }
             return null;
+        }
+
+        private static void AppendBackendLog(string text)
+        {
+            try
+            {
+                File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "backend.log"),
+                    DateTime.Now.ToString("HH:mm:ss.fff") + " " + text + "\r\n", Encoding.UTF8);
+            }
+            catch (Exception) { }
         }
 
         private static int FindFreePort()

@@ -39,9 +39,25 @@
     element.click();
     return true;
   }
+  function refresh() {
+    return click('#refresh');
+  }
   function selectRun(id) {
     var element = q('#run-select');
     if (!element) return false;
+    var found = false;
+    for (var i = 0; i < element.options.length; i++) {
+      if (element.options[i].value === id) { found = true; break; }
+    }
+    if (!found) {
+      // A run created after the page loaded is not in the select yet.
+      click('#refresh');
+      window.setTimeout(function () {
+        var later = q('#run-select');
+        if (later) { later.value = id; fire(later, 'change'); }
+      }, 1000);
+      return true;
+    }
     element.value = id;
     return fire(element, 'change');
   }
@@ -99,13 +115,27 @@
     if (containmentFit) containmentFit.click();
     return true;
   }
-  function startReplay(taskId, seconds) {
+  function startReplay(taskId, seconds, runId) {
     var tries = 0;
     var timer = window.setInterval(function () {
       var duration = Number(((q('#duration') || {}).textContent || '0').replace(/[^0-9.\-]/g, '')) || 0;
-      if (duration > 0) {
+      var currentRun = (q('#run-select') || {}).value || '';
+      if (duration > 0 && (!runId || currentRun === runId)) {
         window.clearInterval(timer);
-        if (taskId) selectTask(taskId);
+        var taskTries = 0;
+        var chooseTask = function () {
+          if (!taskId) return;
+          var select = q('#task-select');
+          var found = false;
+          if (select) {
+            for (var i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === taskId) { found = true; break; }
+            }
+          }
+          if (found) { selectTask(taskId); return; }
+          if (++taskTries < 12) window.setTimeout(chooseTask, 300);
+        };
+        chooseTask();
         setTime(seconds);
         play();
         fit();
@@ -147,6 +177,7 @@
     setTime: setTime,
     setLayer: setLayer,
     fit: fit,
+    refresh: refresh,
     startReplay: startReplay
   };
 

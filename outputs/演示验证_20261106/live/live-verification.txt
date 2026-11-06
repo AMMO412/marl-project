@@ -1,9 +1,9 @@
 web_ready=True
-web_state="{\"runId\":\"workbench_20261106_163934_573502\",\"taskId\":\"T1\",\"time\":47.6,\"duration\":229,\"playing\":true,\"page\":\"overview\"}"
+web_state="{\"runId\":\"workbench_20261106_165716_538046\",\"taskId\":\"T1\",\"time\":48.1,\"duration\":229,\"playing\":true,\"page\":\"overview\"}"
 backend=http://127.0.0.1:8767
-run=workbench_20261106_163934_573502
+run=workbench_20261106_165716_538046
 tasks=1
 platforms=50
 task_view_status=任务视图：已连接本地可视化页面
-status=已载入真实运行 workbench_20261106_163934_573502（229.0 s）
+status=已载入真实运行 workbench_20261106_165716_538046（229.0 s）
 bounds=30,30,1500,940

@@ -281,7 +281,8 @@ namespace MarlDesktopPreview
                         pendingRunId = "";
                         Bridge("selectRun(" + desktopJson.Serialize(id) + ")");
                         Bridge("startReplay(" + desktopJson.Serialize(pendingTaskId) + ", "
-                               + pendingStart.ToString("0.###", CultureInfo.InvariantCulture) + ")");
+                               + pendingStart.ToString("0.###", CultureInfo.InvariantCulture) + ", "
+                               + desktopJson.Serialize(id) + ")");
                     }
                     else if (!string.IsNullOrEmpty(desktopRunId))
                     {
@@ -455,7 +456,8 @@ namespace MarlDesktopPreview
             {
                 string taskId = desktopRun.Tasks[0].Id;
                 Bridge("startReplay(" + desktopJson.Serialize(taskId) + ", "
-                       + startAt.ToString("0.###", CultureInfo.InvariantCulture) + ")");
+                       + startAt.ToString("0.###", CultureInfo.InvariantCulture) + ", "
+                       + desktopJson.Serialize(run.Id) + ")");
             }
             OpenTaskView();
             Bridge("fit()");
@@ -615,7 +617,8 @@ namespace MarlDesktopPreview
                     {
                         if (desktopRunButton != null) desktopRunButton.Enabled = true;
                         SetTaskViewStatus("任务视图：运行失败。" + ex.Message);
-                        LogDesktop("运行失败：" + ex.Message);
+                        LogDesktop("运行失败：" + ex.ToString());
+                        try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "run-error.txt"), ex.ToString()); } catch (Exception) { }
                     });
                 }
             });
@@ -716,6 +719,11 @@ namespace MarlDesktopPreview
                 if (log.TextLength > 60000) log.Text = log.Text.Substring(log.TextLength - 30000);
                 log.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text + "\r\n");
             });
+        }
+
+        public void StartDemoRunForVerification()
+        {
+            RunSelectedScenario();
         }
 
         public void CaptureLiveVerification(string directory)

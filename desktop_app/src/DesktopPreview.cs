@@ -812,6 +812,35 @@ namespace MarlDesktopPreview
                 }
                 catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "verification-error.txt"), ex.ToString()); return 1; }
             }
+            if (args.Length == 2 && args[0] == "--run-verify")
+            {
+                try
+                {
+                    using (MainWindow form = new MainWindow())
+                    {
+                        form.StartPosition = FormStartPosition.Manual;
+                        form.Location = new Point(30, 30);
+                        form.Show();
+                        int ticks = 0;
+                        Timer timer = new Timer { Interval = 1000 };
+                        liveVerifyTimer = timer;
+                        timer.Tick += delegate
+                        {
+                            ticks++;
+                            if (ticks == 8) form.StartDemoRunForVerification();
+                            if (ticks < 50) return;
+                            timer.Stop();
+                            try { form.CaptureLiveVerification(args[1]); }
+                            catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "run-verification-error.txt"), ex.ToString()); }
+                            form.Close();
+                        };
+                        timer.Start();
+                        Application.Run(form);
+                    }
+                    return 0;
+                }
+                catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "run-verification-error.txt"), ex.ToString()); return 1; }
+            }
             if (args.Length == 2 && args[0] == "--live-verify")
             {
                 try
