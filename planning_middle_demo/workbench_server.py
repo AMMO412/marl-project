@@ -1,6 +1,7 @@
 """Local workbench for the existing v2 planner. Python standard library only."""
 import argparse
 from datetime import datetime
+import os
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -14,13 +15,13 @@ import subprocess
 import sys
 import threading
 import time
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 from urllib.request import urlopen
 import webbrowser
 
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / 'workbench'
-OUTPUTS = ROOT / 'outputs'
+OUTPUTS = Path(os.environ.get('MARL_WORKBENCH_OUTPUTS') or (ROOT / 'outputs'))
 SCENARIOS = {'simple_city': '城市道路场景', 'fleet_demo': '基础编成场景',
              'asl_city': '城市十字路口机动突击',
              'interop_neutral': '融合版五类任务样例（4.1 统一接口）',
@@ -64,7 +65,7 @@ SOURCES = {'entry': ROOT.parent / 'README.md',
            'readme': ROOT / 'README_v2.md', 'planner': ROOT / 'planner_v2.py',
            'coordinator': ROOT / 'coordinator_v2.py', 'fleet': ROOT / 'mock_fleet.py',
            'contracts': ROOT / 'contracts_v2.py'}
-WORKBENCH_VERSION = '2026-11-04-workbench-return'
+WORKBENCH_VERSION = '2026-11-06-demo'
 
 
 class LocalServer(ThreadingHTTPServer):
@@ -587,6 +588,157 @@ def load_run(run_id):
                 files=[n for n in sorted(ARTIFACTS) if (out / n).is_file()])
 
 
+DESKTOP_TASK_LABELS = {
+    'blockade': 'T-SEC 区域封控',
+    'patrol': 'T-PTL 巡逻警戒',
+    'recon': 'T-RCN 协同侦察',
+    'assault': 'T-ASL 机动突击',
+    'hold': 'T-HLD 要点坚守',
+    'relay': '任务接力',
+}
+
+
+def _desktop_sample(samples, at_s):
+    """Return the last sample at or before at_s, without assuming sorted input."""
+    best = None
+    for sample in samples or []:
+        try:
+            t = float(sample.get('t'))
+        except (TypeError, ValueError):
+            continue
+        if t <= at_s + 1e-9 and (best is None or t >= float(best.get('t', 0))):
+            best = sample
+    if best is None and samples:
+        best = samples[0]
+    return best or {}
+
+
+def _desktop_status_at(events, job_id, at_s):
+    """Derive a task status from recorded events so a replay scrubber can move backward."""
+    status = 'pending'
+    for event in events or []:
+        if event.get('job_id') != job_id or float(event.get('sim_s') or 0) > at_s + 1e-9:
+            continue
+        kind = event.get('kind')
+        if kind in ('job_dispatched', 'job_retry', 'replan'):
+            status = 'running'
+        elif kind in ('job_succeeded', 'job_completed'):
+            status = 'succeeded'
+        elif kind in ('job_failed', 'job_cancelled'):
+            status = 'failed'
+        elif kind == 'job_timeout':
+            status = 'timeout'
+    return status
+
+
+def desktop_run(run_id, at_s=None):
+    """Compact, native-shell friendly view of one recorded run.
+
+    Full geometry and replay samples stay in /api/runs/<id>; this endpoint only
+    returns what the desktop panels need, optionally at a playback time.
+    """
+    doc = load_run(run_id)
+    replay, report = doc.get('replay') or {}, doc.get('report') or {}
+    events = replay.get('events') or []
+    end = float(replay.get('end') or report.get('simulated_until_s') or 0)
+    if at_s is None:
+        at_s = end
+    at_s = max(0.0, min(float(at_s), end))
+
+    pids_by_job = {}
+    for event in events:
+        if event.get('kind') == 'job_dispatched' and event.get('job_id'):
+            pids_by_job.setdefault(event['job_id'], list(event.get('pids') or []))
+
+    tasks = []
+    for job in report.get('jobs') or []:
+        job_id = job.get('job_id')
+        jtype = job.get('jtype') or ''
+        tasks.append(dict(
+            id=job_id,
+            type=jtype,
+            label=DESKTOP_TASK_LABELS.get(jtype, jtype or job_id or '任务'),
+            status=job.get('status') or 'unknown',
+            status_at=_desktop_status_at(events, job_id, at_s),
+            assigned=pids_by_job.get(job_id, []),
+            position=job.get('pos'),
+            window=job.get('window'),
+            crew=job.get('crew'),
+            progress=round(float(job.get('progress') or 0), 3),
+            work=job.get('work'),
+            started_at=job.get('started_at'),
+            planned_end=job.get('planned_end'),
+            attempts=job.get('attempts'),
+        ))
+
+    workers = {w.get('pid'): w for w in replay.get('workers') or []}
+    platforms = []
+    for platform in report.get('platforms') or []:
+        pid = platform.get('pid')
+        worker = workers.get(pid) or {}
+        sample = _desktop_sample(worker.get('samples'), at_s)
+        platforms.append(dict(
+            id=pid,
+            kind=platform.get('kind') or worker.get('kind'),
+            robot_no=platform.get('robot_no') or worker.get('no'),
+            position=[sample.get('x', (platform.get('pos') or [0, 0])[0]),
+                      sample.get('y', (platform.get('pos') or [0, 0])[1])],
+            z=sample.get('z', platform.get('z', 0.0)),
+            yaw=sample.get('yaw', 0.0),
+            battery=sample.get('battery', platform.get('battery')),
+            alive=platform.get('alive', True),
+            job=sample.get('job'),
+            phase=sample.get('phase'),
+            status=sample.get('status'),
+            progress=sample.get('progress', 0.0),
+            home=platform.get('home'),
+            return_status=platform.get('return_status'),
+        ))
+
+    visible_events = []
+    for event in events:
+        if float(event.get('sim_s') or 0) > at_s + 1e-9:
+            continue
+        visible_events.append({
+            key: event.get(key) for key in
+            ('kind', 'sim_s', 'job_id', 'label', 'pids', 'attempt',
+             'planned_start', 'planned_end', 'detail', 'phase')
+            if key in event
+        })
+
+    manifest = doc.get('manifest') or {}
+    config = manifest.get('workbench_config') or {}
+    return dict(
+        id=run_id,
+        at_s=round(at_s, 3),
+        end=round(end, 3),
+        run=dict(
+            id=run_id,
+            scenario=config.get('scenario') or manifest.get('scenario') or '',
+            objective=report.get('objective'),
+            mode=report.get('mode'),
+            motion=report.get('motion'),
+            avoid=report.get('avoid'),
+            behavior=report.get('behavior'),
+            status='已完成' if report.get('settled') else '未完成',
+            done=report.get('done'),
+            total=report.get('done', 0) + sum(
+                1 for j in report.get('jobs') or [] if j.get('status') != 'succeeded'),
+            settled=report.get('settled'),
+            all_succeeded=report.get('all_succeeded'),
+            backend=manifest.get('backend') or 'local',
+            protocol=manifest.get('protocol') or '',
+            limit_reached=report.get('limit_reached'),
+        ),
+        tasks=tasks,
+        platforms=platforms,
+        events=visible_events[-400:],
+        scope=report.get('scope'),
+        limits=report.get('limitation') or report.get('scope') or '',
+        files=doc.get('files') or [],
+    )
+
+
 class Workbench:
     def __init__(self):
         self.lock = threading.Lock()
@@ -697,7 +849,8 @@ class Workbench:
                                   containment=True,
                                   hold=True,
                                   interop_scenario='interop_neutral',
-                                  plan_schema='0.3'),
+                                  plan_schema='0.3',
+                                  desktop_bridge=True),
                     default_run=default_run,
                     scenarios=SCENARIOS,
                     modes=MODES, runs=runs, process=self.status())
@@ -725,6 +878,15 @@ def make_handler(app):
             try:
                 if path == '/api/catalog':
                     return self.send(app.catalog())
+                if path.startswith('/api/desktop/run/'):
+                    query = parse_qs(urlparse(self.path).query)
+                    at_s = None
+                    if query.get('t'):
+                        try:
+                            at_s = float(query['t'][0])
+                        except (TypeError, ValueError):
+                            at_s = None
+                    return self.send(desktop_run(path.split('/')[-1], at_s))
                 if path.startswith('/api/runs/'):
                     return self.send(load_run(path.split('/')[-1]))
                 if path.startswith('/api/source/'):
@@ -746,7 +908,7 @@ def make_handler(app):
                 elif path in ('/', '/index.html', '/app.js', '/containment.js',
                               '/hold.js', '/task_details.js', '/styles.css',
                               '/workbench_ui.js', '/workbench_ui.css',
-                              '/favicon.svg'):
+                              '/desktop_bridge.js', '/favicon.svg'):
                     file = STATIC / ('index.html' if path == '/' else path[1:])
                 else:
                     raise FileNotFoundError()
