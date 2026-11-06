@@ -1,0 +1,12 @@
+﻿scene,source_file,name,width_m,points_xyz_m,note
+city:default:simple_city,sources/city/worlds/simple_city.world,road_y_1,7.4,"[[-45.0, -103.7, 5.02], [-45.0, 104.2, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_y_2,7.4,"[[-15.0, -103.7, 5.02], [-15.0, 104.2, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_y_3,7.4,"[[45.0, -103.7, 5.02], [45.0, 104.2, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_y_4,7.4,"[[110.0, -103.7, 5.02], [110.0, 104.2, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_y_5,7.4,"[[120.0, -103.7, 5.02], [120.0, 104.2, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_x_1,8.4,"[[-41.3, -100.0, 5.0249999999999995], [116.3, -100.0, 5.0249999999999995]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_x_2,8.4,"[[-41.3, -45.0, 5.0249999999999995], [116.3, -45.0, 5.0249999999999995]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_x_3,8.4,"[[-41.3, 0.0, 5.0249999999999995], [116.3, 0.0, 5.0249999999999995]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_x_4,8.4,"[[-41.3, 45.0, 5.0249999999999995], [116.3, 45.0, 5.0249999999999995]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,road_x_5,8.4,"[[-41.3, 100.0, 5.0249999999999995], [116.3, 100.0, 5.0249999999999995]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
+city:default:simple_city,sources/city/worlds/simple_city.world,sandy_path,17.9,"[[-73.0, -47.96, 5.02], [-73.0, 2.9600000000000004, 5.02]]",Declared road ribbon; does not establish collision geometry or a routable lane network.
