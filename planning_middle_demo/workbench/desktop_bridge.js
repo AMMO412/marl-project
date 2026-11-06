@@ -12,6 +12,28 @@
   document.documentElement.classList.add('desktop-mode');
   var style = document.createElement('style');
   style.textContent = [
+    '.desktop-mode{--ink:#30435b;--muted:#7f93a8;--green:#1f6fc3;--green-dark:#155a9e;--green-light:#edf4fd;--line:#e3eaf3;--bg:#f7f9fc;--side:#1f3552;--white:#fff}',
+    '.desktop-mode body{background:#f7f9fc!important;color:#30435b!important}',
+    '.desktop-mode .card{border-color:#e3eaf3!important;box-shadow:0 2px 3px #19384a08!important}',
+    '.desktop-mode .card-heading h2{color:#304d6b!important}',
+    '.desktop-mode .eyebrow{color:#8fa2b6!important}',
+    '.desktop-mode .stat{background:#fff!important;border-color:#e3eaf3!important}',
+    '.desktop-mode .stat-icon{color:#5b8fc9!important;background:#eef4fc!important}',
+    '.desktop-mode .stat-number{color:#304d6b!important}',
+    '.desktop-mode .clock-stat{background:#edf4fd!important;border-color:#d8e6f5!important}',
+    '.desktop-mode .button.primary{background:#1f6fc3!important;border-color:#1f6fc3!important}',
+    '.desktop-mode .map-toolbar,.desktop-mode .map-selection,.desktop-mode .player{background:#fff!important}',
+    '.desktop-mode .canvas-wrap,.desktop-mode #scene{background:#fbfcfe!important}',
+    '.desktop-mode #ck-canvas,.desktop-mode #hl-canvas{background:#fbfcfe!important;border-color:#e3eaf3!important}',
+    '.desktop-mode #overview-ck-view,.desktop-mode .ck-body,.desktop-mode .ck-map-card,.desktop-mode .ck-panel{background:#f7f9fc!important}',
+    '.desktop-mode .map-card{border-color:#e3eaf3!important}',
+    '.desktop-mode .map-legend{border-top-color:#eef2f7!important;background:#fff!important}',
+    '.desktop-mode .progress-track{background:#eef2f7!important}',
+    '.desktop-mode .task-row.selected{background:#f1f6fd!important}',
+    '.desktop-mode .behavior-tile{border-left-color:#8fb4dd!important}',
+    '.desktop-mode .behavior-tile.selected{background:#f1f6fd!important}',
+    '.desktop-mode .ck-kpis>div{background:#fff!important;border-color:#e3eaf3!important}',
+    '.desktop-mode .ck-panel,.desktop-mode .ck-side .card{background:#fff!important;border-color:#e3eaf3!important}',
     '.desktop-mode .sidebar{display:none!important}',
     '.desktop-mode main{margin-left:0!important;padding:12px 18px 0!important;max-width:none!important}',
     '.desktop-mode .topbar,.desktop-mode .context-strip,.desktop-mode .run-strip,.desktop-mode footer{display:none!important}',
@@ -73,18 +95,25 @@
     button.click();
     return true;
   }
+  function containmentActive() {
+    var view = q('#overview-ck-view');
+    return !!(view && !view.hidden);
+  }
+  function playerButton() {
+    return containmentActive() ? q('#ck-play') : q('#play');
+  }
   function play() {
-    var button = q('#play');
+    var button = playerButton();
     if (button && button.textContent.indexOf('暂') < 0) button.click();
     return true;
   }
   function pause() {
-    var button = q('#play');
+    var button = playerButton();
     if (button && button.textContent.indexOf('暂') >= 0) button.click();
     return true;
   }
   function setTime(seconds) {
-    var scrubber = q('#scrubber');
+    var scrubber = containmentActive() ? q('#ck-scrub') : q('#scrubber');
     if (!scrubber) return false;
     scrubber.value = Number(seconds) || 0;
     return fire(scrubber, 'input');
@@ -109,10 +138,13 @@
     window.dispatchEvent(new Event('resize'));
     var button = q('#fit-map');
     if (button) button.click();
-    var allButton = q('#ck-cam-all');
-    if (allButton) allButton.click();
+    try { if (typeof showOverviewMode === 'function') showOverviewMode('containment'); } catch (error) { }
+    var areaButton = q('#ck-cam-area');
+    if (areaButton) areaButton.click();
     var containmentFit = q('#ck-fit');
     if (containmentFit) containmentFit.click();
+    var ckCanvas = q('#ck-canvas');
+    if (ckCanvas) ckCanvas.scrollIntoView({ block: 'center' });
     return true;
   }
   function startReplay(taskId, seconds, runId) {
@@ -136,9 +168,9 @@
           if (++taskTries < 12) window.setTimeout(chooseTask, 300);
         };
         chooseTask();
+        fit();
         setTime(seconds);
         play();
-        fit();
       } else if (++tries > 40) {
         window.clearInterval(timer);
       }
@@ -146,13 +178,16 @@
     return true;
   }
   function state() {
-    var playButton = q('#play');
     var activePage = q('.nav.active');
+    var ck = containmentActive();
+    var playButton = playerButton();
+    var clock = ck ? (q('#ck-time') || {}).textContent : (q('#stat-clock') || {}).textContent;
+    var duration = ck ? Number((q('#ck-scrub') || {}).max || 0) : Number(((q('#stat-end') || {}).textContent || '0').replace(/[^0-9.\-]/g, ''));
     return {
       runId: (q('#run-select') || {}).value || '',
       taskId: (q('#task-select') || {}).value || '',
-      time: Number(((q('#stat-clock') || {}).textContent || '0').replace(/[^0-9.\-]/g, '')) || 0,
-      duration: Number(((q('#stat-end') || {}).textContent || '0').replace(/[^0-9.\-]/g, '')) || 0,
+      time: Number(String(clock || '0').replace(/[^0-9.\-]/g, '')) || 0,
+      duration: Number(duration) || 0,
       playing: !!playButton && playButton.textContent.indexOf('暂') >= 0,
       page: activePage ? activePage.getAttribute('data-page') : 'overview'
     };

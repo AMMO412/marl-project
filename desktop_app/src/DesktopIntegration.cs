@@ -112,10 +112,7 @@ namespace MarlDesktopPreview
             Documents.SelectedIndexChanged += delegate
             {
                 if (Documents.SelectedTab == taskViewTab && webReady && desktopRun != null)
-                {
                     Bridge("navigate('overview')");
-                    Bridge("fit()");
-                }
             };
 
             if (tree != null)
@@ -252,7 +249,7 @@ namespace MarlDesktopPreview
                 {
                     SetTaskViewStatus("任务视图：页面已载入，等待数据…");
                 };
-                webView.CoreWebView2.Navigate(url + "/?desktop=1");
+                webView.CoreWebView2.Navigate(url + "/?desktop=1&page=containment");
                 SetTaskViewStatus("任务视图：正在载入本地可视化页面…");
             }
             catch (Exception ex)
@@ -460,7 +457,6 @@ namespace MarlDesktopPreview
                        + desktopJson.Serialize(run.Id) + ")");
             }
             OpenTaskView();
-            Bridge("fit()");
         }
 
         private void UpdateDesktopTree(DesktopRunView run)
@@ -763,6 +759,7 @@ namespace MarlDesktopPreview
             }
             Documents.SelectedIndex = 4;
             string webState = "";
+            string webMetrics = "";
             try
             {
                 if (webView != null && webView.CoreWebView2 != null)
@@ -774,6 +771,14 @@ namespace MarlDesktopPreview
                         System.Threading.Thread.Sleep(20);
                     }
                     webState = stateTask.Status == TaskStatus.RanToCompletion ? stateTask.Result : "";
+                    Task<string> metricTask = webView.CoreWebView2.ExecuteScriptAsync(
+                        "JSON.stringify((function(){var c=document.querySelector('#ck-canvas');var s=document.querySelector('#scene');var r=c?c.getBoundingClientRect():null;var b=s?s.getBoundingClientRect():null;return {ck:r?[r.width,r.height]:null,scene:b?[b.width,b.height]:null,css:c?getComputedStyle(c).backgroundColor:null,page:getComputedStyle(document.body).backgroundColor};})())");
+                    while (!metricTask.IsCompleted)
+                    {
+                        Application.DoEvents();
+                        System.Threading.Thread.Sleep(20);
+                    }
+                    webMetrics = metricTask.Status == TaskStatus.RanToCompletion ? metricTask.Result : "";
                 }
             }
             catch (Exception) { }
@@ -781,6 +786,7 @@ namespace MarlDesktopPreview
             {
                 "web_ready=" + webReady,
                 "web_state=" + webState,
+                "web_metrics=" + webMetrics,
                 "backend=" + (desktopApi == null ? "" : desktopApi.BaseUrl),
                 "run=" + desktopRunId,
                 "tasks=" + (desktopRun == null ? 0 : desktopRun.Tasks.Count),

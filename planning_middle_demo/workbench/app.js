@@ -10,7 +10,13 @@ function taskLabel(j){const source=state.run?.scenario?.jobs?.find(x=>x.job_id==
 const icons = {patrol:'↻',blockade:'◇',recon:'⌕',assault:'↗',hold:'⌂'};
 const kindNames = {UGV:'轮式车',TANK:'履带车',PLANE:'固定翼',WING:'飞翼'};
 function buildingName(id){const k=String(id||'').replace(/^env[ _]city[ _]/,'').replace(/#\d+$/,'').replace(/_/g,' ').trim();const h=k.match(/^house\s*(\d+)/i);if(h)return '民居 '+Number(h[1]);const o=k.match(/^office\s*(\d+)/i);if(o)return '办公楼 '+Number(o[1]);return k;}
-const taskPalette=['#288d79','#bd8534','#7264cb','#c27158','#478cac','#9a6b99'];
+const DESKTOP_MODE=new URLSearchParams(location.search).get('desktop')==='1';
+const taskPalette=DESKTOP_MODE?['#1f6fc3','#2f9e8f','#7a6fc1','#ce892e','#4f86b8','#8a6fa8']:['#288d79','#bd8534','#7264cb','#c27158','#478cac','#9a6b99'];
+const SURFACE_FILL=DESKTOP_MODE?'#eef2f7':'#e4edda';
+const SURFACE_STROKE=DESKTOP_MODE?'#c9d6e5':'#a9bf99';
+const PLAZA_FILL=DESKTOP_MODE?'#e7eef7':'#e8ded0';
+const ROAD_FILL=DESKTOP_MODE?'#e2eaf4':'#d8ddda';
+const ROAD_STROKE=DESKTOP_MODE?'#c6d3e1':'#b6c2b8';
 const events = {recording_start:'专项片段开始',recording_end:'专项片段结束',plan_emitted:'生成规划方案',job_dispatched:'下发作业',job_succeeded:'作业完成',job_requeued:'作业重新排队',job_failed:'作业失败',member_lost:'平台失联',timeout:'作业超时',deviation:'进度偏差',cancel_sent:'发出取消请求',command_abandoned:'终止失联成员指令',feedback_ignored:'反馈未采纳',behavior_event:'到位行为'};
 const behaviorEvents = {phase:'行为阶段切换',checkpoint_visited:'到达检查点',cycle_completed:'完成一圈巡逻',posts_occupied:'封控占位就绪',intrusion_detected:'发现入侵',interceptor_assigned:'指派拦截',intercepted:'拦截成功',breach:'越界',map_initialised:'地图初始化',frontier_mapped:'前沿测绘',coverage_reached:'覆盖达标',report_sent:'成果回传',recon_target_report:'侦察目标位置上报',recon_track_started:'开始跟踪目标',recon_track_report:'跟踪位置上报',recon_track_completed:'完成区外跟踪',relay_handoff:'任务接力',return_started:'开始返航',return_completed:'已返回出发点',return_failed:'返航失败',return_interrupted:'返航中接到新任务',patrol_position_report:'模拟上报目标位置',patrol_target_started:'移动目标进入场景',patrol_target_lost:'目标离开感知范围',map_shared:'共享地图更新',all_staged:'全员到位',assault_started:'突击开始',effect_started:'效果施加开始',effect_applied:'动作结束',confirmed:'结果确认',salvo_fired:'齐射',ammo_depleted:'平台弹药耗尽',ammo_exhausted:'弹药耗尽终止',restrike_needed:'需要二次打击',control_established:'控制建立',control_lost:'控制丢失',suppression_gap:'压制中断',handover:'移交',assessment_requested:'评估发起',assessment_received:'评估回传',effect_achieved:'效果达成',deadline_exceeded:'执行超时',terminate:'任务终止',behavior_result:'效果判定结果',result_failed:'结果未达成',result_pending:'结果待评估',on_post:'上岗',handover_start:'接替开始',handover_complete:'接替完成',relief:'换班',behavior_complete:'行为完成',arrived_area:'进入作业区',route_failed:'路径失败',command_received:'受领任务',target_designated:'目标指示',all_in_position:'全员到位执行位',withdraw_started:'撤离开始',withdrawn:'撤离完成',withdraw_timeout:'撤离超时',confirmation_timeout:'确认超时',attack_window_missed:'错过攻击窗口',task_timeout:'任务超时',arrived:'到达点位',energy_depleted:'电量耗尽',start_snapped:'出发点吸附',target_appeared:'目标出现',target_detected:'发现目标',target_authorized:'识别为已授权',target_unauthorized:'识别为未授权',warning_issued:'发出警告',warning_effective:'警告有效·目标撤离',intercept_assigned:'指派拦阻',intercept_denied:'授权不足未拦阻',intercepted:'拦阻到位',breach:'未授权进入',authorized_pass:'授权放行',control_established:'控制建立',control_interrupted:'控制中断',control_restored:'控制恢复',containment_result:'封控结果'};
 const triggerNames = {init:'首次规划',periodic:'周期更新',member_change:'成员变化',exec_fail:'执行失败',timeout:'超时',deviation:'进度偏差'};
@@ -836,13 +842,13 @@ function draw(){
   const line=(points,color,width=1,dash=[])=>{if(points.length<2)return;ctx.beginPath();points.forEach((p,i)=>{const a=P(p);i?ctx.lineTo(...a):ctx.moveTo(...a);});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
   const arrowAlong=(points,color)=>{if(!points||points.length<2)return;ctx.fillStyle=color;for(let i=1;i<points.length;i++){const a=P(points[i-1]),b=P(points[i]);if(Math.hypot(b[0]-a[0],b[1]-a[1])<34)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]);ctx.beginPath();ctx.moveTo(mx+Math.cos(ang)*5.5,my+Math.sin(ang)*5.5);ctx.lineTo(mx+Math.cos(ang+2.6)*6,my+Math.sin(ang+2.6)*6);ctx.lineTo(mx+Math.cos(ang-2.6)*6,my+Math.sin(ang-2.6)*6);ctx.closePath();ctx.fill();}};
   const circle=(p,r,color,fill=null,dash=[])=>{const a=P(p);ctx.beginPath();ctx.arc(...a,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}ctx.strokeStyle=color;ctx.lineWidth=1.4;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
-  if($('#show-obstacles').checked)for(const surface of mapGeometry('surfaces')){ctx.beginPath();surface.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle='#e4edda';ctx.fill();ctx.strokeStyle='#a9bf99';ctx.lineWidth=1;ctx.stroke();}
+  if($('#show-obstacles').checked)for(const surface of mapGeometry('surfaces')){ctx.beginPath();surface.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();ctx.fillStyle=SURFACE_FILL;ctx.fill();ctx.strokeStyle=SURFACE_STROKE;ctx.lineWidth=1;ctx.stroke();}
   // 底图：道路/广场来自 SDF（env_road_*/env_city_road_*/env_city_square），
   // 只作底图不参与避障；先画路再画建筑，建筑才压得住路口。
   if($('#show-obstacles').checked&&mapGeometry('roads').length){
     for(const road of mapGeometry('roads')){ctx.beginPath();road.polygon.forEach((p,i)=>{const q=P(p);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();
       const plaza=String(road.id||'').includes('square');
-      ctx.fillStyle=plaza?'#e8ded0':'#d8ddda';ctx.fill();ctx.strokeStyle='#b6c2b8';ctx.lineWidth=.8;ctx.stroke();}
+      ctx.fillStyle=plaza?PLAZA_FILL:ROAD_FILL;ctx.fill();ctx.strokeStyle=ROAD_STROKE;ctx.lineWidth=.8;ctx.stroke();}
   }
   // 威胁区是软约束：不阻断通行，只参与暴露度/路径代价。画成淡红虚线区，
   // 与建筑（实心）和道路（底图）区分开。

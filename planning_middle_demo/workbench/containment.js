@@ -15,14 +15,22 @@
     raf: null, last: 0, built: false, bounds: null,
     cam: 'all', visible: false, showRoutes: false,
   };
-  const COLORS = {
+  const DESKTOP_MODE = new URLSearchParams(location.search).get('desktop') === '1';
+  const COLORS = DESKTOP_MODE ? {
+    area: '#1f6fc3', sector: '#2f9e8f', gate: '#7a6fc1',
+    unauthorized: '#cb5858', warned: '#ce892e', intercepting: '#7a6fc1',
+    held: '#2f9e8f', breach: '#b03a3a', withdrawn: '#7f93a8',
+    passed: '#1f6fc3', waiting: '#9aa9b8', post: '#30435b',
+  } : {
     area: '#b4552d', sector: '#0f766e', gate: '#7c3aed',
     unauthorized: '#dc2626', warned: '#d97706', intercepting: '#7c3aed',
     held: '#0d9488', breach: '#991b1b', withdrawn: '#64748b',
     passed: '#2563eb', waiting: '#94a3b8', post: '#334155',
   };
   // 边界段配色与"封控区轮廓"明确区分：段线是任务色，轮廓只是虚线围栏。
-  const SECTOR_COLORS = ['#1d4ed8', '#0f766e', '#7c3aed', '#b45309', '#be123c'];
+  const SECTOR_COLORS = DESKTOP_MODE
+    ? ['#1f6fc3', '#2f9e8f', '#7a6fc1', '#ce892e', '#c27158']
+    : ['#1d4ed8', '#0f766e', '#7c3aed', '#b45309', '#be123c'];
   const EVENT_TICK = {
     control_established: '#0f766e', control_interrupted: '#b45309',
     control_restored: '#0f766e', target_appeared: '#94a3b8',
@@ -590,7 +598,7 @@
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = '#f4f6f1';
+    ctx.fillStyle = DESKTOP_MODE ? '#fbfcfe' : '#f4f6f1';
     ctx.fillRect(0, 0, rect.width, rect.height);
     const st = structure();
     const [P, scale] = projectFactory(canvas);
@@ -751,11 +759,13 @@
         const r = Math.max(6, (st.sensor_radius_m || 35) * scale);
         ctx.beginPath();
         ctx.arc(c[0], c[1], r, 0, Math.PI * 2);
-        ctx.fillStyle = roleKind === 'air'
-          ? 'rgba(37,99,235,0.06)' : 'rgba(13,148,136,0.07)';
+        ctx.fillStyle = DESKTOP_MODE
+          ? (roleKind === 'air' ? 'rgba(31,111,195,0.05)' : 'rgba(79,134,184,0.05)')
+          : (roleKind === 'air' ? 'rgba(37,99,235,0.06)' : 'rgba(13,148,136,0.07)');
         ctx.fill();
-        ctx.strokeStyle = roleKind === 'air'
-          ? 'rgba(37,99,235,0.32)' : 'rgba(13,148,136,0.26)';
+        ctx.strokeStyle = DESKTOP_MODE
+          ? (roleKind === 'air' ? 'rgba(31,111,195,0.26)' : 'rgba(79,134,184,0.22)')
+          : (roleKind === 'air' ? 'rgba(37,99,235,0.32)' : 'rgba(13,148,136,0.26)');
         ctx.lineWidth = 1;
         ctx.stroke();
       }

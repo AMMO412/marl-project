@@ -1,5 +1,6 @@
 web_ready=True
-web_state="{\"runId\":\"workbench_20261106_165716_538046\",\"taskId\":\"T1\",\"time\":48.1,\"duration\":229,\"playing\":true,\"page\":\"overview\"}"
+web_state="{\"runId\":\"workbench_20261106_165716_538046\",\"taskId\":\"T1\",\"time\":57.0203,\"duration\":203,\"playing\":true,\"page\":\"overview\"}"
+web_metrics="{\"ck\":[902,520],\"scene\":[0,0],\"css\":\"rgb(251, 252, 254)\",\"page\":\"rgb(247, 249, 252)\"}"
 backend=http://127.0.0.1:8767
 run=workbench_20261106_165716_538046
 tasks=1
