@@ -35,3 +35,12 @@ class SceneMapTests(unittest.TestCase):
             'constraints': []}}}}
         self.assertEqual(len(scene_map(scenario)['obstacles']), 39)
         self.assertEqual(scenario['_meta']['interop']['formation']['constraints'], [])
+
+    def test_missing_historical_sdf_path_uses_bundled_scene(self):
+        scenario = {'_meta': {'interop': {'formation': {'meta': {
+            'scene': 'container_00', 'source_sdf': DEFAULT_SDF.name,
+            'source_sdf_path': 'missing-original-install/' + DEFAULT_SDF.name,
+        }}}}}
+        result = scene_map(scenario)
+        self.assertEqual(result['source'], str(DEFAULT_SDF))
+        self.assertEqual(len(result['obstacles']), 39)

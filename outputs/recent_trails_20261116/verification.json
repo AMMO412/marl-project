@@ -1,0 +1,71 @@
+{
+  "errors": [],
+  "runs": [
+    {
+      "id": "workbench_20261116_165905_636120",
+      "t": 20,
+      "moving_with_trails": 6,
+      "task_focus_keeps_all": true,
+      "worker_focus_keeps_all": true,
+      "default_reset": true,
+      "trace_count": 6,
+      "scenario": "interop_asl"
+    },
+    {
+      "id": "workbench_20261116_165016_299294",
+      "t": 20,
+      "moving_with_trails": 4,
+      "task_focus_keeps_all": true,
+      "worker_focus_keeps_all": true,
+      "default_reset": true,
+      "trace_count": 4,
+      "scenario": "interop_recon"
+    },
+    {
+      "id": "workbench_20261116_164758_061502",
+      "t": 20,
+      "moving_with_trails": 4,
+      "task_focus_keeps_all": true,
+      "worker_focus_keeps_all": true,
+      "default_reset": true,
+      "trace_count": 4,
+      "scenario": "interop_patrol"
+    },
+    {
+      "id": "workbench_20261116_164642_696378",
+      "t": 20,
+      "moving_with_trails": 6,
+      "task_focus_keeps_all": true,
+      "worker_focus_keeps_all": true,
+      "default_reset": true,
+      "trace_count": 6,
+      "scenario": "interop_hold"
+    },
+    {
+      "id": "workbench_20261116_164511_252025",
+      "t": 20,
+      "moving_with_trails": 6,
+      "task_focus_keeps_all": true,
+      "worker_focus_keeps_all": true,
+      "default_reset": true,
+      "trace_count": 6,
+      "scenario": "interop_containment"
+    }
+  ],
+  "geometry": {
+    "sparse": true,
+    "clipped": true,
+    "full": true,
+    "command_boundaries": true,
+    "no_future": true,
+    "no_teleport": true,
+    "no_stationary_line": true,
+    "lost": true,
+    "return": true,
+    "source_unchanged": true
+  },
+  "live_window": {
+    "window_clipped": true,
+    "alternate_renderer": true
+  }
+}

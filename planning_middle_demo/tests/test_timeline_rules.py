@@ -24,7 +24,7 @@ from run_demo_v2 import simulate
 
 def scenario():
     data = json.loads(
-        (ROOT / "scenarios/fleet_demo.json").read_text(encoding="utf-8"))
+        (ROOT / "tests/fixtures/base_scenarios/fleet_demo.json").read_text(encoding="utf-8"))
     data["jobs"] = data["jobs"][:4]
     return data
 

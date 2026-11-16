@@ -222,6 +222,29 @@ def inside(polygon, point):
     return inside_flag
 
 
+def first_entry_fraction(polygon, start, goal):
+    """Return the first segment fraction leading into the polygon interior."""
+    dx, dy = goal[0] - start[0], goal[1] - start[1]
+    cuts = {0.0, 1.0}
+    for edge in _edges(polygon):
+        a, b = edge["a"], edge["b"]
+        ex, ey = b[0] - a[0], b[1] - a[1]
+        det = dx * ey - dy * ex
+        if abs(det) <= EPS:
+            continue
+        ax, ay = a[0] - start[0], a[1] - start[1]
+        t, u = (ax * ey - ay * ex) / det, (ax * dy - ay * dx) / det
+        if 0.0 < t < 1.0 and -EPS <= u <= 1.0 + EPS:
+            cuts.add(t)
+    cuts = sorted(cuts)
+    for lo, hi in zip(cuts, cuts[1:]):
+        t = (lo + hi) / 2.0
+        point = (start[0] + dx * t, start[1] + dy * t)
+        if inside(polygon, point) and arc_of_point(polygon, point)['distance'] > EPS:
+            return lo
+    return None
+
+
 def gate_channel(point, direction, width):
     """通道口：把入口点与方向展开成一条横跨通道的监测/拦截线。
 

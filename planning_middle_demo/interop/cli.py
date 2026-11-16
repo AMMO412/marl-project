@@ -159,7 +159,7 @@ def cmd_demo(args) -> int:
     has_asl = any(task.task_type == "T-ASL" for task in scenario.tasks)
     has_relay = bool(v2["_meta"].get("relay_target"))
     nav = None
-    if (args.behavior or has_relay) and not has_asl:
+    if args.behavior or has_relay:
         from .runtime import nav_from_scenario
         nav = nav_from_scenario(scenario)
     max_ticks = args.max_ticks if args.max_ticks is not None else (380 if has_relay else 200)
@@ -169,8 +169,10 @@ def cmd_demo(args) -> int:
                              behavior=(True if has_asl else
                                        ((args.behavior or has_relay) and nav is not None)),
                              planner=engine, nav=nav)
-    # 同一份 4.1 输入的计划层产物（4.2），与运行报告分开放
-    plan = Planner(scenario, objective=args.objective).plan()
+    # 保存首轮真实下发所用的规划，而不是运行结束后重新做一份静态规划。
+    # 后者可能因运行时同步语义或动态快照不同而选出另一组平台。
+    plan = engine.initial_plan or Planner(
+        scenario, objective=args.objective).plan()
     paths = write_outputs(
         plan, scenario, args.out,
         input_paths=dict(message=args.message, formation=args.formation),
@@ -210,6 +212,36 @@ def cmd_demo(args) -> int:
           % (report.get("done", 0), len(report.get("jobs", [])),
              report.get("plans", 0), report.get("planner", "interop")))
     print("运行报告：%s" % os.path.join(run_dir, "report.html"))
+    return 0
+
+
+def cmd_benchmark(args) -> int:
+    """Generate and plan the complexity suite without touching demo scenes."""
+    from .benchmark_scenarios import run_suite
+
+    objectives = [x.strip() for x in args.objectives.split(",") if x.strip()]
+    payload = run_suite(args.out, objectives=objectives)
+    for scenario in payload["scenarios"]:
+        best = min(
+            scenario["results"],
+            key=lambda item: (
+                item["unassigned_subtasks"],
+                item["makespan_s"],
+                item["total_exposure"],
+            ),
+        )
+        print(
+            "%-30s tasks=%d platforms=%d best=%s unassigned=%d"
+            % (
+                scenario["name"],
+                scenario["tasks"],
+                scenario["platforms"],
+                best["objective"],
+                best["unassigned_subtasks"],
+            )
+        )
+    print("结果：%s" % os.path.abspath(
+        os.path.join(args.out, "results.md")))
     return 0
 
 
@@ -290,13 +322,24 @@ def build_parser() -> argparse.ArgumentParser:
                       choices=("timeliness", "exposure", "energy", "risk", "balanced"))
     demo.add_argument("--mode", default="normal",
                       choices=("normal", "failure", "timeout", "kill", "deviation"))
-    demo.add_argument("--motion", default="teleport",
-                      choices=("teleport", "real"))
+    demo.add_argument("--motion", default="real",
+                      choices=("real",))
     demo.add_argument("--max-ticks", type=int)
     demo.add_argument("--behavior", action="store_true",
                       help="到位后运行基座行为状态机（区域封控的占位/警告/拦阻"
                            "等任务段动作只有开启后才会执行）")
     demo.set_defaults(func=cmd_demo)
+
+    benchmark = sub.add_parser(
+        "benchmark",
+        help="生成并规划多任务、截止期、威胁和障碍复杂基准",
+    )
+    benchmark.add_argument("--out", required=True)
+    benchmark.add_argument(
+        "--objectives",
+        default="timeliness,exposure,energy,balanced",
+    )
+    benchmark.set_defaults(func=cmd_benchmark)
 
     sdf = sub.add_parser("sdf", help="SDF → 编成表骨架")
     sdf.add_argument("--sdf", required=True)

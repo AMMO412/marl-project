@@ -1,0 +1,72 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-AREA-PATROL-001",
+  "issued_at": "2026-11-03T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-PTL",
+      "priority": 1,
+      "target": {
+        "patrol_area": [
+          [
+            -126,
+            -176
+          ],
+          [
+            -64,
+            -176
+          ],
+          [
+            -64,
+            -114
+          ],
+          [
+            -126,
+            -114
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 600
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "params": {
+        "duration_s": 150,
+        "follow_boundary": true,
+        "cycles": 2,
+        "start_units": [
+          "U1",
+          "U3",
+          "U2",
+          "U4"
+        ],
+        "sensor_radius_m": {
+          "ground": 16,
+          "air": 23
+        },
+        "observation_target": {
+          "target_id": "PTL-OBS-1",
+          "start": [
+            -96,
+            -60
+          ],
+          "goal": [
+            -96,
+            -222
+          ],
+          "speed_mps": 4
+        },
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 1000.0
+        }
+      },
+      "description": "四个共享角点划定十字路口巡逻区，空地平台共用边界环线。移动目标由北向南经过路口，平台持续感知时每秒上报。"
+    }
+  ]
+}

@@ -33,6 +33,20 @@ class _Nav:
         return True
 
 
+class _GateObstacleNav(_Nav):
+    """底部通道口内推进向有一个不可通行花坛。"""
+
+    def nearest_free(self, point, max_radius=4.0, step=0.05, radius=None):
+        x, y = float(point[0]), float(point[1])
+        if 45.0 <= x <= 55.0 and 5.0 <= y <= 7.0:
+            return [55.5, 6.0], math.hypot(55.5 - x, 6.0 - y)
+        return [x, y], 0.0
+
+    def free(self, point, radius=None):
+        x, y = float(point[0]), float(point[1])
+        return not (45.0 <= x <= 55.0 and 5.0 <= y <= 7.0)
+
+
 def _params(**overrides):
     base = dict(
         area=RECT,
@@ -160,6 +174,76 @@ class DecomposeTests(unittest.TestCase):
 
 
 class ContainmentBehaviorTests(unittest.TestCase):
+    def test_gate_patrol_target_is_snapped_out_of_a_planter(self):
+        b = ContainmentBehavior(
+            dict(job_id="T1", pos=[50, 50]),
+            _GateObstacleNav(), ["p1", "p2", "p3"],
+            _params(roles={
+                "p1": "boundary:1/1",
+                "p2": "gate:G1",
+                "p3": "intercept:standby",
+            }),
+        )
+        self.assertTrue(b.nav.free(b.posts["p2"]))
+        for t in (0.0, 11.25, 22.5, 33.75):
+            self.assertTrue(b.nav.free(b._patrol_target("p2", t)))
+
+    def test_nearby_gate_supports_when_mobile_group_cannot_reach_the_entry_in_time(self):
+        from behavior_runtime import BehaviorRunner
+        from city_nav import NavMap
+
+        nav = NavMap((-70, -70, 170, 170), [], resolution=1)
+        b = ContainmentBehavior(dict(job_id='T1', pos=[50, 50]), nav,
+            ['boundary', 'gate', 'mobile'],
+            _params(intercept_post=[50, 50], intruders=[_intruder(start=[50, -25], speed_mps=2.5)],
+                    target_start_mode='after_control', patrol_enabled=False))
+        starts = {pid: (*b.posts[pid], -math.pi / 2) for pid in b.pids}
+        runner = BehaviorRunner(nav, b, starts, speeds=dict.fromkeys(b.pids, 8))
+        for _ in range(40):
+            if runner.step():
+                break
+        assigned = next(e for e in b.history if e['kind'] == 'intercept_assigned')
+        self.assertEqual(assigned['role'], 'gate:G1')
+        self.assertLess(assigned['eta_s'], assigned['entry_eta_s'])
+        self.assertIn('intercepted', _kinds(b))
+        self.assertNotIn('breach', _kinds(b))
+
+    def test_compliant_target_moves_past_the_spawn_before_being_marked_withdrawn(self):
+        b = _run(ContainmentBehavior(dict(job_id='T1', pos=[50, 50]), _Nav(),
+            ['p1', 'p2', 'p3'], _params(
+                intruders=[_intruder(start=[50, -25], compliance=True)],
+                warning_response_s=2, retreat_clearance_m=10)))
+        events = {e['kind']: e for e in b.history}
+        self.assertEqual(events['warning_issued']['t'], events['target_appeared']['t'])
+        self.assertEqual(events['target_withdraw_started']['t'] - events['warning_issued']['t'], 2)
+        self.assertEqual(events['warning_effective']['t'] - events['target_withdraw_started']['t'], 5)
+        self.assertEqual(b.targets[0].pos, [50, -35])
+        self.assertNotIn('intercept_assigned', events)
+
+    def test_target_release_clock_waits_for_late_arrival_when_configured(self):
+        for mode, release_s in [('after_control', 37), ('task_clock', 7)]:
+            with self.subTest(mode=mode):
+                b = ContainmentBehavior(
+                    dict(job_id='T1', pos=[50, 50]), _Nav(), ['p1', 'p2', 'p3'],
+                    _params(target_start_mode=mode, intruders=[_intruder(t_start_s=7)]))
+                for t in range(40):
+                    poses = {pid: tuple(b.posts[pid]) if t >= 30 else (-200, -200)
+                             for pid in b.pids}
+                    b.step(poses, float(t), 1.0)
+                appeared = next(e for e in b.history if e['kind'] == 'target_appeared')
+                self.assertEqual(b.control_established_at, 30)
+                self.assertEqual(appeared['t'], release_s)
+
+    def test_expired_staging_does_not_release_targets(self):
+        b = ContainmentBehavior(
+            dict(job_id='T1', pos=[50, 50]), _Nav(), ['p1', 'p2', 'p3'],
+            _params(target_start_mode='after_control', intruders=[_intruder()], max_steps=3))
+        for t in range(5):
+            b.step(dict.fromkeys(b.pids, (-200, -200)), float(t), 1.0)
+        self.assertTrue(b.done)
+        self.assertNotIn('target_appeared', _kinds(b))
+        self.assertEqual(b.verdict['verdict'], 'failed')
+
     def test_control_established_and_boundary_coverage_recorded(self):
         behavior = _run(ContainmentBehavior(
             dict(job_id="T1", pos=[50, 50]), _Nav(),
@@ -250,7 +334,7 @@ class ContainmentBehaviorTests(unittest.TestCase):
         self.assertIn("speed_scale", out)
         self.assertLess(out["speed_scale"][boundary], 1.0)
 
-    def test_air_watch_orbits_and_carries_altitude(self):
+    def test_air_watch_uses_a_stable_center_and_bounded_orbit(self):
         roles = {"p1": "boundary:1/1", "p2": "gate:G1",
                  "p3": "intercept:standby", "p4": "air:watch"}
         behavior = ContainmentBehavior(
@@ -261,17 +345,68 @@ class ContainmentBehaviorTests(unittest.TestCase):
         self.assertEqual(behavior.air_pids, ["p4"])
         self.assertEqual(behavior.params["air_altitude"]["p4"], 60)
         self.assertTrue(behavior.roles["p4"].startswith("air"))
-        orbit = behavior._patrol_target("p4", 0.0)
-        self.assertAlmostEqual(
-            math.hypot(orbit[0] - behavior.center[0],
-                       orbit[1] - behavior.center[1]), 40.0, places=2)
-        # 空中监视也算观察者：封控区上方盘旋即提供覆盖
+        self.assertEqual(behavior._patrol_target("p4", 0.0), behavior.center)
+        self.assertEqual(behavior._patrol_target("p4", 30.0), behavior.center)
+
+        # 远距离阶段先飞到封控中心；目标本身不能每秒沿圆周跳动。
         poses = {pid: (behavior.posts[pid][0], behavior.posts[pid][1], 0.0)
                  for pid in behavior.pids}
-        poses["p4"] = (orbit[0], orbit[1], 0.0)
-        behavior.step(poses, 0.0, 1.0)
+        poses["p4"] = (behavior.center[0] + 80.0, behavior.center[1], 0.0)
+        far = behavior.step(poses, 0.0, 1.0)
+        self.assertEqual(far["targets"]["p4"], behavior.center)
+        self.assertNotIn("p4", far["loiter_radius"])
+
+        # 到达有效盘旋圈后交给运动层的 AirLoiter，半径只下发一次稳定值。
+        poses["p4"] = (behavior.center[0] + 40.0,
+                       behavior.center[1], 0.0)
+        near = behavior.step(poses, 1.0, 1.0)
+        self.assertEqual(near["targets"]["p4"], behavior.center)
+        self.assertEqual(near["loiter_radius"]["p4"], 40.0)
+        for t in (10.0, 30.0, 60.0):
+            orbit = behavior.step(poses, t, 1.0)
+            self.assertEqual(orbit["targets"]["p4"], behavior.center)
+            self.assertEqual(orbit["loiter_radius"]["p4"], 40.0)
+
+        # 空中监视也算观察者：进入盘旋圈后提供覆盖。
         self.assertGreater(behavior._last_coverage, 0.0)
         self.assertEqual(behavior.metrics.get("air_units"), 1)
+
+    def test_air_orbit_shrinks_when_air_threat_cuts_the_circle(self):
+        """对空威胁区切到盘旋圈时，整圈收缩，航点不再落进威胁区。
+
+        回归：旧实现把盘旋航点交给运动层的"最近安全点投影"，威胁区把圆
+        割成两段时最近边会在两侧之间跳变，飞机在威胁区/建筑角来回折返。
+        """
+        import city_nav
+        roles = {"p1": "boundary:1/1", "p2": "gate:G1",
+                 "p3": "intercept:standby", "p4": "air:watch"}
+        threat = dict(id="AIR-T",
+                      polygon=[(55, 75), (95, 75), (95, 95), (55, 95)])
+        bounds = (-100.0, -100.0, 200.0, 200.0)
+        nav = city_nav.NavMap(bounds, [threat], radius=1.0)
+        nav.air_threat_map = city_nav.NavMap(bounds, [threat], radius=1.0)
+        behavior = ContainmentBehavior(
+            dict(job_id="T1", pos=[50, 50]), nav,
+            ["p1", "p2", "p3", "p4"],
+            _params(roles=roles, duration_s=30.0,
+                    air_altitude_m=60, air_orbit_radius_m=40))
+        effective = behavior.air_orbit_radius_effective_m
+        self.assertLess(effective, 40.0)
+        self.assertGreater(effective, 0.0)
+        self.assertIn("air_orbit_adjusted", _kinds(behavior))
+        poses = {pid: (behavior.posts[pid][0], behavior.posts[pid][1], 0.0)
+                 for pid in behavior.pids}
+        poses["p4"] = (50.0 + effective, 50.0, 0.0)
+        out = behavior.step(poses, 0.0, 1.0)
+        self.assertEqual(out["targets"]["p4"], behavior.center)
+        self.assertEqual(out["loiter_radius"]["p4"], effective)
+        for index in range(90):
+            angle = 2.0 * math.pi * index / 90.0
+            point = (50.0 + effective * math.cos(angle),
+                     50.0 + effective * math.sin(angle))
+            self.assertTrue(
+                nav.air_threat_map.free(point, radius=3.0),
+                "orbit point %s violates the air threat zone" % (point,))
 
     def test_losing_a_post_records_control_interruption(self):
         behavior = ContainmentBehavior(
@@ -288,6 +423,32 @@ class ContainmentBehaviorTests(unittest.TestCase):
 
 
 class ContainmentReplayTests(unittest.TestCase):
+    def test_unstarted_containment_keeps_its_configured_area_and_waiting_target(self):
+        target = dict(target_id='WAIT', start=[50, -40], goal=[50, 50])
+        jobs = [dict(job_id='PAT', type='patrol', pos=[0, 0]),
+                dict(job_id='SEC', type='blockade', pos=[50, 50],
+                     _behavior=dict(area={'polygon': RECT}, intruders=[target]))]
+        replay = trajectory_v2.build_replay_data(dict(platforms=[], jobs=jobs),
+                                                  dict(platforms=[], jobs=[]), [])
+        layer = replay['containment_by_job']['SEC']
+        self.assertEqual(layer['structure']['area'], RECT)
+        self.assertIsNone(layer['structure']['sim_s'])
+        self.assertEqual(layer['targets'], [dict(target, track=[])])
+
+    def test_active_target_uses_simulation_clock_and_current_task(self):
+        trace = self._trace()
+        trace[0]['sim_s'] = 100
+        trace[0]['event']['targets'] = [{'target_id': 'R', 'start': [0, 0]}]
+        trace[1].update(sim_s=105, event=dict(trace[1]['event'], job_id='T1'))
+        for job_id, x in [('T1', 2), ('T2', 9)]:
+            trace.append(dict(kind='behavior_event', sim_s=110, event=dict(
+                kind='behavior_detail', job_id=job_id, debug=dict(
+                    targets=[dict(target_id='R', appeared=True, pos=[x, 0])]))))
+        payload = trajectory_v2._containment_replay(trace, 'T1')
+        self.assertIsNone(payload['result'])
+        self.assertEqual(payload['events'][0]['t'], 105)
+        self.assertEqual(payload['targets'][0]['track'], [[110, 2, 0]])
+
     def _trace(self):
         structure = dict(kind="behavior_structure", type="blockade",
                          job_id="T1", area=RECT, posts=[[50.0, 10.0]],

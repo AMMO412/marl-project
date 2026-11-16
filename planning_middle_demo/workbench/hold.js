@@ -15,6 +15,7 @@
     raf: null, last: 0, built: false, bounds: null,
     cam: 'area', visible: false, showRoutes: false,
   };
+  const DESKTOP_MODE = new URLSearchParams(location.search).get('desktop') === '1';
   const COLORS = {
     key: '#1d4ed8', post: '#0f766e', postOff: '#94a3b8',
     reserve: '#7c3aed', support: '#0891b2', relay: '#64748b',
@@ -72,7 +73,7 @@
     C.playing = false;
     C.autoPlayed = false;
     C.cam = 'area';
-    C.camAuto = false;
+    C.camAuto = true;
     C.showRoutes = false;
     C.t = 0;
     C.bounds = null;
@@ -110,24 +111,23 @@
         if (s.job === C.jobId) end = Math.max(end, s.t);
       }
     }
-    return Math.ceil(Math.max(end, 10));
+    const recordedEnd = Number(((currentRun() || {}).replay || {}).end) || 0;
+    return recordedEnd > 0 ? recordedEnd : Math.ceil(Math.max(end, 10));
   }
 
   function workerSamples(pid) {
     const w = workers().find((x) => x.pid === pid);
-    return (w && w.samples) ? w.samples.filter((s) => s.job === C.jobId) : [];
+    return w ? (window.ReplayPose.samples ? window.ReplayPose.samples(w) : w.samples) : [];
   }
 
   function agentAt(pid, t) {
     const samples = workerSamples(pid);
-    if (!samples.length) return null;
+    if (!samples.length) { const w=workers().find(x=>x.pid===pid); return w && w.start ? {x:w.start[0], y:w.start[1], yaw:w.yaw || 0, phase:'idle'} : null; }
     let prev = samples[0];
     for (const s of samples) {
       if (s.t <= t) prev = s;
       else {
-        const f = (t - prev.t) / Math.max(1e-6, s.t - prev.t);
-        return { x: prev.x + (s.x - prev.x) * f, y: prev.y + (s.y - prev.y) * f,
-                 yaw: prev.yaw || 0, phase: prev.phase };
+        return window.ReplayPose.between(prev, s, t);
       }
     }
     return { x: prev.x, y: prev.y, yaw: prev.yaw || 0, phase: prev.phase };
@@ -135,14 +135,31 @@
 
   // 某阵位在 t 时刻由谁在位：直接查后端记录的占用区间，不在前端反推。
   function occupantAt(postId, t) {
-    for (const position of (result().positions || [])) {
-      if (position.id !== postId) continue;
-      for (const row of (position.occupants || [])) {
-        const leave = row.leave_s == null ? Infinity : row.leave_s;
-        if (t >= (row.enter_s || 0) && t < leave) return row.pid;
-      }
-    }
-    return null;
+    return postStatus(C.data, postId, t).pid || null;
+  }
+
+  function taskSamples(worker, jobId) {
+    let fromHold = false;
+    return (worker?.samples || []).filter(sample => {
+      if (sample.job) fromHold = sample.job === jobId;
+      return sample.job === jobId || (fromHold && !sample.air_wait && sample.command?.startsWith('return:'));
+    });
+  }
+
+  function postStatus(data, postId, t) {
+    const events = (data.events || []).filter(e => e.t <= t);
+    if (events.some(e => e.kind === 'withdrawn')) return {label: '已撤离'};
+    if (events.some(e => e.kind === 'withdraw_timeout')) return {label: '撤离超时'};
+    if (events.some(e => e.kind === 'withdraw_started')) return {label: '撤离中'};
+    if (data.result && t >= data.result.sim_s) return {label: '已结算'};
+    const position = (data.positions || []).find(post => post.id === postId);
+    const pid = position?.occupants.find(row => row.enter_s <= t &&
+      (row.leave_s == null || t < row.leave_s))?.pid;
+    const handover = events.filter(e => e.post_id === postId && e.kind.startsWith('handover_')).at(-1);
+    if (handover?.kind === 'handover_start') return {pid, label: '交接中'};
+    if (pid) return {pid, label: shortPid(pid) + ' 在位'};
+    if (!data.occupancy_known) return {label: '待占位记录'};
+    return {label: events.some(e => e.kind === 'control_established') ? '空缺' : '机动中'};
   }
 
   function eventAt(kinds, t) {
@@ -151,8 +168,15 @@
   }
 
   function phaseNow(t) {
-    const st = structure();
-    const est = metrics().control_established_at_s;
+    if (C.data.result && t >= C.data.result.sim_s) {
+      const returns = workers().map(w => workerSamples(w.pid).filter(
+        s => s.t >= C.data.result.sim_s && s.t <= t && s.command?.startsWith('return:')).at(-1)).filter(Boolean);
+      if (returns.some(s => s.phase !== 'returned')) return '返航中';
+      if (returns.length) return '已返回出发点';
+      if ((C.data.events || []).some(e => e.kind === 'withdraw_timeout' && e.t <= t)) return '撤离超时';
+      return (C.data.events || []).some(e => e.kind === 'withdrawn' && e.t <= t) ? '已撤离' : '已结算';
+    }
+    const est = (C.data.events || []).find(e => e.kind === 'control_established')?.t;
     const wd = (C.data.events || []).find((e) => e.kind === 'withdraw_started');
     if (wd && t >= (wd.t || 0)) {
       const done = (C.data.events || []).find((e) => e.kind === 'withdrawn');
@@ -357,6 +381,7 @@
       const li = e.target.closest('li[data-t]');
       if (li) { setPlaying(false); seek(Number(li.dataset.t)); }
     });
+    if (window.SceneNavigation) window.SceneNavigation.bind(el('#hl-canvas'), cameraApi());
     C.built = true;
     requestAnimationFrame(() => { resize(); draw(); });
   }
@@ -375,11 +400,21 @@
 
   function seek(t) {
     C.t = Math.max(0, Math.min(endTime(), t));
+    updateCamera();
     const scrub = el('#hl-scrub'), label = el('#hl-time');
     if (scrub) scrub.value = C.t;
     if (label) label.textContent = num(C.t, 1) + ' / ' + Math.round(endTime()) + ' s';
     updateTicker();
     draw();
+  }
+
+  function updateCamera() {
+    if (!C.camAuto) return;
+    const mode = C.t >= (C.data?.result?.sim_s ?? Infinity) ? 'all' : 'area';
+    if (mode === C.cam) return;
+    C.cam = mode; C.bounds = null;
+    el('#hl-cam-all')?.classList.toggle('active', mode === 'all');
+    el('#hl-cam-area')?.classList.toggle('active', mode === 'area');
   }
 
   function tick(now) {
@@ -418,10 +453,10 @@
     if (!host) return;
     const end = Math.max(1, endTime());
     const pct = (v) => Math.max(0, Math.min(100, (v / end) * 100));
-    const handovers = (result().handovers || []);
-    const arrivals = (result().reinforcements || []);
+    const handovers = (C.data.events || []).filter(e => e.kind === 'handover_complete');
+    const arrivals = (C.data.events || []).filter(e => e.kind === 'reinforce_arrived');
     host.innerHTML = (structure().positions || []).map((position) => {
-      const rows = (result().positions || []).find((p) => p.id === position.id);
+      const rows = (C.data.positions || []).find((p) => p.id === position.id);
       const bars = ((rows && rows.occupants) || []).map((row) => {
         const left = pct(row.enter_s || 0);
         const right = pct(row.leave_s == null ? end : row.leave_s);
@@ -431,11 +466,11 @@
               (row.leave_s == null ? '结束' : num(row.leave_s, 0)) + 's') + '"></i>';
       }).join('');
       const marks = handovers.filter((h) => h.post_id === position.id).map((h) =>
-        '<b class="hl-mark" style="left:' + pct(h.completed_s || 0).toFixed(2) +
-        '%" title="接替完成 ' + num(h.completed_s, 0) + 's"></b>').join('');
+        '<b class="hl-mark" style="left:' + pct(h.t).toFixed(2) +
+        '%" title="接替完成 ' + num(h.t, 0) + 's"></b>').join('');
       const reinf = arrivals.filter((r) => r.post_id === position.id).map((r) =>
-        '<b class="hl-mark reinf" style="left:' + pct(r.arrived_s || 0).toFixed(2) +
-        '%" title="增援到位 ' + num(r.arrived_s, 0) + 's"></b>').join('');
+        '<b class="hl-mark reinf" style="left:' + pct(r.t).toFixed(2) +
+        '%" title="增援到位 ' + num(r.t, 0) + 's"></b>').join('');
       return '<div class="hl-gantt-row"><span class="hl-gantt-label">' + esc(position.id) +
         '<em>' + num(position.facing_deg, 0) + '°</em></span>' +
         '<div class="hl-gantt-track">' + bars + marks + reinf + '</div></div>';
@@ -448,8 +483,8 @@
     const phase = phaseNow(C.t);
     const chip = (text, cls) => '<span class="ck-chip ' + (cls || '') + '">' + esc(text) + '</span>';
     const manned = (structure().positions || []).map((p) => {
-      const pid = occupantAt(p.id, C.t);
-      return chip(p.id + (pid ? ' · ' + shortPid(pid) : ' · 空缺'), pid ? 'on' : 'out');
+      const {pid, label} = postStatus(C.data, p.id, C.t);
+      return chip(p.id + ' · ' + label, pid ? 'on' : 'out');
     }).join('');
     // 进攻/处置事件在状态条上也给一眼：地图上同时有箭头与脉冲。
     const events = C.data.events || [];
@@ -490,10 +525,20 @@
     for (const p of (st.positions || [])) pts.push(p.point);
     for (const s of (st.threat_sectors || [])) (s.polygon || []).forEach((p) => pts.push(p));
     if (C.cam === 'all') {
+      const run = currentRun() || {};
+      for (const threat of (run.threats || [])) pts.push(...(threat.polygon || []));
+      for (const worker of workers()) { if(worker.start)pts.push(worker.start); for(const sample of (worker.samples || []))pts.push([sample.x,sample.y]); }
+      for(const group of ['roads','surfaces','obstacles'])for(const item of ((run.scene_map || {})[group] || []))pts.push(...(item.polygon || []));
       for (const a of planAssignments()) for (const p of (a.path || [])) pts.push(p);
       if (st.standby) pts.push(st.standby);
       const w = st.withdraw || {};
-      (w.route || []).forEach((p) => pts.push(p));
+      if (w.allowed !== false) (w.route || []).forEach(p => pts.push(p));
+      for (const worker of workers()) {
+        const samples = taskSamples(worker, C.jobId);
+        if (!samples.length) continue;
+        pts.push(worker.start);
+        for (const p of samples) if (p.command?.startsWith('return:')) pts.push([p.x, p.y]);
+      }
     }
     if (!pts.length) return [0, 0, 100, 100];
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
@@ -507,7 +552,15 @@
             Math.max(...xs) + pad, Math.max(...ys) + pad];
   }
 
+  function cameraApi() {
+    return { getBounds: () => (C.bounds || (C.bounds = computeBounds())).slice(),
+      setBounds: bounds => { C.camAuto = false; C.bounds = bounds; draw(); } };
+  }
+  function fitView(mode) {
+    C.cam = mode === 'all' ? 'all' : 'area'; C.camAuto = false; C.bounds = null; resize(); draw(); return true;
+  }
   function draw() {
+    resize();
     const canvas = el('#hl-canvas');
     if (!canvas || !C.data) return;
     const st = structure();
@@ -517,7 +570,7 @@
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = '#f7faf8';
+    ctx.fillStyle = DESKTOP_MODE ? '#fbfcfe' : '#f7faf8';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     const b = C.bounds || (C.bounds = computeBounds());
@@ -531,7 +584,7 @@
     // 静态底图（楼体/花坛/道路）：只作参照，不参与判定。有点位的运行才有；
     // 没有就跳过，不补示意图。
     const backdrop = (currentRun() || {}).scene_map;
-    if (backdrop && !backdrop.error) {
+    if ((window.MarlDesktopLayers || {}).buildings !== false && backdrop && !backdrop.error) {
       const poly = (points, fill, stroke) => {
         if (!points || points.length < 3) return;
         ctx.beginPath();
@@ -543,10 +596,15 @@
         if (fill) { ctx.fillStyle = fill; ctx.fill(); }
         if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
       };
-      for (const road of (backdrop.roads || [])) poly(road.polygon, '#eef1ec', null);
-      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, '#eaf1e6', null);
-      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, '#e3e8e2', '#cfd8cc');
+      for (const road of (backdrop.roads || [])) poly(road.polygon, DESKTOP_MODE ? '#edf2f8' : '#eef1ec', null);
+      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, DESKTOP_MODE ? '#f5f8fc' : '#eaf1e6', null);
+      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, DESKTOP_MODE ? '#e4ecf5' : '#e3e8e2', DESKTOP_MODE ? '#c6d3e3' : '#cfd8cc');
     }
+    if (window.SceneNavigation && (window.MarlDesktopLayers || {}).grid !== false)
+      window.SceneNavigation.drawGrid(ctx, W, H, P, scale, cx, cy);
+    if (window.SceneNavigation) window.SceneNavigation.drawSceneContext(ctx, currentRun() || {}, P, window.MarlDesktopLayers || {});
+    if (DESKTOP_MODE && window.SceneNavigation) window.SceneNavigation.drawRecordedTrails(ctx,currentRun()||{},P,t,(window.MarlDesktopLayers||{}).trails!==false);
+
     const labels = [];
     const placed = [];
     const placeLabel = (text, x, y, color) => {
@@ -614,7 +672,7 @@
 
     // 撤离路线（只有开了"规划路径"才画，默认干净）
     if (C.showRoutes) {
-      const route = (st.withdraw || {}).route || [];
+      const route = st.withdraw?.allowed === false ? [] : st.withdraw?.route || [];
       if (route.length > 1) {
         ctx.beginPath();
         route.map(P).forEach((p, i) => (i ? ctx.lineTo(...p) : ctx.moveTo(...p)));
@@ -728,7 +786,7 @@
     // 阵位：环 + 朝向刻线；在位=实心，空缺=空心
     for (const position of (st.positions || [])) {
       const q = P(position.point);
-      const pid = occupantAt(position.id, t);
+      const {pid, label} = postStatus(C.data, position.id, t);
       const color = pid ? COLORS.post : COLORS.postOff;
       const rad = Math.max(4.5, 6);
       ctx.beginPath();
@@ -747,7 +805,7 @@
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.4;
       ctx.stroke();
-      placeLabel(position.id + (pid ? ' · ' + shortPid(pid) : ' · 空缺'),
+      placeLabel(position.id + ' · ' + label,
                  q[0], q[1], color);
     }
 
@@ -770,13 +828,13 @@
     }
 
     // 我方平台
-    for (const pid of Object.keys(roles)) {
+    for (const pid of ((window.MarlDesktopLayers || {}).units === false ? [] : workers().map(w => w.pid))) {
       const a = agentAt(pid, t);
       if (!a) continue;
       const w = workers().find((x) => x.pid === pid);
       const q = P([a.x, a.y]);
       const kind = String(roles[pid] || '').split(':')[0];
-      const color = kind === 'reserve' ? COLORS.reserve
+      const color = !roles[pid] ? ({UGV:'#3f6fa3',TANK:'#8a6b3d',PLANE:'#2f8f86',WING:'#7657a8'}[w.kind] || '#64748b') : kind === 'reserve' ? COLORS.reserve
         : kind === 'support' ? COLORS.support
           : kind === 'relay' ? COLORS.relay
             : kind === 'air' ? COLORS.air : COLORS.post;
@@ -788,6 +846,7 @@
         ctx.fillStyle = color;
         ctx.fill();
       }
+      if (!roles[pid]) { placeLabel(shortPid(pid), q[0], q[1], '#47647e'); continue; }
       if (kind === 'air') {
         placeLabel('空中观察 ' + shortPid(pid) + ' · ' +
           num(st.air_altitude_m, 0) + ' m', q[0], q[1] - 16, COLORS.air);
@@ -932,6 +991,7 @@
 
   function syncTime(t) {
     C.t = Math.max(0, Math.min(endTime(), Number(t) || 0));
+    updateCamera();
     const scrub = el('#hl-scrub'), label = el('#hl-time');
     if (scrub) scrub.value = C.t;
     if (label) label.textContent = num(C.t, 1) + ' / ' + Math.round(endTime()) + ' s';
@@ -940,12 +1000,24 @@
   function time() { return C.t; }
 
   window.HoldPage = {
+    centerAt: point => {
+      const b = cameraApi().getBounds(), half = Math.max(10, Math.min(60, (b[2] - b[0]) / 2));
+      cameraApi().setBounds([point[0] - half, point[1] - half, point[0] + half, point[1] + half]);
+      return true;
+    },
+    setCameraBounds: value => cameraApi().setBounds(value),
+    setLayer: (name,visible) => { if(name==='planned')C.showRoutes=!!visible;draw();return true; },
+    fitView, cameraBounds: () => cameraApi().getBounds(),
+    projectPoints: points => { const view=window.SceneNavigation.project(el('#hl-canvas'),cameraApi().getBounds());return points.map(view.point); },
+    zoom: factor => window.SceneNavigation && window.SceneNavigation.zoom(el('#hl-canvas'), cameraApi(), factor),
     load: load,
     show: show,
     hide: hide,
     draw: draw,
     syncTime: syncTime,
     time: time,
+    postStatus: postStatus,
+    taskSamples: taskSamples,
     hasData: () => !!C.data,
   };
 })();

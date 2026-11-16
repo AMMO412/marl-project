@@ -2,6 +2,7 @@
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
+from interop.urban_maps import scene_geometry
 from sdf_state import DEFAULT_SDF, DEFAULT_MODELS, read_state, _pose, _combine, _rect
 
 
@@ -10,6 +11,10 @@ def scene_map(scenario):
     formation = (meta.get('interop') or {}).get('formation') or {}
     fm = formation.get('meta') or {}
     if formation:
+        if fm.get('map_id'):
+            geometry = scene_geometry(fm)
+            if geometry:
+                return geometry
         if fm.get('scene') != 'container_00' or fm.get('source_sdf') != DEFAULT_SDF.name:
             return None
         scale, ox, oy = 1.0, 0.0, 0.0

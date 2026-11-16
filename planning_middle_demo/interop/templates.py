@@ -9,12 +9,13 @@
 
 import copy
 import math
+from dataclasses import replace
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .errors import PlanningError
 from .geometry import bbox, polygon_centroid
-from .message import target_point, target_points
+from .message import CLASS_RANGES, target_point, target_points
 from .model import Platform, Scenario, Subtask, Task
 
 Point = Tuple[float, float]
@@ -145,6 +146,10 @@ def _make_subtask(task: Task, index: int, target: Dict, duration_s: float,
         window_start_s=float(start),
         window_end_s=float(end),
         priority=task.priority,
+        payload_required_kg=float(task.params.get("payload_required_kg",0.0) or 0.0),
+        sensor_required=dict(task.params.get("sensor_required") or {}),
+        endurance_required_s=float(task.params.get("endurance_required_s",0.0) or 0.0),
+        motion_required=dict(task.params.get("motion_required") or {}),
         coordination=list(coordination or []),
         role="",
     )
@@ -170,39 +175,60 @@ def _decompose_rcn(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     if duration <= 0:
         raise PlanningError("%s.duration_s 必须大于 0" % task.task_id)
     coordination = _coordination(task)
-    if "search_starts" in task.params:
+    # Search deadline is an execution-stage limit. Travel is scheduled against
+    # the outer task window; conflating the two rejected work before dispatch.
+    planning_deadline = task.window_end_s
+
+    def apply_deadline(slots: List[Subtask]) -> List[Subtask]:
+        for slot in slots:
+            slot.window_end_s = planning_deadline
+        return slots
+
+    if "search_points" in task.params or "search_starts" in task.params:
         slots = []
-        for index, (unit, point) in enumerate(recon_starts(task).items(), 1):
+        starts = recon_start_points(task)
+        for index, (unit, point) in enumerate(starts, 1):
             slot = _make_subtask(task, index, {"point": list(point)}, duration,
                                  coordination=coordination)
-            slot.pinned_unit = unit
+            # ``search_starts`` names the geographic sector a slot covers.
+            # Its legacy unit key is only the preferred platform for that
+            # sector; a busy preferred unit must not serialize the whole
+            # reconnaissance task while capable units sit idle.
+            slot.preferred_unit = str(unit or "")
             slot.role = "search:%d" % index
             slots.append(slot)
-        return slots
+        return apply_deadline(slots)
 
     raw_list = task.target.get("target_list", task.params.get("target_list"))
     if raw_list is not None:
         if not isinstance(raw_list, (list, tuple)) or not raw_list:
             raise PlanningError("%s.target_list 不能为空" % task.task_id)
-        return [_make_subtask(task, i + 1, {"point": list(as_point(p))},
-                              duration, coordination=coordination)
-                for i, p in enumerate(raw_list)]
+        return apply_deadline([
+            _make_subtask(task, i + 1, {"point": list(as_point(p))},
+                          duration, coordination=coordination)
+            for i, p in enumerate(raw_list)])
 
     route = task_route(task)
     if route is not None:
         segments = _split_route(route, _units_for_split(task, platforms))
-        return [_make_subtask(task, i + 1,
-                              {"route": [list(p) for p in seg]},
-                              duration, coordination=coordination)
-                for i, seg in enumerate(segments)]
+        return apply_deadline([
+            _make_subtask(task, i + 1,
+                          {"route": [list(p) for p in seg]},
+                          duration, coordination=coordination)
+            for i, seg in enumerate(segments)])
 
     area = task_polygon(task, ("area", "sector"))
     if area is not None:
         strips = _split_bbox(area, _units_for_split(task, platforms))
-        return [_make_subtask(task, i + 1,
-                              {"area": {"polygon": [list(p) for p in strip]}},
-                              duration, coordination=coordination)
-                for i, strip in enumerate(strips)]
+        slots = []
+        for index, strip in enumerate(strips, 1):
+            slot = _make_subtask(
+                task, index,
+                {"area": {"polygon": [list(p) for p in strip]}},
+                duration, coordination=coordination)
+            slot.role = "search:%d" % index
+            slots.append(slot)
+        return apply_deadline(slots)
 
     raise PlanningError("%s（T-RCN）缺少 area / route / target_list" % task.task_id)
 
@@ -337,7 +363,7 @@ def _decompose_sec(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
             if role.startswith("air:"):
                 subtask.required_capabilities = dict(air_caps)
                 if air_unit:
-                    subtask.pinned_unit = str(air_unit)
+                    subtask.preferred_unit = str(air_unit)
             subtasks.append(subtask)
         return subtasks
 
@@ -367,6 +393,18 @@ def recon_starts(task: Task):
     return starts
 
 
+def recon_start_points(task: Task):
+    if "search_points" not in task.params:
+        return list(recon_starts(task).items())
+    raw = task.params["search_points"]
+    if not isinstance(raw, list) or len(raw) != task.min_units:
+        raise PlanningError("%s 的侦察起点数须与最少平台数一致" % task.task_id)
+    candidate = replace(task, params=dict(task.params, search_starts={
+        str(index): point for index, point in enumerate(raw, 1)
+    }))
+    return [(None, point) for point in recon_starts(candidate).values()]
+
+
 def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     duration = float(task.params.get("duration_s", 300.0))
     if duration <= 0:
@@ -375,27 +413,29 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     if task.params.get("handover_points"):
         coordination = list(dict.fromkeys(coordination + ["handover"]))
 
-    if task.params.get("follow_boundary") or "checkpoints" in task.params:
+    if patrol_has_loop(task):
         _, checkpoints, _ = patrol_loop(task)
         # 固定任务所需起巡位，缺员由调度器报告，重规划时也不缩编。
         count = task.min_units
-        if count > len(checkpoints):
+        starts = list(dict.fromkeys(checkpoints))
+        if count > len(starts):
             raise PlanningError("%s 的巡逻检查点不足以分配起巡位" % task.task_id)
         start_units = task.params.get("start_units")
         if start_units is not None and (
                 not isinstance(start_units, list) or len(start_units) != count
-                or not all(isinstance(unit, str) and unit for unit in start_units)
-                or len(set(start_units)) != count):
-            raise PlanningError("%s.start_units 需为每个起巡位给出不同的平台编号" % task.task_id)
+                or not all(unit is None or isinstance(unit, str) and unit for unit in start_units)
+                or len(set(unit for unit in start_units if unit)) != sum(bool(unit) for unit in start_units)):
+            raise PlanningError("%s 的手动起巡位需要使用不同的平台，每个起巡位也可选择自动分配" % task.task_id)
         coordination = list(dict.fromkeys(coordination + ["simultaneous_arrival"]))
         slots = []
         for i in range(count):
-            index = i * len(checkpoints) // count
+            point = starts[i * len(starts) // count]
+            index = checkpoints.index(point)
             slot = _make_subtask(task, i + 1, {"point": list(checkpoints[index])},
                                  duration, coordination=coordination)
             slot.role = "patrol:%d" % (index + 1)
             if start_units:
-                slot.pinned_unit = start_units[i]
+                slot.preferred_unit = start_units[i] or ""
             slots.append(slot)
         return slots
 
@@ -422,20 +462,38 @@ def _decompose_ptl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
     raise PlanningError("%s（T-PTL）缺少 route / patrol_area / point" % task.task_id)
 
 
+def patrol_has_loop(task: Task) -> bool:
+    params = task.params
+    return (bool(params.get("follow_boundary")) or "checkpoints" in params
+            or (any(key in params for key in ("sensor_radius_m", "observation_target",
+                                               "_workbench_patrol"))
+                and any(key in task.target for key in ("route", "patrol_area", "area"))))
+
+
 def patrol_loop(task: Task):
-    """读取区域巡逻的有序检查点，供规划与执行共用。"""
+    """读取有序巡逻点，供规划与执行共用。"""
     import containment_geom as geom
     area = task_polygon(task, ("patrol_area", "area"))
-    follow_boundary = task.params.get("follow_boundary")
-    checkpoints = (area or []) if follow_boundary else target_points(
-        {"route": task.params["checkpoints"]})
+    route = task_route(task)
+    follow_boundary = task.params.get("follow_boundary") or "checkpoints" not in task.params
+    closed_route = route is not None and len(route) > 2 and route[0] == route[-1]
+    if route is not None:
+        checkpoints = route[:-1] if closed_route else route
+    elif follow_boundary:
+        checkpoints = area or []
+    else:
+        checkpoints = target_points({"route": task.params["checkpoints"]})
     cycles = task.params.get("cycles", 1)
-    if (not area or len(set(checkpoints)) < 3
-            or len(set(checkpoints)) != len(checkpoints)
-            or (not follow_boundary and not all(geom.inside(area, p) for p in checkpoints))):
-        raise PlanningError("%s 需要至少三个互异的巡逻点，取自区域顶点或位于区内" % task.task_id)
+    if len(checkpoints) < (2 if route is not None else 3) or len(set(checkpoints)) != len(checkpoints):
+        raise PlanningError("%s 的巡逻航点或区域顶点不足，且各点须互不重复" % task.task_id)
+    if route is None and (not area or (
+            not follow_boundary and not all(geom.inside(area, p) for p in checkpoints))):
+        raise PlanningError("%s 的巡逻检查点须位于巡逻区内" % task.task_id)
     if type(cycles) is not int or cycles < 1:
         raise PlanningError("%s.cycles 必须是正整数" % task.task_id)
+    if route is not None and not closed_route:
+        # An open route returns along its original legs.
+        checkpoints = checkpoints + checkpoints[-2:0:-1]
     return area, checkpoints, cycles
 
 
@@ -737,7 +795,7 @@ def _decompose_hld(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         if role.startswith("air:"):
             subtask.required_capabilities = dict(air_caps)
             if air_unit:
-                subtask.pinned_unit = str(air_unit)
+                subtask.preferred_unit = str(air_unit)
         subtasks.append(subtask)
     return subtasks
 
@@ -792,7 +850,7 @@ def _decompose_asl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         subtask.role = "scout"
         subtask.required_capabilities = dict(scout.get("capabilities") or {})
         if scout_count == 1 and scout.get("unit"):
-            subtask.pinned_unit = str(scout["unit"])
+            subtask.preferred_unit = str(scout["unit"])
         items.append(subtask)
         scout_ids.append(subtask.subtask_id)
         index += 1
@@ -816,7 +874,7 @@ def _decompose_asl(task: Task, platforms: Sequence[Platform]) -> List[Subtask]:
         subtask.role = "assessor"
         subtask.required_capabilities = dict(assessor.get("capabilities") or {})
         if assessor_count == 1 and assessor.get("unit"):
-            subtask.pinned_unit = str(assessor["unit"])
+            subtask.preferred_unit = str(assessor["unit"])
         items.append(subtask)
         index += 1
 
@@ -865,6 +923,29 @@ def decompose(scenario: Scenario) -> List[Subtask]:
             raise PlanningError("未知任务类型: %s" % task.task_type)
         items = decomposer(task, scenario.platforms)
         items = _apply_slots(task, items)
+        pins = task.params.get('_slot_units', {})
+        if not isinstance(pins, dict):
+            raise PlanningError('%s 的平台锁定配置无效' % task.task_id)
+        keys = slot_keys(items)
+        if pins.keys() - set(keys):
+            raise PlanningError('%s 的席位已经变化，请重新试算并选择平台' % task.task_id)
+        if pins:
+            for key, item in zip(keys, items):
+                if key in pins:
+                    unit = pins[key]
+                    if isinstance(unit, dict) and set(unit) == {'platform_class'}:
+                        platform_class = unit['platform_class']
+                        if not isinstance(platform_class, str) or platform_class not in CLASS_RANGES:
+                            raise PlanningError('%s 的席位平台种类无效' % task.task_id)
+                        item.pinned_unit = ""
+                        item.pinned_class = platform_class
+                        continue
+                    if unit is not None and (not isinstance(unit, str) or not unit):
+                        raise PlanningError('%s 的平台编号无效' % task.task_id)
+                    item.pinned_unit = unit
+            locked = [item.pinned_unit for item in items if item.pinned_unit]
+            if len(set(locked)) != len(locked):
+                raise PlanningError('%s 的各席位须使用不同的平台' % task.task_id)
         if not items:
             raise PlanningError("%s 分解后没有子任务" % task.task_id)
         subtasks.extend(items)
@@ -882,6 +963,16 @@ def decompose(scenario: Scenario) -> List[Subtask]:
             for subtask in by_task[task.task_id]:
                 subtask.depends_on = list(dep_subtask_ids)
     return subtasks
+
+
+def slot_keys(items):
+    counts = {}
+    keys = []
+    for item in items:
+        role = item.role or 'slot'
+        counts[role] = counts.get(role, 0) + 1
+        keys.append('%s/%d' % (role, counts[role]))
+    return keys
 
 
 def task_target_points(task: Task) -> List[Point]:

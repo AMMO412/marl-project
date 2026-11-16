@@ -1,0 +1,81 @@
+{
+  "archive": "D:\\Desktop\\MARL项目历史归档_20261116_173732",
+  "moved_directories": 39,
+  "moved_files": 2062,
+  "moved_bytes": 508751276,
+  "archive_hash_mismatches": [],
+  "protected_missing": [],
+  "protected_changed": [],
+  "protected_files": 7162,
+  "maps": {
+    "residential": "neutral-urban-map/v1",
+    "downtown": "neutral-urban-map/v1",
+    "mixed": "neutral-urban-map/v1"
+  },
+  "task_inputs": {
+    "interop_containment": {
+      "tasks": 1,
+      "platforms": 50
+    },
+    "interop_hold": {
+      "tasks": 1,
+      "platforms": 50
+    },
+    "interop_patrol": {
+      "tasks": 1,
+      "platforms": 50
+    },
+    "interop_recon": {
+      "tasks": 1,
+      "platforms": 50
+    },
+    "interop_asl": {
+      "tasks": 1,
+      "platforms": 50
+    }
+  },
+  "latest_run": {
+    "id": "workbench_20261116_172908_364519",
+    "workers": 50,
+    "jobs": 1
+  },
+  "roads_sha256": "3f920f62d8b983e9a7f6a6da686ad2169141409148fe539f92a95cbf61b7a690",
+  "http": {
+    "/": {
+      "status": 200,
+      "bytes": 26769
+    },
+    "/api/catalog": {
+      "status": 200,
+      "bytes": 17350
+    },
+    "/api/process": {
+      "status": 200,
+      "bytes": 17
+    },
+    "/app.js": {
+      "status": 200,
+      "bytes": 164246
+    },
+    "/replay_pose.js": {
+      "status": 200,
+      "bytes": 4335
+    },
+    "/api/source/entry": {
+      "status": 200,
+      "bytes": 5786
+    },
+    "/api/source/readme": {
+      "status": 200,
+      "bytes": 802
+    },
+    "/api/source/interop_readme": {
+      "status": 200,
+      "bytes": 27790
+    }
+  },
+  "outputs_after": {
+    "directories": 8,
+    "bytes": 34837921
+  }
+}

@@ -1,3 +1,5 @@
+> 当前默认是浏览器工作台，C# 原生端保留兼容入口。此文件是交付框架，不是已验收报告。当前使用与边界见 [工程入口](../../../README.md)，原始输入/报告/运动序列/追溯的用途见 [运行文件说明](../../运行输出文件说明.md)。
+
 # 测试报告（骨架）
 
 ## 文档控制
@@ -6,7 +8,7 @@
 | --- | --- |
 | 文档编号 | 04 |
 | 版本 | v0.5（骨架） |
-| 日期 | 2026-11-06 |
+| 日期 | 2026-11-16（当前事实核对，正文仍待完成） |
 | 状态 | 待执行、待填写 |
 
 ## 目录大纲
@@ -27,10 +29,13 @@
 
 ## 当前可用证据
 
-- `desktop_app/dist/live*/live-verification.txt`
-- `desktop_app/dist/live*/live-preview.png`
-- `desktop_app/dist/verify*/verification.txt`
-- Python 单元测试输出（待保存日志）。
+- `outputs/webview_busy_20261109/verification.json`：2026-11-09 双窗口启动及资源加载恢复。
+- `outputs/native_workflow_20261106/live-verification.txt`：2026-11-16（当前事实核对，正文仍待完成） 历史开发验证。
+- `outputs/native_workflow_20261106/live-preview.png`：同轮历史截图。
+- `outputs/native_workflow_20261106/static-verification.txt`：历史原生结构检查。
+- Python 单元测试与浏览器记录见 [精选产物](../../../outputs/README.md)，仅对应各日志生成时点，不视为当前正式验收。
+
+反复生成的 `dist/live*`、`dist/verify*` 已清理。唯一中间诊断保留在工程外备份，映射见 `outputs/软件中间产物清理_20261109/清理说明.md`；历史检查不等于新版完整验收。
 
 ## 待补内容
 

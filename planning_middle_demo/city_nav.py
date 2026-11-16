@@ -18,6 +18,7 @@
 几何实现（点到多边形距离、线段相交、多边形内判定）与 A* 栅格搜索移植自
 robot_navigation_lab/navigation.py，逻辑保持一致，单位换成场景单位。
 """
+import hashlib
 import heapq
 import itertools
 import json
@@ -198,12 +199,45 @@ def load_obstacles(world_path=WORLD_PATH, models_dir=MODELS_DIR,
                                 rule='仅采用 SDF 显式盒体碰撞；网格碰撞不臆造尺寸'))
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+APP_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_ROOT.parent
+DEFAULT_SDF = APP_ROOT / 'assets' / 'container_00' / 'container_00_combined_scene.sdf'
+SDF_SNAPSHOT = APP_ROOT / 'scenarios' / 'sdf_initial_state.json'
 
 # 本地加入的场景模型（`<include>` 引用的外部 model）默认放在这里
 DEFAULT_MODELS_DIR = PROJECT_ROOT / '资料' / '接口说明' / 'models'
 
 _MESH_AABB_CACHE = {}
+
+
+def resolve_sdf(path):
+    path = Path(path)
+    candidates = (path,) if path.is_absolute() else (APP_ROOT / path, PROJECT_ROOT / path)
+    fallback = DEFAULT_SDF if path.name == DEFAULT_SDF.name else candidates[0]
+    return next((item for item in candidates if item.is_file()), fallback)
+
+
+def resolve_sdf_models(path, sdf):
+    candidates = []
+    if path:
+        path = Path(path)
+        candidates.extend((path,) if path.is_absolute() else (APP_ROOT / path, PROJECT_ROOT / path))
+    candidates.extend((sdf.parent / 'models', DEFAULT_MODELS_DIR))
+    return next((item for item in candidates if item.is_dir()), candidates[0])
+
+
+def _archived_buildings(sdf_path):
+    if sdf_path.name != DEFAULT_SDF.name or not SDF_SNAPSHOT.is_file():
+        return {}
+    snapshot = json.loads(SDF_SNAPSHOT.read_text(encoding='utf-8-sig'))
+    if snapshot['sha256'] != hashlib.sha256(sdf_path.read_bytes()).hexdigest():
+        return {}
+    buildings = {}
+    for row in snapshot['obstacles']:
+        if row['source'] == 'mesh_aabb':
+            name, index = row['id'].rsplit('#', 1)
+            buildings.setdefault(name, []).append((int(index), row))
+    return buildings
 
 
 def _rect_polygon(local_bounds, transform):
@@ -372,7 +406,7 @@ def load_sdf_obstacles(sdf_path, bounds=None, min_area=0.05,
     if transform is None:
         transform = dict(scale=1.0, offset_x=0.0, offset_y=0.0)
     if models_dir is None:
-        models_dir = DEFAULT_MODELS_DIR
+        models_dir = resolve_sdf_models(None, sdf_path)
     scale = float(transform['scale'])
     ox, oy = float(transform['offset_x']), float(transform['offset_y'])
     world = ET.parse(sdf_path).getroot().find('world')
@@ -475,6 +509,8 @@ def load_sdf_obstacles(sdf_path, bounds=None, min_area=0.05,
         scan_links(model, (0.0, 0.0, 0.0, 0.0, 0.0, 0.0), name, name)
 
     include_used = 0
+    restored = 0
+    archived = None
     for include in world.findall('include'):
         uri = include.findtext('uri') or ''
         name = include.findtext('name') or uri.replace('model://', '')
@@ -485,8 +521,16 @@ def load_sdf_obstacles(sdf_path, bounds=None, min_area=0.05,
             continue
         model_dir = _model_dir(models_dir, uri)
         if model_dir is None:
-            missing.append(dict(model=name, uri=uri,
-                                reason='本地没有该 include 的 model.sdf，未计入'))
+            if archived is None:
+                archived = _archived_buildings(sdf_path)
+            if name not in archived:
+                missing.append(dict(model=name, uri=uri,
+                                    reason='本地没有该 include 的 model.sdf，未计入'))
+            for index, row in archived.get(name, ()):
+                top = row.get('top_z', base[2] + row['size'][2])
+                if top > flat_top and add_footprint(name, index, row['polygon'], row['size'],
+                                                   base, uri, 'mesh_aabb', top):
+                    restored += 1
             continue
         source = ET.parse(model_dir / 'model.sdf').getroot().find('model')
         if source is None:
@@ -506,9 +550,11 @@ def load_sdf_obstacles(sdf_path, bounds=None, min_area=0.05,
                                 transform=dict(scale=scale, offset_x=ox,
                                                offset_y=oy),
                                 includes=include_used,
+                                archived_footprints=restored,
                                 rule='内联盒体 + include 本地 model.sdf；'
                                      '网格取 DAE 包围盒近似；顶面≤%.1fm 不作障碍'
-                                     % flat_top))
+                                     % flat_top + ('；复用同源 SDF 的已归档网格包围盒'
+                                                   if restored else '')))
 
 
 def bounds_from_scenario(scenario, margin=4.0, limit=None):
@@ -543,47 +589,126 @@ class NavMap:
         self.radius = float(radius)
         self.resolution = float(resolution)
         self._cell_cache = {}
+        self._clearance_cache = {}
+        self._edge_blocked_cache = {}
+        self._grid_link_cache = {}
+        self._nearest_free_cache = {}
         self._plan_count = 0
         # 预展开边与包围盒，避免每次查询都重新 zip/求 min/max
         self._edges = []
+        self._spatial_cell = max(4.0, self.resolution * 8.0)
+        self._spatial = {}
         for obstacle in self.obstacles:
             poly = obstacle['polygon']
             xs = [p[0] for p in poly]
             ys = [p[1] for p in poly]
             edges = list(zip(poly, poly[1:] + poly[:1]))
-            self._edges.append(dict(poly=poly, edges=edges,
-                                    bbox=(min(xs), min(ys), max(xs), max(ys))))
+            index = len(self._edges)
+            bbox = (min(xs), min(ys), max(xs), max(ys))
+            self._edges.append(dict(poly=poly, edges=edges, bbox=bbox))
+            for cell in self._grid_cells_for_bbox(bbox):
+                self._spatial.setdefault(cell, []).append(index)
 
     # ---- 几何查询 ----
-    def clearance(self, p):
-        """到最近障碍/边界的距离；点在障碍内返回 -1。"""
+    def _grid_cells_for_bbox(self, bbox, pad=0.0):
+        ox0, oy0, ox1, oy1 = bbox
+        size = self._spatial_cell
+        ix0 = math.floor((ox0 - pad) / size)
+        ix1 = math.floor((ox1 + pad) / size)
+        iy0 = math.floor((oy0 - pad) / size)
+        iy1 = math.floor((oy1 + pad) / size)
+        return ((ix, iy)
+                for ix in range(ix0, ix1 + 1)
+                for iy in range(iy0, iy1 + 1))
+
+    def _nearby_edge_indices(self, bbox, pad=0.0):
+        found = set()
+        for cell in self._grid_cells_for_bbox(bbox, pad):
+            found.update(self._spatial.get(cell, ()))
+        return found
+
+    def _clearance_uncached(self, p):
+        """精确间隙查询；空间索引只排除包围盒不可能成为最近邻的障碍。"""
         x0, y0, x1, y1 = self.bounds
         result = min(p[0] - x0, x1 - p[0], p[1] - y0, y1 - p[1])
-        for item in self._edges:
+        if result <= 0.0 or not self._spatial:
+            return result
+        point_bbox = (p[0], p[1], p[0], p[1])
+        indices = self._nearby_edge_indices(point_bbox, result)
+        for index in indices:
+            item = self._edges[index]
+            ox0, oy0, ox1, oy1 = item['bbox']
+            dx = max(ox0 - p[0], 0.0, p[0] - ox1)
+            dy = max(oy0 - p[1], 0.0, p[1] - oy1)
+            if dx * dx + dy * dy > result * result + EPS:
+                continue
             if inside(p, item['poly']):
                 return -1.0
             result = min(result, *(point_segment(p, a, b)
                                    for a, b in item['edges']))
         return result
 
+    def clearance(self, p):
+        """到最近障碍/边界的距离；点在障碍内返回 -1。"""
+        key = (round(float(p[0]), 6), round(float(p[1]), 6))
+        cached = self._clearance_cache.get(key)
+        if cached is not None:
+            return cached
+        result = self._clearance_uncached(p)
+        # 单独缓存 0 时不能用 truthiness 判断；上面的 None 已处理这一点。
+        if len(self._clearance_cache) >= 250000:
+            self._clearance_cache.clear()
+        self._clearance_cache[key] = result
+        return result
+
     def _edge_blocked(self, a, b, r):
         """线段是否穿过膨胀障碍；端点须已确认可行（A* 内部热路径）。"""
+        ka = (round(float(a[0]), 6), round(float(a[1]), 6))
+        kb = (round(float(b[0]), 6), round(float(b[1]), 6))
+        key = (min(ka, kb), max(ka, kb), round(float(r), 6))
+        cached = self._edge_blocked_cache.get(key)
+        if cached is not None:
+            return cached
         sx0, sx1 = (a[0], b[0]) if a[0] <= b[0] else (b[0], a[0])
         sy0, sy1 = (a[1], b[1]) if a[1] <= b[1] else (b[1], a[1])
-        for item in self._edges:
+        indices = self._nearby_edge_indices((sx0, sy0, sx1, sy1), r + EPS)
+        for index in indices:
+            item = self._edges[index]
             ox0, oy0, ox1, oy1 = item['bbox']
             if (sx1 < ox0 - r or sx0 > ox1 + r
                     or sy1 < oy0 - r or sy0 > oy1 + r):
                 continue
             if any(segment_distance(a, b, c, d) <= r + EPS
                    for c, d in item['edges']):
+                if len(self._edge_blocked_cache) >= 250000:
+                    self._edge_blocked_cache.clear()
+                self._edge_blocked_cache[key] = True
                 return True
+        if len(self._edge_blocked_cache) >= 250000:
+            self._edge_blocked_cache.clear()
+        self._edge_blocked_cache[key] = False
         return False
 
     def free(self, p, radius=None):
         r = self.radius if radius is None else radius
-        return (len(p) >= 2 and all(math.isfinite(v) for v in p[:2])
-                and self.clearance(p) > r + EPS)
+        if len(p) < 2 or not all(math.isfinite(v) for v in p[:2]):
+            return False
+        if r < 0:
+            return self.clearance(p) > r + EPS
+        x, y = p[:2]
+        x0, y0, x1, y1 = self.bounds
+        limit = r + EPS
+        if not min(x - x0, x1 - x, y - y0, y1 - y) > limit:
+            return False
+        for index in self._nearby_edge_indices((x, y, x, y), limit):
+            item = self._edges[index]
+            left, bottom, right, top = item['bbox']
+            if max(left - x, x - right, bottom - y, y - top) > limit:
+                continue
+            if inside(p, item['poly']) or any(
+                    point_segment(p, a, b) <= limit for a, b in item['edges']):
+                return False
+        return True
 
     def segment_free(self, a, b, radius=None):
         r = self.radius if radius is None else radius
@@ -600,7 +725,18 @@ class NavMap:
 
         返回 (point, offset)；offset 为吸附距离（0 表示原点本就可行）。
         """
+        key = (float(p[0]), float(p[1]), float(max_radius), float(step),
+               float(self.radius if radius is None else radius), tuple(self.bounds))
+        if key in self._nearest_free_cache:
+            value = self._nearest_free_cache[key]
+            if value is None:
+                raise NavError('nearest_free_failed')
+            point, offset = value
+            return list(point), offset
+        if len(self._nearest_free_cache) >= 50000:
+            self._nearest_free_cache.clear()
         if self.free(p, radius):
+            self._nearest_free_cache[key] = ((float(p[0]), float(p[1])), 0.0)
             return [float(p[0]), float(p[1])], 0.0
         angle_step = max(8, int(2 * math.pi * 0.5 / step))
         r = step
@@ -609,8 +745,10 @@ class NavMap:
                 a = 2 * math.pi * i / angle_step
                 q = [p[0] + r * math.cos(a), p[1] + r * math.sin(a)]
                 if self.free(q, radius):
+                    self._nearest_free_cache[key] = (tuple(q), r)
                     return q, r
             r += step
+        self._nearest_free_cache[key] = None
         raise NavError('nearest_free_failed')
 
     def is_covered(self, a, b, samples=12):
@@ -623,14 +761,14 @@ class NavMap:
             for i in range(samples))
 
     # ---- A* ----
-    def plan(self, start, goal, smooth=True, densify=0.5):
+    def plan(self, start, goal, smooth=True, densify=0.5, corner_radius=0.0):
         start = [float(start[0]), float(start[1])]
         goal = [float(goal[0]), float(goal[1])]
         if not self.free(start):
             raise NavError('start_in_obstacle')
         if not self.free(goal):
             raise NavError('goal_in_obstacle')
-        straight = self.segment_free(start, goal)
+        straight = self._link_free(start, goal)
         if straight:
             return self._result([start, goal], straight=True, expanded=0)
 
@@ -667,6 +805,9 @@ class NavMap:
         counter = itertools.count()
         queue = [(distance(start, goal), next(counter), first)]
         parent, cost, closed = {}, {first: 0.0}, set()
+        offsets = [(dx, dy, math.hypot(dx, dy) * r)
+                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1),
+                                  (1, 1), (1, -1), (-1, 1), (-1, -1))]
         while queue:
             _, _, current = heapq.heappop(queue)
             if current in closed:
@@ -674,19 +815,26 @@ class NavMap:
             if current == last:
                 break
             closed.add(current)
-            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1),
-                           (1, 1), (1, -1), (-1, 1), (-1, -1)):
+            origin = point(current)
+            for dx, dy, edge_cost in offsets:
                 nxt = (current[0] + dx, current[1] + dy)
                 if not valid(nxt) or nxt in closed:
                     continue
-                if not self._link_free(point(current), point(nxt)):
+                edge = (current, nxt) if current < nxt else (nxt, current)
+                passable = self._grid_link_cache.get(edge)
+                nxt_point = point(nxt)
+                if passable is None:
+                    passable = self._link_free(origin, nxt_point)
+                    if len(self._grid_link_cache) < 200_000:
+                        self._grid_link_cache[edge] = passable
+                if not passable:
                     continue
-                trial = cost[current] + math.hypot(dx, dy) * r
+                trial = cost[current] + edge_cost
                 if trial < cost.get(nxt, math.inf):
                     cost[nxt] = trial
                     parent[nxt] = current
                     heapq.heappush(queue,
-                                   (trial + distance(point(nxt), goal),
+                                   (trial + distance(nxt_point, goal),
                                     next(counter), nxt))
         else:
             raise NavError('unreachable')
@@ -706,6 +854,11 @@ class NavMap:
                 result.append(raw[j])
                 i = j
             raw = result
+        if corner_radius > 0:
+            from path_smoothing import smooth_corners
+            raw = smooth_corners(raw, corner_radius,
+                                 free_point=lambda p: self.free(p),
+                                 free_segment=lambda a, b: self.segment_free(a, b))
         if densify and densify > 0:
             dense = [raw[0]]
             for a, b in zip(raw, raw[1:]):
@@ -735,28 +888,37 @@ class FollowState:
     index: int = 0
     done: bool = False
     replan: bool = False
+    v: float = 0.0
+    w: float = 0.0
 
 
 class PathFollower:
     """把折线路径翻译成逐拍 (linear, angular)，与 motion.GoalController 同接口。
 
     与 GoalController 的差别：它只瞄准**下一个航点**，这里沿路径取前瞻点，
-    所以绕障时不会因为"看到终点"而切角穿墙。
+    所以绕障时不会因为"看到终点"而切角穿墙。线/角速度都带加速度限幅，
+    不会在拐点瞬间从全速切成原地满角速度。
     """
 
     def __init__(self, max_linear=0.8, max_angular=1.2, lookahead=1.0,
-                 goal_tol=0.25, waypoint_tol=0.35, k_angular=1.8):
+                 goal_tol=0.25, waypoint_tol=0.35, k_angular=1.8,
+                 max_linear_accel=0.8, max_linear_decel=1.0,
+                 max_angular_accel=1.4, max_lateral_accel=0.8):
         self.max_linear = float(max_linear)
         self.max_angular = float(max_angular)
         self.lookahead = float(lookahead)
         self.goal_tol = float(goal_tol)
         self.waypoint_tol = float(waypoint_tol)
         self.k_angular = float(k_angular)
+        self.max_linear_accel = float(max_linear_accel)
+        self.max_linear_decel = float(max_linear_decel)
+        self.max_angular_accel = float(max_angular_accel)
+        self.max_lateral_accel = float(max_lateral_accel)
 
     def reset(self):
         return FollowState()
 
-    def step(self, pose, path, state, nav=None):
+    def step(self, pose, path, state, nav=None, dt=0.1):
         """pose=(x,y,yaw)；返回 (linear, angular, state)。
 
         linear/angular 单位为场景单位/拍、rad/拍。到达终点时置 done。
@@ -765,15 +927,23 @@ class PathFollower:
         """
         if not path:
             state.done = True
+            state.v = state.w = 0.0
             return 0.0, 0.0, state
         x, y, yaw = pose
-        # 推进已越过的航点
-        while (state.index < len(path) - 1
-               and distance((x, y), path[state.index]) < self.waypoint_tol):
-            state.index += 1
+        # 推进已越过的航点：既接受"进入容差"，也接受"下一个航点比当前更近"。
+        # 只看容差时，低角速度/大转弯半径的平台可能从 waypoint 旁边绕过去，
+        # index 卡住不动，前瞻点反而落到自己脚下，形成原地打转。
+        while state.index < len(path) - 1:
+            current = distance((x, y), path[state.index])
+            following = distance((x, y), path[state.index + 1])
+            if following <= current + 1e-9 or current < self.waypoint_tol:
+                state.index += 1
+            else:
+                break
         if (state.index >= len(path) - 1
                 and distance((x, y), path[-1]) < self.goal_tol):
             state.done = True
+            state.v = state.w = 0.0
             return 0.0, 0.0, state
 
         # 视线可达的前瞻点
@@ -807,7 +977,23 @@ class PathFollower:
             if not nav.free(projected, nav.radius * 0.75):
                 state.replan = True
                 linear = 0.0
-        return linear, angular, state
+        # 协调转弯：角速度越大，线速度上限越低，避免"高速甩头"。
+        if linear > 0 and abs(angular) > 1e-9:
+            linear = min(linear, self.max_lateral_accel / abs(angular))
+        # 线/角速度都按加速度限幅，指令不会在相邻两拍之间阶跃。
+        if linear >= state.v:
+            v = min(linear, state.v + self.max_linear_accel * dt)
+        else:
+            v = max(linear, state.v - self.max_linear_decel * dt)
+        if angular >= state.w:
+            w = min(angular, state.w + self.max_angular_accel * dt)
+        else:
+            w = max(angular, state.w - self.max_angular_accel * dt)
+        if v > 0.05:
+            cap = min(self.max_angular, self.max_lateral_accel / v)
+            w = max(-cap, min(cap, w))
+        state.v, state.w = v, w
+        return v, w, state
 
 
 def follow_path(nav, start_pose, path, speed=0.8, dt=0.1, max_steps=4000):
@@ -853,21 +1039,14 @@ def build_nav(scenario, radius=None, resolution=0.2, margin=4.0,
     meta = scenario.get('_meta', {})
     sdf = meta.get('sdf')
     if sdf:
-        path = Path(sdf)
-        if not path.is_absolute():
-            path = PROJECT_ROOT / path
+        path = resolve_sdf(sdf)
         if transform is None:
             transform = dict(scale=meta.get('scale', 1.0),
                              offset_x=meta.get('offset_x', 0.0),
                              offset_y=meta.get('offset_y', 0.0))
         bounds = meta.get('bounds') or bounds_from_scenario(scenario, margin=margin)
-        models_dir = meta.get('models')
-        if models_dir:
-            models_dir = Path(models_dir)
-            if not models_dir.is_absolute():
-                models_dir = PROJECT_ROOT / models_dir
         loaded = load_sdf_obstacles(path, bounds=bounds, transform=transform,
-                                    models_dir=models_dir)
+                                    models_dir=resolve_sdf_models(meta.get('models'), path))
         loaded['provenance']['bounds'] = list(bounds)
         return NavMap(bounds, loaded['obstacles'],
                       radius=(meta.get('radius', 1.75)
@@ -889,7 +1068,7 @@ if __name__ == '__main__':
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
     root = Path(__file__).resolve().parent
-    scenario = json.loads((root / 'scenarios/simple_city.json')
+    scenario = json.loads((root / 'tests/fixtures/base_scenarios/simple_city.json')
                           .read_text(encoding='utf-8'))
     nav, loaded = build_nav(scenario)
     print('边界', nav.bounds, '障碍', len(nav.obstacles), '缺几何', len(loaded['missing']))

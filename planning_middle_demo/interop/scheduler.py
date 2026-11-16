@@ -14,6 +14,7 @@ import heapq
 import time as _time
 from dataclasses import dataclass, field
 from datetime import datetime
+from itertools import combinations, permutations
 from typing import Any, Dict, List, Optional, Tuple
 
 from .assignment import hungarian
@@ -31,6 +32,7 @@ from .validate import validate_plan
 
 EPS = 1e-6
 BIG_COST = 1e9
+DIVERSITY_REUSE_PENALTY = 30.0
 Point = Tuple[float, float]
 
 
@@ -67,6 +69,10 @@ class Planner(object):
         if assignment_mode not in ("greedy", "hungarian"):
             raise ValueError("assignment_mode 必须是 greedy 或 hungarian")
         self.scenario = scenario
+        self.simulate_path = simulate_path
+        if (scenario.meta or {}).get('motion_model') == 'acceleration_limited':
+            from .limited_motion import simulate_path as limited_path
+            self.simulate_path = limited_path
         self.assignment_mode = assignment_mode
         self.cost_model = CostModel(scenario, objective, weights)
         self.states = {
@@ -256,7 +262,7 @@ class Planner(object):
                     subtask, platform, dep_ready)
                 row.append(candidate[0] if candidate is not None else BIG_COST)
             matrix.append(row)
-        pairs = hungarian(matrix)
+        pairs = self._diverse_group_pairs(matrix, platforms)
         chosen = []
         for row, col in pairs:
             if matrix[row][col] >= BIG_COST:
@@ -278,9 +284,66 @@ class Planner(object):
             self.group_assign[subtask.subtask_id] = (platform.unit_id, group_start)
             self.reserved[platform.unit_id] = subtask.subtask_id
         self.group_start[parent_id] = group_start
+        classes = sorted({platform.platform_class for _s, platform, _c in chosen})
         self.explain.append(
-            "协同组 %s：匈牙利匹配 %d/%d 个槽位，统一开始 %.1f s"
-            % (parent_id, len(chosen), len(group), group_start))
+            "协同组 %s：匈牙利匹配 %d/%d 个槽位（平台类别 %s），统一开始 %.1f s"
+            % (parent_id, len(chosen), len(group), "/".join(classes), group_start))
+
+    @staticmethod
+    def _diverse_group_pairs(matrix: List[List[float]],
+                             platforms: List[Platform]) -> List[Tuple[int, int]]:
+        """在不牺牲可行槽位数的前提下，优先覆盖更多平台类别。
+
+        固定翼通常最快、代价最低，只按总代价做 Hungarian 会把所有槽位
+        都分给同一类平台。这里枚举平台类别组合后分别求解；先比较完整
+        槽位数，再比较不同类别数，最后才比较原目标代价。能力闸门、时间
+        窗和续航仍由矩阵中的 ``BIG_COST`` 决定，多样性不会把不可用平台
+        强行塞进任务。
+        """
+        if not matrix or not matrix[0]:
+            return []
+        classes = sorted({platform.platform_class for platform in platforms})
+        if len(classes) <= 1:
+            return hungarian(matrix)
+
+        row_count = len(matrix)
+        # 先追求“所有槽位都落实且类别数最多”。对每一组目标类别，枚举
+        # 它们分别落在哪些槽位，再用 Hungarian 在剩余平台中求最低代价。
+        for distinct_target in range(min(row_count, len(classes)), 0, -1):
+            best_for_target = None
+            for selected_classes in combinations(classes, distinct_target):
+                for rows in permutations(range(row_count), distinct_target):
+                    required = dict(zip(rows, selected_classes))
+                    trial = []
+                    for row_index, row in enumerate(matrix):
+                        required_class = required.get(row_index)
+                        trial.append([
+                            cost if (required_class is None
+                                     or platforms[col].platform_class
+                                     == required_class)
+                            else BIG_COST
+                            for col, cost in enumerate(row)
+                        ])
+                    pairs = hungarian(trial)
+                    feasible = [
+                        (row, col) for row, col in pairs
+                        if trial[row][col] < BIG_COST
+                    ]
+                    if len(feasible) != row_count:
+                        continue
+                    actual_classes = {
+                        platforms[col].platform_class for _row, col in feasible
+                    }
+                    score = (
+                        len(actual_classes),
+                        -sum(trial[row][col] for row, col in feasible),
+                    )
+                    if best_for_target is None or score > best_for_target[0]:
+                        best_for_target = (score, pairs)
+            # 低类别数不应反过来压过已经完整覆盖的更多类别。
+            if best_for_target is not None:
+                return best_for_target[1]
+        return hungarian(matrix)
 
     def _mark_processed(self, subtask: Subtask) -> None:
         """一个槽位处理完（分配或未分配）就登记；整组处理完再释放预留。
@@ -311,8 +374,10 @@ class Planner(object):
         start_m = (state.position[0] * scale, state.position[1] * scale)
         goal_m = (target_start[0] * scale, target_start[1] * scale)
         try:
-            route = self.router.route(start_m, goal_m, platform.is_air)
-            motion = simulate_path(route.path, platform, state.heading_rad,
+            route = self.router.route(
+                start_m, goal_m, platform.is_air,
+                altitude_m=platform.altitude_m, platform=platform)
+            motion = self.simulate_path(route.path, platform, state.heading_rad,
                                    max(platform.speed_mps, 0.1))
         except NoRouteError as exc:
             return None, ("NO_ROUTE", str(exc))
@@ -339,6 +404,51 @@ class Planner(object):
             (target_start[0] * scale, target_start[1] * scale))
         energy = self.cost_model.energy(platform, travel_m, subtask.duration_s)
         cost = self.cost_model.candidate_cost(end_s, risk, energy)
+        # Scenario unit names are soft hints: use the named platform when it is
+        # actually available and otherwise select the best idle capable unit.
+        # The small penalty only resolves ties; it never waits for a busy hint.
+        if subtask.preferred_unit and platform.unit_id != subtask.preferred_unit:
+            cost += 0.02
+        # Sequential tasks (especially T-RCN sectors) are not solved by the
+        # simultaneous-arrival Hungarian group above.  Once a task has used a
+        # platform class, make another class competitive without ever
+        # overriding a capability, route, window or endurance rejection.
+        parent_assignments = [
+            assignment for assignment in self.assignments
+            if assignment.parent_task_id == subtask.parent_task_id
+        ]
+        parent_slots = [
+            item for item in self.subtasks
+            if item.parent_task_id == subtask.parent_task_id
+        ]
+        if len(parent_slots) > 1 and parent_assignments:
+            used_classes = {
+                self._platform(assignment.unit_id).platform_class
+                for assignment in parent_assignments
+                if self._platform(assignment.unit_id) is not None
+            }
+            same_class_used = sum(
+                1 for assignment in parent_assignments
+                if self._platform(assignment.unit_id) is not None
+                and self._platform(assignment.unit_id).platform_class
+                == platform.platform_class
+            )
+            unused_class_is_feasible = any(
+                candidate.status == "READY"
+                and candidate.platform_class not in used_classes
+                and candidate.unit_id not in self.reserved
+                and gate_platform(candidate, subtask, self.scenario)[0]
+                for candidate in self.scenario.platforms
+            )
+            if same_class_used and unused_class_is_feasible:
+                cost += DIVERSITY_REUSE_PENALTY
+        # 城市小区域搜索先由地面平台完成网格覆盖，固定翼只保留能力可行
+        # 与应急替补资格。此前的“最多一架空中”仍会在四个扇区中占掉一个
+        # 地面席位，导致局部网格迟迟无法覆盖。
+        if (subtask.task_type == "T-RCN"
+                and subtask.role.startswith("search:")
+                and platform.is_air):
+            cost += 120.0
         return (
             cost, platform.unit_id, platform, state, travel_m, travel_s,
             start_s, end_s, route, motion, risk, energy,

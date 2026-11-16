@@ -1,7 +1,0 @@
-﻿unit_id,robot_id,topic,platform_class,subtask_id,parent_task_id,task_type,role,target,start_s,end_s,window_start_s,window_end_s,depends_on,coordination,status,path_length_m,waypoint_count,risk,energy,path
-U4,21,/container_00/robot_021,TANK,T1-S1,T1,T-HLD,post:P1,"{""point"": [-95.0, -113.0]}",18.426,168.426,0.000,320.000,,,ASSIGNED,124.158,2,0.000,54.933,"(-10.00,-22.50) | (-95.00,-113.00)"
-U1,1,/container_00/robot_001,UGV,T1-S2,T1,T-HLD,post:P2,"{""point"": [-55.0, -145.0]}",19.802,169.802,0.000,320.000,,,ASSIGNED,135.972,3,0.000,36.799,"(0.00,-22.50) | (-30.90,-114.80) | (-55.00,-145.00)"
-U5,22,/container_00/robot_022,TANK,T1-S3,T1,T-HLD,post:P3,"{""point"": [-95.0, -177.0]}",25.816,175.816,0.000,320.000,,,ASSIGNED,183.849,3,0.000,59.708,"(-10.00,-17.50) | (-42.90,-114.80) | (-95.00,-177.00)"
-U2,2,/container_00/robot_002,UGV,T1-S4,T1,T-HLD,post:P4,"{""point"": [-135.0, -145.0]}",26.192,176.192,0.000,320.000,,,ASSIGNED,185.691,2,0.000,39.285,"(0.00,-17.50) | (-135.00,-145.00)"
-U3,3,/container_00/robot_003,UGV,T1-S5,T1,T-HLD,reserve:standby,"{""point"": [-105.607, -134.393]}",23.016,173.016,0.000,320.000,,,ASSIGNED,161.278,2,0.000,38.064,"(0.00,-12.50) | (-105.61,-134.39)"
-U6,31,/container_00/robot_031,PLANE,T1-S6,T1,T-HLD,air:watch,"{""point"": [-95.0, -145.0]}",8.751,158.751,0.000,320.000,,,ASSIGNED,146.309,2,0.000,77.557,"(-15.00,-22.50) | (-95.00,-145.00)"

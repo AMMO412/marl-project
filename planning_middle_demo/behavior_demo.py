@@ -14,7 +14,7 @@
 
 用法：
   py -3.14 behavior_demo.py
-  py -3.14 behavior_demo.py --scenario scenarios/simple_city.json --out outputs/behavior_demo
+  py -3.14 behavior_demo.py --scenario tests/fixtures/base_scenarios/simple_city.json --out outputs/behavior_demo
 """
 import argparse
 from datetime import datetime
@@ -116,8 +116,8 @@ def build_demo(scenario, max_steps=200, H=200, scenario_path=None):
         snapped_spawns=len(loaded.get('snapped', [])),
     )
     scenario_rel = (str(Path(scenario_path).resolve().relative_to(ROOT))
-                    if scenario_path else 'scenarios/simple_city.json')
-    source_file = Path(scenario_path) if scenario_path else ROOT / 'scenarios/simple_city.json'
+                    if scenario_path else 'tests/fixtures/base_scenarios/simple_city.json')
+    source_file = Path(scenario_path) if scenario_path else ROOT / 'tests/fixtures/base_scenarios/simple_city.json'
     sdf_mode = bool(scenario.get('_meta', {}).get('sdf'))
     limitation = [
         '障碍来自 %s：%d 个盒体、%d 个模型；静态盒体以外的地面/道路顶面'
@@ -173,7 +173,7 @@ def main(argv=None):
         sys.stdout.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--scenario', type=Path,
-                        default=ROOT / 'scenarios/simple_city.json')
+                        default=ROOT / 'tests/fixtures/base_scenarios/simple_city.json')
     parser.add_argument('--out', type=Path,
                         default=ROOT / 'outputs' / datetime.now().strftime(
                             'behavior_%Y%m%d_%H%M%S'))

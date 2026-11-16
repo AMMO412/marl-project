@@ -19,8 +19,14 @@ if BASE_DIR not in sys.path:
 
 from interop.assignment import hungarian
 from interop.compare import audit
+from interop.cost import CostModel
 from interop.errors import UnsupportedFeature, WireError
-from interop.geometry import path_enters_polygon, point_in_polygon
+from interop.geometry import (
+    path_enters_polygon,
+    point_in_polygon,
+    segment_polygon_distance,
+    segment_polygon_overlap_length,
+)
 from interop.message import parse_message
 from interop.model import Plan
 from interop.output import write_outputs
@@ -161,6 +167,18 @@ class MessageTests(unittest.TestCase):
         with self.assertRaises(WireError):
             parse_message(message(), data)
 
+    def test_accepts_air_threat_and_nested_constraints(self):
+        threat = {
+            "constraint_id": "AIR-ONLY", "type": "threat",
+            "applies_to": "air", "intensity": 0.6,
+            "area": {"polygon": [[0, 0], [5, 0], [5, 5], [0, 5]]},
+        }
+        data = formation(constraints=None)
+        data["formation"]["constraints"] = [threat]
+        scenario = parse_message(message(), data)
+        self.assertEqual(len(scenario.constraints), 1)
+        self.assertEqual(scenario.constraints[0]["applies_to"], "air")
+
 
 class DecomposeTests(unittest.TestCase):
     def test_area_split_honours_max_units(self):
@@ -189,6 +207,27 @@ class DecomposeTests(unittest.TestCase):
         scenario = parse_message(message(tasks=tasks), formation())
         subtasks = Planner(scenario, assignment_mode="greedy").subtasks
         self.assertEqual(len(subtasks), 2)
+
+
+class PlatformDiversityTests(unittest.TestCase):
+    def test_patrol_uses_all_four_available_platform_classes(self):
+        root = os.path.join(BASE_DIR, "interop", "scenarios")
+        with open(os.path.join(root, "area_patrol.message.json"),
+                  encoding="utf-8-sig") as fh:
+            raw_message = json.load(fh)
+        with open(os.path.join(root, "area_patrol.formation.json"),
+                  encoding="utf-8-sig") as fh:
+            raw_formation = json.load(fh)
+        scenario = parse_message(raw_message, raw_formation)
+        plan = Planner(scenario, objective="timeliness").plan()
+        platform_map = scenario.platform_map
+        patrol_classes = {
+            platform_map[item.unit_id].platform_class
+            for item in plan.assignments
+            if item.parent_task_id == "T1"
+        }
+        self.assertEqual(
+            patrol_classes, {"UGV", "TANK", "PLANE", "WING"})
 
 
 class HungarianTests(unittest.TestCase):
@@ -230,6 +269,81 @@ class RoutingTests(unittest.TestCase):
         route = router.route((0.0, 0.0), (0.0, 20.0), is_air=False)
         self.assertEqual(len(route.path), 2)
 
+    def test_air_only_threat_does_not_reroute_ground(self):
+        data = formation(constraints=[{
+            "constraint_id": "AIR-ONLY", "type": "threat",
+            "applies_to": "air", "intensity": 1.0,
+            "area": {"polygon": [[10, 15], [20, 15], [20, 25], [10, 25]]},
+        }])
+        scenario = parse_message(message(), data)
+        router = Router(scenario, [], risk_weight=50.0)
+        ground = router.route((0.0, 20.0), (30.0, 20.0), is_air=False)
+        air = router.route((0.0, 20.0), (30.0, 20.0), is_air=True)
+        self.assertEqual(len(ground.path), 2)
+        self.assertGreater(len(air.path), 2)
+
+    def test_aircraft_overflies_height_limited_building(self):
+        data = formation(constraints=[{
+            "constraint_id": "BUILDING", "type": "no_go",
+            "applies_to": "all", "height_m": 9.0,
+            "area": {"polygon": [[10, -5], [20, -5], [20, 5], [10, 5]]},
+        }])
+        scenario = parse_message(message(), data)
+        router = Router(scenario, [])
+
+        above = router.route(
+            (-10.0, 0.0), (30.0, 0.0),
+            is_air=True, altitude_m=60.0)
+        below = router.route(
+            (-10.0, 0.0), (30.0, 0.0),
+            is_air=True, altitude_m=5.0)
+
+        self.assertEqual(len(above.path), 2)
+        self.assertGreater(len(below.path), 2)
+        self.assertFalse(path_enters_polygon(
+            below.path, [(10, -5), (20, -5), (20, 5), (10, 5)]))
+
+    def test_airspace_no_go_applies_at_every_altitude(self):
+        data = formation(constraints=[{
+            "constraint_id": "AIRSPACE", "type": "no_go",
+            "applies_to": "air", "height_m": 9.0,
+            "area": {"polygon": [[10, -5], [20, -5], [20, 5], [10, 5]]},
+        }])
+        scenario = parse_message(message(), data)
+        route = Router(scenario, []).route(
+            (-10.0, 0.0), (30.0, 0.0),
+            is_air=True, altitude_m=60.0)
+        self.assertGreater(len(route.path), 2)
+        self.assertFalse(path_enters_polygon(
+            route.path, [(10, -5), (20, -5), (20, 5), (10, 5)]))
+
+    def test_air_threat_still_reroutes_above_building_height(self):
+        data = formation(constraints=[
+            {
+                "constraint_id": "BUILDING", "type": "no_go",
+                "applies_to": "all", "height_m": 9.0,
+                "area": {
+                    "polygon": [[10, -5], [20, -5], [20, 5], [10, 5]]},
+            },
+            {
+                "constraint_id": "AIR-THREAT", "type": "threat",
+                "applies_to": "all", "intensity": 1.0,
+                "area": {
+                    "polygon": [[10, -15], [20, -15], [20, 15], [10, 15]]},
+            },
+        ])
+        scenario = parse_message(message(), data)
+        route = Router(scenario, [], risk_weight=50.0).route(
+            (-10.0, 0.0), (30.0, 0.0),
+            is_air=True, altitude_m=60.0)
+        self.assertGreater(len(route.path), 2)
+        for first, second in zip(route.path, route.path[1:]):
+            self.assertGreater(
+                segment_polygon_distance(
+                    first, second,
+                    [(10, -15), (20, -15), (20, 15), (10, 15)]),
+                0.0)
+
 
 class PlannerTests(unittest.TestCase):
     def setUp(self):
@@ -269,11 +383,43 @@ class PlannerTests(unittest.TestCase):
         plan = Planner(self._single_unit(1)).plan()
         self.assertEqual(len(plan.assignments[0].path), 2)
 
+    def test_planner_passes_cruise_altitude_to_air_router(self):
+        data = formation(constraints=[{
+            "constraint_id": "BUILDING", "type": "no_go",
+            "applies_to": "all", "height_m": 9.0,
+            "area": {"polygon": [[10, -5], [20, -5], [20, 5], [10, 5]]},
+        }])
+        data["formation"]["units"] = [
+            dict(data["formation"]["units"][1],
+                 position=[0, 0], altitude_m=60.0),
+        ]
+        scenario = parse_message(message(tasks=[point_task()]), data)
+        plan = Planner(scenario).plan()
+        self.assertEqual(len(plan.assignments), 1)
+        self.assertEqual(len(plan.assignments[0].path), 2)
+
     def test_no_go_target_rejected(self):
         scenario = self._single_unit(0, point_task(target={"point": [15, 0]}))
         plan = Planner(scenario).plan()
         self.assertEqual(plan.metrics.unassigned_subtasks, 1)
         self.assertEqual(plan.unassigned[0]["reason"], "NO_GO")
+
+    def test_area_can_contain_obstacles_when_concrete_points_are_clear(self):
+        task = point_task()
+        task["target"] = {"area": [[-10, -10], [30, -10],
+                                  [30, 10], [-10, 10]]}
+        task["allow_split"] = False
+        data = formation()
+        data["formation"]["units"] = [data["formation"]["units"][0]]
+        data["constraints"].append({
+            "constraint_id": "BUILDING", "type": "no_go",
+            "applies_to": "ground",
+            "area": {"polygon": [[10, -5], [20, -5],
+                                 [20, 5], [10, 5]]},
+        })
+        scenario = parse_message(message(tasks=[task]), data)
+        plan = Planner(scenario).plan()
+        self.assertEqual(plan.metrics.assigned_subtasks, 1)
 
     def test_deterministic(self):
         first = Planner(self.scenario).plan().to_dict()
@@ -334,6 +480,78 @@ class PlannerTests(unittest.TestCase):
     def test_dispersion_alias_maps_to_exposure(self):
         plan = Planner(self._exposure_scenario(), objective="dispersion").plan()
         self.assertEqual(plan.objective, "exposure")
+
+
+class ThreatScopeCostTests(unittest.TestCase):
+    def test_short_corner_crossing_has_exact_positive_overlap(self):
+        polygon = [[-55, -85], [-20, -85], [-20, -45], [-55, -45]]
+        start = (-20.0, -22.5)
+        goal = (-56.9, -48.8)
+        self.assertGreater(
+            segment_polygon_overlap_length(start, goal, polygon), 1.0)
+
+    def test_air_only_threat_is_ignored_for_ground_cost(self):
+        data = formation(constraints=[{
+            "constraint_id": "AIR-ONLY", "type": "threat",
+            "applies_to": "air", "intensity": 1.0,
+            "area": {"polygon": [[0, 5], [20, 5], [20, 15], [0, 15]]},
+        }])
+        scenario = parse_message(message(), data)
+        model = CostModel(scenario, objective="exposure")
+        ground = scenario.platform_map["U1"]
+        air = scenario.platform_map["U2"]
+        route = [(0.0, 10.0), (20.0, 10.0)]
+        self.assertEqual(model.path_risk(ground, route, 5.0, 10.0,
+                                         (20.0, 10.0)), 0.0)
+        self.assertGreater(model.path_risk(air, route, 10.0, 10.0,
+                                           (20.0, 10.0)), 0.0)
+
+    def test_asl_exposure_plan_has_no_threat_segment_overlap(self):
+        message_path = os.path.join(BASE_DIR, "interop", "scenarios",
+                                    "asl_junction.message.json")
+        formation_path = os.path.join(BASE_DIR, "interop", "scenarios",
+                                      "asl_junction.formation.json")
+        with open(message_path, encoding="utf-8-sig") as stream:
+            raw_message = json.load(stream)
+        with open(formation_path, encoding="utf-8-sig") as stream:
+            raw_formation = json.load(stream)
+        scenario = parse_message(raw_message, raw_formation)
+        threats = [
+            item for item in scenario.constraints
+            if item.get("type") == "threat"
+            and item.get("applies_to") in ("ground", "air", "all")
+        ]
+        plan = Planner(scenario, objective="exposure").plan()
+        self.assertEqual(plan.objective_metrics["total_exposure"], 0.0)
+        from interop.routing import DEFAULT_THREAT_CLEARANCE_M
+        for assignment in plan.assignments:
+            items = threats
+            platform = scenario.platform_map[assignment.unit_id]
+            if platform.is_air:
+                items = [
+                    item for item in threats
+                    if item.get("applies_to") in ("air", "all")
+                ]
+            else:
+                items = [
+                    item for item in threats
+                    if item.get("applies_to") in ("ground", "all")
+                ]
+            for first, second in zip(assignment.path, assignment.path[1:]):
+                for item in items:
+                    overlap = segment_polygon_overlap_length(
+                        first, second, item["area"]["polygon"])
+                    self.assertLessEqual(
+                        overlap, 1e-9,
+                        "%s crosses %s" %
+                        (assignment.unit_id, item.get("constraint_id")))
+                    clearance = segment_polygon_distance(
+                        first, second, item["area"]["polygon"])
+                    self.assertGreaterEqual(
+                        clearance, DEFAULT_THREAT_CLEARANCE_M - 1e-6,
+                        "%s only has %.3f m clearance to %s" %
+                        (assignment.unit_id, clearance,
+                         item.get("constraint_id")))
 
 
 class OutputTests(unittest.TestCase):
@@ -417,11 +635,11 @@ class AuditTests(unittest.TestCase):
 class CliSmokeTests(unittest.TestCase):
     def test_plan_and_validate(self):
         from interop.cli import main
-        scenario_dir = os.path.join(BASE_DIR, "interop", "scenarios")
+        scenario_dir = os.path.join(BASE_DIR, "tests", "fixtures", "interop_legacy")
         message_path = os.path.join(scenario_dir, "area_recon.message.json")
         formation_path = os.path.join(scenario_dir, "area_recon.formation.json")
         if not os.path.exists(message_path):
-            self.skipTest("样例未生成（先跑 interop.tools.build_scenarios）")
+            self.skipTest("缺少历史接口测试夹具")
         with tempfile.TemporaryDirectory() as tmp:
             out = os.path.join(tmp, "plan")
             code = main(["plan", "--message", message_path,
@@ -432,7 +650,7 @@ class CliSmokeTests(unittest.TestCase):
 
     def test_to_v2_rejects_lossy_conversion_without_writing(self):
         from interop.cli import main
-        scenario_dir = os.path.join(BASE_DIR, "interop", "scenarios")
+        scenario_dir = os.path.join(BASE_DIR, "tests", "fixtures", "interop_legacy")
         message_path = os.path.join(scenario_dir, "area_recon.message.json")
         formation_path = os.path.join(scenario_dir, "area_recon.formation.json")
         if not os.path.exists(message_path):
@@ -451,6 +669,49 @@ class CliSmokeTests(unittest.TestCase):
 
 
 class RuntimeIntegrationTests(unittest.TestCase):
+    def test_execution_navigation_keeps_threats_soft_and_scoped(self):
+        from interop.runtime import nav_from_scenario
+        data = formation(constraints=[
+            {"constraint_id": "AIR", "type": "threat", "applies_to": "air",
+             "intensity": 1.0,
+             "area": {"polygon": [[10, -2], [20, -2],
+                                  [20, 2], [10, 2]]}},
+            {"constraint_id": "GROUND", "type": "threat",
+             "applies_to": "ground", "intensity": 1.0,
+             "area": {"polygon": [[30, -2], [40, -2],
+                                  [40, 2], [30, 2]]}},
+        ])
+        scenario = parse_message(message(), data)
+        nav = nav_from_scenario(scenario, avoid_threats=True)
+        self.assertTrue(nav.free((15.0, 0.0)))
+        self.assertTrue(nav.free((35.0, 0.0)))
+        self.assertIsNotNone(nav.ground_threat_map)
+        self.assertTrue(nav.ground_threat_map.free((15.0, 0.0)))
+        self.assertFalse(nav.ground_threat_map.free((35.0, 0.0)))
+        self.assertIsNotNone(nav.air_threat_map)
+        self.assertFalse(nav.air_threat_map.free((15.0, 0.0)))
+        self.assertTrue(nav.air_threat_map.free((35.0, 0.0)))
+
+    def test_threat_over_initial_position_is_plannable(self):
+        """威胁区覆盖出生点时必须保留真实起点，不能陷入无限重规划。"""
+        from interop.runtime import nav_from_scenario
+        data = formation(
+            constraints=[{
+                "constraint_id": "START-THREAT", "type": "threat",
+                "applies_to": "all", "intensity": 0.7,
+                "area": {"polygon": [[-5, -5], [5, -5],
+                                     [5, 5], [-5, 5]]},
+            }])
+        scenario = parse_message(message(tasks=[point_task()]), data)
+        nav = nav_from_scenario(scenario, avoid_threats=True)
+        start = (0.0, 0.0)
+        self.assertTrue(nav.free(start))
+        self.assertFalse(nav.ground_threat_map.free(start))
+        self.assertFalse(nav.air_threat_map.free(start))
+        route = nav.plan(start, (30.0, 0.0))
+        self.assertEqual(route['path'][0], [0.0, 0.0])
+        self.assertEqual(route['path'][-1], [30.0, 0.0])
+
     def test_bundle_scene_passes_base_validator(self):
         import contracts_v2
         from interop.runtime import to_v2_dict
@@ -488,10 +749,10 @@ class RuntimeIntegrationTests(unittest.TestCase):
         self.assertEqual(len(asl), 1)
         self.assertEqual(asl[0].task_id, "J6")
 
-    def test_workbench_accepts_interop_neutral_only(self):
+    def test_workbench_accepts_current_scene_and_rejects_retired_inputs(self):
         import workbench_server
         config = workbench_server.validate_config(dict(
-            scenario="interop_neutral", planner="interop", motion="teleport",
+            scenario="interop_recon", planner="interop", motion="real",
             avoid=False, behavior=False, max_ticks=260, objective="makespan"))
         self.assertEqual(config["planner"], "interop")
         self.assertEqual(config["max_ticks"], 260)

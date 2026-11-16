@@ -105,6 +105,10 @@ def _asl_task_from_v2_job(job) -> Task:
     crew = max(1, int(job.crew if hasattr(job, "crew") else job["crew"]))
     scout_pid = bh.get("scout_pid")
     assessor_pid = bh.get("assessor_pid")
+    execute_deadline = bh.get("execute_deadline")
+    execute_deadline = (float(execute_deadline)
+                        if execute_deadline is not None
+                        and float(execute_deadline) > 0 else None)
     params = dict(
         effect=bh.get("effect_kind") or bh.get("effect") or "damage",
         required_level=float(bh.get("required_level", 6.0)),
@@ -125,7 +129,7 @@ def _asl_task_from_v2_job(job) -> Task:
         assessment_post=bh.get("assessment_post"),
         assessment_delay=float(bh.get("assessment_delay", 0.0)),
         confirmation_deadline=float(bh.get("confirmation_deadline", 120.0)),
-        execute_deadline=float(bh.get("execute_deadline", 0.0)),
+        execute_deadline=execute_deadline,
         withdraw=bool(bh.get("withdraw", False)),
         withdraw_point=bh.get("withdraw_point"),
         withdraw_ring=float(bh.get("withdraw_ring", 2.0)),
@@ -221,8 +225,9 @@ def _sec_behavior_params(task: Task) -> Optional[Dict[str, Any]]:
     out = dict(area=area)
     for key in ("gates", "control_level", "engagement_authority",
                 "control_objective", "sensor_radius_m", "standoff_m",
-                "warn_range_m", "intercept_standoff_m", "intercept_post",
-                "reserve_post", "intruders", "max_leak_rate", "rotation_s",
+                "warn_range_m", "warning_response_s", "retreat_clearance_m",
+                "intercept_standoff_m", "intercept_post",
+                "reserve_post", "intruders", "target_start_mode", "max_leak_rate", "rotation_s",
                 "occupancy_tolerance_s", "boundary_sample_m",
                 "air_altitude_m", "air_orbit_radius_m", "air_orbit_period_s",
                 "air_speed_mps", "air_capabilities", "air_unit"):
@@ -304,6 +309,10 @@ def _asl_job(task: Task, scenario: Scenario) -> Dict[str, Any]:
     air_altitude = {fleet.pid_of(int(p.robot_id)): float(p.altitude_m)
                     for p in scenario.platforms
                     if p.is_air and float(p.altitude_m) > 0}
+    execute_deadline = params.get("execute_deadline")
+    execute_deadline = (float(execute_deadline)
+                        if execute_deadline is not None
+                        and float(execute_deadline) > 0 else None)
     behavior = dict(
         staging_center=params.get("staging_center"),
         staging_radius=float(params.get("staging_radius", 6.0)),
@@ -321,7 +330,7 @@ def _asl_job(task: Task, scenario: Scenario) -> Dict[str, Any]:
         attack_window=list(params.get("attack_window") or []),
         assessment_delay=float(params.get("assessment_delay", 0.0)),
         confirmation_deadline=float(params.get("confirmation_deadline", 120.0)),
-        execute_deadline=float(params.get("execute_deadline", 0.0)),
+        execute_deadline=execute_deadline,
         effect_kind=params.get("effect", "damage"),
         required_level=float(params.get("required_level", 6.0)),
         required_duration=float(params.get("required_duration", 10.0)),
@@ -386,37 +395,77 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
             _target=task.target,
         )
         behavior = _sec_behavior_params(task) or _hld_behavior_params(task)
-        if task.task_type == "T-RCN" and "search_starts" in task.params:
+        if task.task_type == "T-RCN":
             from fleet import pid_of
-            from .templates import recon_starts, task_polygon
-            starts = recon_starts(task)
-            behavior = dict(
-                area=task_polygon(task, ("area",)),
-                search_starts={pid_of(p.robot_id): starts[p.unit_id]
-                               for p in scenario.platforms if p.unit_id in starts},
-                air_altitude={pid_of(p.robot_id): p.altitude_m
-                              for p in scenario.platforms if p.is_air},
-                search_deadline_s=min(task.window_end_s,
-                                      float(task.params.get("search_deadline_s",
-                                                            task.window_end_s))),
-            )
-            for key in ("cell", "coverage_target", "sensor_radius_m", "tracking_target"):
-                if key in task.params:
-                    behavior[key] = task.params[key]
-        if task.task_type == "T-PTL" and (task.params.get("follow_boundary")
-                                          or "checkpoints" in task.params):
+            from .templates import recon_start_points, task_polygon
+            area = task_polygon(task, ("area",))
+            if area is not None:
+                behavior = dict(
+                    area=area,
+                    air_altitude={
+                        pid_of(p.robot_id): float(
+                            task.params.get('air_altitude_m',
+                                            p.altitude_m or 25.0))
+                        for p in scenario.platforms if p.is_air},
+                    search_deadline_s=min(
+                        task.window_end_s,
+                        float(task.params.get("search_deadline_s",
+                                              task.window_end_s))),
+                )
+                if any(key in task.params
+                       for key in ("search_starts", "search_points")):
+                    starts = recon_start_points(task)
+                    assigned_starts = {
+                        unit: point for unit, point in starts if unit}
+                    behavior.update(
+                        search_starts={
+                            pid_of(p.robot_id):
+                                assigned_starts[p.unit_id]
+                            for p in scenario.platforms
+                            if p.unit_id in assigned_starts},
+                        search_points_by_role={
+                            'search:%d' % index: point
+                            for index, (_, point) in enumerate(starts, 1)},
+                    )
+                else:
+                    # 四点区域输入没有显式起点时，执行层仍必须使用区域
+                    # 覆盖模型。实际成员位姿由 MockFleet 在派发时补齐为
+                    # 初始扇区，避免退回旧的“中心点 9 米小圆”模型。
+                    behavior["auto_search_sectors"] = True
+                for key in ("cell", "coverage_target", "sensor_radius_m",
+                            "tracking_target", "search_limit_s",
+                            "air_search_speed_mps", "air_max_yaw_rate",
+                            "air_max_yaw_accel"):
+                    if key in task.params:
+                        behavior[key] = task.params[key]
+                behavior['air_orbit_radius_m'] = task.params.get(
+                    'air_orbit_radius_m', 3.0)
+                behavior['air_max_yaw_rate'] = task.params.get(
+                    'air_max_yaw_rate', 0.35)
+                behavior['takeoff_before_translation'] = task.params.get(
+                    'takeoff_before_translation', False)
+        if task.task_type == "T-PTL":
             from fleet import pid_of
-            from .templates import patrol_loop
-            area, checkpoints, cycles = patrol_loop(task)
-            behavior = dict(area=area, waypoints=checkpoints, cycles=cycles,
-                            air_altitude={pid_of(p.robot_id): p.altitude_m
-                                          for p in scenario.platforms if p.is_air})
-            if task.params.get("follow_boundary"):
-                behavior["corner_lookahead_m"] = 3.0
-            for key in ("sensor_radius_m", "observation_target"):
-                if key in task.params:
-                    behavior[key] = task.params[key]
+            from .templates import patrol_has_loop, patrol_loop
+            if patrol_has_loop(task):
+                area, checkpoints, cycles = patrol_loop(task)
+                behavior = dict(area=area, waypoints=checkpoints, cycles=cycles,
+                                air_altitude={pid_of(p.robot_id): p.altitude_m
+                                              for p in scenario.platforms if p.is_air})
+                if task.params.get("follow_boundary"):
+                    behavior["corner_lookahead_m"] = 3.0
+            if behavior is None and any(key in task.params for key in
+                                        ("sensor_radius_m", "observation_target", "_workbench_patrol")):
+                behavior = {}
+            if behavior is not None:
+                if scenario.cell_size_m != 1:
+                    behavior["cell_size_m"] = scenario.cell_size_m
+                for key in ("sensor_radius_m", "observation_target", "_workbench_patrol"):
+                    if key in task.params:
+                        behavior[key] = task.params[key]
         if behavior is not None:
+            if task.params.get('_workbench_task'):
+                behavior['_workbench_task'] = True
             # 运行视图的作业参数（非 4.1 契约字段，只给基座行为层读）。
             job["_behavior"] = behavior
             if task.task_type in ("T-SEC", "T-HLD") and task.params.get("relay_verdict"):
@@ -445,24 +494,35 @@ def to_v2_dict(scenario: Scenario, raw_message: Optional[Dict[str, Any]] = None,
             meta["relay_target"] = dict(spec, source_job_id=task.task_id)
             break
     if any(task.task_type == "T-ASL" for task in scenario.tasks):
-        # 突击任务要跑基座行为层，必须给 city_nav 一张真地图；用与 asl_city
-        # 相同的 SDF/包围盒，不把中性样例的 simple_city 变换套到城市坐标上。
-        meta.update({
-            "sdf": "资料/接口说明/container_00_combined_scene.sdf",
-            "models": "资料/接口说明/models",
-            "scale": 1.0, "offset_x": 0.0, "offset_y": 0.0,
-            "bounds": [-185, -210, 20, 30],
-            "radius": 1.75, "resolution": 0.5,
-        })
+        # 独立 T-ASL 样例可以声明自己的 SDF；导入地图则完全以编成表内的
+        # no_go/threat 约束为权威，绝不把 container_00 的 SDF 和固定包围盒
+        # 套到任意场景坐标上。运行适配器会从原始 4.1 bundle 构造同一张地图。
+        formation_meta = dict(scenario.meta or {})
+        source_sdf = formation_meta.get("source_sdf")
+        imported_map = (formation_meta.get("map_geometry_authority")
+                        == "planning_and_display" and formation_meta.get("map_id"))
+        if source_sdf and not imported_map:
+            scene_bounds = formation_meta.get("scene_bounds")
+            meta.update({
+                "sdf": source_sdf,
+                "models": "资料/接口说明/models",
+                "scale": 1.0, "offset_x": 0.0, "offset_y": 0.0,
+                "radius": float(formation_meta.get("runtime_radius_m", 1.75)),
+                "resolution": float(formation_meta.get("runtime_resolution_m", 0.5)),
+            })
+            if scene_bounds:
+                meta["bounds"] = [float(v) for v in scene_bounds]
     return {
         "protocol": "middle-demo/v2",
         "objective": "makespan",
         "H": horizon,
-        "K": 8,
+        "K": int((scenario.meta or {}).get("runtime_replan_period_s", 8)),
         "_meta": meta,
         "platforms": [dict(robot_no=p.robot_id,
                            pos=[p.position[0], p.position[1]],
-                           _platform_class=p.platform_class)
+                           _platform_class=p.platform_class,
+                           _payload_kg=p.payload_kg, _sensor=dict(p.sensor_spec),
+                           _motion=dict(p.motion_spec), _endurance_s=p.endurance_s)
                       for p in scenario.platforms],
         "jobs": jobs,
     }
@@ -478,12 +538,25 @@ def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
     平台与任务几何定边界，编成表的 ``no_go`` 约束当障碍，不解析 SDF、
     不猜坐标。范围只包住本次作业区，A* 栅格因此保持 1 m 级而不爆内存。
 
-    ``avoid_threats=True`` 时把 threat 多边形也当障碍：暴露度目标的执行
-    行为应与计划路径一致地避开威胁区，而不是只让计划层绕行。
+    threat 是软风险区，不能进入作为硬障碍的 ``NavMap``。否则平台一旦
+    出生在威胁区内，执行层就会报 ``start_in_obstacle`` 并反复规划，永远
+    无法起步。威胁代价由统一规划器计算；空中航点的安全投影单独使用
+    ``air_threat_map``。``avoid_threats`` 保留用于兼容旧调用，不再改变
+    硬障碍语义。
     """
     import city_nav
 
     points = [tuple(p.position) for p in scenario.platforms]
+    map_bounds = (scenario.meta or {}).get("map_scene_bounds")
+    if (isinstance(map_bounds, (list, tuple))
+            and len(map_bounds) == 4):
+        x0, y0, x1, y1 = map(float, map_bounds)
+        points.extend(((x0, y0), (x1, y1)))
+        # Imported city maps are used as a secondary fallback behind the
+        # scoped router.  A 2 m fallback grid keeps that diagnostic path
+        # responsive while the route itself remains governed by the 5 m
+        # cached risk grid.
+        resolution = max(float(resolution), 2.0)
     for task in scenario.tasks:
         for key in ("area", "defense_area", "sector", "patrol_area"):
             value = task.target.get(key)
@@ -520,25 +593,83 @@ def nav_from_scenario(scenario: Scenario, margin: float = 40.0,
             points.extend(target_points(task.target))
         except Exception:      # 几何不可解析时不影响地图构造
             pass
+    for item in scenario.constraints:
+        area = item.get("area") or {}
+        polygon = area.get("polygon") if isinstance(area, dict) else area
+        for point in polygon or []:
+            try:
+                points.append((float(point[0]), float(point[1])))
+            except (TypeError, ValueError, IndexError):
+                pass
     if not points:
         raise ValueError("场景里没有可用于确定封控地图的点")
     xs = [p[0] for p in points]
     ys = [p[1] for p in points]
     bounds = [min(xs) - margin, min(ys) - margin,
               max(xs) + margin, max(ys) + margin]
-    obstacles = []
+    ground_obstacles = []
+    air_obstacles = []
+    ground_threats = []
+    air_threats = []
     for item in scenario.constraints:
         kind = item.get("type")
-        if kind != "no_go" and not (avoid_threats and kind == "threat"):
+        if kind not in ("no_go", "threat"):
             continue
         area = item.get("area") or {}
         polygon = area.get("polygon") if isinstance(area, dict) else area
         if not polygon:
             continue
-        obstacles.append(dict(id=item.get("constraint_id"),
-                              polygon=[(float(p[0]), float(p[1])) for p in polygon]))
-    return city_nav.NavMap(bounds, obstacles, radius=radius,
-                           resolution=resolution)
+        obstacle = dict(
+            id=item.get("constraint_id"),
+            polygon=[(float(p[0]), float(p[1])) for p in polygon])
+        applies = str(item.get("applies_to", "ground"))
+        if kind == "no_go":
+            if applies in ("ground", "all"):
+                ground_obstacles.append(obstacle)
+            # 空中静态 NavMap 无法按每个平台高度选障碍。显式对空禁飞区，
+            # 以及缺少物高而必须保守处理的全域 no_go 先放入固定图；
+            # air/all + height_m 由下面带 altitude_m 的统一路由器按巡航
+            # 高度判定，避免建筑二维投影被误当成整柱空域墙。
+            if (applies == "air"
+                    or (applies == "all"
+                        and item.get("height_m") is None)):
+                air_obstacles.append(obstacle)
+        else:
+            if applies in ("ground", "all"):
+                ground_threats.append(obstacle)
+            if applies in ("air", "all"):
+                air_threats.append(obstacle)
+    nav = city_nav.NavMap(bounds, ground_obstacles, radius=radius,
+                          resolution=resolution)
+    # 地面与空中共享平面坐标，但硬障碍和威胁作用域不同：
+    # * air_threat_nav 只负责可通行几何，不能把威胁重新变成墙；
+    # * *._threat_map 只用于安全航点投影和可视化/诊断。
+    nav.air_threat_nav = (
+        city_nav.NavMap(bounds, air_obstacles, radius=radius,
+                        resolution=resolution)
+        if air_obstacles else None)
+    nav.ground_threat_map = (
+        city_nav.NavMap(bounds, ground_threats, radius=radius,
+                        resolution=resolution)
+        if ground_threats else None)
+    nav.air_threat_map = (
+        city_nav.NavMap(bounds, air_threats, radius=radius,
+                        resolution=resolution)
+        if air_threats else None)
+    # 行为层执行期间还会根据集结位、观察位和动态航点重新规划。只把
+    # 避威胁标志留给首次分配规划不够，那些本地航段仍会直穿风险区。
+    # 暴露度模式因此保留一个带安全间隔的软风险路由器，供执行层复用。
+    from .routing import Router
+    from .templates import decompose
+    nav.route_router = Router(
+        scenario, decompose(scenario),
+        risk_weight=1.0 if avoid_threats else 0.0)
+    nav.prefer_scoped_router = bool(
+        (scenario.meta or {}).get("map_scene_bounds")
+    )
+    nav.threat_router = nav.route_router if avoid_threats else None
+    nav.avoid_threats = bool(avoid_threats)
+    return nav
 
 
 class InteropPlanner(object):
@@ -551,6 +682,50 @@ class InteropPlanner(object):
         self.scenario = scenario
         self.data = data or {}
         self.objective = OBJECTIVE_MAP.get(objective, "timeliness")
+        map_bounds = (scenario.meta or {}).get("map_scene_bounds")
+        if isinstance(map_bounds, (list, tuple)) and len(map_bounds) == 4:
+            self._grid_bounds_m = [
+                float(map_bounds[0]) - 20.0,
+                float(map_bounds[1]) - 20.0,
+                float(map_bounds[2]) + 20.0,
+                float(map_bounds[3]) + 20.0,
+            ]
+        else:
+            # Keep the router domain fixed for the life of this planner.
+            # Deriving it from live positions made the grid bounds move every
+            # few simulation steps, invalidating the expensive obstacle grid.
+            points = [tuple(p.position) for p in scenario.platforms]
+            from .message import target_points
+            for task in scenario.tasks:
+                try:
+                    points.extend(target_points(task.target))
+                except Exception:
+                    pass
+            for item in scenario.constraints:
+                area = item.get("area") or {}
+                polygon = area.get("polygon") if isinstance(area, dict) else area
+                for point in polygon or []:
+                    try:
+                        points.append((float(point[0]), float(point[1])))
+                    except (TypeError, ValueError, IndexError):
+                        pass
+            if points:
+                xs = [float(point[0]) for point in points]
+                ys = [float(point[1]) for point in points]
+                self._grid_bounds_m = [
+                    min(xs) - 40.0,
+                    min(ys) - 40.0,
+                    max(xs) + 40.0,
+                    max(ys) + 40.0,
+                ]
+            else:
+                self._grid_bounds_m = None
+        self.last_plan = None
+        self.last_snapshot = None
+        self.initial_plan = None
+        self.refresh_subtasks()
+        self.plan_history = []
+        self._cached_interop_plan = None
         self.activation_rules = {task.task_id: task.params["after_event"]
                                  for task in scenario.tasks if "after_event" in task.params}
         task_ids = {task.task_id for task in scenario.tasks}
@@ -559,6 +734,292 @@ class InteropPlanner(object):
                     or rule["task_id"] not in task_ids - {job_id}
                     or not isinstance(rule.get("kind"), str) or not rule["kind"]):
                 raise InteropPlannerError("%s 的 after_event 须指定另一项任务和事件类型" % job_id)
+
+    def refresh_subtasks(self) -> None:
+        """缓存槽位规格，供运行中的子任务改派使用。
+
+        ``decompose`` 是确定性的：同一份输入每次给出同样的 subtask_id。
+        工作台在暂停时刻改任务后会重建本对象，或在同一个对象上替换
+        scenario，因此这里也允许显式刷新。
+        """
+        from .templates import decompose
+        self.__dict__.pop("_return_candidates", None)
+        try:
+            self._subtask_specs = {slot.subtask_id: slot
+                                   for slot in decompose(self.scenario)}
+        except ValueError:
+            # 历史/不完整场景可能在构造期还分解不出来；先留空，
+            # 真正规划时仍按原有错误路径报告，不让编辑/加载直接崩。
+            self._subtask_specs = {}
+
+    def replacement_for(self, coord, job_id: str, subtask_id: str, now: int,
+                        exclude_pids=()) -> Optional[Tuple[Platform, float]]:
+        """在编成表内为一个失败/超时子任务找替补平台。
+
+        只做“能不能接”的硬过滤（能力/状态/载荷/时间窗/续航/禁入区）和
+        粗略到达时间比较；真正的路径、转向与避障仍由执行层负责。返回
+        ``(platform, travel_s)``，没有候选时返回 ``None``。
+        """
+        from dataclasses import replace as dc_replace
+        import fleet
+        from .gate import gate_platform
+        from .message import target_point
+        slot = self._subtask_specs.get(subtask_id)
+        if slot is None:
+            return None
+        excluded = set(exclude_pids)
+        job = coord.jobs.get(job_id)
+        used = set(getattr(job, "_interop_subtasks", {}) or {}) - excluded
+        try:
+            goal = target_point(slot.target)
+        except WireError:
+            return None
+        best = None
+        for platform in self.scenario.platforms:
+            pid = fleet.pid_of(platform.robot_id)
+            if pid in excluded or pid in used or pid in getattr(coord, "returning_home", ()):
+                continue
+            live = coord.platforms.get(pid)
+            if live is None or not getattr(live, "alive", True):
+                continue
+            if coord.platform_cmd.get(pid):
+                continue
+            candidate = dc_replace(slot, pinned_unit="")
+            ok, _, _ = gate_platform(platform, candidate, self.scenario)
+            if not ok:
+                continue
+            # 已在当前计划里排给别家的平台不抢，避免改派和待派任务互相踩。
+            if coord.plan is not None:
+                busy_plan = any(
+                    a.job_id != job_id and pid in a.pids
+                    and (coord.jobs.get(a.job_id) is None
+                         or coord.jobs[a.job_id].status == "pending")
+                    for a in coord.plan.assignments)
+                if busy_plan:
+                    continue
+            pos = getattr(live, "pos", platform.position)
+            travel = math.hypot(float(pos[0]) - goal[0],
+                                float(pos[1]) - goal[1]) / max(platform.speed_mps, 1e-6)
+            if now + travel >= slot.window_end_s:
+                continue
+            if best is None or travel < best[1]:
+                best = (platform, travel)
+        return best
+
+    def timing_slots(self, coord):
+        """当前“在途 + 已排 + 被阻塞”的子任务时序快照。
+
+        动态时序指标（2.2(3)）只看事实，不改变规划：
+          * RUNNING：协调器 active 中的在途指令，结束时间取计划、动态
+            延期与剩余工作量三者的最大值；
+          * PLANNED：最近一次槽位计划里尚未下发的分配；
+          * BLOCKED：因依赖/事件尚未排入计划的子任务，用最早可行时间
+            估算，用于把在途延期传递给后续任务。
+        """
+        import fleet
+        from .timing_resolution import TimingSlot
+        specs = dict(self._subtask_specs)
+        slots = []
+        running_ids = set()
+        running_by_id = {}
+        for command_id, command in list(coord.active.items()):
+            if command.action != "start":
+                continue
+            job = coord.jobs.get(command.job_id)
+            if job is None:
+                continue
+            meta = (getattr(job, "_interop_subtasks", {}) or {}).get(
+                command.worker_id)
+            if not meta:
+                continue
+            spec = specs.get(meta.get("subtask_id"))
+            if spec is None:
+                continue
+            frac = 0.0
+            try:
+                frac = min(1.0, max(0.0, float(job.progress) / max(float(job.work), 1e-9)))
+            except (TypeError, ValueError):
+                frac = 0.0
+            remaining = max(0.0, float(spec.duration_s) * (1.0 - frac))
+            end = max(float(command.expected_end_sim_s),
+                      float(coord.now) + remaining)
+            slot = TimingSlot(
+                subtask_id=spec.subtask_id,
+                parent_task_id=spec.parent_task_id,
+                task_type=spec.task_type,
+                target=dict(spec.target),
+                start_s=float(command.start_sim_s),
+                end_s=end,
+                window_start_s=float(spec.window_start_s),
+                window_end_s=float(spec.window_end_s),
+                depends_on=list(spec.depends_on),
+                coordination=list(spec.coordination),
+                unit_id=command.worker_id,
+                state="RUNNING",
+                role=getattr(spec, "role", ""),
+                travel_s=0.0,
+                command_id=command_id,
+                assigned=True,
+            )
+            slots.append(slot)
+            running_ids.add(spec.subtask_id)
+            running_by_id[spec.subtask_id] = slot
+
+        planned = {}
+        if self.last_plan is not None:
+            for item in self.last_plan.assignments:
+                job = coord.jobs.get(item.parent_task_id)
+                if job is None or job.status != "pending":
+                    continue
+                if item.subtask_id in running_ids:
+                    continue
+                spec = specs.get(item.subtask_id)
+                if spec is None:
+                    continue
+                slot = TimingSlot(
+                    subtask_id=item.subtask_id,
+                    parent_task_id=item.parent_task_id,
+                    task_type=item.task_type,
+                    target=dict(item.target),
+                    start_s=float(item.start_s),
+                    end_s=float(item.end_s),
+                    window_start_s=float(item.window_start_s),
+                    window_end_s=float(item.window_end_s),
+                    depends_on=list(item.depends_on),
+                    coordination=list(item.coordination),
+                    unit_id=(fleet.pid_of(int(item.robot_id))
+                             if getattr(item, "robot_id", None) is not None
+                             else item.unit_id),
+                    state="PLANNED",
+                    role=getattr(item, "role", ""),
+                    travel_s=float(item.travel_s),
+                    assigned=True,
+                )
+                slots.append(slot)
+                planned[item.subtask_id] = slot
+
+        placed = running_by_id | planned
+        states = getattr(coord, "subtask_states", {}) or {}
+        succeeded_at = getattr(coord, "succeeded_at", {}) or {}
+        blocked = {}
+
+        def _active(spec):
+            job = coord.jobs.get(spec.parent_task_id)
+            if job is None or job.status not in ("pending", "assigned", "running"):
+                return False
+            state = states.get(spec.subtask_id)
+            if state is not None and state.get("status") in ("succeeded",
+                                                             "cancelled"):
+                return False
+            return True
+
+        def _done_time(job_id):
+            value = succeeded_at.get(job_id)
+            return float(value) if value is not None else float(coord.now)
+
+        def _blocked_slot(spec, stack):
+            """被依赖阻塞的槽位：按依赖链推算最早可开工时刻。
+
+            依赖也可能是被阻塞的槽位（链式任务），必须按依赖顺序回推，
+            否则会把"还没排进计划的合法前置"误报成"前置未分配"。
+            """
+            sid = spec.subtask_id
+            if sid in blocked:
+                return blocked[sid]
+            if sid in stack or sid in placed or not _active(spec):
+                return None
+            dep_end = 0.0
+            for dep_id in spec.depends_on or []:
+                dep = running_by_id.get(dep_id) or planned.get(dep_id)
+                if dep is None:
+                    dep_spec = specs.get(dep_id)
+                    if dep_spec is not None:
+                        dep_job = coord.jobs.get(dep_spec.parent_task_id)
+                        if dep_job is not None and dep_job.status == "succeeded":
+                            dep_end = max(dep_end,
+                                          _done_time(dep_job.job_id))
+                        else:
+                            dep = _blocked_slot(dep_spec, stack | {sid})
+                if dep is not None:
+                    dep_end = max(dep_end, float(dep.end_s))
+            start = max(float(coord.now), float(spec.window_start_s), dep_end)
+            slot = TimingSlot(
+                subtask_id=sid,
+                parent_task_id=spec.parent_task_id,
+                task_type=spec.task_type,
+                target=dict(spec.target),
+                start_s=start,
+                end_s=start + float(spec.duration_s),
+                window_start_s=float(spec.window_start_s),
+                window_end_s=float(spec.window_end_s),
+                depends_on=list(spec.depends_on),
+                coordination=list(spec.coordination),
+                unit_id=None,
+                state="BLOCKED",
+                role=getattr(spec, "role", ""),
+                travel_s=0.0,
+                assigned=False,
+            )
+            blocked[sid] = slot
+            return slot
+
+        for spec in specs.values():
+            slot = _blocked_slot(spec, set())
+            if slot is not None:
+                slots.append(slot)
+
+        # 已完成的前置子任务作为"已满足"的占位加入快照，避免独立检查器
+        # 把已成功但已退出在途表的依赖误报成"前置未分配"。
+        referenced = {dep_id for spec in specs.values()
+                      for dep_id in (spec.depends_on or [])}
+        for dep_id in referenced:
+            if (dep_id in running_by_id or dep_id in planned
+                    or dep_id in blocked):
+                continue
+            dep_spec = specs.get(dep_id)
+            if dep_spec is None:
+                continue
+            dep_job = coord.jobs.get(dep_spec.parent_task_id)
+            if dep_job is None or dep_job.status != "succeeded":
+                continue
+            done = _done_time(dep_job.job_id)
+            slots.append(TimingSlot(
+                subtask_id=dep_id,
+                parent_task_id=dep_spec.parent_task_id,
+                task_type=dep_spec.task_type,
+                target=dict(dep_spec.target),
+                start_s=done,
+                end_s=done,
+                window_start_s=0.0,
+                window_end_s=max(done, 0.0),
+                depends_on=[],
+                coordination=[],
+                unit_id=None,
+                state="DONE",
+                role=getattr(dep_spec, "role", ""),
+                travel_s=0.0,
+                assigned=True,
+            ))
+        return slots
+
+    def timing_exclusions(self, coord):
+        """返回 (unassigned, deleted) 标识集合，供消解判定排除“删/未分配”。"""
+        unassigned = set()
+        if self.last_plan is not None:
+            for item in self.last_plan.unassigned:
+                if isinstance(item, dict):
+                    for key in ("subtask_id", "parent_task_id"):
+                        if isinstance(item.get(key), str):
+                            unassigned.add(item[key])
+            for item in self.last_plan.rejected:
+                if isinstance(item, dict) and isinstance(item.get("job_id"), str):
+                    unassigned.add(item["job_id"])
+        deleted = set(getattr(coord, "deleted_job_ids", set()) or ())
+        known = {task.task_id for task in self.scenario.tasks}
+        for job_id in list(getattr(coord, "jobs", {})):
+            if job_id not in known:
+                deleted.add(job_id)
+        return unassigned, deleted
 
     def observe_behavior_event(self, coord, row):
         event = row["event"]
@@ -606,7 +1067,8 @@ class InteropPlanner(object):
             if live is not None:
                 platform.position = (float(live.pos[0]), float(live.pos[1]))
                 platform.heading_rad = float(getattr(live, "yaw", 0.0))
-                platform.status = "READY" if getattr(live, "alive", True) else "LOST"
+                platform.status = (item.status if item.status in ('OFFLINE', 'DAMAGED', 'LOST')
+                                   else "READY") if getattr(live, "alive", True) else "LOST"
                 # 4.1 编成表是速度/续航的权威来源；基座 v2 场景只带 robot_no，
                 # build_platforms 会退回 fleet 默认速度（0.8 m/s 等），和 4.1 的
                 # 8/25/30 m/s 不一致。运行适配器把权威参数同步给协调器，逐步
@@ -618,6 +1080,10 @@ class InteropPlanner(object):
                 # 执行按 fleet 默认”的两套参数。
                 live.payload = float(item.payload)
                 live.sensor = str(item.sensor)
+                live.payload_kg = item.payload_kg
+                live.sensor_spec = dict(item.sensor_spec)
+                live.motion_spec = dict(item.motion_spec)
+                live.endurance_s = item.endurance_s
                 # 电量以 4.1 编成表为准，不再人为抬到 1e6；否则界面和续航
                 # 判定都会显示成“几乎满电”。真实电量不足时由基座记
                 # energy_depleted 事件，规划层的续航校验另行拦截。
@@ -627,8 +1093,8 @@ class InteropPlanner(object):
             # 否则会把新作业排给正在执行旧作业的平台，下发时又被协调器挡回。
             command_id = coord.platform_cmd.get(fleet.pid_of(item.robot_id))
             command = coord.active.get(command_id) if command_id else None
-            platform.busy_until_s = (float(command.expected_end_sim_s)
-                                     if command is not None else 0.0)
+            platform.busy_until_s = max(float(command.expected_end_sim_s) if command is not None else 0.0,
+                float(coord.dynamic_ends.get(command_id, 0.0)) if command_id else 0.0)
             platforms.append(platform)
 
         tasks = []
@@ -680,11 +1146,14 @@ class InteropPlanner(object):
                 allow_split=task.allow_split,
                 description=task.description,
             ))
+        snapshot_meta = dict(self.scenario.meta)
+        if self._grid_bounds_m is not None:
+            snapshot_meta["grid_bounds_m"] = list(self._grid_bounds_m)
         return Scenario(
             formation_id=self.scenario.formation_id, platforms=platforms,
             tasks=tasks,
             constraints=[dict(c) for c in self.scenario.constraints],
-            groups=list(self.scenario.groups), meta=dict(self.scenario.meta),
+            groups=list(self.scenario.groups), meta=snapshot_meta,
             message=dict(self.scenario.message or {}),
             cell_size_m=self.scenario.cell_size_m,
             plan_id=self.scenario.plan_id, schema_version="0.3",
@@ -695,7 +1164,26 @@ class InteropPlanner(object):
         import fleet
         import planner_v2
         snapshot = self._snapshot(coord)
-        plan = Planner(snapshot, objective=self.objective).plan()
+        can_reuse = (
+            self._cached_interop_plan is not None
+            and bool((self.scenario.meta or {}).get("reuse_stable_plan"))
+            and bool(coord.pending)
+            and all(source == "periodic" for source, _detail in coord.pending)
+        )
+        if can_reuse:
+            plan = self._cached_interop_plan
+        else:
+            plan = Planner(snapshot, objective=self.objective).plan()
+            self._cached_interop_plan = plan
+        if self.initial_plan is None:
+            # The first rolling-planning snapshot is the plan that produced
+            # the initial dispatch. Keep that object for the 4.2 export;
+            # planning again after execution completes can select different
+            # units because the live snapshot no longer contains finished or
+            # in-flight work.
+            self.initial_plan = plan
+        self.last_plan = plan
+        self.last_snapshot = snapshot
         robot_of = {p.unit_id: p.robot_id for p in snapshot.platforms}
         assignments = []
         rejected = []
@@ -716,11 +1204,26 @@ class InteropPlanner(object):
             if not items or len(pids) < int(job.crew):
                 reasons = [u["reason"] for u in plan.unassigned
                            if u["parent_task_id"] == task.task_id]
+                reason = (reasons[0] if reasons else "NO_ASSIGNMENT")
                 rejected.append(dict(
                     job_id=task.task_id,
                     reason="融合层未凑齐兵力(%d/%d)%s"
                            % (len(pids), job.crew,
-                              ("：" + reasons[0]) if reasons else "")))
+                              ("：" + reason) if reasons else "")))
+                # A static plan that cannot form the required crew on this
+                # complete planning snapshot will not become feasible merely
+                # by waiting.  Leaving the job pending made deadline tests spin
+                # to max_ticks and the native window appear frozen.  Record an
+                # explicit terminal failure so the run can settle and explain
+                # whether the cause was a time window, no route, or capacity.
+                if job.status == "pending":
+                    job.status = "failed"
+                    coord.record(
+                        "job_failed",
+                        job_id=task.task_id,
+                        cause="interop_unassigned",
+                        reason=reason,
+                    )
                 continue
             orig_start = min(item.start_s for item in items)
             is_asl = task.task_type == "T-ASL"
@@ -756,6 +1259,38 @@ class InteropPlanner(object):
             # 几何自行复核。
             if roles:
                 job._interop_roles = dict(roles)
+            # 子任务影子账本：一个平台一个槽位。运行层只按 (job_id, pid)
+            # 关联反馈，不改变 4.2 指令/反馈协议的既有字段。
+            subtasks = {}
+            for item in items:
+                pid = fleet.pid_of(robot_of[item.unit_id])
+                subtasks[pid] = dict(
+                    subtask_id=item.subtask_id,
+                    parent_task_id=task.task_id,
+                    unit_id=item.unit_id,
+                    role=getattr(item, "role", ""),
+                    task_type=task.task_type,
+                    target=dict(item.target),
+                    start_s=float(item.start_s),
+                    end_s=float(item.end_s),
+                    window_start_s=float(item.window_start_s),
+                    window_end_s=float(item.window_end_s),
+                    duration_s=max(0.0, float(item.end_s) - float(item.start_s)),
+                )
+            if subtasks:
+                job._interop_subtasks = subtasks
+                job._interop_local_replace = task.task_type in ("T-RCN", "T-PTL")
+            # 把 4.2 计划路线随任务下发给行为层：只是路线证据，目标与
+            # 行为判定不变。暴露度/风险目标的地面路线会绕开威胁区，可防止
+            # 行为层本地重规划把路径又拉回威胁区角点。
+            paths_by_pid = {}
+            for item in by_task.get(task.task_id) or []:
+                pid = fleet.pid_of(robot_of[item.unit_id])
+                if item.path:
+                    paths_by_pid[pid] = [list(map(float, point))
+                                         for point in item.path]
+            if paths_by_pid:
+                job._interop_paths = paths_by_pid
             assignments.append(planner_v2.Assignment(
                 job_id=task.task_id, pids=pids, start=int(round(max(0.0, start))),
                 end=int(round(end)), travel=int(round(travel)),
@@ -769,6 +1304,13 @@ class InteropPlanner(object):
             plan_id=coord.plan_id, created_at=now, horizon=coord.H,
             objective=coord.objective, rule_version="interop-1.0",
             assignments=assignments, rejected=rejected)
+        # Capture the exact dynamic snapshot used for this coordinator version.
+        # Future rollovers must not replace evidence used by an earlier dispatch.
+        self.plan_history.append(dict(runtime_plan_id=coord.plan_id,
+            generated_at_s=now, plan=plan.to_dict(),
+            runtime_assignments=[dict(job_id=a.job_id, pids=list(a.pids),
+                                      start=a.start, end=a.end, travel=a.travel)
+                                 for a in assignments]))
         events = [dict(kind="interop_plan", n=len(assignments),
                        makespan=round(plan.metrics.makespan_s, 1),
                        unassigned=plan.metrics.unassigned_subtasks,

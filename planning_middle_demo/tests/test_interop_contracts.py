@@ -20,7 +20,9 @@ def minimum_plan():
     return dict(schema_version="0.3", plan_id="P",
                 assignments=[dict(unit_id="U1", subtask_id="S1", task_type="T-PTL",
                                   start_s=0, end_s=1, target={"point": [0, 0]})],
-                commands=[dict(robot_id=1, topic="/container_00/robot_001", duration_s=1,
+                commands=[dict(robot_id=1,
+                               topic="/container_00/robot_001/cmd_vel",
+                               duration_s=1,
                                twist=dict(linear=dict(x=0, y=0, z=0),
                                           angular=dict(x=0, y=0, z=0)))])
 
@@ -95,7 +97,7 @@ class PlanContractRegressionTests(unittest.TestCase):
         data['commands'].append(copy.deepcopy(data['commands'][0]))
         self.assertTrue(validate_plan_document(data))
         data = minimum_plan()
-        data['commands'][0]['topic'] = '/container_00/robot_002'
+        data['commands'][0]['topic'] = '/container_00/robot_002/cmd_vel'
         self.assertTrue(validate_plan_document(data))
 
     def test_reversed_assignment_and_nonzero_stop_rejected(self):
@@ -118,7 +120,7 @@ class PlanContractRegressionTests(unittest.TestCase):
 
 class ConversionRefusalTests(unittest.TestCase):
     def test_refusal_keeps_existing_destination_and_input_unchanged(self):
-        folder = BASE/'interop/scenarios'
+        folder = BASE/'tests/fixtures/interop_legacy'
         message = folder/'patrol_checkpoint.message.json'
         formation = folder/'patrol_checkpoint.formation.json'
         before = (message.read_bytes(), formation.read_bytes())
@@ -139,7 +141,7 @@ class ComparisonDisclosureTests(unittest.TestCase):
     def test_baseline_normalization_is_present_in_json_and_report(self):
         from interop.message import load_scenario
         from interop.compare import compare_scenario, build_markdown
-        folder = BASE/'interop/scenarios'
+        folder = BASE/'tests/fixtures/interop_legacy'
         scenario = load_scenario(str(folder/'patrol_checkpoint.message.json'),
                                  str(folder/'patrol_checkpoint.formation.json'))
         comparison = compare_scenario(scenario, objectives=('timeliness',), backends=('base_v2',))

@@ -17,7 +17,7 @@ def load_recording(root):
     source = root / 'outputs' / RECORDING_ID / 'behavior_trace.json'
     raw = source.read_bytes()
     saved = json.loads(raw.decode('utf-8-sig'))
-    scenario = json.loads((root / 'scenarios/simple_city.json').read_text(encoding='utf-8-sig'))
+    scenario = json.loads((root / 'tests/fixtures/base_scenarios/simple_city.json').read_text(encoding='utf-8-sig'))
     scenario_jobs = {j['job_id']: j for j in scenario['jobs']}
     platforms = {p.get('pid', 'rover_%02d' % p['robot_no']): p
                  for p in scenario['platforms']}

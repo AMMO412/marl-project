@@ -20,7 +20,7 @@
 import math
 from typing import Any, Dict, Optional, Sequence, Tuple
 
-from .geometry import point_in_polygon
+from .geometry import point_in_polygon, segment_polygon_overlap_length
 
 Point = Tuple[float, float]
 
@@ -37,7 +37,7 @@ DEFAULT_WEIGHTS = {
 }
 OBJECTIVE_LABELS = {
     "timeliness": "时效（完工时间）",
-    "exposure": "暴露度（被侦测概率）",
+    "exposure": "暴露度（被侦察到的概率）",
     "energy": "能耗",
     "risk": "风险（威胁暴露，旧名）",
     "balanced": "均衡（0.5/0.3/0.2）",
@@ -55,7 +55,6 @@ CLASS_PROTECTION = {"UGV": 0.2, "TANK": 0.5, "PLANE": 0.0, "WING": 0.0}
 
 RISK_REF = 10.0
 ENERGY_REF = 1000.0
-RISK_SAMPLE_M = 5.0
 # 探测率 λ（1/暴露当量）：1 当量约 9.5%，10 当量约 63% 被侦测。
 # 演示值；真实传感器/探测数据到位后只改这里，报告仍需标注“演示值”。
 EXPOSURE_RATE = 0.1
@@ -105,7 +104,9 @@ class CostModel(object):
         risk = 0.0
         for item in self.threats:
             applies = item.get("applies_to", "ground")
-            if air and applies != "all":
+            if air and applies not in ("air", "all"):
+                continue
+            if not air and applies not in ("ground", "all"):
                 continue
             intensity = float(item.get("intensity", 1.0))
             polygon = [(x * self.scale, y * self.scale)
@@ -113,14 +114,9 @@ class CostModel(object):
             for i in range(len(path) - 1):
                 x0, y0 = path[i]
                 x1, y1 = path[i + 1]
-                length = math.hypot(x1 - x0, y1 - y0)
-                steps = max(1, int(math.ceil(length / RISK_SAMPLE_M)))
-                for k in range(steps):
-                    t = (k + 0.5) / steps
-                    x = x0 + (x1 - x0) * t
-                    y = y0 + (y1 - y0) * t
-                    if point_in_polygon((x, y), polygon):
-                        risk += intensity * (length / steps) / speed * factor
+                overlap = segment_polygon_overlap_length(
+                    (x0, y0), (x1, y1), polygon)
+                risk += intensity * overlap / speed * factor
             if point_in_polygon(target_point_m, polygon):
                 risk += intensity * max(0.0, duration_s) * factor
         return risk

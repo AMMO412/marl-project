@@ -4,9 +4,7 @@
 与 M2 的差异（有意的收紧）：
   * ``schema_version`` 只接受 ``"0.3"``；0.1/0.2 明确拒绝（已确认的外部
     接口规则），不做静默兼容。
-  * 任务类型接受五类：四类中性任务 + ``T-ASL``。T-ASL 的目标只允许单点，
-    效果参数（effect/required_*）在本层校验并归一化；打击动作和效果判定
-    仍由执行层承担，本层不判成败。
+
   * 编成表单位在 M2 字段基础上增加基座画像字段（payload / sensor /
     battery / work_rate / move_cost / work_cost），两边字段都保留，不合并
     成同一个数值。
@@ -57,7 +55,7 @@ ALLOWED_UNIT_KEYS = {
     "unit_id", "platform_type", "platform_class", "robot_id", "capabilities",
     "position", "altitude_m", "heading_rad", "speed_mps", "endurance_s",
     "vertical_speed_mps", "status", "payload", "sensor", "battery",
-    "work_rate", "move_cost", "work_cost",
+    "work_rate", "move_cost", "work_cost", "payload_kg", "motion",
 }
 
 CLASS_RANGES = {"UGV": (1, 20), "TANK": (21, 30),
@@ -357,6 +355,70 @@ def _validate_asl(task: Dict[str, Any]) -> None:
         params["ammo_per_platform"] = ammo
 
 
+def _normalize_sensor_requirement(raw: Any, default: Dict[str, Any],
+                                  path: str) -> Dict[str, Any]:
+    """任务侧传感器要求：``{type, min_range_m, max_resolution_m, min_fov_deg}``。"""
+    if raw is None:
+        return dict(default or {})
+    if isinstance(raw, str):
+        if not raw.strip():
+            raise WireError("%s.type 不能为空" % path)
+        return dict(default or {}, type=raw.strip())
+    if not isinstance(raw, dict):
+        raise WireError("%s 必须是对象或传感器类别字符串" % path)
+    allowed = {"type", "min_range_m", "max_resolution_m", "min_fov_deg"}
+    unknown = [key for key in raw if key not in allowed]
+    if unknown:
+        raise WireError("%s 含未约定字段: %s" % (path, ", ".join(sorted(unknown))))
+    out = dict(default or {})
+    if "type" in raw:
+        value = raw["type"]
+        if not isinstance(value, str) or not value.strip():
+            raise WireError("%s.type 必须是非空字符串" % path)
+        out["type"] = value.strip()
+    for key in ("min_range_m", "max_resolution_m", "min_fov_deg"):
+        if key in raw:
+            out[key] = _positive(raw[key], "%s.%s" % (path, key))
+    return out
+
+
+def _normalize_task_requirements(task: Dict[str, Any], task_id: str) -> None:
+    """把任务级性能约束归一化到 params（载荷/传感器/续航/运动性能）。"""
+    params = task["params"]
+    if "payload_required_kg" in params:
+        value = _number(params["payload_required_kg"],
+                        "%s.params.payload_required_kg" % task_id)
+        if value < 0:
+            raise WireError("%s.params.payload_required_kg 不能为负" % task_id)
+        params["payload_required_kg"] = value
+    if "sensor_required" in params:
+        params["sensor_required"] = _normalize_sensor_requirement(
+            params["sensor_required"], {}, "%s.params.sensor_required" % task_id)
+    if "endurance_required_s" in params:
+        params["endurance_required_s"] = _positive(
+            params["endurance_required_s"],
+            "%s.params.endurance_required_s" % task_id)
+    if "motion_required" in params:
+        raw = params["motion_required"]
+        if not isinstance(raw, dict):
+            raise WireError("%s.params.motion_required 必须是对象" % task_id)
+        allowed = {"min_speed_mps", "min_altitude_ceiling_m",
+                   "min_climb_rate_mps", "max_turn_radius_m",
+                   "min_accel_mps2", "min_yaw_rate_rad_s"}
+        unknown = [key for key in raw if key not in allowed]
+        if unknown:
+            raise WireError("%s.params.motion_required 含未约定字段: %s"
+                            % (task_id, ", ".join(sorted(unknown))))
+        normalized = {}
+        for key, value in raw.items():
+            normalized[key] = _number(
+                value, "%s.params.motion_required.%s" % (task_id, key))
+            if normalized[key] < 0:
+                raise WireError("%s.params.motion_required.%s 不能为负"
+                                % (task_id, key))
+        params["motion_required"] = normalized
+
+
 def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
     if not isinstance(raw, dict):
         raise WireError("tasks[%d] 必须是对象" % index)
@@ -398,6 +460,17 @@ def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
             raise WireError("%s.max_units 不能小于 min_units" % task_id)
     if not isinstance(raw["params"], dict):
         raise WireError("%s.params 必须是对象" % task_id)
+    if task["task_type"] == "T-PTL" and "sensor_radius_m" in task["params"]:
+        radius = task["params"]["sensor_radius_m"]
+        field = "%s.sensor_radius_m" % task_id
+        if not isinstance(radius, dict):
+            radius = dict.fromkeys(("ground", "air"), _positive(radius, field))
+        if not radius or set(radius) - {"ground", "air"}:
+            raise WireError("%s 仅支持地面（ground）和空中（air）半径" % field)
+        task["params"] = dict(task["params"], sensor_radius_m={
+            group: _positive(value, "%s.%s" % (field, group))
+            for group, value in radius.items()
+        })
     if task["task_type"] == "T-ASL":
         _validate_asl(task)
     depends = task.get("depends_on", [])
@@ -405,6 +478,7 @@ def _normalize_task(raw: Any, index: int) -> Dict[str, Any]:
         raise WireError("%s.depends_on/prerequisites 必须是字符串数组" % task_id)
     if task_id in depends:
         raise WireError("%s.depends_on/prerequisites 不能依赖自己" % task_id)
+    _normalize_task_requirements(task, task_id)
     return task
 
 
@@ -425,6 +499,105 @@ def _check_dependency_cycles(tasks: List[Task]) -> None:
 
     for task in tasks:
         visit(task.task_id, [])
+
+
+PHYSICAL_PROFILE_DEFAULTS = {'UGV': {'sensor_spec': {'type': 'eo',
+                         'range_m': 2500.0,
+                         'fov_deg': 60.0,
+                         'resolution_m': 0.3},
+         'motion_spec': {'max_speed_mps': 8.0,
+                         'max_accel_mps2': 1.2,
+                         'max_yaw_rate_rad_s': 0.7,
+                         'min_turn_radius_m': 11.4,
+                         'max_climb_rate_mps': 0.0,
+                         'max_altitude_m': 0.0}},
+ 'TANK': {'sensor_spec': {'type': 'eo',
+                          'range_m': 3000.0,
+                          'fov_deg': 50.0,
+                          'resolution_m': 0.25},
+          'motion_spec': {'max_speed_mps': 8.0,
+                          'max_accel_mps2': 1.0,
+                          'max_yaw_rate_rad_s': 0.6,
+                          'min_turn_radius_m': 13.3,
+                          'max_climb_rate_mps': 0.0,
+                          'max_altitude_m': 0.0}},
+ 'PLANE': {'sensor_spec': {'type': 'sar',
+                           'range_m': 8000.0,
+                           'fov_deg': 120.0,
+                           'resolution_m': 1.0},
+           'motion_spec': {'max_speed_mps': 30.0,
+                           'max_accel_mps2': 2.5,
+                           'max_yaw_rate_rad_s': 0.45,
+                           'min_turn_radius_m': 66.7,
+                           'max_climb_rate_mps': 5.0,
+                           'max_altitude_m': 3000.0}},
+ 'WING': {'sensor_spec': {'type': 'ir',
+                          'range_m': 5000.0,
+                          'fov_deg': 90.0,
+                          'resolution_m': 0.5},
+          'motion_spec': {'max_speed_mps': 25.0,
+                          'max_accel_mps2': 2.0,
+                          'max_yaw_rate_rad_s': 0.4,
+                          'min_turn_radius_m': 62.5,
+                          'max_climb_rate_mps': 4.0,
+                          'max_altitude_m': 2000.0}}}
+
+
+def _parse_sensor(raw: Any, profile: Dict[str, Any], unit_id: str) -> Dict[str, Any]:
+    if isinstance(raw, str):
+        sensor_type = raw.strip()
+        if not sensor_type:
+            raise WireError("%s.sensor.type 不能为空" % unit_id)
+        spec = dict(profile)
+        spec["type"] = sensor_type
+        return spec
+    if not isinstance(raw, dict):
+        raise WireError("%s.sensor 必须是对象或传感器类别字符串" % unit_id)
+    sensor_type = raw.get("type", profile.get("type"))
+    if not isinstance(sensor_type, str) or not sensor_type.strip():
+        raise WireError("%s.sensor.type 必须是非空字符串" % unit_id)
+    range_m = _positive(raw.get("range_m", profile.get("range_m")),
+                        "%s.sensor.range_m" % unit_id)
+    fov_deg = _number(raw.get("fov_deg", profile.get("fov_deg", 60.0)),
+                      "%s.sensor.fov_deg" % unit_id)
+    if not 0 < fov_deg <= 360:
+        raise WireError("%s.sensor.fov_deg 必须在 0-360 度之间" % unit_id)
+    resolution_m = _positive(
+        raw.get("resolution_m", profile.get("resolution_m", 0.5)),
+        "%s.sensor.resolution_m" % unit_id)
+    return dict(type=sensor_type.strip(), range_m=range_m,
+                fov_deg=fov_deg, resolution_m=resolution_m)
+
+
+def _parse_motion(raw: Any, profile: Dict[str, Any], speed_mps: float,
+                  unit_id: str) -> Dict[str, Any]:
+    if not isinstance(raw, dict):
+        raise WireError("%s.motion 必须是对象" % unit_id)
+    max_speed = _positive(raw.get("max_speed_mps", profile["max_speed_mps"]),
+                          "%s.motion.max_speed_mps" % unit_id)
+    if speed_mps > max_speed + 1e-9:
+        raise WireError("%s.speed_mps=%.2f 超过运动性能上限 max_speed_mps=%.2f"
+                        % (unit_id, speed_mps, max_speed))
+    max_accel = _positive(raw.get("max_accel_mps2", profile["max_accel_mps2"]),
+                          "%s.motion.max_accel_mps2" % unit_id)
+    max_yaw = _positive(raw.get("max_yaw_rate_rad_s",
+                                profile["max_yaw_rate_rad_s"]),
+                        "%s.motion.max_yaw_rate_rad_s" % unit_id)
+    turn_radius = _positive(raw.get("min_turn_radius_m",
+                                    profile["min_turn_radius_m"]),
+                            "%s.motion.min_turn_radius_m" % unit_id)
+    climb = _number(raw.get("max_climb_rate_mps",
+                            profile["max_climb_rate_mps"]),
+                    "%s.motion.max_climb_rate_mps" % unit_id)
+    if climb < 0:
+        raise WireError("%s.motion.max_climb_rate_mps 不能为负" % unit_id)
+    ceiling = _number(raw.get("max_altitude_m", profile["max_altitude_m"]),
+                      "%s.motion.max_altitude_m" % unit_id)
+    if ceiling < 0:
+        raise WireError("%s.motion.max_altitude_m 不能为负" % unit_id)
+    return dict(max_speed_mps=max_speed, max_accel_mps2=max_accel,
+                max_yaw_rate_rad_s=max_yaw, min_turn_radius_m=turn_radius,
+                max_climb_rate_mps=climb, max_altitude_m=ceiling)
 
 
 def _parse_platform(raw: Any, index: int) -> Platform:
@@ -480,10 +653,16 @@ def _parse_platform(raw: Any, index: int) -> Platform:
         raise WireError("%s.vertical_speed_mps 不能为负" % unit_id)
 
     profile = CLASS_BASE_PROFILE[platform_class]
+    physical = PHYSICAL_PROFILE_DEFAULTS[platform_class]
     payload = _number(raw.get("payload", profile["payload"]), "%s.payload" % unit_id)
-    sensor = raw.get("sensor", profile["sensor"])
-    if not isinstance(sensor, str):
-        raise WireError("%s.sensor 必须是字符串" % unit_id)
+    payload_kg = _number(raw.get("payload_kg", payload * 100.0), "%s.payload_kg" % unit_id)
+    if payload_kg < 0:
+        raise WireError("%s.payload_kg 不能为负" % unit_id)
+    if "payload_kg" in raw and "payload" not in raw:
+        payload = payload_kg / 100.0
+    sensor_spec = _parse_sensor(raw.get("sensor", profile["sensor"]), physical["sensor_spec"], unit_id)
+    sensor = sensor_spec["type"]
+    motion_spec = _parse_motion(raw["motion"], physical["motion_spec"], speed, unit_id) if "motion" in raw else {}
     battery = _positive(raw.get("battery", profile["battery"]), "%s.battery" % unit_id)
     work_rate = _positive(raw.get("work_rate", profile["work_rate"]),
                           "%s.work_rate" % unit_id)
@@ -500,7 +679,8 @@ def _parse_platform(raw: Any, index: int) -> Platform:
         position=position, speed_mps=speed, endurance_s=endurance,
         capabilities=capabilities, status=status, platform_type=platform_type,
         heading_rad=heading, altitude_m=altitude, vertical_speed_mps=vertical,
-        payload=payload, sensor=sensor, battery=battery, work_rate=work_rate,
+        payload=payload, sensor=sensor, payload_kg=payload_kg, sensor_spec=sensor_spec, motion_spec=motion_spec,
+        battery=battery, work_rate=work_rate,
         move_cost=move_cost, work_cost=work_cost,
     )
 
@@ -558,8 +738,9 @@ def _parse_constraints(raw: Any) -> List[Dict[str, Any]]:
                 entry["height_m"] = _number(item["height_m"],
                                             "constraints[%d].height_m" % i)
             applies = item.get("applies_to", "ground")
-            if applies not in ("ground", "all"):
-                raise WireError("constraints[%d].applies_to 只能是 ground/all" % i)
+            if applies not in ("ground", "air", "all"):
+                raise WireError(
+                    "constraints[%d].applies_to 只能是 ground/air/all" % i)
             entry["applies_to"] = applies
         out.append(entry)
     return out
@@ -583,7 +764,10 @@ def parse_formation(formation: Any) -> Tuple[List[Platform], List[Dict[str, Any]
     groups = root.get("groups", [])
     if not isinstance(groups, list):
         raise WireError("formation.groups 必须是数组")
-    constraints = _parse_constraints(formation.get("constraints"))
+    raw_constraints = formation.get("constraints")
+    if raw_constraints is None and root is not formation:
+        raw_constraints = root.get("constraints")
+    constraints = _parse_constraints(raw_constraints)
 
     meta = formation.get("meta", {})
     if not isinstance(meta, dict):
@@ -598,7 +782,7 @@ def parse_formation(formation: Any) -> Tuple[List[Platform], List[Dict[str, Any]
     return platforms, constraints, list(groups), meta
 
 
-def parse_message(data: Any, formation: Any) -> Scenario:
+def parse_message(data: Any, formation: Any, *, allow_empty_tasks=False) -> Scenario:
     """校验 4.1 消息与编成表，返回统一的 Scenario。"""
     if not isinstance(data, dict):
         raise WireError("任务消息根节点必须是对象")
@@ -625,7 +809,7 @@ def parse_message(data: Any, formation: Any) -> Scenario:
                         % source_raw)
 
     tasks_raw = data.get("tasks")
-    if not isinstance(tasks_raw, list) or not tasks_raw:
+    if not isinstance(tasks_raw, list) or (not tasks_raw and not allow_empty_tasks):
         raise WireError("tasks 必须是非空数组")
     normalized = [_normalize_task(task, i) for i, task in enumerate(tasks_raw)]
     if len({t["task_id"] for t in normalized}) != len(normalized):

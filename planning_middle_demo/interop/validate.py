@@ -46,7 +46,17 @@ def validate_plan(assignments: List[Assignment], scenario: Scenario,
     subtask_map = {s.subtask_id: s for s in subtasks}
     assignment_map = {a.subtask_id: a for a in assignments}
 
+    obstacle_bounds = {}
+    for item in scenario.constraints:
+        area = item.get('area')
+        polygon = area.get('polygon') if isinstance(area, dict) else area
+        if item.get('type') == 'no_go' and polygon:
+            xs = [float(p[0])*scenario.cell_size_m for p in polygon]
+            ys = [float(p[1])*scenario.cell_size_m for p in polygon]
+            obstacle_bounds[id(item)] = (min(xs), min(ys), max(xs), max(ys))
     for a in assignments:
+        path_bounds = ((min(p[0] for p in a.path), min(p[1] for p in a.path),
+                        max(p[0] for p in a.path), max(p[1] for p in a.path)) if a.path else None)
         platform = platforms.get(a.unit_id)
         if platform is None:
             conflicts.append(_conflict(ids, "CAPABILITY", [a.subtask_id],
@@ -91,6 +101,10 @@ def validate_plan(assignments: List[Assignment], scenario: Scenario,
                 area = item.get("area")
                 polygon = area.get("polygon") if isinstance(area, dict) else area
                 if not polygon:
+                    continue
+                box = obstacle_bounds.get(id(item))
+                if path_bounds and box and (path_bounds[2] < box[0]-EPS or path_bounds[0] > box[2]+EPS
+                        or path_bounds[3] < box[1]-EPS or path_bounds[1] > box[3]+EPS):
                     continue
                 scaled = [(float(p[0]) * scenario.cell_size_m,
                            float(p[1]) * scenario.cell_size_m) for p in polygon]

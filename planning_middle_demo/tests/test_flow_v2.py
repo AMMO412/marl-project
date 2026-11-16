@@ -26,7 +26,7 @@ from contracts_v2 import Job, Platform
 def scenario():
     """复用 fleet_demo.json 的前 4 个作业，保证作业点靠近对应能力的平台。"""
     data = json.loads(
-        (ROOT / "scenarios/fleet_demo.json").read_text(encoding="utf-8"))
+        (ROOT / "tests/fixtures/base_scenarios/fleet_demo.json").read_text(encoding="utf-8"))
     data["jobs"] = data["jobs"][:4]
     return data
 
@@ -196,7 +196,8 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(fleet.kind_of(1), "UGV")
         self.assertEqual(fleet.kind_of(31), "PLANE")
         self.assertEqual(fleet.kind_of(41), "WING")
-        self.assertEqual(fleet.topic_of(7), "/container_00/robot_007")
+        self.assertEqual(fleet.topic_of(7),
+                         "/container_00/robot_007/cmd_vel")
         self.assertTrue(fleet.PLANNING_PARAMS["PLANE"]["can_climb"])
         self.assertFalse(fleet.PLANNING_PARAMS["UGV"]["can_climb"])
 
@@ -261,7 +262,7 @@ class RealSceneTests(unittest.TestCase):
 
     def _load(self):
         return json.loads(
-            (ROOT / "scenarios/simple_city.json").read_text(encoding="utf-8"))
+            (ROOT / "tests/fixtures/base_scenarios/simple_city.json").read_text(encoding="utf-8"))
 
     def test_scene_meta_fields_transparent(self):
         """_ 前缀元数据字段（来源坐标/地标）应通过校验，不参与规划。"""

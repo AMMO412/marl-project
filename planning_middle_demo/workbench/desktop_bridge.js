@@ -12,42 +12,72 @@
   document.documentElement.classList.add('desktop-mode');
   var style = document.createElement('style');
   style.textContent = [
-    '.desktop-mode{--ink:#30435b;--muted:#7f93a8;--green:#1f6fc3;--green-dark:#155a9e;--green-light:#edf4fd;--line:#e3eaf3;--bg:#f7f9fc;--side:#1f3552;--white:#fff}',
-    '.desktop-mode body{background:#f7f9fc!important;color:#30435b!important}',
-    '.desktop-mode .card{border-color:#e3eaf3!important;box-shadow:0 2px 3px #19384a08!important}',
-    '.desktop-mode .card-heading h2{color:#304d6b!important}',
-    '.desktop-mode .eyebrow{color:#8fa2b6!important}',
-    '.desktop-mode .stat{background:#fff!important;border-color:#e3eaf3!important}',
-    '.desktop-mode .stat-icon{color:#5b8fc9!important;background:#eef4fc!important}',
-    '.desktop-mode .stat-number{color:#304d6b!important}',
-    '.desktop-mode .clock-stat{background:#edf4fd!important;border-color:#d8e6f5!important}',
-    '.desktop-mode .button.primary{background:#1f6fc3!important;border-color:#1f6fc3!important}',
-    '.desktop-mode .map-toolbar,.desktop-mode .map-selection,.desktop-mode .player{background:#fff!important}',
-    '.desktop-mode .canvas-wrap,.desktop-mode #scene{background:#fbfcfe!important}',
-    '.desktop-mode #ck-canvas,.desktop-mode #hl-canvas{background:#fbfcfe!important;border-color:#e3eaf3!important}',
-    '.desktop-mode #overview-ck-view,.desktop-mode .ck-body,.desktop-mode .ck-map-card,.desktop-mode .ck-panel{background:#f7f9fc!important}',
-    '.desktop-mode .map-card{border-color:#e3eaf3!important}',
-    '.desktop-mode .map-legend{border-top-color:#eef2f7!important;background:#fff!important}',
-    '.desktop-mode .progress-track{background:#eef2f7!important}',
-    '.desktop-mode .task-row.selected{background:#f1f6fd!important}',
-    '.desktop-mode .behavior-tile{border-left-color:#8fb4dd!important}',
-    '.desktop-mode .behavior-tile.selected{background:#f1f6fd!important}',
-    '.desktop-mode .ck-kpis>div{background:#fff!important;border-color:#e3eaf3!important}',
-    '.desktop-mode .ck-panel,.desktop-mode .ck-side .card{background:#fff!important;border-color:#e3eaf3!important}',
-    '.desktop-mode .sidebar{display:none!important}',
-    '.desktop-mode main{margin-left:0!important;padding:12px 18px 0!important;max-width:none!important}',
-    '.desktop-mode .topbar,.desktop-mode .context-strip,.desktop-mode .run-strip,.desktop-mode footer{display:none!important}',
-    '.desktop-mode .stats{margin-top:0!important}',
-    '.desktop-mode .canvas-wrap{height:calc(100vh - 430px)!important;min-height:330px!important}',
-    '.desktop-mode .right-column{display:none!important}',
-    '.desktop-mode .overview-grid{grid-template-columns:minmax(0,1fr)!important}',
-    '.desktop-mode .ck-layout{grid-template-columns:minmax(0,1fr)!important}',
-    '.desktop-mode .ck-side{display:none!important}',
-    '.desktop-mode #ck-canvas,.desktop-mode #hl-canvas{height:520px!important;min-height:520px!important}',
-    '.desktop-mode .toast{left:50%!important}',
-    '.desktop-mode .busy-banner{right:18px!important}'
+    '.desktop-mode{--ink:#30435b;--green:#1f6fc3;--line:#e3eaf3;--bg:#fff}',
+    '.desktop-mode body{margin:0!important;background:#fff!important;overflow:hidden!important}',
+    '.desktop-mode body>aside,.desktop-mode body>main,.desktop-mode body>footer{display:none!important}',
+    '#desktop-scene-host{position:fixed;inset:0;overflow:hidden;background:#fff}',
+    '#desktop-scene-host>canvas{display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;border:0!important}'
   ].join('');
   document.head.appendChild(style);
+
+  // Transfer only the existing canvas to a dedicated renderer surface.
+  // The page controls remain available to the bridge, outside the visible surface.
+  var originalSceneParent = q('#scene').parentNode;
+  var host = document.createElement('div');
+  var layerValues = { buildings: true, boundary: true, units: true, planned: false, targets: true, grid: true, threats: true, trails: true };
+  window.MarlDesktopLayers = layerValues;
+  host.id = 'desktop-scene-host';
+  document.body.appendChild(host);
+  function mountCanvas() {
+    var hold = q('#overview-hold-view');
+    var canvas = containmentActive() ? q('#ck-canvas') :
+      (hold && !hold.hidden ? q('#hl-canvas') : q('#scene'));
+    if (canvas && canvas.parentNode !== host) {
+      var previous = host.firstElementChild;
+      if (previous && previous.id === 'scene') originalSceneParent.appendChild(previous);
+      host.replaceChildren(canvas);
+      window.dispatchEvent(new Event('resize'));
+      Object.keys(layerValues).forEach(function (name) { setLayer(name, layerValues[name]); });
+      if (canvas.id === 'scene' && !canvas.desktopCoordinates) {
+        canvas.desktopCoordinates = true;
+        canvas.addEventListener('pointermove', function (event) {
+          var rect = canvas.getBoundingClientRect(), scale = mapScale();
+          window.dispatchEvent(new CustomEvent('scene-coordinate', { detail: {
+            x: (bounds[0] + bounds[2]) / 2 + (event.clientX - rect.left - rect.width / 2) / scale,
+            y: (bounds[1] + bounds[3]) / 2 - (event.clientY - rect.top - rect.height / 2) / scale
+          } }));
+        });
+      }
+    }
+  }
+  var resizeFrame=0;
+  function redrawSceneSize() {
+    if(resizeFrame)return;
+    resizeFrame=requestAnimationFrame(function(){
+      resizeFrame=0;
+      var active=renderer();
+      if(active)active.draw();else if(typeof draw==='function')draw();
+    });
+  }
+  new ResizeObserver(redrawSceneSize).observe(host);
+  window.addEventListener('resize',redrawSceneSize);
+  window.setInterval(mountCanvas, 200);
+  window.addEventListener('scene-coordinate', function (event) {
+    var p = event.detail;
+    if (window.chrome && window.chrome.webview)
+      window.chrome.webview.postMessage({ type: 'coordinate', text: p ? 'X ' + p.x.toFixed(2) + '   Y ' + p.y.toFixed(2) : 'X —  Y —' });
+  });
+
+  function postLegend() {
+    if (typeof drawPlatformIcon !== 'function' || !window.chrome || !window.chrome.webview) return;
+    var icons = {}, colors = { UGV: '#3f6fa3', TANK: '#8a6b3d', PLANE: '#2f8f86', WING: '#7657a8' };
+    Object.keys(colors).forEach(function (kind) {
+      var image = document.createElement('canvas'); image.width = image.height = 48;
+      drawPlatformIcon(image.getContext('2d'), kind, 24, 24, 17, 0, colors[kind]);
+      icons[kind] = image.toDataURL('image/png');
+    });
+    window.chrome.webview.postMessage({ type: 'legend', icons: icons });
+  }
 
   function q(selector) { return document.querySelector(selector); }
   function fire(element, type) {
@@ -64,7 +94,19 @@
   function refresh() {
     return click('#refresh');
   }
+  var wantedRun = '', runQueue = Promise.resolve();
   function selectRun(id) {
+    if (typeof refreshCatalog === 'function') {
+      wantedRun = id;
+      pause();
+      runQueue = runQueue.catch(function () {}).then(function () {
+        if (wantedRun !== id) return;
+        return refreshCatalog(id);
+      }).catch(function (error) {
+        if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage({ type: 'error', text: String(error) });
+      });
+      return true;
+    }
     var element = q('#run-select');
     if (!element) return false;
     var found = false;
@@ -90,6 +132,7 @@
     return fire(element, 'change');
   }
   function navigate(page) {
+    if (state.page === page) return true;
     var button = q('[data-page="' + page + '"]');
     if (!button) return false;
     button.click();
@@ -99,26 +142,80 @@
     var view = q('#overview-ck-view');
     return !!(view && !view.hidden);
   }
+  function holdActive() { var view = q('#overview-hold-view'); return !!(view && !view.hidden); }
+  function prefix() { return containmentActive() ? 'ck-' : holdActive() ? 'hl-' : ''; }
+  function renderer() { return containmentActive() ? window.ContainmentPage : holdActive() ? window.HoldPage : null; }
   function playerButton() {
-    return containmentActive() ? q('#ck-play') : q('#play');
+    return q('#' + prefix() + 'play');
   }
-  function play() {
+  var backgroundPlayback = false, backgroundPlaying = false;
+  var backgroundTime = 0, backgroundEnd = 0, backgroundLast = 0, backgroundSpeed = 1;
+  function playRenderer() {
     var button = playerButton();
     if (button && button.textContent.indexOf('暂') < 0) button.click();
     return true;
   }
-  function pause() {
+  function pauseRenderer() {
     var button = playerButton();
     if (button && button.textContent.indexOf('暂') >= 0) button.click();
     return true;
   }
-  function setTime(seconds) {
-    var scrubber = containmentActive() ? q('#ck-scrub') : q('#scrubber');
+  function seekRenderer(seconds) {
+    var scrubber = prefix() ? q('#' + prefix() + 'scrub') : q('#scrubber');
     if (!scrubber) return false;
     scrubber.value = Number(seconds) || 0;
     return fire(scrubber, 'input');
   }
+  function advanceBackgroundClock() {
+    if (!backgroundPlayback) return;
+    var now = performance.now();
+    if (backgroundPlaying) {
+      backgroundTime = Math.min(backgroundEnd, backgroundTime + Math.max(0, now - backgroundLast) / 1000 * backgroundSpeed);
+      seekRenderer(backgroundTime);
+      if (backgroundTime >= backgroundEnd) backgroundPlaying = false;
+    }
+    backgroundLast = now;
+  }
+  function setBackgroundPlayback(enabled) {
+    enabled = !!enabled;
+    if (enabled === backgroundPlayback) return true;
+    if (enabled) {
+      var snapshot = sceneState();
+      backgroundTime = snapshot.time; backgroundEnd = snapshot.duration;
+      backgroundPlaying = snapshot.playing; backgroundLast = performance.now();
+      var rate = prefix() ? q('#' + prefix() + 'rate') : q('#speed');
+      backgroundSpeed = Number(rate && rate.value) || 1;
+      pauseRenderer(); backgroundPlayback = true;
+    } else {
+      advanceBackgroundClock(); backgroundPlayback = false;
+      seekRenderer(backgroundTime);
+      if (backgroundPlaying) playRenderer(); else pauseRenderer();
+    }
+    return true;
+  }
+  function play() {
+    if (!backgroundPlayback) return playRenderer();
+    if (backgroundTime >= backgroundEnd) backgroundTime = 0;
+    backgroundLast = performance.now(); backgroundPlaying = true;
+    return true;
+  }
+  function pause() {
+    advanceBackgroundClock(); backgroundPlaying = false;
+    return pauseRenderer();
+  }
+  function setTime(seconds) {
+    if (backgroundPlayback) {
+      backgroundTime = Math.max(0, Math.min(backgroundEnd, Number(seconds) || 0));
+      backgroundLast = performance.now();
+    }
+    return seekRenderer(seconds);
+  }
   function setLayer(name, visible) {
+    if (name === 'buildings' || name === 'obstacles') visible = true;
+    layerValues[name] = !!visible;
+    if (containmentActive() && window.ContainmentPage && window.ContainmentPage.setLayer)
+      return window.ContainmentPage.setLayer(name, visible);
+    if (holdActive()) return window.HoldPage.setLayer(name,visible);
     var map = {
       buildings: 'show-obstacles',
       obstacles: 'show-obstacles',
@@ -130,28 +227,69 @@
       grid: 'show-grid'
     };
     var element = q('#' + (map[name] || name));
-    if (!element) return false;
+    if (!element) { if (typeof draw === 'function') draw(); return name === 'grid'; }
     element.checked = !!visible;
     return fire(element, 'change');
   }
-  function fit() {
+  function fit(mode) {
+    if (typeof showOverviewMode === 'function') {
+      const run = state.run;
+      const only = run && run.report.jobs.length === 1;
+      showOverviewMode(only && run.replay.containment ? 'containment' : only && run.replay.hold ? 'hold' : 'map');
+    }
+    mountCanvas();
+    if (mode === 'starts' && state.run) {
+      const points=state.run.replay.workers.map(w=>w.start).filter(Boolean);
+      if(!points.length)return false;
+      const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+      const b=[Math.min(...xs)-15,Math.min(...ys)-15,Math.max(...xs)+15,Math.max(...ys)+15];
+      if(renderer()) renderer().setCameraBounds(b);
+      else {state.focus=null;bounds=b;state.zoom=1;draw();}
+      return true;
+    }
+    if (renderer()) renderer().fitView(mode || 'all');
+    else if (mode === 'area') {
+      const job=state.run.replay.jobs.find(j=>j.job_id===state.selectedTaskId)||state.run.replay.jobs[0];
+      const behavior=(state.run.replay.behaviors||[]).find(b=>b.job_id===job.job_id);
+      const points=taskArea(job)||behavior?.area||[job.pos];
+      const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+      const pad=Math.max(18,Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*.25);
+      state.focus={type:'job',id:job.job_id};state.selectedTaskId=job.job_id;state.zoom=1;
+      bounds=[Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)+pad,Math.max(...ys)+pad];draw();
+    }
+    else if (typeof fullBounds === 'function') { state.focus = null; bounds = fullBounds(); state.zoom = 1; draw(); }
     window.dispatchEvent(new Event('resize'));
-    var button = q('#fit-map');
-    if (button) button.click();
-    try { if (typeof showOverviewMode === 'function') showOverviewMode('containment'); } catch (error) { }
-    var areaButton = q('#ck-cam-area');
-    if (areaButton) areaButton.click();
-    var containmentFit = q('#ck-fit');
-    if (containmentFit) containmentFit.click();
-    var ckCanvas = q('#ck-canvas');
-    if (ckCanvas) ckCanvas.scrollIntoView({ block: 'center' });
     return true;
+  }
+  function zoom(factor) {
+    if (renderer()) return renderer().zoom(factor);
+    return click(factor > 1 ? '#map-zoom-in' : '#map-zoom-out');
+  }
+  function focusPlatform(id) {
+    if (!state.run) return false;
+    var worker = state.run.replay.workers.find(function (item) { return item.pid === id; });
+    if (!worker) return false;
+    state.t = sceneState().time;
+    var position = workerAt(worker);
+    if (renderer() && renderer().centerAt) return renderer().centerAt([position.x, position.y]);
+    focus('worker', id);
+    return true;
+  }
+  function setSpeed(value) {
+    advanceBackgroundClock(); backgroundSpeed = Number(value) || 1;
+    var select = prefix() ? q('#' + prefix() + 'rate') : q('#speed');
+    if (!select) return false;
+    if (!Array.prototype.some.call(select.options, function (o) { return Number(o.value) === Number(value); }))
+      select.add(new Option(value + '×', value));
+    select.value = value;
+    return fire(select, 'change');
   }
   function startReplay(taskId, seconds, runId) {
     var tries = 0;
     var timer = window.setInterval(function () {
+      if (runId && wantedRun && runId !== wantedRun) { window.clearInterval(timer); return; }
       var duration = Number(((q('#duration') || {}).textContent || '0').replace(/[^0-9.\-]/g, '')) || 0;
-      var currentRun = (q('#run-select') || {}).value || '';
+      var currentRun = (typeof state === 'object' && state.run && state.run.id) || '';
       if (duration > 0 && (!runId || currentRun === runId)) {
         window.clearInterval(timer);
         var taskTries = 0;
@@ -168,7 +306,7 @@
           if (++taskTries < 12) window.setTimeout(chooseTask, 300);
         };
         chooseTask();
-        fit();
+        fit(state.run.replay.jobs.length===1 && state.run.replay.jobs[0].type==='recon' ? 'area' : 'all');
         setTime(seconds);
         play();
       } else if (++tries > 40) {
@@ -177,25 +315,48 @@
     }, 500);
     return true;
   }
-  function state() {
+  function sceneState() {
+    advanceBackgroundClock();
     var activePage = q('.nav.active');
     var ck = containmentActive();
     var playButton = playerButton();
-    var clock = ck ? (q('#ck-time') || {}).textContent : (q('#stat-clock') || {}).textContent;
-    var duration = ck ? Number((q('#ck-scrub') || {}).max || 0) : Number(((q('#stat-end') || {}).textContent || '0').replace(/[^0-9.\-]/g, ''));
+    var clock = prefix() ? (q('#' + prefix() + 'time') || {}).textContent : (q('#stat-clock') || {}).textContent;
+    var duration = prefix() ? Number((q('#' + prefix() + 'scrub') || {}).max || 0) : Number(((q('#stat-end') || {}).textContent || '0').replace(/[^0-9.\-]/g, ''));
+    var currentTime = backgroundPlayback ? backgroundTime : (parseFloat(clock) || 0);
+    var progress = {};
+    try {
+      var snapshot = state.frames[Math.min(state.frames.length - 1, Math.floor(currentTime))];
+      (state.run.report.jobs || []).forEach(function (job) {
+        var task = snapshot && snapshot.jobs[job.job_id];
+        if (task) progress[job.job_id] = task.status === 'succeeded' ? 100 :
+          (job.work > 0 ? Math.max(0, Math.min(100, task.progress / job.work * 100)) : 0);
+      });
+    } catch (error) { /* No loaded run yet. */ }
     return {
-      runId: (q('#run-select') || {}).value || '',
+      layers: Object.assign({}, layerValues),
+      cameraBounds: renderer() ? renderer().cameraBounds() : (typeof bounds !== 'undefined' ? bounds.slice() : null),
+      taskProgress: progress,
+      runId: (typeof state === 'object' && state.run && state.run.id) || '',
       taskId: (q('#task-select') || {}).value || '',
-      time: Number(String(clock || '0').replace(/[^0-9.\-]/g, '')) || 0,
+      time: currentTime,
       duration: Number(duration) || 0,
-      playing: !!playButton && playButton.textContent.indexOf('暂') >= 0,
+      playing: backgroundPlayback ? backgroundPlaying : !!playButton && playButton.textContent.indexOf('暂') >= 0,
       page: activePage ? activePage.getAttribute('data-page') : 'overview'
     };
   }
+  var altitudeRun = null;
   function post() {
     try {
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage({ type: 'state', state: state() });
+        window.chrome.webview.postMessage({ type: 'state', state: sceneState() });
+        // Transfer recorded z once per loaded replay; native chart applies its clock.
+        if (state.run && altitudeRun !== state.run) {
+          window.chrome.webview.postMessage({ type: 'altitude', runId: state.run.id,
+            aircraft: (state.run.replay.workers || []).filter(w => ['PLANE','WING'].includes(w.kind))
+              .sort((a,b) => a.pid.localeCompare(b.pid, undefined, {numeric:true}))
+              .map(w => ({id:w.pid, samples:(w.samples || []).map(p => [p.t,Number.isFinite(p.z)?p.z:null,!!p.lost])})) });
+          altitudeRun = state.run;
+        }
       }
     } catch (error) { /* browser mode: no bridge */ }
   }
@@ -203,20 +364,26 @@
   window.MarlDesktop = {
     version: 1,
     ready: true,
-    getState: state,
+    clearRun: function () { pause();wantedRun='';state.loadToken++;state.run=null;state.frames=[];state.selectedTaskId=null;const c=host.querySelector('canvas');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);return true; },
+    getState: sceneState,
     selectRun: selectRun,
     selectTask: selectTask,
     navigate: navigate,
     play: play,
     pause: pause,
     setTime: setTime,
+    setBackgroundPlayback: setBackgroundPlayback,
     setLayer: setLayer,
     fit: fit,
+    zoom: zoom,
+    focusPlatform: focusPlatform,
+    setSpeed: setSpeed,
     refresh: refresh,
     startReplay: startReplay
   };
 
   setTimeout(function () {
+    postLegend();
     try {
       if (window.chrome && window.chrome.webview) {
         window.chrome.webview.postMessage({ type: 'ready' });

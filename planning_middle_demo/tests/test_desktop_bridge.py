@@ -2,6 +2,8 @@
 """Contract tests for the desktop shell's compact workbench API."""
 import unittest
 from pathlib import Path
+import threading
+from urllib.request import urlopen
 
 import workbench_server
 
@@ -11,6 +13,24 @@ class DesktopBridgeTests(unittest.TestCase):
         catalog = workbench_server.Workbench().catalog()
         self.assertIs(catalog['features'].get('desktop_bridge'), True)
         self.assertEqual(catalog['service'], 'planning-middle-workbench/v1')
+
+    def test_interpolation_asset_is_served_by_compatible_backend(self):
+        server = workbench_server.LocalServer(('127.0.0.1', 0),
+                    workbench_server.make_handler(workbench_server.Workbench()))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen('http://127.0.0.1:%s/replay_pose.js?v=test' % server.server_port,
+                         timeout=5) as response:
+                self.assertEqual(response.status, 200)
+                self.assertIn(b'window.ReplayPose', response.read())
+                self.assertIn('javascript', response.headers['Content-Type'])
+            self.assertGreaterEqual(workbench_server.Workbench().catalog()['features']
+                                    ['desktop_workflow_version'], 14)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
 
     def test_recording_projects_to_desktop_run(self):
         fixture = (Path(workbench_server.ROOT) / 'outputs' /

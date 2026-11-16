@@ -20,6 +20,10 @@ namespace MarlDesktopPreview
         public int Done, Total;
         public bool Behavior, BehaviorDetails;
         public double End;
+        public double? Makespan, PlanEnergy, PlanExposure, ExecutionExposure, PlanProbability, ExecutionProbability;
+        public int? Retries, Timeouts;
+        public string PlanMetricsSource = "", ComparisonScope = "";
+        public bool ComparisonComplete;
     }
 
     public sealed class DesktopCatalog
@@ -28,8 +32,16 @@ namespace MarlDesktopPreview
         public string DefaultRun = "";
         public readonly List<DesktopRunSummary> Runs = new List<DesktopRunSummary>();
         public readonly Dictionary<string, string> Scenarios = new Dictionary<string, string>();
+        public readonly List<DesktopMapItem> Maps = new List<DesktopMapItem>();
         public bool ProcessRunning;
         public string ProcessId = "";
+        public string ProcessState = "";
+    }
+
+    public sealed class DesktopMapItem
+    {
+        public string Id = "", Label = "";
+        public int Buildings, Roads, Obstacles;
     }
 
     public sealed class DesktopTask
@@ -45,14 +57,17 @@ namespace MarlDesktopPreview
     {
         public string Id = "", Kind = "", Job = "", Phase = "", Status = "";
         public double[] Position;
-        public double Z, Yaw, Battery;
+        public double Z, Yaw;
+        public double? Battery;
         public bool Alive = true;
+        public bool Participates;
     }
 
     public sealed class DesktopEvent
     {
         public double Time;
         public string Kind = "", JobId = "", Label = "";
+        public object Raw;
     }
 
     public sealed class DesktopRunView
@@ -65,6 +80,7 @@ namespace MarlDesktopPreview
         public readonly List<DesktopTask> Tasks = new List<DesktopTask>();
         public readonly List<DesktopPlatform> Platforms = new List<DesktopPlatform>();
         public readonly List<DesktopEvent> Events = new List<DesktopEvent>();
+        public readonly List<string> Files = new List<string>();
 
         public DesktopTask FindTask(string id)
         {
@@ -72,10 +88,10 @@ namespace MarlDesktopPreview
         }
     }
 
-    public sealed class DesktopApi
+    public sealed partial class DesktopApi
     {
         public readonly string BaseUrl;
-        private readonly JavaScriptSerializer json = new JavaScriptSerializer();
+        private readonly JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
 
         public DesktopApi(string baseUrl)
         {
@@ -84,7 +100,7 @@ namespace MarlDesktopPreview
 
         private string Get(string path)
         {
-            using (WebClient client = new WebClient())
+            using (WebClient client = new NativeHttpClient())
             {
                 client.Encoding = Encoding.UTF8;
                 client.Headers[HttpRequestHeader.CacheControl] = "no-cache";
@@ -95,7 +111,7 @@ namespace MarlDesktopPreview
         private string Post(string path, string body)
         {
             ServicePointManager.Expect100Continue = false;
-            using (WebClient client = new WebClient())
+            using (WebClient client = new NativeHttpClient())
             {
                 client.Encoding = Encoding.UTF8;
                 client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
@@ -122,6 +138,17 @@ namespace MarlDesktopPreview
                 run.Done = Int(row, "done");
                 run.Total = Int(row, "total");
                 run.End = Dbl(row, "end");
+                run.Makespan = OptionalNumber(row, "makespan");
+                run.PlanMetricsSource = Str(row, "plan_metrics_source");
+                run.ComparisonScope = Str(row, "comparison_scope");
+                run.ComparisonComplete = Bool(row, "comparison_complete");
+                run.PlanEnergy = OptionalNumber(row, "plan_energy");
+                run.PlanExposure = OptionalNumber(row, "exposure");
+                run.ExecutionExposure = OptionalNumber(row, "execution_exposure");
+                run.PlanProbability = OptionalNumber(row, "detection_probability");
+                run.ExecutionProbability = OptionalNumber(row, "execution_detection_probability");
+                run.Retries = OptionalNumber(row, "retries").HasValue ? (int?)Int(row, "retries") : null;
+                run.Timeouts = OptionalNumber(row, "timeouts").HasValue ? (int?)Int(row, "timeouts") : null;
                 run.Behavior = Bool(row, "behavior");
                 run.BehaviorDetails = Bool(row, "behavior_details");
                 if (run.Id.Length > 0) catalog.Runs.Add(run);
@@ -129,8 +156,22 @@ namespace MarlDesktopPreview
             Dictionary<string, object> scenarios = AsDict(Value(root, "scenarios"));
             foreach (KeyValuePair<string, object> pair in scenarios)
                 catalog.Scenarios[pair.Key] = Convert.ToString(pair.Value, CultureInfo.InvariantCulture);
+            foreach (object item in AsList(Value(root, "maps")))
+            {
+                Dictionary<string, object> row = AsDict(item);
+                DesktopMapItem map = new DesktopMapItem
+                {
+                    Id = Str(row, "id"),
+                    Label = Str(row, "label"),
+                    Buildings = Int(row, "buildings"),
+                    Roads = Int(row, "roads"),
+                    Obstacles = Int(row, "obstacles")
+                };
+                if (map.Id.Length > 0) catalog.Maps.Add(map);
+            }
             Dictionary<string, object> process = AsDict(Value(root, "process"));
             string state = Str(process, "state");
+            catalog.ProcessState = state;
             catalog.ProcessRunning = state == "running";
             catalog.ProcessId = Str(process, "id");
             return catalog;
@@ -190,8 +231,9 @@ namespace MarlDesktopPreview
                 platform.Position = DblArray(Value(row, "position"));
                 platform.Z = Dbl(row, "z");
                 platform.Yaw = Dbl(row, "yaw");
-                platform.Battery = Dbl(row, "battery");
+                platform.Battery = Value(row, "battery") == null ? (double?)null : Dbl(row, "battery");
                 platform.Alive = Bool(row, "alive");
+                platform.Participates = Bool(row, "participates");
                 view.Platforms.Add(platform);
             }
             foreach (object item in AsList(Value(root, "events")))
@@ -204,6 +246,7 @@ namespace MarlDesktopPreview
                 ev.Label = Str(row, "label");
                 view.Events.Add(ev);
             }
+            foreach (object file in AsList(Value(root, "files"))) view.Files.Add(Convert.ToString(file));
             return view;
         }
 
@@ -261,6 +304,13 @@ namespace MarlDesktopPreview
         {
             object value = Value(dict, key);
             return value == null ? 0.0 : Convert.ToDouble(value, CultureInfo.InvariantCulture);
+        }
+
+        private static double? OptionalNumber(Dictionary<string, object> dict, string key)
+        {
+            double value; object raw = Value(dict, key);
+            return raw != null && double.TryParse(Convert.ToString(raw, CultureInfo.InvariantCulture),
+                NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !double.IsNaN(value) && !double.IsInfinity(value) ? (double?)value : null;
         }
 
         private static bool Bool(Dictionary<string, object> dict, string key)
@@ -324,10 +374,8 @@ namespace MarlDesktopPreview
                 info.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
                 info.EnvironmentVariables["PYTHONDONTWRITEBYTECODE"] = "1";
                 string dataRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "runs");
-                if (Directory.Exists(dataRoot) && Directory.GetDirectories(dataRoot).Length > 0)
-                {
-                    info.EnvironmentVariables["MARL_WORKBENCH_OUTPUTS"] = dataRoot;
-                }
+                Directory.CreateDirectory(dataRoot);
+                info.EnvironmentVariables["MARL_WORKBENCH_OUTPUTS"] = dataRoot;
                 process = new Process();
                 process.StartInfo = info;
                 process.OutputDataReceived += delegate(object s, DataReceivedEventArgs e)
@@ -381,10 +429,29 @@ namespace MarlDesktopPreview
                         Dictionary<string, object> root = json.DeserializeObject(body) as Dictionary<string, object>;
                         if (root == null) continue;
                         string service = Convert.ToString(root.ContainsKey("service") ? root["service"] : "");
+                        string portableRoot=AppDomain.CurrentDomain.BaseDirectory;
+                        if(File.Exists(Path.Combine(portableRoot,"PORTABLE.txt"))) {
+                            string expectedApp=Path.GetFullPath(Path.Combine(portableRoot,"app","planning_middle_demo"));
+                            string expectedRuns=Path.GetFullPath(Path.Combine(portableRoot,"data","runs"));
+                            if(!root.ContainsKey("app_root")||!root.ContainsKey("outputs_root")||
+                               !string.Equals(Convert.ToString(root["app_root"]),expectedApp,StringComparison.OrdinalIgnoreCase)||
+                               !string.Equals(Convert.ToString(root["outputs_root"]),expectedRuns,StringComparison.OrdinalIgnoreCase))continue;
+                        }
                         Dictionary<string, object> features = root.ContainsKey("features") ? root["features"] as Dictionary<string, object> : null;
                         bool bridge = features != null && features.ContainsKey("desktop_bridge")
                                       && Convert.ToBoolean(features["desktop_bridge"]);
-                        if (service == "planning-middle-workbench/v1" && bridge) return url;
+                        bool urbanBenchmarks = features != null
+                                               && features.ContainsKey("urban_benchmark_scenarios")
+                                               && Convert.ToBoolean(features["urban_benchmark_scenarios"]);
+                        if (service == "planning-middle-workbench/v1" && bridge
+                            && urbanBenchmarks
+                            && features.ContainsKey("static_task_editor_v2")
+                            && Convert.ToBoolean(features["static_task_editor_v2"])
+                            && features.ContainsKey("desktop_workflow")
+                            && Convert.ToBoolean(features["desktop_workflow"])
+                            && features.ContainsKey("desktop_workflow_version")
+                            && Convert.ToInt32(features["desktop_workflow_version"]) >= 17)
+                            return url;
                     }
                 }
                 catch (Exception) { }

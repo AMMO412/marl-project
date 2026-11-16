@@ -37,7 +37,7 @@ MODES = ("normal", "failure", "timeout", "kill", "deviation")
 def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
              grace_s=1, H=None, K=None, dev_threshold=4.0,
              motion="teleport", avoid=False, behavior=False, planner=None,
-             nav=None):
+             nav=None, before_tick=None, after_tick=None, run_id=None):
     """跑一次规划/执行闭环。
 
     ``nav`` 允许调用方注入静态地图：融合层的中性样例没有 ``_meta.sdf``，
@@ -49,6 +49,10 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
         raise ValueError("max_ticks 必须 >= 1")
     if mode not in MODES:
         raise ValueError("未知演示模式：%s" % mode)
+    from demo_modes import PROGRESS_MODES, mode_info
+    requested_behavior = bool(behavior)
+    if mode in PROGRESS_MODES:
+        behavior = False
     if motion not in ("teleport", "real"):
         raise ValueError("motion 必须是 teleport 或 real")
     # rules 段：可配置参数白名单（dev_threshold/grace_s/max_attempts），
@@ -84,23 +88,35 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
         from contracts_v2 import JOB_SPECS
         for item in scenario["jobs"]:
             spec = JOB_SPECS.get(item.get("type"))
-            if spec and spec["crew"] > 1:
+            if spec and item.get("crew", spec["crew"]) > 1:
                 slow_job = item["job_id"]
                 break
         slow_job = slow_job or first_job
         slow_once = {slow_job: 0.7}
         if dev_threshold == 4.0:
             dev_threshold = 2.0      # 偏差早发现，才有余量加人救回
-    # 可选避障：从真实建筑轮廓构造静态障碍图，地面平台按 A* 路径机动。
+    # 可选避障：4.1 运行视图优先从同一份编成表约束构造地图，避免给任意
+    # 位置的 T-ASL 套用 container_00 的固定 SDF/包围盒。只有非 4.1 的旧
+    # v2 场景才回退到原来的 SDF/简单城市地图。
     if nav is None and avoid:
-        from city_nav import build_nav
-        nav, _ = build_nav(scenario)
+        bundle = (scenario.get("_meta") or {}).get("interop") or {}
+        if bundle.get("message") and bundle.get("formation"):
+            from interop.message import parse_message
+            from interop.runtime import nav_from_scenario
+            parsed = parse_message(bundle["message"], bundle["formation"])
+            nav = nav_from_scenario(
+                parsed, avoid_threats=(scenario.get("objective") == "exposure"))
+        else:
+            from city_nav import build_nav
+            nav, _ = build_nav(scenario)
     # 到位后行为：需要在真实运动 + 静态地图（避障）下才生效。
     behavior = bool(behavior) and motion == "real" and nav is not None
-    core = CoordinatorV2(scenario, max_attempts=max_attempts, grace_s=grace_s,
+    core = CoordinatorV2(scenario, run_id=run_id or "demo-v2",
+                         max_attempts=max_attempts, grace_s=grace_s,
                          H=H, K=K, dev_threshold=dev_threshold, motion=motion,
                          behavior=behavior, planner=planner)
     behavior_params = {j["job_id"]: dict(j.get("_behavior") or {}) for j in scenario["jobs"]}
+    core.legacy_deviation_demo = mode == 'deviation'
     for params in behavior_params.values():
         if "search_deadline_s" in params:
             params["search_deadline_s"] = min(params["search_deadline_s"], max_ticks - 1)
@@ -110,11 +126,24 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
                       behavior_params=behavior_params,
                       relay_spec=(scenario.get("_meta") or {}).get("relay_target"),
                       home={pid: p.pos for pid, p in core.platforms.items()})
+    if motion == "real":
+        for item in scenario["platforms"]:
+            pid = fleet_pid_of(item["robot_no"])
+            platform = core.platforms[pid]
+            if not platform.can_climb or item.get("_start_z", 0) <= 0:
+                continue
+            fleet.platforms[pid] = dict(
+                pos=platform.pos, yaw=item.get("_start_yaw", 0.0),
+                z=float(item["_start_z"]), battery=platform.battery,
+                ammo=platform.ammo, active=False, dead=False,
+                return_profile=dict(can_climb=True, speed=platform.speed,
+                                    move_cost=platform.move_cost, kind=platform.kind))
     observe_event = getattr(planner, "observe_behavior_event", None)
     reserve_unplanned = getattr(planner, "reserve_unplanned", None)
 
     kill_at = None
     kill_pid = None
+    kill_injected = False
     if mode == "kill":
         # 挑第一作业计划里的一台成员，在第 8 步失联
         kill_at = 8
@@ -123,7 +152,10 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
     # timeline 的 member_lost 事件：robot_no → pid，在主循环按 t 触发
     lost_events = list(member_lost_events)
 
+    manual_stopped = False
     for now in range(max_ticks):
+        if before_tick is not None:
+            before_tick(core, fleet, now)
         # 成员损失注入（timeline 数据驱动 + kill 预设模式）
         for e in lost_events:
             if e["t"] != now:
@@ -132,10 +164,11 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
             fleet.deactivate(pid)
             core.notify_member_lost(pid, now)
         # 预设 kill 模式：第 8 步挑第一作业成员失联（兼容旧行为）
-        if mode == "kill" and kill_pid is None and now >= kill_at:
-            for a in (core.plan.assignments if core.plan else []):
-                if a.job_id == first_job and a.pids:
-                    kill_pid = a.pids[0]
+        if mode == "kill" and not kill_injected and now >= kill_at:
+            for command in core.active.values():
+                if command.job_id == first_job and core.platforms[command.worker_id].alive:
+                    kill_pid = command.worker_id
+                    kill_injected = True
                     break
         if kill_pid is not None:
             fleet.deactivate(kill_pid)
@@ -176,6 +209,11 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
             st = fleet.platforms[pid]
             live = core.platforms[pid]
             live.pos, live.yaw, live.battery = st["pos"], st["yaw"], st["battery"]
+        if after_tick is not None:
+            if after_tick(core, fleet, now) is False:
+                manual_stopped = True
+                core.record('run_stopped', reason='user_requested', partial=True)
+                break
         if core.settled() and not fleet.returns_pending():
             break
 
@@ -202,6 +240,9 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
     report["return_complete"] = report["settled"] and all(
         state["status"] == "returned" for state in fleet.return_state.values())
     report.update(mode=mode, max_ticks=max_ticks, H=H, K=K,
+                  manual_stopped=manual_stopped,
+                  termination_reason='user_stopped' if manual_stopped else 'normal',
+                  mode_info=mode_info(mode), behavior_requested=requested_behavior,
                   dev_threshold=dev_threshold,
                   motion=motion, avoid=bool(avoid), behavior=behavior,
                   behavior_details=any(e.get('kind') == 'behavior_event'
@@ -209,7 +250,7 @@ def simulate(scenario, mode="normal", max_ticks=60, max_attempts=2,
                                        for e in core.audit),
                   timeline=[dict(e) for e in timeline],
                   rules=dict(rules),
-                  limit_reached=not report["settled"] or fleet.returns_pending(),
+                  limit_reached=not manual_stopped and (not report["settled"] or fleet.returns_pending()),
                   scope="规则规划 × 消息闭环演示（含成员损失/失败/超时/偏差）")
     return report, core.audit
 
@@ -224,7 +265,7 @@ def main(argv=None):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scenario", type=Path,
-                        default=ROOT / "scenarios/fleet_demo.json")
+                        default=ROOT / "tests/fixtures/base_scenarios/fleet_demo.json")
     parser.add_argument("--mode", choices=MODES, default="normal")
     parser.add_argument("--max-ticks", type=int, default=60)
     parser.add_argument("--max-attempts", type=int, default=2)
@@ -235,9 +276,9 @@ def main(argv=None):
                         help="滚动重规划周期（步）；默认取场景文件声明，缺省 5")
     parser.add_argument("--dev-threshold", type=float, default=4.0,
                         help="偏差触发阈值（工作量）")
-    parser.add_argument("--motion", choices=("teleport", "real"),
-                        default="teleport",
-                        help="在途语义：teleport=瞬移（规划快进，默认），"
+    parser.add_argument("--motion", choices=("real",),
+                        default="real",
+                        help="在途语义：仅逐步运动，"
                              "real=真实运动（GoalController 闭环逐步推进）")
     parser.add_argument("--avoid", action="store_true",
                         help="地面平台按真实建筑轮廓做 A* 绕障（需 motion=real）")

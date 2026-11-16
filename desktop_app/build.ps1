@@ -14,9 +14,17 @@ $cscArgs = @(
 ) + $sources
 & $csc $cscArgs
 if ($LASTEXITCODE -ne 0) { throw "C# build failed with exit code $LASTEXITCODE" }
-Copy-Item (Join-Path $root 'lib\webview2\Microsoft.Web.WebView2.Core.dll') $out -Force
-Copy-Item (Join-Path $root 'lib\webview2\Microsoft.Web.WebView2.WinForms.dll') $out -Force
-Copy-Item (Join-Path $root 'lib\webview2\WebView2Loader.dll') $out -Force
+# Existing matching dependencies may be mapped by an open preview window.
+function Copy-DesktopDependency($dependencySource, $dependencyTarget) {
+  if ((Test-Path -LiteralPath $dependencyTarget) -and
+      ((Get-FileHash -LiteralPath $dependencySource -Algorithm SHA256).Hash -eq
+       (Get-FileHash -LiteralPath $dependencyTarget -Algorithm SHA256).Hash)) { return }
+  Copy-Item -LiteralPath $dependencySource -Destination $dependencyTarget -Force
+}
+Copy-DesktopDependency (Join-Path $root 'lib\webview2\Microsoft.Web.WebView2.Core.dll') (Join-Path $out 'Microsoft.Web.WebView2.Core.dll')
+Copy-DesktopDependency (Join-Path $root 'lib\webview2\Microsoft.Web.WebView2.WinForms.dll') (Join-Path $out 'Microsoft.Web.WebView2.WinForms.dll')
+Copy-DesktopDependency (Join-Path $root 'lib\webview2\WebView2Loader.dll') (Join-Path $out 'WebView2Loader.dll')
 Copy-Item (Join-Path $root 'lib\webview2\LICENSE.txt') (Join-Path $out 'WebView2-LICENSE.txt') -Force
 Copy-Item (Join-Path $root 'lib\webview2\NOTICE.txt') (Join-Path $out 'WebView2-NOTICE.txt') -Force
+[IO.File]::WriteAllText((Join-Path $out 'active-program.txt'), 'MARL界面预览.exe', [Text.UTF8Encoding]::new($false))
 Write-Host "Built: $out\MARL界面预览.exe"

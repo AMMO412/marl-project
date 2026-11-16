@@ -1,0 +1,47 @@
+[
+  {
+    "id": "residential",
+    "label": "住宅街区",
+    "bounds": [
+      0,
+      0,
+      800,
+      800
+    ],
+    "buildings": 172,
+    "roads": 84,
+    "parks": 3,
+    "obstacles": 116,
+    "sha256": "8438539d1a99b1cda7aa1a45453875a55d1a74de324b0f40c77c4a0cb1268636"
+  },
+  {
+    "id": "downtown",
+    "label": "密集城区",
+    "bounds": [
+      0,
+      0,
+      1200,
+      1000
+    ],
+    "buildings": 516,
+    "roads": 161,
+    "parks": 6,
+    "obstacles": 196,
+    "sha256": "36f305ed3afd83b3a982c49f17754c1ea1f1d46ca3f27aa79d985cdb2f239967"
+  },
+  {
+    "id": "mixed",
+    "label": "公园与斜街混合片区",
+    "bounds": [
+      0,
+      0,
+      1600,
+      1200
+    ],
+    "buildings": 290,
+    "roads": 186,
+    "parks": 13,
+    "obstacles": 240,
+    "sha256": "de680a236c6ed0f40662931e9d707959305b5ca748f856f005eb5e006180eb07"
+  }
+]

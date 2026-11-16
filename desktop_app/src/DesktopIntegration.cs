@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -17,10 +17,13 @@ namespace MarlDesktopPreview
     public sealed partial class MainWindow
     {
         private WebView2 webView;
+        private WebViewProfileLease webProfile;
+        private bool webInitializing;
+        private int webNavigationVersion, webPageRecoveryAttempts;
         private TabPage taskViewTab;
         private Label taskViewStatus;
         private ToolStripComboBox scenarioBox;
-        private ToolStripButton desktopRunButton, desktopRefreshButton, desktopTaskViewButton, desktopPlayButton, desktopPauseButton;
+        private ToolStripButton desktopRunButton, desktopRefreshButton, desktopTaskViewButton;
         private ToolStripLabel desktopSourceLabel;
         private ToolStripStatusLabel desktopBackendStatus;
         private System.Windows.Forms.Timer desktopPoll;
@@ -29,14 +32,16 @@ namespace MarlDesktopPreview
         private DesktopCatalog desktopCatalog;
         private DesktopRunView desktopRun;
         private string desktopRunId = "";
+        private int desktopLoadVersion;
         private string desktopTaskId = "";
         private string pendingRunId = "";
         private string pendingTaskId = "";
         private double pendingStart;
         private bool webReady;
+        private bool webPlaying;
         private bool backendStarting;
         private bool polling;
-        private readonly JavaScriptSerializer desktopJson = new JavaScriptSerializer();
+        private readonly JavaScriptSerializer desktopJson = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
 
         private void InitializeDesktop()
         {
@@ -49,6 +54,7 @@ namespace MarlDesktopPreview
                 if (desktopPoll != null) desktopPoll.Stop();
                 if (desktopBackend != null) desktopBackend.Dispose();
                 if (webView != null) webView.Dispose();
+                if (webProfile != null) webProfile.Dispose();
             };
         }
 
@@ -66,6 +72,9 @@ namespace MarlDesktopPreview
             toolbar.Items.Add(new ToolStripSeparator());
             toolbar.Items.Add(new ToolStripLabel("场景") { ForeColor = Color.FromArgb(83, 108, 138) });
             scenarioBox = new ToolStripComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190, AutoSize = false };
+            scenarioBox.ComboBox.FormattingEnabled = true;
+            scenarioBox.ComboBox.Format += delegate(object sender, ListControlConvertEventArgs e)
+            { string label; if (desktopCatalog != null && desktopCatalog.Scenarios.TryGetValue(Convert.ToString(e.ListItem), out label)) e.Value = label; };
             scenarioBox.Items.Add("interop_containment");
             scenarioBox.SelectedIndex = 0;
             scenarioBox.SelectedIndexChanged += delegate
@@ -73,18 +82,15 @@ namespace MarlDesktopPreview
                 if (status != null && scenarioBox.SelectedItem != null)
                     status.Text = "当前场景：" + scenarioBox.SelectedItem;
             };
+            scenarioBox.ComboBox.SelectionChangeCommitted += delegate { OpenSelectedScenarioDemo(); };
             toolbar.Items.Add(scenarioBox);
             desktopRunButton = ToolButton("运行", "play", delegate { RunSelectedScenario(); }, true);
-            desktopRefreshButton = ToolButton("刷新", "check", delegate { RefreshCatalogFromBackend(); }, false);
-            desktopTaskViewButton = ToolButton("任务视图", "map", delegate { OpenTaskView(); }, false);
+            desktopRefreshButton = ToolButton("刷新", "check", delegate { RefreshCatalogFromBackend(true); }, false);
+            desktopTaskViewButton = ToolButton("场景视图", "map", delegate { OpenTaskView(); }, false);
             toolbar.Items.Add(desktopRunButton);
             toolbar.Items.Add(desktopRefreshButton);
             toolbar.Items.Add(desktopTaskViewButton);
             toolbar.Items.Add(new ToolStripSeparator());
-            desktopPlayButton = ToolButton("播放", "play", delegate { Bridge("play()"); }, false);
-            desktopPauseButton = ToolButton("暂停", "list", delegate { Bridge("pause()"); }, false);
-            toolbar.Items.Add(desktopPlayButton);
-            toolbar.Items.Add(desktopPauseButton);
 
             desktopBackendStatus = FindStatusLabel("desktopBackendStatus");
             if (desktopSourceLabel != null) desktopSourceLabel.Text = "本地可视化演示  |  后端连接中";
@@ -93,24 +99,19 @@ namespace MarlDesktopPreview
 
         private void AugmentDesktopTabs()
         {
-            taskViewTab = NewTab("任务视图");
-            Panel top = new Panel { Dock = DockStyle.Top, Height = 32, BackColor = Color.FromArgb(248, 251, 254) };
-            taskViewStatus = new Label
-            {
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 0, 0, 0),
-                ForeColor = Color.FromArgb(83, 108, 138),
-                Font = new Font(Font.FontFamily, 8.5f),
-                Text = "任务视图：等待本地后端连接…"
-            };
-            top.Controls.Add(taskViewStatus);
+            taskViewTab = Documents.TabPages[0];
+            taskViewStatus = sceneInfo;
+            taskViewStatus.Text = "场景视图：等待本地运行数据…";
+            Canvas.Visible = false;
+            taskViewTab.Controls.Remove(Canvas);
             webView = new WebView2 { Dock = DockStyle.Fill };
             taskViewTab.Controls.Add(webView);
-            taskViewTab.Controls.Add(top);
-            Documents.TabPages.Add(taskViewTab);
+            taskViewTab.Controls.Add(BuildDesktopLegend());
+            webView.BringToFront();
+            BuildNativeSceneControls();
             Documents.SelectedIndexChanged += delegate
             {
+                if (webReady) Bridge("setBackgroundPlayback(" + (Documents.SelectedTab == taskViewTab ? "false" : "true") + ")");
                 if (Documents.SelectedTab == taskViewTab && webReady && desktopRun != null)
                     Bridge("navigate('overview')");
             };
@@ -127,7 +128,7 @@ namespace MarlDesktopPreview
                     }
                     else if (tag != null && tag.StartsWith("desktop:platform:"))
                     {
-                        OpenTaskView();
+                        SelectNativePlatform(tag.Substring("desktop:platform:".Length), true);
                     }
                 };
             }
@@ -156,6 +157,9 @@ namespace MarlDesktopPreview
                 platformGrid.Columns[2].HeaderText = "当前任务";
                 platformGrid.Columns[3].HeaderText = "状态";
                 platformGrid.Columns[4].HeaderText = "模型电量";
+                platformGrid.Columns.Add("altitude", "高度 / 场景单位");
+                platformGrid.Columns.Add("participation", "本轮分配");
+                foreach (DataGridViewColumn column in platformGrid.Columns) column.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
             if (taskGrid != null)
             {
@@ -165,7 +169,49 @@ namespace MarlDesktopPreview
                 taskGrid.Columns[3].HeaderText = "状态";
                 taskGrid.Columns[4].HeaderText = "分配平台";
                 taskGrid.Columns[5].HeaderText = "时间窗";
+                taskGrid.Columns[0].FillWeight = 70;
+                taskGrid.Columns[1].FillWeight = 140;
+                taskGrid.Columns[1].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                taskGrid.Columns[2].FillWeight = 70;
+                taskGrid.Columns[3].FillWeight = 70;
+                taskGrid.Columns[5].FillWeight = 90;
+                taskGrid.Columns[4].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                taskGrid.Columns[4].FillWeight = 230;
+                taskGrid.Columns[4].MinimumWidth = 180;
+                taskGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             }
+        }
+
+        private Control BuildDesktopLegend()
+        {
+            FlowLayoutPanel legend = new WrappingLegendPanel();
+            AddAgentLegend(legend, "UGV", "轮式车", Color.FromArgb(63, 111, 163));
+            AddAgentLegend(legend, "TANK", "履带车", Color.FromArgb(138, 107, 61));
+            AddAgentLegend(legend, "PLANE", "固定翼", Color.FromArgb(47, 143, 134));
+            AddAgentLegend(legend, "WING", "飞翼", Color.FromArgb(118, 87, 168));
+            AddLegend(legend, "◇", "任务点", Color.FromArgb(130, 156, 140));
+            AddLegend(legend, "—", "运动轨迹", Color.FromArgb(79, 134, 184));
+            AddLegend(legend, "■", "建筑", Color.FromArgb(185, 200, 214));
+            AddLegend(legend, "■", "花坛", Color.FromArgb(153, 183, 140));
+            AddLegend(legend, "■", "标识柱", Color.FromArgb(210, 179, 107));
+            AddLegend(legend, "■", "围墙", Color.FromArgb(174, 180, 177));
+            AddLegend(legend, "▭", "威胁区", Color.FromArgb(194, 65, 12));
+            return legend;
+        }
+
+        private void AddLegend(FlowLayoutPanel panel, string marker, string text, Color color)
+        {
+            Label item = new Label
+            {
+                AutoSize = true,
+                Text = marker + " " + text,
+                ForeColor = color,
+                Font = new Font(Font.FontFamily, 8.2f),
+                Margin = new Padding(0, 0, 3, 0),
+                MinimumSize = new Size(0,24),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            panel.Controls.Add(item);
         }
 
         private ToolStripStatusLabel FindStatusLabel(string name)
@@ -182,8 +228,10 @@ namespace MarlDesktopPreview
             return null;
         }
 
+        public bool SkipBackendForVerification;
         private void StartDesktopBackend()
         {
+            if (SkipBackendForVerification) return;
             if (backendStarting) return;
             backendStarting = true;
             SetBackendStatus("本地演示 · 正在启动后端…", Color.FromArgb(176, 112, 32));
@@ -201,7 +249,7 @@ namespace MarlDesktopPreview
                     {
                         backendStarting = false;
                         SetBackendStatus("本地演示 · 后端启动失败", Color.FromArgb(180, 60, 60));
-                        SetTaskViewStatus("任务视图：后端启动失败。" + ex.Message);
+                        SetTaskViewStatus("场景视图：后端启动失败。" + ex.Message);
                         LogDesktop("后端启动失败：" + ex.Message);
                     });
                 }
@@ -220,43 +268,93 @@ namespace MarlDesktopPreview
 
         private async void InitializeWebView(string url)
         {
-            if (webView == null) return;
+            if (webView == null || IsDisposed || Disposing || webInitializing) return;
+            if (webView.CoreWebView2 != null) { webView.CoreWebView2.Navigate(url + "/?desktop=1&build=20261111-chain12"); return; }
+            webInitializing=true;
+            var excluded=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var failedLeases=new List<WebViewProfileLease>();
             try
             {
-                string userData = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "MARL界面预览", "WebView2");
-                bool fallback = false;
-                try { Directory.CreateDirectory(userData); }
-                catch (Exception) { fallback = true; }
-                if (fallback)
+                for(int attempt=0;attempt<3;attempt++)
                 {
-                    // Sandboxed or locked-down profiles may deny %LOCALAPPDATA%;
-                    // fall back inside the application folder so the demo still runs.
-                    userData = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "webview2");
-                    Directory.CreateDirectory(userData);
+                    WebViewProfileLease candidate=WebViewProfileLease.Acquire(excluded);
+                    excluded.Add(candidate.DirectoryPath);
+                    try {
+                        LogDesktop("地图浏览器缓存："+candidate.DirectoryPath);
+                        Program.DesktopTrace("WebView2 pid="+System.Diagnostics.Process.GetCurrentProcess().Id+" profile="+candidate.DirectoryPath+" creating environment");
+                        CoreWebView2Environment environment = await CoreWebView2Environment.CreateAsync(null,candidate.DirectoryPath,null);
+                        if(IsDisposed || Disposing || webView.IsDisposed){candidate.Dispose();return;}
+                        await webView.EnsureCoreWebView2Async(environment);
+                        Program.DesktopTrace("WebView2 pid="+System.Diagnostics.Process.GetCurrentProcess().Id+" controller ready");
+                        if(IsDisposed || Disposing || webView.IsDisposed){candidate.Dispose();return;}
+                        webProfile=candidate;
+                        break;
+                    }
+                    catch(Exception ex) {
+                        failedLeases.Add(candidate);
+                        if(IsDisposed || Disposing)return;
+                        bool recoverable=ex.HResult==unchecked((int)0x800700AA) || ex.HResult==unchecked((int)0x8007139F) || ex.HResult==unchecked((int)0x80070005);
+                        if(!recoverable || attempt==2)throw;
+                        LogDesktop("地图浏览器缓存占用或不可用（0x"+ex.HResult.ToString("X8")+"），切换独立缓存重试。 ");
+                        webReady=false;
+                        Control parent=webView.Parent;int order=parent.Controls.GetChildIndex(webView);
+                        webView.Dispose();
+                        webView=new WebView2 { Dock=DockStyle.Fill };
+                        parent.Controls.Add(webView);parent.Controls.SetChildIndex(webView,order);
+                        SetTaskViewStatus("场景视图：正在恢复地图浏览器…");
+                    }
+                    await Task.Delay(200);
+                    if(IsDisposed || Disposing)return;
                 }
-                CoreWebView2Environment environment = await CoreWebView2Environment.CreateAsync(null, userData, null);
-                await webView.EnsureCoreWebView2Async(environment);
                 webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
                 webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+                await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("window.__nativeStartupErrors=[];window.addEventListener('error',function(e){window.__nativeStartupErrors.push(e.message||('资源加载失败：'+((e.target||{}).src||'')));},true);");
+                if(IsDisposed || Disposing)return;
                 webView.CoreWebView2.WebMessageReceived += delegate(object s, CoreWebView2WebMessageReceivedEventArgs e)
                 {
                     HandleWebMessage(e.WebMessageAsJson);
                 };
-                webView.CoreWebView2.NavigationCompleted += delegate
+                webView.CoreWebView2.NavigationStarting += delegate { webNavigationVersion++;webReady=false; };
+                webView.CoreWebView2.NavigationCompleted += delegate(object sender, CoreWebView2NavigationCompletedEventArgs e)
                 {
-                    SetTaskViewStatus("任务视图：页面已载入，等待数据…");
+                    Program.DesktopTrace("WebView2 navigation completed success="+e.IsSuccess+" error="+e.WebErrorStatus);
+                    SetTaskViewStatus("场景视图：页面已载入，等待数据…");
+                    CheckScenePageStartup(webNavigationVersion);
                 };
-                webView.CoreWebView2.Navigate(url + "/?desktop=1&page=containment");
-                SetTaskViewStatus("任务视图：正在载入本地可视化页面…");
+                webView.CoreWebView2.Navigate(url + "/?desktop=1&build=20261111-chain12");
+                SetTaskViewStatus("场景视图：正在载入本地可视化页面…");
             }
             catch (Exception ex)
             {
-                SetTaskViewStatus("任务视图：WebView2 初始化失败。" + ex.Message);
-                LogDesktop("WebView2 初始化失败：" + ex.Message);
+                if(IsDisposed || Disposing)return;
+                SetTaskViewStatus("场景视图：WebView2 初始化失败。" + ex.Message);
+                LogDesktop("WebView2 初始化失败（0x"+ex.HResult.ToString("X8")+"）：" + ex.Message);
+                Program.DesktopTrace("WebView2 initialization: "+ex);
             }
+            finally { foreach(var failed in failedLeases)failed.Dispose();webInitializing=false; }
+        }
+
+        private async void CheckScenePageStartup(int version)
+        {
+            try {
+                await Task.Delay(1000);
+                if(IsDisposed || Disposing || version!=webNavigationVersion || webReady || webView.CoreWebView2==null)return;
+                string ready=await webView.CoreWebView2.ExecuteScriptAsync("!!(window.MarlDesktop && window.MarlDesktop.ready)");
+                if(IsDisposed || Disposing || version!=webNavigationVersion || webReady)return;
+                if(ready=="true") { HandleWebMessage("{\"type\":\"ready\"}");return; }
+                string errors=await webView.CoreWebView2.ExecuteScriptAsync("JSON.stringify(window.__nativeStartupErrors||[])");
+                if(IsDisposed || Disposing || version!=webNavigationVersion || webReady)return;
+                Program.DesktopTrace("WebView2 page startup resources: "+errors);
+                if(webPageRecoveryAttempts++<2) {
+                    LogDesktop("地图页面资源未完整载入，正在重试（"+webPageRecoveryAttempts+"/2）。");
+                    SetTaskViewStatus("场景视图：正在重新载入地图资源…");
+                    webView.CoreWebView2.Reload();
+                } else {
+                    SetTaskViewStatus("场景视图：地图资源载入失败，请查看运行日志。");
+                    LogDesktop("地图资源载入失败："+errors);
+                }
+            }catch(Exception ex){if(!IsDisposed && !Disposing)LogDesktop("检查地图载入状态失败："+ex.Message);}
         }
 
         private void HandleWebMessage(string body)
@@ -268,10 +366,13 @@ namespace MarlDesktopPreview
                 Dictionary<string, object> message = raw as Dictionary<string, object>;
                 if (message == null) return;
                 string type = Convert.ToString(message.ContainsKey("type") ? message["type"] : "");
+                if (HandleSceneUiMessage(type, message)) return;
                 if (type == "ready")
                 {
                     webReady = true;
-                    SetTaskViewStatus("任务视图：已连接本地可视化页面");
+                    webPageRecoveryAttempts=0;
+                    if (desktopRun == null) SetTaskViewStatus("场景视图：已连接本地可视化页面");
+                    else UpdateSceneRunSummary();
                     if (!string.IsNullOrEmpty(pendingRunId))
                     {
                         string id = pendingRunId;
@@ -290,12 +391,7 @@ namespace MarlDesktopPreview
                 {
                     Dictionary<string, object> state = message.ContainsKey("state") ? message["state"] as Dictionary<string, object> : null;
                     if (state == null) return;
-                    double t = 0;
-                    if (state.ContainsKey("time")) double.TryParse(Convert.ToString(state["time"], CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out t);
-                    double duration = 0;
-                    if (state.ContainsKey("duration")) double.TryParse(Convert.ToString(state["duration"], CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out duration);
-                    if (timeStatus != null) timeStatus.Text = "任务视图 " + t.ToString("0.0") + " / " + duration.ToString("0.0") + " s";
-                    if (clock != null) clock.Text = t.ToString("0.0") + " / " + duration.ToString("0.0") + " s";
+                    SyncSceneClock(state);
                 }
             }
             catch (Exception ex)
@@ -304,11 +400,11 @@ namespace MarlDesktopPreview
             }
         }
 
-        private void RefreshCatalogFromBackend()
+        private void RefreshCatalogFromBackend(bool reopenSelected = false)
         {
             if (desktopApi == null)
             {
-                SetTaskViewStatus("任务视图：本地后端尚未连接。");
+                SetTaskViewStatus("场景视图：本地后端尚未连接。");
                 return;
             }
             Task.Run(delegate
@@ -316,7 +412,7 @@ namespace MarlDesktopPreview
                 try
                 {
                     DesktopCatalog catalog = desktopApi.GetCatalog();
-                    Ui(delegate { ApplyCatalog(catalog); });
+                    Ui(delegate { ApplyCatalog(catalog); if (reopenSelected) OpenSelectedScenarioDemo(); });
                 }
                 catch (Exception ex)
                 {
@@ -336,7 +432,7 @@ namespace MarlDesktopPreview
             string selected = scenarioBox.SelectedItem as string;
             scenarioBox.Items.Clear();
             foreach (KeyValuePair<string, string> pair in catalog.Scenarios)
-                scenarioBox.Items.Add(pair.Key);
+                if (pair.Key.StartsWith("interop_")) scenarioBox.Items.Add(pair.Key);
             if (catalog.Scenarios.Count == 0)
             {
                 scenarioBox.Items.Add("interop_containment");
@@ -344,6 +440,7 @@ namespace MarlDesktopPreview
                 scenarioBox.Items.Add("interop_patrol");
                 scenarioBox.Items.Add("interop_recon");
                 scenarioBox.Items.Add("interop_asl");
+
             }
             if (selected != null && scenarioBox.Items.Contains(selected)) scenarioBox.SelectedItem = selected;
             else if (scenarioBox.Items.Contains("interop_containment")) scenarioBox.SelectedItem = "interop_containment";
@@ -359,40 +456,75 @@ namespace MarlDesktopPreview
                     string label;
                     if (!string.IsNullOrEmpty(scenario) && catalog.Scenarios.TryGetValue(scenario, out label)) { }
                     else label = scenario;
-                    ListViewItem item = new ListViewItem(new string[]
-                    {
-                        run.Id,
-                        label,
-                        (run.Motion == "real" ? "逐步运动" : "瞬移") + (run.Behavior ? " · 到位行为" : " · 到点作业"),
-                        run.Done.ToString() + "/" + run.Total.ToString()
-                    });
+                    ListViewItem item = new ListViewItem(NativeHistoryColumns(run));
                     item.Tag = run.Id;
                     history.Items.Add(item);
                 }
                 history.EndUpdate();
             }
-            SetTaskViewStatus("任务视图：已载入 " + catalog.Runs.Count + " 条运行记录；点“运行”生成新记录。");
-            if (desktopRunId == "" && catalog.Runs.Count > 0)
+            RefreshNativeHistoryFilter();
+            if (desktopRun == null) SetTaskViewStatus("场景视图：已载入 " + catalog.Runs.Count + " 条运行记录；点“运行”生成新记录。");
+            else UpdateSceneRunSummary();
+            if (!nativeSuppressAutoDemo && desktopRunId == "" && catalog.Runs.Count > 0)
             {
-                DesktopRunSummary preferred = catalog.Runs.FirstOrDefault(delegate(DesktopRunSummary r) { return r.Scenario == "interop_containment"; });
-                LoadRunAsync((preferred ?? catalog.Runs[0]).Id);
+                OpenSelectedScenarioDemo();
             }
         }
+
+        private int nativeDemoVersion;
+        private async void OpenSelectedScenarioDemo()
+        {
+            if (desktopCatalog == null || nativeRunning) { status.Text = "请等待后端连接或当前运行结束。"; return; }
+            int version = ++nativeDemoVersion;
+            string scenario = SelectedScenario;
+            SetNativeWorkState("正在检查演示输入…", true);
+            try {
+                string id = await Task.Run(delegate { return desktopApi.GetDemoRun(scenario); });
+                if (IsDisposed || version != nativeDemoVersion || SelectedScenario != scenario) return;
+                if (!string.IsNullOrEmpty(id)) { SetNativeWorkState("正在载入演示…", true); LoadRunAsync(id); }
+                else {
+                    Dictionary<string, object> doc = await Task.Run(delegate { return desktopApi.GetConfiguration(scenario, null); });
+                    if (IsDisposed || version != nativeDemoVersion || SelectedScenario != scenario) return;
+                    StartNativeDraft((Dictionary<string, object>)doc["draft"]);
+                }
+            } catch (Exception ex) { SetNativeWorkState("演示打开失败", false); NativeIssue("演示打开失败", ex); }
+        }
+
+        public void PrepareLiveVerification(string runId = null)
+        {
+            // A fixed run must not be replaced by the catalog's convenience default.
+            if (!string.IsNullOrEmpty(runId))
+            {
+                nativeSuppressAutoDemo = true;
+                suppressFullEventLoad = true;
+            }
+        }
+
+        public bool LoadRunForVerification(string runId)
+        {
+            if (desktopApi == null || desktopCatalog == null ||
+                string.IsNullOrEmpty(runId)) return false;
+            LoadRunAsync(runId);
+            return true;
+        }
+
+        public string CurrentRunIdForVerification { get { return desktopRunId; } }
 
         private void LoadRunAsync(string runId)
         {
             if (desktopApi == null || string.IsNullOrEmpty(runId)) return;
-            SetTaskViewStatus("任务视图：正在载入运行 " + runId + "…");
+            int version = ++desktopLoadVersion;
+            SetTaskViewStatus("场景视图：正在载入运行 " + runId + "…");
             Task.Run(delegate
             {
                 try
                 {
                     DesktopRunView run = desktopApi.GetRun(runId, null);
-                    Ui(delegate { ApplyRun(run); });
+                    Ui(delegate { if (version == desktopLoadVersion) ApplyRun(run); });
                 }
                 catch (Exception ex)
                 {
-                    Ui(delegate { SetTaskViewStatus("任务视图：运行载入失败。" + ex.Message); LogDesktop("运行载入失败：" + ex.Message); });
+                    Ui(delegate { if (version != desktopLoadVersion) return; SetNativeWorkState("结果载入失败", false); SetTaskViewStatus("场景视图：运行载入失败。" + ex.Message); LogDesktop("运行载入失败：" + ex.Message); });
                 }
             });
         }
@@ -401,6 +533,7 @@ namespace MarlDesktopPreview
         {
             desktopRun = run;
             desktopRunId = run.Id;
+            sceneTaskProgress.Clear();
             if (taskGrid != null)
             {
                 taskGrid.Rows.Clear();
@@ -409,7 +542,7 @@ namespace MarlDesktopPreview
                     string window = "—";
                     if (task.Window != null && task.Window.Length >= 2)
                         window = task.Window[0].ToString("0") + "–" + task.Window[1].ToString("0") + " s";
-                    taskGrid.Rows.Add(task.Id, task.Label, task.Label,
+                    taskGrid.Rows.Add(task.Id, task.Label, TaskTypeCode(task),
                         StatusText(string.IsNullOrEmpty(task.StatusAt) ? task.Status : task.StatusAt),
                         task.Assigned.Count == 0 ? "等待分配" : string.Join(" · ", task.Assigned.ToArray()),
                         window);
@@ -417,15 +550,7 @@ namespace MarlDesktopPreview
             }
             if (platformGrid != null)
             {
-                platformGrid.Rows.Clear();
-                foreach (DesktopPlatform platform in run.Platforms)
-                {
-                    string battery = platform.Battery <= 0 ? "—" : platform.Battery.ToString("0.0");
-                    platformGrid.Rows.Add(platform.Id, platform.Kind,
-                        string.IsNullOrEmpty(platform.Job) ? "—" : platform.Job,
-                        StatusText(string.IsNullOrEmpty(platform.Status) ? platform.Phase : platform.Status),
-                        battery);
-                }
+                RefreshNativePlatforms(run);
             }
             if (history != null)
             {
@@ -436,9 +561,12 @@ namespace MarlDesktopPreview
             }
             UpdateDesktopTree(run);
             if (desktopRun.Tasks.Count > 0) SelectDesktopTask(desktopRun.Tasks[0].Id);
-            SetTaskViewStatus("任务视图：运行 " + run.Id + " · " + run.Done + "/" + run.Total + " 完成 · " + run.End.ToString("0.0") + " s");
+            UpdateSceneRunSummary();
             if (status != null) status.Text = "已载入真实运行 " + run.Id + "（" + run.End.ToString("0.0") + " s）";
-            double startAt = Math.Min(30.0, Math.Max(1.0, run.End * 0.35));
+            ApplyNativeRun(run);
+            UpdateReconRecordNotice();
+            SetNativeWorkState("结果已载入 · " + run.Done + "/" + run.Total, false);
+            double startAt = 0;
             if (!webReady)
             {
                 pendingRunId = run.Id;
@@ -463,7 +591,7 @@ namespace MarlDesktopPreview
         {
             if (tree == null || tree.Nodes.Count == 0) return;
             TreeNode root = tree.Nodes[0];
-            root.Text = "T1 区域封控 · 真实运行";
+            root.Text = run.Scenario + " · 真实运行";
             TreeNode tasksNode = null, platformsNode = null;
             foreach (TreeNode node in root.Nodes)
             {
@@ -480,25 +608,21 @@ namespace MarlDesktopPreview
             }
             if (platformsNode != null)
             {
-                platformsNode.Text = "平台 (" + run.Platforms.Count + ")";
+                var used = ParticipatingPlatforms(run);
+                platformsNode.Text = "平台 (本轮使用 " + used.Count + ")";
                 platformsNode.Nodes.Clear();
-                HashSet<string> assigned = new HashSet<string>();
-                foreach (DesktopTask task in run.Tasks)
-                    foreach (string pid in task.Assigned) assigned.Add(pid);
-                int shown = 0;
-                foreach (DesktopPlatform platform in run.Platforms)
+                foreach (DesktopPlatform platform in used)
                 {
-                    if (!assigned.Contains(platform.Id) && shown >= 8) continue;
                     platformsNode.Nodes.Add(new TreeNode(platform.Id + " " + platform.Kind +
                         (string.IsNullOrEmpty(platform.Job) ? "" : " · " + platform.Job)) { Tag = "desktop:platform:" + platform.Id });
-                    shown++;
                 }
                 platformsNode.Expand();
             }
         }
 
-        private void SelectDesktopTask(string taskId)
+        private void SelectDesktopTask(string taskId, bool notifyRenderer = true)
         {
+            if (notifyRenderer) nativeSelectedPlatformId = "";
             if (desktopRun == null) return;
             DesktopTask task = desktopRun.FindTask(taskId);
             if (task == null) return;
@@ -517,23 +641,24 @@ namespace MarlDesktopPreview
                     start = task.Window[0].ToString("0.0") + " s";
                     end = task.Window[1].ToString("0.0") + " s";
                 }
-                double percent = task.Work > 0 ? Math.Max(0, Math.Min(100, task.Progress / task.Work * 100)) : 0;
+                double percent = SceneTaskPercent(task.Id, task.Work > 0 ? Math.Max(0, Math.Min(100, task.Progress / task.Work * 100)) : 0);
                 properties.SelectedObject = new TaskProperties
                 {
                     Id = task.Id,
                     Name = task.Label,
-                    Type = task.Label,
+                    Type = TaskTypeCode(task),
                     Area = "真实运行 · " + desktopRunId,
                     Start = start,
                     End = end,
                     Travel = "—",
                     Members = task.Assigned.Count == 0 ? "等待分配" : string.Join(" · ", task.Assigned.ToArray()),
                     Position = position,
+                    Objective = ObjectiveDisplayName(desktopRun.Objective),
                     Phase = StatusText(string.IsNullOrEmpty(task.StatusAt) ? task.Status : task.StatusAt),
                     Progress = percent.ToString("0") + "%",
                     Source = "本地真实运行记录"
                 };
-                if (selectedTitle != null) selectedTitle.Text = task.Id + "  " + task.Label;
+                if (selectedTitle != null) selectedTitle.Text = "任务 " + task.Id + " · " + task.Label;
                 if (taskProgress != null) taskProgress.Value = (int)Math.Round(percent);
             }
             if (taskGrid != null)
@@ -543,13 +668,31 @@ namespace MarlDesktopPreview
                     if (Convert.ToString(row.Cells[0].Value) == taskId)
                     {
                         row.Selected = true;
-                        taskGrid.CurrentCell = row.Cells[0];
+                        if (row.Visible) taskGrid.CurrentCell = row.Cells[0];
                         break;
                     }
                 }
             }
-            Bridge("selectTask(" + desktopJson.Serialize(taskId) + ")");
+            if (notifyRenderer) Bridge("selectTask(" + desktopJson.Serialize(taskId) + ")");
             if (status != null) status.Text = "已选择任务 " + task.Id + " · " + task.Label;
+        }
+
+        private void UpdateSceneRunSummary()
+        {
+            if (desktopRun == null) return;
+            SetTaskViewStatus("本轮目标：" + ObjectiveDisplayName(desktopRun.Objective) + " · 运行 " + desktopRun.Id + " · " + desktopRun.Done + "/" + desktopRun.Total + " 完成 · " + desktopRun.End.ToString("0.0") + " s");
+        }
+
+        private static string ObjectiveDisplayName(string objective)
+        {
+            switch ((objective ?? "").Trim()) {
+                case "makespan": case "timeliness": return "完工时间";
+                case "energy": return "能耗";
+                case "balanced": return "均衡";
+                case "exposure": case "dispersion": return "暴露度";
+                case "": return "未记录";
+                default: return "未知（" + objective + "）";
+            }
         }
 
         private static string StatusText(string status)
@@ -558,6 +701,12 @@ namespace MarlDesktopPreview
             {
                 case "succeeded": return "已完成";
                 case "running": return "执行中";
+                case "progress": return "执行中";
+                case "idle": return "待命";
+                case "cancelled": return "已取消";
+                case "travel": return "机动中";
+                case "return": return "返航中";
+                case "returned": return "已返回出发点";
                 case "failed": return "失败";
                 case "timeout": return "超时";
                 case "pending": return "待开始";
@@ -565,59 +714,9 @@ namespace MarlDesktopPreview
             }
         }
 
-        private void RunSelectedScenario()
+        private bool documentsShowTaskView()
         {
-            if (desktopApi == null)
-            {
-                SetBackendStatus("本地演示 · 后端未连接", Color.FromArgb(180, 60, 60));
-                return;
-            }
-            string scenario = scenarioBox.SelectedItem as string;
-            if (string.IsNullOrEmpty(scenario)) scenario = "interop_containment";
-            int maxTicks = scenario == "interop_asl" ? 620 : (scenario == "interop_containment" ? 320 : 420);
-            SetTaskViewStatus("任务视图：正在运行 " + scenario + "…");
-            if (desktopRunButton != null) desktopRunButton.Enabled = false;
-            HashSet<string> before = new HashSet<string>(desktopCatalog == null
-                ? new string[0]
-                : desktopCatalog.Runs.Select(delegate(DesktopRunSummary r) { return r.Id; }).ToArray());
-            Task.Run(delegate
-            {
-                try
-                {
-                    desktopApi.StartRun(scenario, "normal", "makespan", maxTicks);
-                    for (int i = 0; i < 90; i++)
-                    {
-                        Thread.Sleep(1000);
-                        DesktopCatalog catalog = desktopApi.GetCatalog();
-                        DesktopRunSummary created = catalog.Runs.FirstOrDefault(delegate(DesktopRunSummary r) { return !before.Contains(r.Id); });
-                        if (created != null && !catalog.ProcessRunning)
-                        {
-                            Ui(delegate
-                            {
-                                if (desktopRunButton != null) desktopRunButton.Enabled = true;
-                                ApplyCatalog(catalog);
-                                LoadRunAsync(created.Id);
-                            });
-                            return;
-                        }
-                    }
-                    Ui(delegate
-                    {
-                        if (desktopRunButton != null) desktopRunButton.Enabled = true;
-                        SetTaskViewStatus("任务视图：运行超时，未生成新记录。");
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Ui(delegate
-                    {
-                        if (desktopRunButton != null) desktopRunButton.Enabled = true;
-                        SetTaskViewStatus("任务视图：运行失败。" + ex.Message);
-                        LogDesktop("运行失败：" + ex.ToString());
-                        try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "run-error.txt"), ex.ToString()); } catch (Exception) { }
-                    });
-                }
-            });
+            return Documents != null && taskViewTab != null && Documents.SelectedTab == taskViewTab;
         }
 
         private void OpenTaskView()
@@ -649,10 +748,7 @@ namespace MarlDesktopPreview
                             if (string.IsNullOrEmpty(json)) json = value;
                             Dictionary<string, object> state = desktopJson.DeserializeObject(json) as Dictionary<string, object>;
                             if (state == null) return;
-                            double t = 0, duration = 0;
-                            if (state.ContainsKey("time")) double.TryParse(Convert.ToString(state["time"], CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out t);
-                            if (state.ContainsKey("duration")) double.TryParse(Convert.ToString(state["duration"], CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out duration);
-                            if (timeStatus != null) timeStatus.Text = "任务视图 " + t.ToString("0.0") + " / " + duration.ToString("0.0") + " s";
+                            SyncSceneClock(state);
                         }
                         catch (Exception) { }
                     });
@@ -701,7 +797,7 @@ namespace MarlDesktopPreview
 
         private void Ui(Action action)
         {
-            if (IsDisposed) return;
+            if (IsDisposed || Disposing) return;
             if (InvokeRequired) BeginInvoke(action);
             else action();
         }
@@ -724,7 +820,94 @@ namespace MarlDesktopPreview
 
         public void CaptureLiveVerification(string directory)
         {
+            CaptureLiveVerification(directory, double.NaN);
+        }
+
+        public async Task CaptureReplayVerification(string directory, double captureTime)
+        {
             Directory.CreateDirectory(directory);
+            if (!webReady || desktopRun == null)
+                throw new InvalidOperationException("场景渲染器或真实运行尚未就绪。");
+            OpenTaskView();
+            await Task.Delay(900);
+            if (WindowState != FormWindowState.Normal) WindowState = FormWindowState.Normal;
+            Size = new Size(1500, 940);
+            TopMost = true;
+            SetForegroundWindow(Handle);
+            Activate();
+            BringToFront();
+            Application.DoEvents();
+            await Task.Delay(900);
+            Application.DoEvents();
+            Task<string> stateTask = webView.CoreWebView2.ExecuteScriptAsync(
+                "(function(){var api=window.MarlDesktop;if(!api)return '{}';" +
+                "api.pause();api.setTime(" +
+                captureTime.ToString(CultureInfo.InvariantCulture) +
+                ");api.fit('area');var s=api.getState();" +
+                "return JSON.stringify({runId:s.runId,time:s.time," +
+                "duration:s.duration,cameraBounds:s.cameraBounds,layers:s.layers});})()");
+            if (await Task.WhenAny(stateTask, Task.Delay(6000)) != stateTask)
+                throw new TimeoutException("场景视图状态请求超过 6 秒。");
+            string state = await stateTask;
+            File.WriteAllText(
+                Path.Combine(directory, "replay-state.json"),
+                state,
+                new UTF8Encoding(false));
+            await Task.Delay(500);
+            Application.DoEvents();
+            using (Bitmap windowBitmap = new Bitmap(Width, Height))
+            using (Graphics windowGraphics = Graphics.FromImage(windowBitmap))
+            {
+                windowGraphics.CopyFromScreen(Location, Point.Empty, Size);
+                windowBitmap.Save(
+                    Path.Combine(directory, "replay-window.png"),
+                    System.Drawing.Imaging.ImageFormat.Png);
+            }
+            Task<string> screenshotTask = webView.CoreWebView2.CallDevToolsProtocolMethodAsync(
+                "Page.captureScreenshot",
+                "{\"format\":\"png\",\"fromSurface\":true,\"captureBeyondViewport\":false}");
+            if (await Task.WhenAny(screenshotTask, Task.Delay(10000)) != screenshotTask)
+                throw new TimeoutException("场景视图截图请求超过 10 秒。");
+            string screenshotJson = await screenshotTask;
+            Dictionary<string, object> screenshotResult =
+                desktopJson.Deserialize<Dictionary<string, object>>(screenshotJson);
+            object screenshotDataValue;
+            if (screenshotResult == null ||
+                !screenshotResult.TryGetValue("data", out screenshotDataValue) ||
+                screenshotDataValue == null)
+                throw new InvalidOperationException("场景视图截图未返回图像数据。");
+            try
+            {
+                File.WriteAllBytes(
+                    Path.Combine(directory, "replay-frame.png"),
+                    Convert.FromBase64String(Convert.ToString(screenshotDataValue)));
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException("场景视图截图数据格式无效。", ex);
+            }
+            TopMost = false;
+        }
+
+        public void CaptureLiveVerification(string directory, double captureTime)
+        {
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, "readiness.txt"), "web_ready=" + webReady + "\r\nrun=" + desktopRunId + "\r\n" + (taskViewStatus == null ? "" : taskViewStatus.Text) + "\r\n" + (log == null ? "" : log.Text));
+            if (!webReady || desktopRun == null) throw new InvalidOperationException("场景渲染器或真实运行尚未就绪，不能记为验证通过。");
+            Bridge("pause()");
+            VerifyMapControls(directory);
+            VerifyLayerMenus(directory);
+            VerifyNativeWorkflow(directory);
+            if (!double.IsNaN(captureTime))
+            {
+                OpenTaskView();
+                WaitMapTask(webView.CoreWebView2.ExecuteScriptAsync(
+                    "(function(){var api=window.MarlDesktop;if(!api)throw Error('Desktop bridge missing');" +
+                    "api.pause();api.fit('all');api.setTime(" +
+                    captureTime.ToString(CultureInfo.InvariantCulture) +
+                    ");return JSON.stringify(api.getState());})()"));
+                Application.DoEvents();
+            }
             if (WindowState != FormWindowState.Normal) WindowState = FormWindowState.Normal;
             Size = new Size(1500, 940);
             OpenTaskView();
@@ -741,15 +924,15 @@ namespace MarlDesktopPreview
                 graphics.CopyFromScreen(Location, Point.Empty, Size);
                 bitmap.Save(Path.Combine(directory, "live-preview.png"), System.Drawing.Imaging.ImageFormat.Png);
             }
-            Documents.SelectedIndex = 1;
+            Documents.SelectedIndex = 0;
             Application.DoEvents();
             using (Bitmap bitmap = new Bitmap(Width, Height))
             using (Graphics graphics = Graphics.FromImage(bitmap))
             {
                 graphics.CopyFromScreen(Location, Point.Empty, Size);
-                bitmap.Save(Path.Combine(directory, "live-tasks.png"), System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Save(Path.Combine(directory, "live-task-properties.png"), System.Drawing.Imaging.ImageFormat.Png);
             }
-            Documents.SelectedIndex = 2;
+            Documents.SelectedIndex = 1;
             Application.DoEvents();
             using (Bitmap bitmap = new Bitmap(Width, Height))
             using (Graphics graphics = Graphics.FromImage(bitmap))
@@ -757,7 +940,7 @@ namespace MarlDesktopPreview
                 graphics.CopyFromScreen(Location, Point.Empty, Size);
                 bitmap.Save(Path.Combine(directory, "live-platforms.png"), System.Drawing.Imaging.ImageFormat.Png);
             }
-            Documents.SelectedIndex = 4;
+            Documents.SelectedTab = taskViewTab;
             string webState = "";
             string webMetrics = "";
             try
@@ -772,7 +955,7 @@ namespace MarlDesktopPreview
                     }
                     webState = stateTask.Status == TaskStatus.RanToCompletion ? stateTask.Result : "";
                     Task<string> metricTask = webView.CoreWebView2.ExecuteScriptAsync(
-                        "JSON.stringify((function(){var c=document.querySelector('#ck-canvas');var s=document.querySelector('#scene');var r=c?c.getBoundingClientRect():null;var b=s?s.getBoundingClientRect():null;return {ck:r?[r.width,r.height]:null,scene:b?[b.width,b.height]:null,css:c?getComputedStyle(c).backgroundColor:null,page:getComputedStyle(document.body).backgroundColor};})())");
+                        "JSON.stringify((function(){var c=document.querySelector('#ck-canvas');var s=document.querySelector('#scene');var r=c?c.getBoundingClientRect():null;var b=s?s.getBoundingClientRect():null;return {ck:r?[r.width,r.height]:null,scene:b?[b.width,b.height]:null,hostChildren:document.querySelector('#desktop-scene-host')?.children.length,hostCanvas:!!document.querySelector('#desktop-scene-host>canvas'),scroll:document.documentElement.scrollHeight>innerHeight,css:c?getComputedStyle(c).backgroundColor:null,page:getComputedStyle(document.body).backgroundColor};})())");
                     while (!metricTask.IsCompleted)
                     {
                         Application.DoEvents();
@@ -789,8 +972,12 @@ namespace MarlDesktopPreview
                 "web_metrics=" + webMetrics,
                 "backend=" + (desktopApi == null ? "" : desktopApi.BaseUrl),
                 "run=" + desktopRunId,
+                "capture_time=" + (!double.IsNaN(captureTime) ? captureTime.ToString(CultureInfo.InvariantCulture) : "native-verification-end"),
                 "tasks=" + (desktopRun == null ? 0 : desktopRun.Tasks.Count),
                 "platforms=" + (desktopRun == null ? 0 : desktopRun.Platforms.Count),
+                "native_tabs=" + Documents.TabPages.Count,
+                "native_time=" + Time.ToString(CultureInfo.InvariantCulture),
+                "native_playing=" + webPlaying,
                 "task_view_status=" + (taskViewStatus == null ? "" : taskViewStatus.Text),
                 "status=" + (status == null ? "" : status.Text),
                 "bounds=" + Location.X + "," + Location.Y + "," + Width + "," + Height
@@ -799,18 +986,20 @@ namespace MarlDesktopPreview
             TopMost = false;
         }
 
+        public bool ReadyForDesktopVerification { get { return webReady && desktopRun != null; } }
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         private void ShowAboutDesktop()
         {
             MessageBox.Show(this,
-                "多智能体协同规划系统\n本地可视化演示版 0.5\n\n" +
+                "多智能体协同规划系统\n本地桌面开发版\n\n" +
                 "本软件用于展示规划中间层的任务规划、分配、执行与回放能力。\n" +
                 "真实平台展示目标是接入下层 Gazebo，并在 UE5 中呈现；\n" +
                 "当前版本为本地演示，不代表真实平台联调完成。\n\n" +
-                "运行数据来自本机 planning_middle_demo 后端，界面中的“任务视图”\n" +
-                "显示真实运行回放；场景总览为布局示意。",
+                "运行数据来自本机 planning_middle_demo 后端，原生场景视图\n" +
+                "承载真实地图；配置、事件、文件和报告由原生控件承载。",
                 "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }

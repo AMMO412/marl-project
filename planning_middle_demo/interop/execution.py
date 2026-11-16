@@ -45,6 +45,9 @@ def _command(platform, assignment, phase, at_s, duration_s, vx, wz=0.0):
 
 
 def build_commands(assignments: List[Assignment], scenario: Scenario) -> List[VelocityCommand]:
+    path_motion, merge_samples = simulate_path, coalesce
+    if (scenario.meta or {}).get('motion_model') == 'acceleration_limited':
+        from .limited_motion import simulate_path as path_motion, coalesce as merge_samples
     platforms = scenario.platform_map
     commands = []
     for assignment in assignments:
@@ -52,12 +55,12 @@ def build_commands(assignments: List[Assignment], scenario: Scenario) -> List[Ve
         if platform is None:
             continue
         path_m = list(assignment.path)
-        motion = simulate_path(path_m, platform, assignment.heading_start,
+        motion = path_motion(path_m, platform, assignment.heading_start,
                                max(platform.speed_mps, 0.1))
         if motion.samples:
             departure_s = max(0.0, assignment.start_s - assignment.travel_s)
             offset = 0.0
-            for sample in coalesce(motion.samples):
+            for sample in merge_samples(motion.samples):
                 command = _command(platform, assignment, "TRANSIT",
                                    departure_s + offset, sample.duration_s,
                                    sample.vx, sample.wz)

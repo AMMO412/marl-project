@@ -54,14 +54,15 @@
         "observation_target": {
           "target_id": "PTL-OBS-1",
           "start": [
-            -96,
+            -80,
             -60
           ],
           "goal": [
-            -96,
+            -80,
             -222
           ],
-          "speed_mps": 4
+          "speed_mps": 4,
+          "start_after_patrol_s": 2
         }
       },
       "description": "四个共享角点划定十字路口巡逻区，空地平台共用边界环线。移动目标由北向南经过路口，平台持续感知时每秒上报。"

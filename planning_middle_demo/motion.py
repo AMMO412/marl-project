@@ -21,10 +21,12 @@ motion.py —— 目标点 → Twist 的闭环运动控制层（自 planning/bri
 单位口径（与 fleet.py 一致，别混）：
   * 本层纯几何，坐标无量纲、速度=场景单位/步。
   * 真实对接时，把本层的输出按 fleet.M_PER_SCENE_UNIT / SEC_PER_STEP
-    换算成 m/s、rad/s 后发布到 /container_00/robot_XXX 即可；
+    换算成 m/s、rad/s 后发布到 /container_00/robot_XXX/cmd_vel 即可；
     控制逻辑本身不随单位变化。
 """
 import math
+
+MOTION_MODEL = 'marl-browser-20261113-dynamic-v1'
 from dataclasses import dataclass
 
 
@@ -75,6 +77,117 @@ def _clamp(v, lo, hi):
     return lo if v < lo else (hi if v > hi else v)
 
 
+class AirLoiter:
+    """Keep an airborne platform moving on a circle around a station.
+
+    ``center`` is the observed/commanded point while the pose remains the
+    aircraft's actual position. Radial entry and exit are bounded so changing
+    between tracking and orbit does not create a position jump.
+    """
+
+    def __init__(self, center, speed, radius=None, max_yaw_rate=0.35,
+                 max_yaw_accel=0.45, safe_transition=None):
+        self.max_yaw_rate = float(max_yaw_rate)
+        self.max_yaw_accel = max(0.01, float(max_yaw_accel))
+        self.center = (float(center[0]), float(center[1]))
+        self.speed = max(float(speed), 0.01)
+        self.radius = (max(0.5, float(radius)) if radius is not None
+                       else max(2.0, self.speed / 0.35))
+        self.turn_rate = 0.0
+        self.direction = None
+        # Optional callback used by the runtime to reject a one-tick segment
+        # that would cross an applicable threat/no-go footprint.  Safety is
+        # checked on the swept segment rather than only on its endpoint.
+        self.safe_transition = safe_transition
+
+    def matches(self, target, tolerance=0.35):
+        return math.hypot(target[0] - self.center[0],
+                          target[1] - self.center[1]) <= tolerance
+
+    def step(self, pose, dt, radius=None):
+        dx, dy = pose.x - self.center[0], pose.y - self.center[1]
+        old_radius = math.hypot(dx, dy)
+        angle = math.atan2(dy, dx) if old_radius > 1e-9 else pose.yaw
+        desired = self.radius if radius is None else max(0.0, float(radius))
+        radial = ((math.cos(angle), math.sin(angle))
+                  if old_radius > 1e-9
+                  else (math.cos(pose.yaw), math.sin(pose.yaw)))
+
+        # A fixed-wing platform cannot follow a tiny circle at cruise speed.
+        # Limit the orbit speed to one that the configured yaw rate can
+        # actually fly.  Movement remains forward-only and is never a radial
+        # teleport back to the circle.
+        orbit_speed = min(
+            self.speed,
+            max(0.05, 0.95 * self.max_yaw_rate * max(desired, 0.5)))
+
+        if self.direction is None:
+            ccw_dot = (-math.cos(pose.yaw) * radial[1]
+                       + math.sin(pose.yaw) * radial[0])
+            self.direction = 1 if ccw_dot >= 0.0 else -1
+
+        tangent = (-self.direction * radial[1],
+                    self.direction * radial[0])
+        radial_error = _clamp((desired - old_radius) / max(desired, 1.0),
+                              -1.5, 1.5)
+        vx = tangent[0] + radial_error * radial[0]
+        vy = tangent[1] + radial_error * radial[1]
+        desired_yaw = math.atan2(vy, vx)
+
+        yaw_error = wrap_pi(desired_yaw - pose.yaw)
+        # Feed forward the turn needed for the current orbit radius, then
+        # correct the residual heading error.  Without the feed-forward term
+        # a fixed-wing platform settles on a wider circle and can appear to
+        # "drift" away from the commanded station.
+        feed_forward = (
+            self.direction * orbit_speed
+            / max(old_radius, desired * 0.75, 0.1))
+        desired_turn_rate = _clamp(
+            feed_forward + 2.2 * yaw_error,
+            -self.max_yaw_rate, self.max_yaw_rate)
+        self.turn_rate += _clamp(
+            desired_turn_rate - self.turn_rate,
+            -self.max_yaw_accel * dt,
+            self.max_yaw_accel * dt)
+        self.turn_rate = _clamp(
+            self.turn_rate, -self.max_yaw_rate, self.max_yaw_rate)
+        nominal_rate = self.turn_rate
+        acceleration_limit = self.max_yaw_accel * dt
+        rate_options = [
+            nominal_rate,
+            min(self.max_yaw_rate, nominal_rate + acceleration_limit),
+            max(-self.max_yaw_rate, nominal_rate - acceleration_limit),
+        ]
+        # If the nominal forward arc intersects a threat boundary, keep the
+        # configured turn-rate limits but choose the safest feasible steering
+        # direction and distance within this control tick.  When every forward
+        # candidate is blocked, remain at the current position for one tick
+        # while continuing to turn; the next tick can then leave along a safe
+        # tangent instead of jumping or tunnelling through the boundary.
+        chosen = None
+        for rate in rate_options:
+            candidate_yaw = wrap_pi(pose.yaw + rate * dt)
+            for fraction in (1.0, 0.5, 0.25):
+                candidate_moved = orbit_speed * dt * fraction
+                candidate = (
+                    pose.x + candidate_moved * math.cos(candidate_yaw),
+                    pose.y + candidate_moved * math.sin(candidate_yaw),
+                )
+                if (self.safe_transition is None
+                        or self.safe_transition((pose.x, pose.y), candidate)):
+                    chosen = (rate, candidate_yaw, candidate, candidate_moved)
+                    break
+            if chosen is not None:
+                break
+        if chosen is None:
+            self.turn_rate = nominal_rate
+            yaw = wrap_pi(pose.yaw + self.turn_rate * dt)
+            return Pose(pose.x, pose.y, pose.z, yaw), 0.0
+
+        self.turn_rate, yaw, (x, y), moved = chosen
+        return Pose(x, y, pose.z, yaw), moved
+
+
 # ------------------------------------------------------------------
 # 控制增益（我方暂定，须在仿真里标定，不直接当交付默认值）
 # ------------------------------------------------------------------
@@ -86,6 +199,12 @@ class DriveGains:
     k_angular: float = 1.5      # 航向误差 → 角速度
     tol_pos: float = 0.5        # 到位容差（场景单位）
     tol_yaw: float = 0.15       # 对准容差（约 8.6°）
+    # 物理限幅：加速度/角加速度/横向加速度，单位分别为 单位/步²、rad/步²、
+    # 单位/步²。默认值按 1 步 = 1 s、1 单位 = 1 m 取值。
+    max_linear_accel: float = 0.8
+    max_linear_decel: float = 1.0
+    max_angular_accel: float = 1.4
+    max_lateral_accel: float = 0.8
 
 
 # ------------------------------------------------------------------
@@ -97,15 +216,22 @@ class GoalController:
     def __init__(self, gains=None, can_climb=False):
         self.g = gains or DriveGains()
         self.can_climb = can_climb
+        self._v = 0.0
+        self._w = 0.0
 
     def arrived(self, pose, goal):
         dxy = math.hypot(goal.x - pose.x, goal.y - pose.y)
         dz = abs(goal.z - pose.z) if self.can_climb else 0.0
         return dxy <= self.g.tol_pos and dz <= self.g.tol_pos
 
-    def update(self, pose, goal):
-        """一个控制周期：读位姿 → 出指令。到位返回全零。调用方仍须显式发停止。"""
+    def update(self, pose, goal, dt=1.0):
+        """一个控制周期：读位姿 → 出指令。到位返回全零。调用方仍须显式发停止。
+
+        ``dt`` 是一个控制周期占多少个仿真步（默认 1）；角/线加速度按它换算
+        每拍允许的变化量，所以相邻两拍不会从 0 直接跳到最大角速度。
+        """
         if self.arrived(pose, goal):
+            self._v = self._w = 0.0
             return Twist.stop()
 
         dx, dy = goal.x - pose.x, goal.y - pose.y
@@ -118,17 +244,33 @@ class GoalController:
 
         # 航向没对准 → 只转不走（差速/简化偏航都不能横移）
         if abs(err) > self.g.tol_yaw:
-            return Twist(linear_x=0.0, linear_z=vz,
-                         angular_z=_clamp(self.g.k_angular * err,
-                                          -self.g.max_angular,
-                                          self.g.max_angular))
-        # 对准了 → 边走边微调
-        return Twist(linear_x=_clamp(self.g.k_linear * dist, 0.0,
-                                     self.g.max_linear),
-                     linear_z=vz,
-                     angular_z=_clamp(self.g.k_angular * err,
-                                      -self.g.max_angular,
-                                      self.g.max_angular))
+            desired_v = 0.0
+            desired_w = _clamp(self.g.k_angular * err,
+                               -self.g.max_angular, self.g.max_angular)
+        else:
+            desired_v = _clamp(self.g.k_linear * dist, 0.0, self.g.max_linear)
+            desired_w = _clamp(self.g.k_angular * err,
+                               -self.g.max_angular, self.g.max_angular)
+        # 协调转弯：有一定前向速度时，角速度受横向加速度限制。
+        if desired_v > 0.05:
+            cap = min(self.g.max_angular,
+                      self.g.max_lateral_accel / desired_v)
+            desired_w = _clamp(desired_w, -cap, cap)
+        # 线速度/角速度按加速度限幅
+        if desired_v >= self._v:
+            v = min(desired_v, self._v + self.g.max_linear_accel * dt)
+        else:
+            v = max(desired_v, self._v - self.g.max_linear_decel * dt)
+        if desired_w >= self._w:
+            w = min(desired_w, self._w + self.g.max_angular_accel * dt)
+        else:
+            w = max(desired_w, self._w - self.g.max_angular_accel * dt)
+        if v > 0.05:
+            cap = min(self.g.max_angular,
+                      self.g.max_lateral_accel / v)
+            w = _clamp(w, -cap, cap)
+        self._v, self._w = v, w
+        return Twist(linear_x=v, linear_z=vz, angular_z=w)
 
 
 # ------------------------------------------------------------------

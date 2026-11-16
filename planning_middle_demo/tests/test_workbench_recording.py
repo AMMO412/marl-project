@@ -13,6 +13,8 @@ from workbench_recording import load_recording
 class RecordingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        if not (ROOT / 'outputs/behavior_20261028_verify/behavior_trace.json').is_file():
+            raise unittest.SkipTest('历史专项原始录制缺失，不用新记录替代')
         cls.raw = (ROOT / 'outputs/behavior_20261028_verify/behavior_trace.json').read_bytes()
         cls.saved = json.loads(cls.raw)
         cls.adapted = load_recording(ROOT)

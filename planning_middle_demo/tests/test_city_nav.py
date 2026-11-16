@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """城市场景避障层测试：真实几何解析、A* 绕行、路径跟随、点位吸附。"""
 import json
+import math
 from pathlib import Path
 import sys
 import unittest
@@ -8,11 +9,13 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from city_nav import NavError, build_nav, follow_path, distance, mesh_aabb
+from city_nav import (NavError, NavMap, PathFollower, build_nav, follow_path,
+                      distance, inside, mesh_aabb, point_segment,
+                      segment_distance)
 
 
 def scenario():
-    return json.loads((ROOT / 'scenarios/simple_city.json')
+    return json.loads((ROOT / 'tests/fixtures/base_scenarios/simple_city.json')
                       .read_text(encoding='utf-8'))
 
 
@@ -21,7 +24,7 @@ class ContainerSdfTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.scene = json.loads((ROOT / 'scenarios/asl_city.json')
+        cls.scene = json.loads((ROOT / 'tests/fixtures/base_scenarios/asl_city.json')
                                .read_text(encoding='utf-8'))
         cls.nav, cls.loaded = build_nav(cls.scene)
 
@@ -91,6 +94,50 @@ class ObstacleMapTests(unittest.TestCase):
         self.assertGreater(plan['length'], plan['straight_length'] * 1.5)
         self.assertGreaterEqual(plan['min_clearance'], self.nav.radius - 1e-6)
 
+    def test_spatial_index_matches_full_obstacle_scan(self):
+        """空间索引只能加速查询，不能改变间隙和线段碰撞结果。"""
+        points = [
+            [43.99, 51.22],
+            [27.36, 27.06],
+            [41.46, 51.22],
+            [20.0, 20.0],
+            [0.0, 0.0],
+        ]
+        x0, y0, x1, y1 = self.nav.bounds
+        for point in points:
+            expected = min(point[0] - x0, x1 - point[0],
+                           point[1] - y0, y1 - point[1])
+            if expected <= 0.0:
+                break
+            for item in self.nav._edges:
+                if inside(point, item['poly']):
+                    expected = -1.0
+                    break
+                expected = min(
+                    expected,
+                    *(point_segment(point, a, b)
+                      for a, b in item['edges']),
+                )
+            if expected < 0:
+                break
+            self.assertAlmostEqual(self.nav.clearance(point), expected,
+                                   places=9)
+
+        segments = [
+            ([43.99, 51.22], [27.36, 27.06]),
+            ([0.0, 0.0], [50.0, 50.0]),
+            ([20.0, 20.0], [60.0, 30.0]),
+        ]
+        for a, b in segments:
+            blocked = any(
+                any(segment_distance(a, b, c, d)
+                    <= self.nav.radius + 1e-9
+                    for c, d in item['edges'])
+                for item in self.nav._edges
+            )
+            self.assertEqual(self.nav._edge_blocked(a, b, self.nav.radius),
+                             blocked)
+
     def test_every_path_segment_is_collision_free(self):
         start, _ = self.nav.nearest_free([43.99, 51.22])
         goal, _ = self.nav.nearest_free([27.36, 27.06])
@@ -119,6 +166,21 @@ class ObstacleMapTests(unittest.TestCase):
         last = (result['trace'][-1]['x'], result['trace'][-1]['y'])
         self.assertLessEqual(distance(last, goal), 0.3)
         self.assertGreater(result['min_clearance'], 0.35)
+
+    def test_follower_advances_when_a_corner_waypoint_was_cut(self):
+        """前瞻转弯越过后，不应继续瞄准身后的旧航点并原地转圈。"""
+        path = [[0.0, 0.0], [1.0, 0.0], [2.0, -0.1],
+                [3.0, -0.2], [4.0, -0.3]]
+        follower = PathFollower(max_linear=1.0, lookahead=1.0,
+                                waypoint_tol=0.35)
+        state = follower.reset()
+
+        linear, angular, state = follower.step(
+            (2.1, -0.12, -math.pi / 20.0), path, state)
+
+        self.assertGreaterEqual(state.index, 3)
+        self.assertGreater(linear, 0.0)
+        self.assertLess(abs(angular), follower.max_angular)
 
 
 if __name__ == '__main__':

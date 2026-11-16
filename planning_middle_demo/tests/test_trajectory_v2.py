@@ -8,6 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from trajectory_v2 import build_replay_data, render, load_scene_background
+from workbench_server import execution_exposure
 
 
 def feedback(t, pos, **extra):
@@ -49,6 +50,44 @@ class ReplayDataTests(unittest.TestCase):
         self.assertEqual([s['t'] for s in samples], [1, 2])
         self.assertEqual(samples[-1]['status'], 'succeeded')
         self.assertEqual(samples[-1]['distance'], 4)
+
+    def test_behavior_samples_preserve_recorded_turn_for_exposure(self):
+        self.scenario['platforms'] = [dict(robot_no=21, pos=[0, 5])]
+        self.report['platforms'] = [dict(pid='rover_21', robot_no=21,
+                                         kind='TANK', pos=[10, 5], battery=1)]
+        direct = [feedback(0, [0, 5]), feedback(1.5, [10, 5])]
+        detailed = direct + [dict(
+            kind='behavior_event', sim_s=0,
+            event=dict(kind='behavior_samples', job_id='A', samples=[
+                dict(t=0, phase='机动', agents={'rover_21': [0, 5, 0, 0]}),
+                dict(t=.5, phase='机动', agents={'rover_21': [0, -1, 0, 0]}),
+                dict(t=1, phase='机动', agents={'rover_21': [10, -1, 0, 0]}),
+                dict(t=1.5, phase='机动', agents={'rover_21': [10, 5, 0, 0]}),
+            ]))]
+        threats = [dict(type='threat', applies_to='ground', intensity=1,
+                        area=dict(polygon=[[4, 4], [6, 4], [6, 6], [4, 6]]))]
+        direct_replay = build_replay_data(self.scenario, self.report, direct)
+        detailed_replay = build_replay_data(self.scenario, self.report, detailed)
+        self.assertGreater(execution_exposure(direct_replay, threats)[0], 0)
+        self.assertEqual(execution_exposure(detailed_replay, threats)[0], 0)
+        self.assertEqual([s['t'] for s in
+                          detailed_replay['workers'][0]['samples']],
+                         [0, .5, 1, 1.5])
+
+    def test_behavior_motion_keeps_same_time_feedback_metadata(self):
+        trace = [
+            feedback(1, [0, 0], status='succeeded', battery=73,
+                     progress=10),
+            dict(kind='behavior_event', sim_s=1,
+                 event=dict(kind='behavior_samples', job_id='A', samples=[
+                     dict(t=1, phase='完成',
+                          agents={'rover_21': [1, 2, 0, 0]})])),
+        ]
+        sample = build_replay_data(
+            self.scenario, self.report, trace)['workers'][0]['samples'][0]
+        self.assertEqual((sample['x'], sample['y']), (1, 2))
+        self.assertEqual(sample['status'], 'succeeded')
+        self.assertEqual((sample['battery'], sample['progress']), (73, 10))
 
     def test_final_report_does_not_supply_initial_position_or_battery(self):
         original = copy.deepcopy((self.scenario, self.report))

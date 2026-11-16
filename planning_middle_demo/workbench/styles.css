@@ -205,7 +205,89 @@
 .ck-ticker .ck-chip.warn{background:#fdf1e3;border-color:#ecd3ac;color:#9a5a12}
 .ck-ticker .ck-chip.phase{font-weight:600;background:#eef4ff;border-color:#cfdcf5;color:#2b4f8f}
 
-/* 四目标对比：同一输入只切换目标，不执行仿真 */
+#editor-dialog { width: min(1120px, calc(100vw - 32px)); max-height: 88vh; overflow: auto; }
+.editor-sections { padding: 0 26px; display: grid; gap: 18px; }
+.editor-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr); gap: 20px; }
+.editor-grid h3, .editor-targets-section h3 { font-size: 15px; margin: 0 0 6px; }
+.editor-hint { margin: 0 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.editor-row { border: 1px solid #dbe7e2; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+.editor-row > label { float: right; color: var(--muted); font-size: 11px; margin-left: 6px; }
+.editor-row summary { cursor: pointer; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.editor-fields { clear: both; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding-top: 12px; }
+.editor-fields label, .param-field { display: grid; gap: 4px; font-size: 11px; }
+.editor-fields label:has(textarea) { grid-column: 1 / -1; }
+.editor-fields input, .editor-fields select, .editor-fields textarea {
+  width: 100%; min-width: 0; padding: 6px; border: 1px solid #cddbd5; border-radius: 5px;
+  color: var(--ink); background: white;
+}
+.editor-fields input[type=checkbox] { width: auto; justify-self: start; }
+.editor-ticks-row { margin: 0 26px; }
+@media (max-width: 760px) { .editor-grid { grid-template-columns: 1fr; } .editor-sections { padding-inline: 19px; } }
+#editor-dialog pre { grid-column: 1 / -1; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.live-setting { margin: 14px 26px 0; }
+.editor-task-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+.editor-add-task { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
+.editor-add-task select { padding: 6px; border: 1px solid #cddbd5; border-radius: 5px; background: white; }
+.editor-platform-group { border: 1px solid #dbe7e2; border-radius: 8px; margin-bottom: 8px; }
+.editor-platform-group > summary { cursor: pointer; padding: 10px; font-size: 13px; }
+.editor-platform-count { float: right; color: var(--muted); font-size: 11px; }
+.editor-platform-profile { display: block; margin: 4px 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.editor-platform-body { padding: 0 10px 4px; }
+.editor-platform-controls { display: flex; gap: 8px; margin-bottom: 8px; }
+.editor-platform-controls[hidden] { display: none; }
+.editor-platform-controls .button { padding: 4px 9px; font-size: 11px; }
+.editor-row > .editor-platform-availability { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.editor-platform-availability input { margin: 0; accent-color: var(--green); }
+.editor-platform-number-hint { grid-column: 1 / -1; margin: 0; }
+.patrol-editor { grid-column: 1 / -1; display: grid; gap: 8px; }
+.patrol-editor canvas { width: 100%; display: block; border: 1px solid #dbe7e2; border-radius: 6px; background: #f7fbf9; }
+.patrol-editor canvas[data-placing] { cursor: crosshair; }
+.patrol-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.patrol-status { margin: 0; line-height: 1.5; color: #41645c; font-size: 12px; }
+.patrol-status[data-error] { color: #9b3826; }
+.patrol-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.patrol-advanced { grid-column: 1 / -1; border-top: 1px solid #e3ece8; padding-top: 7px; }
+.patrol-dependencies { min-inline-size: 0; margin: 0; }
+.patrol-dependencies label { display: flex; align-items: center; gap: 6px; }
+.editor-task-deleted { background: #f8f4f2; }
+.editor-task-deleted summary { color: #80594e; }
+.param-block { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.param-group { grid-column: 1 / -1; border: 1px solid #e3ece8; border-radius: 7px; padding: 8px; background: #fbfdfc; }
+.param-group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.param-group-head strong { font-size: 11px; color: #41645c; font-weight: 600; }
+.param-group-head code { color: var(--muted); font-size: 10px; }
+.param-group .param-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.param-frame { display: grid; gap: 6px; grid-column: 1 / -1; }
+.param-field-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.param-field-head span { color: #41645c; font-weight: 600; }
+.param-point { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.param-point label { font-size: 10px; color: var(--muted); }
+.param-list { display: grid; gap: 6px; }
+.param-item { border: 1px dashed #d5e4dd; border-radius: 6px; padding: 8px; background: white; }
+.param-item-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 11px; color: #41645c; }
+.param-item-head b { font-weight: 600; }
+.param-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.param-chip { border: 1px solid #cddbd5; background: #f7fbf9; color: #41645c; border-radius: 999px; padding: 3px 9px; font-size: 10px; cursor: pointer; }
+.param-chip:hover { background: #eef6f2; }
+.param-add { font-size: 10px; }
+.param-optional { grid-column: 1 / -1; border-top: 1px dashed #e2ece8; padding-top: 8px; margin-top: 4px; }
+.param-optional summary { cursor: pointer; font-size: 11px; color: #41645c; }
+.param-optional .param-actions { margin-top: 8px; }
+.editor-targets-section { border-top: 1px solid #dbe7e2; padding-top: 16px; }
+.editor-target-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 10px; }
+.editor-target-tools .field { margin: 0; min-width: 180px; }
+.editor-target-tools .button { margin-bottom: 1px; }
+.editor-target-row { border-left: 3px solid #d98b7f; }
+.editor-observation-links { grid-column: 1 / -1; min-width: 0; border: 1px solid #dbe7e2; border-radius: 6px; }
+.editor-observation-links > div { display: flex; flex-wrap: wrap; gap: 6px 14px; max-height: 120px; overflow: auto; }
+.editor-observation-links label { display: inline-flex; align-items: center; gap: 4px; }
+.editor-target-row summary::before { content: '● '; color: #b8544a; font-size: 10px; }
+.editor-target-note { grid-column: 1 / -1; color: #8a5a4e; font-size: 10px; line-height: 1.5; }
+.editor-target-empty { color: var(--muted); font-size: 11px; padding: 8px 0; }
+
+#coordinate-readout { position: absolute; left: 12px; bottom: 38px; padding: 5px 9px; background: #fffef0ed; color: #214c47; border: 1px solid #b6cdbf; border-radius: 5px; font: 12px Consolas, monospace; pointer-events: none; z-index: 5; }
+:root .campus-case-panel{padding:16px 18px;border-top:1px solid #dde4df;background:#f7faf8}.campus-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.campus-case-panel p{font-size:12px;color:#5f7066;margin:10px 0}.campus-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:8px}.campus-task{display:flex;flex-direction:column;gap:7px;text-align:left;background:white;border:1px solid #dce4df;border-left:4px solid;padding:12px;border-radius:6px;color:#294738;cursor:pointer}.campus-task span,.campus-task small{font-size:11px;line-height:1.5}
+
 .compare-panel{margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:#fbfdfb}
 .compare-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
 .compare-head b{font-size:13px;color:#234437}
@@ -215,48 +297,3 @@
 .compare-table th:first-child,.compare-table td:first-child{text-align:left}
 .compare-table thead th{background:#eef4ee;color:#486456;font-weight:600}
 .compare-table tr.best td{background:#f3faf1}
-
-/* 本轮结果：优化目标 + 状态并排 */
-.pill-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-
-/* 威胁区图例：与地图上的淡红虚线区一致 */
-.legend-threat i{width:18px;height:13px;background:#fde8e0;border:1.5px dashed #c2410c;border-radius:2px}
-
-/* 地图任务栏的威胁区提示 */
-.threat-note{font-size:11px;color:#9a3412;background:#fff4ec;border:1px solid #f3c9b4;border-radius:10px;padding:1px 8px;white-space:nowrap}
-.threat-note:empty{display:none}
-
-/* 地图标题旁的威胁区徽标 */
-.threat-tag{background:#fff1e8!important;color:#9a3412!important;border:1px solid #f0c4ad!important}
-
-/* 右侧执行明细：平台、关键时间、事件时间线共用一个纵向滚动区 */
-.exec-card{display:flex;flex-direction:column;min-height:0}
-.execution-detail{max-height:560px;overflow:auto;padding:4px 2px 2px;scrollbar-gutter:stable}
-.exec-section{padding:0 0 12px;margin:0 0 12px;border-bottom:1px solid var(--line)}
-.exec-section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
-.exec-section h3{font-size:12px;margin:0 0 7px;color:#36584a;display:flex;justify-content:space-between;gap:8px}
-.exec-section h3 small{font-weight:400;color:#8a9d91;font-size:10px}
-.exec-platforms{display:grid;gap:5px}
-.exec-platform{display:grid;grid-template-columns:auto 1fr;gap:2px 7px;padding:6px 8px;background:#f8fbf7;border:1px solid #e3ebe1;border-radius:6px;font-size:10.5px}
-.exec-platform b{font-size:11px;color:#274d3e}
-.exec-platform span{color:#6d8275;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.exec-platform em{font-style:normal;color:#9a3412}
-.exec-key{width:100%;border-collapse:collapse;font-size:10.5px}
-.exec-key th,.exec-key td{padding:4px 5px;border-bottom:1px solid #edf1ec;text-align:left;white-space:nowrap}
-.exec-key th{color:#819688;font-weight:500;font-size:10px}
-.exec-timeline{display:grid;gap:3px;max-height:240px;overflow:auto;padding-right:3px}
-.exec-event{border:0;background:none;text-align:left;padding:5px 6px;border-left:2px solid #cbd8cc;color:#395b4b;font-size:10.5px;line-height:1.45;border-radius:0 5px 5px 0}
-.exec-event:hover{background:#f2f8ef}
-.exec-event.future{opacity:.45;border-left-color:#d7dfd7}
-.exec-event strong{display:block;font-size:11px;color:#284b3c;font-weight:600}
-.exec-event span{color:#8a9c90}
-
-/* workbench_ui 的右栏是定高 flex；执行明细不能被压缩成 0 高 */
-.right-column>.exec-card{flex:0 0 auto}
-.execution-detail{max-height:560px}
-
-/* 平台/时间线已并入执行明细，隐藏右栏重复面板，避免两套明细 */
-#rail-members,#rail-events{display:none!important}
-
-/* 计划暴露与实际执行暴露不一致时明确提示 */
-#exec-exposure-note.warning{color:#9a3412;background:#fff4ec;border:1px solid #f3c9b4;border-radius:6px;padding:6px 8px}

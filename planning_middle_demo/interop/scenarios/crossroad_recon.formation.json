@@ -14,8 +14,8 @@
           "HLD": 2
         },
         "position": {
-          "x": 6,
-          "y": 64
+          "x": 0.0,
+          "y": -22.5
         },
         "altitude_m": 0.35,
         "vertical_speed_mps": 0.0,
@@ -36,8 +36,8 @@
           "HLD": 2
         },
         "position": {
-          "x": 12,
-          "y": 64
+          "x": 0.0,
+          "y": -17.5
         },
         "altitude_m": 0.35,
         "vertical_speed_mps": 0.0,
@@ -58,8 +58,8 @@
           "HLD": 0
         },
         "position": {
-          "x": 15,
-          "y": 69
+          "x": -20.0,
+          "y": -22.5
         },
         "altitude_m": 25,
         "vertical_speed_mps": 3,
@@ -80,8 +80,8 @@
           "HLD": 0
         },
         "position": {
-          "x": 6,
-          "y": 70
+          "x": -20.0,
+          "y": -17.5
         },
         "altitude_m": 25,
         "vertical_speed_mps": 3,

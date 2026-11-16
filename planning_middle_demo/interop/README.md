@@ -11,7 +11,9 @@
         ↓  分解 → 能力闸门 → 协同组匈牙利 → 风险 A* → 三目标评分 → 排程
 4.2 计划层 assignments + 执行层 commands
         ↓
-plan.json / assignments.csv / commands.csv / report.md / manifest.json
+plan.json / assignments.csv / commands.csv / ros2_plan_node.py
+        ↓
+run_feedback → chain_raw.json → archive/ → chain_verification.json → chain_viewer.html
 ```
 
 边界写在代码里，不靠口头约定：
@@ -19,7 +21,8 @@ plan.json / assignments.csv / commands.csv / report.md / manifest.json
 - **做五类任务**：`T-RCN`（协同侦察）、`T-SEC`（区域封控）、`T-PTL`（巡逻警戒）、
   `T-HLD`（要点坚守）、`T-ASL`（机动突击）。T-ASL 只规划侦察/突击/评估席位、
   时序与机动；打击动作、弹药消耗和毁伤/压制/夺占判定由基座行为层与评估接口执行。
-- 不发布 ROS、不启动 Gazebo、不写运行终态；`result_status=PLAN_ONLY`、
+- 规划 CLI 本身不发布 ROS、不启动 Gazebo、不写运行终态；可选导出独立
+  `ros2_plan_node.py`，由使用者在自己的 ROS 2 环境中启动。`result_status=PLAN_ONLY`、
   `evidence_source=NO_EXECUTION_EVIDENCE` 表示“只有计划，没有执行证据”。
 - 本层只输出 TRANSIT/HOLD/STOP；任务段动作由基座行为层接管。T-ASL 的
   `assignments` 带 `role`，但 4.2 指令契约不新增火力动作。
@@ -63,6 +66,28 @@ python -m interop.cli sdf --sdf ..\资料\接口说明\container_00_combined_sce
 python -m interop.tools.build_scenarios
 ```
 
+复杂规划基准（不改变五个交付演示场景）：
+
+```powershell
+python -m interop.cli benchmark `
+  --out ..\outputs\complex_planning_benchmark_20261111_v3 `
+  --objectives timeliness,exposure,energy,balanced
+```
+
+该基准沿用当前五类任务和 50 台设备，生成四组可重复输入：
+
+- `interop_bench_multitask`：五类任务跨大区域同时竞争资源；
+- `interop_bench_deadlines`：压缩时间窗，检查部分分配和未分配原因；
+- `interop_bench_threats`：对地、对空、空地威胁组合；
+- `interop_bench_chokepoint`：地面硬障碍和显式对空禁飞带；巡逻区位于出发阵地约 360 米外的东北远端，用于覆盖长航程分配与绕障执行。
+
+这些场景也出现在工作台和原生软件的“算法测试 · 复杂规划基准”分组中，
+可以直接新建运行并在场景视图查看全部分配、轨迹和优化指标。命令行输出
+包含每组的 `message.json`、`formation.json`、四个目标对应的
+`plan-*.json`，以及 `results.json` / `results.md`。基准目录中的结果表
+只比较规划层；在软件中新建运行会继续经过本地行为执行和二维回放，
+但不能据此表述为 UE5、ROS/Gazebo 或外部平台联调已完成。
+
 ### 1.1 运行对接（融合版作为新主体）
 
 规划不再只停在文件层：`interop` 已接到基座的 `CoordinatorV2` 上，
@@ -71,23 +96,17 @@ python -m interop.tools.build_scenarios
 
 ```powershell
 # 4.1 输入直接驱动完整运行链（规划 + 下发 + 反馈 + 报告/回放）
-python -m interop.cli demo `
-  --message interop/scenarios/mixed_inspection.message.json `
-  --formation interop/scenarios/mixed_inspection.formation.json `
-  --out ..\outputs\interop_demo\runtime_mixed --max-ticks 260
 
-# 基座入口也可切规划器；auto 会优先用统一层，遇到突击场景回退基座
+# 基座入口也可切规划器；auto 按输入是否携带原始 interop 信息选择
 python run_demo_v2.py --scenario <场景.json> --planner auto
 python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统一层
 ```
 
-工作台：根目录 `启动工作台.cmd` 打开融合版新建演示；场景下拉提供中性任务、
-区域封控、要点坚守、巡逻警戒、协同侦察、十字路口接力处置、机动突击，
-以及 `asl_city` 历史入口。融合样例固定 `interop` + 逐步运动，专项演示
-自动开启行为与静态地图避障。运行完成后，4.2 的 `plan.json` / `assignments.csv` /
-`commands.csv` / `report.md` / `ros2_commands.txt` 会和反馈轨迹一起保存在
-`planning_middle_demo/outputs/workbench_*/`，可在“项目文件”页直接下载。
-`asl_city` 继续用基座 `planner_v2` 作历史对照。
+工作台：根目录 `启动工作台.cmd` 打开默认浏览器界面。五类任务、算法测试与综合案例采用统一分配视图，运动中的成员默认显示最近 10 秒拖尾；可编辑任务、平台、目标与威胁区。
+
+运行结果默认保存于 `desktop_app/dist/data/runs/<id>/`；未建立该目录时回退 `planning_middle_demo/outputs/`，`MARL_WORKBENCH_OUTPUTS` 优先。每轮按实际生成计划、运动指令、反馈及全链路文件，具体用途见 [运行输出说明](../../docs/运行输出文件说明.md)。不再假定每轮都有 `report.md` 或 `ros2_commands.txt`。
+
+实时运行可暂停编辑、继续或结束保存；历史回放可在暂停时刻改未完成项并以同编号续算，原版本保留，完成项锁定。可拆分侦察/巡逻席位支持组内局部替补；整组协同和无合格替补情况仍整任务重排。新消解率统计配置变更后 20 回合内被采纳确认的实际子任务切换，无样本不判 100%；原时序诊断另存。
 
 对接实现（`interop/runtime.py`）：
 
@@ -152,11 +171,17 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
 感知圈使用地面投影距离，半径由 `sensor_radius_m` 分组配置。
 
 目标从 `observation_target.start` 以 `speed_mps` 匀速驶向 `goal`。
+`start_after_patrol_s` 控制目标相对实际起巡时刻的进入延后，当前演示为 2 秒，
+避免目标在平台尚未展开时穿过作业区。
 每台平台在发现目标时立即发出 `patrol_position_report`，持续感知时每秒上报
 一次，失去感知后停报。感知与上报不改变平台的巡逻路线。事件保存在
 `trace.jsonl` 的 `behavior_event.event` 中，字段包括 `job_id`、`target_id`、
 `pid`、`pos`、`coordinate_frame`、`source`。外层 `sim_s` 是全局仿真时刻。
 本地演示仅写日志，外部仿真适配器可消费同一事件。
+
+巡逻完成圈数后还必须核对目标侦察结果：至少一次 `target_detected` 和一次
+`patrol_position_report` 才算成功，否则 `patrol_result.overall` 为 `failed`。
+`patrol_result` 同时记录首次/末次发现时刻、上报次数、目标进入时刻和完成圈数。
 
 ### 协同侦察专项演示（T-RCN）
 
@@ -169,21 +194,6 @@ python run_demo_v2.py --scenario <场景.json> --planner interop   # 强制统�
 达标或截止时均发出 `report_sent`。`report.json` 的 `recon_reports` 包含
 覆盖率、达标状态、已覆盖和剩余网格中心，坐标单位为场景米。命令行仿真使用
 `interop.cli demo` 的 `--motion real --behavior` 参数启用侦察动作。
-
-### 十字路口接力处置演示
-
-工作台在「融合版 · 4.1 统一接口」下读取 `crossroad_relay` 消息与编成表。
-各编组从同一片集结区起步。侦察成功回传后启动巡逻，巡逻首次位置上报触发东侧
-封控，封控判定成功后启动要点坚守。接力由任务的 `after_event` 指定，仿真日志
-保存实际触发来源与时刻。
-巡逻、侦察和封控引用同一个移动目标。封控接管后，目标沿实际处置轨迹继续移动。
-工作台可在关键节点跳转交接，`report.json` 的 `relay_handoffs` 保存交接记录。
-4.2 计划文件给出预排分配，实际派遣与交接时刻见 `trace.jsonl`。
-
-所有工作台任务共用返航逻辑。空闲成员在没有后续分配后返回各自初始位置。
-逐步运动且启用避障时，地面按静态地图绕行，空中先返至起点上方再降至零高度。
-任务完成与返航完成分别结算，`report.json` 的 `returns` 保存各平台状态，
-全局回放用虚线展示返航轨迹。
 
 ## 2 输入契约
 
@@ -224,17 +234,35 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
 | --- | --- |
 | `plan.json` | `plan_id`/`assignments`/`commands` + `schema_version=0.3`、`objective`、`objective_metrics`、`metrics`、`unassigned`、`conflicts`、`explain`、`source_message` |
 | `assignments.csv` | 每个槽位一行，含路径、里程、风险、能耗、窗口、协同 |
+| `agent_tasks.md` / `.csv` / `.json` | 优先审阅的单平台任务清单：出任务的平台在前，组内按机器人编号排序；每台平台的子任务按开始时间编号，保留机动起点、作业起止、窗口、前置依赖、协同编码和同组成员；未分配槽位及冲突在 Markdown/JSON 中另列 |
 | `commands.csv` | 每条 cmd_vel，含 `command_id`/`attempt`/`action`、六分量、`at_s`、`duration_s`、阶段 |
-| `ros2_commands.txt` | 4.2 执行层 → 可直接粘贴的 `ros2 topic pub -r 20 /container_00/robot_XXX ...`（含 at/duration 注释） |
-| `report.md` | 指标、分配、执行层、未分配/冲突、解释、口径边界 |
+| `ros2_commands.txt` | 4.2 执行层 → 可直接粘贴的 `ros2 topic pub -r 20 /container_00/robot_XXX/cmd_vel ...`（含 at/duration 注释） |
+| `ros2_plan_node.py` | 独立 ROS 2 发布节点：同目录读取 `plan.json`，默认 20 Hz 发布 Twist；`--dry-run` 无需 ROS |
+| `report.md` | 单平台任务清单优先；随后为指标、分配、执行层、未分配/冲突、解释、口径边界 |
 | `manifest.json` | 输入/输出 SHA256、后端、目标、Python 平台、命令 |
 
-**话题命名（2026-10-30 起）**：移动话题为 `/container_00/robot_XXX`（三位编号，
-无 `/cmd_vel` 后缀），位姿为 `/model/robot_XXX/pose`；旧 `/rover_XX/cmd_vel`
+CLI 单平台清单来自静态计划，旧运行也从当时的 `plan.json` 派生导出，不改写原文件。新工作台运行另保存 `planning_history.json`（实际生成的逐版计划）和 `execution_plan.json`（实际下发到版本/尝试/指令的绑定）；单平台清单和对比指标优先使用该绑定。执行暴露限定同次任务尝试，整轮含返航暴露另列；`plan.json` 仍是独立静态参考，不反推历史绑定。详见 [当前运行文件说明](../../docs/运行输出文件说明.md)；更早的执行绑定报告当前仅留历史跳转页，不能据此宣称已恢复原始证据。
+
+**话题命名（2026-11-11 校正）**：移动话题为
+`/container_00/robot_XXX/cmd_vel`（三位编号），位姿为
+`/model/robot_XXX/pose`；旧 `/rover_XX/cmd_vel` 与不带 `/cmd_vel` 的短话题
 只存在于历史记录。容器名/后缀可用 `FLEET_CONTAINER_NAME`、
 `FLEET_CMD_SUFFIX` 覆盖；桥接命名完全不一致时用
 `FLEET_CMD_TOPIC_TEMPLATE`（占位符 `{robot}`/`{robot_no}`/`{no}`/`{container}`）
 显式指定整条话题，不在代码里猜。
+
+### 3.1 节点导出与全链路追溯（2026-11-11）
+
+工作台每轮运行都会生成 `chain_viewer.html`、`chain_raw.json`、
+`chain_summary.json`、`chain_verification.json`、`initial_config.json`、
+`final_config.json` 和 `archive/`。归档直接记录协调器实际收发的
+`command_id`、`event_id`、反馈采纳结果、任务/子任务关联、尝试号、动态事件及
+三个时间戳；`manifest.json` 对归档文件做 SHA-256 校验。
+
+桌面软件可从“输出文件”或“运行记录”打开独立“全链路追溯”窗口。校验通过只表示
+`run_id → task → subtask → command → feedback` 的关联与哈希一致，也表示本页没有
+从最终报告反推中间过程；它不等于任务成功，更不等于 ROS/Gazebo/UE5 外部联调完成。
+节点默认优先播放同目录 `motion_commands.json` 的完整运动速度序列，无该文件时兼容 `plan.json`；`--dry-run` 用于离线检查，`--plan plan.json` 可显式选择静态计划。默认发布不包含外部定位闭环，不能由离线通过推断真实平台联调完成。
 
 `assignments[].path` 单位是**米**（已按 `cell_size_m` 折算），不是编成表的
 原始场景单位；这是统一层的显式归一化。
@@ -289,7 +317,7 @@ point/key_point/target_list`。`window` 用 `{start_s, end_s}`，单位秒。
 - `runtime.py` 把统一层接进 `CoordinatorV2`：基座只换“规划引擎”，
   下发/反馈/取消/重试/工作台全部沿用；`run_demo_v2 --planner auto`
   优先统一层，突击场景自动回退基座；
-- 工作台“新建演示”可选 `interop_neutral` + `融合统一层`，即走同一运行链；
+- 工作台仅使用当前注册的场景，不再提供旧中性任务样例入口；
 - `to-v2` 先检查旧契约的表达能力。按用户确认，无法无损转换时退出码2，
   一次列出任务行为、几何、依赖、能力、平台参数、约束和时间基准等差异，
   不写文件。当前四个样例均不具备无损转换条件，尚未提供成功转换分支。
@@ -336,10 +364,8 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
 
 - 样例：`scenarios/area_containment.{message,formation}.json`（集结待机区 →
   小十字路口 60×60 m 街区（出发点为编成表固定出生位，与 T-ASL 一致），2 段占位 + 2 个门哨 + 1 个机动组 + 1 架空中监视，2 条未授权目标 + 1 条授权目标）。
-- 运行：`python -m interop.cli demo ... --motion real --behavior`；工作台场景选
-  "区域封控 · T-SEC"，运行后在"演示总览"顶部切到 **区域封控** 页签查看
-  （占位平台在岗巡视，警告/拦阻/放行按时间轴播放）。
-- 参数、指标口径、未做项：见 `docs/区域封控任务_20261031.md`。
+- 运行：`python -m interop.cli demo ... --motion real --behavior`；工作台选择区域封控场景，在默认全局地图聚焦任务查看占位、警告、拦阻和放行；不再依赖已收起的专用页签。
+- 参数、指标口径、未做项：见 [任务行为实现](../behaviors.py) 与 [当前说明](../README.md)。
 
 ## 9 要点坚守（T-HLD）落地
 
@@ -367,6 +393,5 @@ T-SEC 不再只是"把入口点分给平台"：`templates._decompose_sec` 按
   坚守 150 s，含 2 次自动轮换、1 次按敌我比触发的增援、1 次按时撤离、4 次敌方
   进攻含一次后方试探；要点按阵位探测圈做全向覆盖判定，空中席 60 m 盘旋）。
 - 运行：`python -m interop.cli demo ... --motion real --behavior --max-ticks 260`；
-  工作台场景选 "要点坚守 · T-HLD"，运行后在"演示总览"顶部切到 **要点坚守** 页签
-  （阵位在位甘特、增援/接替标记、逐项判定、桩判定清单）。
-- 参数、指标口径、未做项：见 `docs/要点坚守任务_20261102.md`。
+  工作台选择要点坚守，在统一地图与右侧详情查看执行（阵位在位甘特、增援/接替标记、逐项判定、桩判定清单）。
+- 参数、指标口径、未做项：见 [任务行为实现](../behaviors.py) 与 [当前说明](../README.md)。

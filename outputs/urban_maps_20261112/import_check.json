@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "url": "http://127.0.0.1:8768/?map=residential",
+  "maps": [
+    {
+      "id": "residential",
+      "buildings": 172,
+      "visible": 1498
+    },
+    {
+      "id": "downtown",
+      "buildings": 516
+    },
+    {
+      "id": "mixed",
+      "buildings": 290
+    }
+  ],
+  "file_import": "passed",
+  "invalid_input": "rejected without replacing map",
+  "return_to_run": "passed",
+  "runtime_exceptions": 0
+}

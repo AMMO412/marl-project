@@ -23,7 +23,7 @@ TASK_TYPE_LABELS = {
 
 
 def robot_topic(robot_id: int) -> str:
-    """机器人编号 → 2026-10-30 后的移动话题：/container_00/robot_XXX。
+    """实际平台编号 → /container_xx/robot_xxx/cmd_vel 控制话题。
 
     统一从基座 fleet（可用环境变量覆盖）取名；导入失败时按同一规则兜底，
     保证独立运行 interop 也能生成正确话题。
@@ -34,7 +34,11 @@ def robot_topic(robot_id: int) -> str:
     except ImportError:
         import os
         container = os.environ.get("FLEET_CONTAINER_NAME", "container_00")
-        suffix = os.environ.get("FLEET_CMD_SUFFIX", "")
+        template = os.environ.get("FLEET_CMD_TOPIC_TEMPLATE", "")
+        if template:
+            return template.format(container=container, robot="robot_%03d" % int(robot_id),
+                                   robot_no=int(robot_id), no=int(robot_id))
+        suffix = os.environ.get("FLEET_CMD_SUFFIX", "/cmd_vel")
         return "/%s/robot_%03d%s" % (container, int(robot_id), suffix)
 
 
@@ -55,6 +59,9 @@ class Platform:
     # 基座画像（用于与 planner_v2 对比；缺省按平台类补默认值）
     payload: float = 0.0
     sensor: str = ""
+    payload_kg: float = 0.0
+    sensor_spec: Dict[str, Any] = field(default_factory=dict)
+    motion_spec: Dict[str, Any] = field(default_factory=dict)
     battery: float = 100.0
     work_rate: float = 1.0
     move_cost: float = 0.0
@@ -105,8 +112,17 @@ class Subtask:
     role: str = ""
     # T-ASL：突击席位的载荷下限；侦察/评估席位的固定平台（可空）
     min_payload: float = 0.0
+    payload_required_kg: float = 0.0
+    sensor_required: Dict[str, Any] = field(default_factory=dict)
+    endurance_required_s: float = 0.0
+    motion_required: Dict[str, Any] = field(default_factory=dict)
     pinned_unit: str = ""
     status: str = "UNASSIGNED"
+    pinned_class: str = ""
+    # Scenario-authored unit hints are preferences.  They must not force an
+    # otherwise idle fleet to wait for one already-busy platform.  Explicit
+    # UI locks still use ``pinned_unit``.
+    preferred_unit: str = ""
 
 
 @dataclass

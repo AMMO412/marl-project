@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import platform as _platform
+import shutil
 import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -17,6 +18,13 @@ from typing import Any, Dict, List, Optional
 from . import __version__
 from .cost import OBJECTIVE_LABELS
 from .model import Plan, Scenario
+from .agent_tasks import ARTIFACT_NAMES, build_agent_tasks, render_agent_tasks, agent_artifact
+
+
+def agent_tasks_for_plan(plan, scenario):
+    return build_agent_tasks(plan.to_dict(), [dict(
+        unit_id=p.unit_id, robot_id=p.robot_id, platform_class=p.platform_class)
+        for p in scenario.platforms])
 
 
 def _target_text(target: Any) -> str:
@@ -46,7 +54,7 @@ def ros2_pub_line(command) -> str:
     """一条 4.2 速度记录 → 可直接粘贴的 ros2 topic pub 命令。
 
     ROS 2 的 Twist 字段是小写 ``z``（用户给的示例里大写 Z 只是笔误，ROS 2
-    会拒绝）；话题按 2026-10-30 后的 /container_00/robot_XXX 输出。
+    会拒绝）；话题按当前配置的完整 ROS 2 控制话题输出。
     """
     return ('ros2 topic pub -r 20 %s geometry_msgs/msg/Twist '
             '"{linear: {x: %.3f, y: %.3f, z: %.3f}, '
@@ -79,6 +87,9 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
                         plan.source_message.get("source"),
                         plan.source_message.get("schema_version")))
     lines.append("")
+    lines.append("## 0 单平台智能体任务（优先审阅）")
+    lines.append("")
+    lines.append(render_agent_tasks(agent_tasks_for_plan(plan, scenario), heading_level=3))
     lines.append("## 1 指标")
     lines.append("")
     lines.append("| 指标 | 值 |")
@@ -98,9 +109,9 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
         lines.append("| 总暴露量（模型值） | %s |"
                      % _fmt(om.get("total_exposure", om.get("total_risk", 0))))
         if "detection_probability" in om:
-            lines.append("| 被侦测概率（模型值） | %.1f%% |"
+            lines.append("| 被侦察到的概率（模型值） | %.1f%% |"
                          % (100.0 * om["detection_probability"]))
-            lines.append("| 单平台最高被侦测概率 | %.1f%% |"
+            lines.append("| 单平台最高被侦察到的概率 | %.1f%% |"
                          % (100.0 * om.get(
                              "max_platform_detection_probability", 0.0)))
             lines.append("| 期望被侦测平台数 | %.2f |"
@@ -167,7 +178,7 @@ def build_report(plan: Plan, scenario: Scenario) -> str:
         lines.append("- 单条指令最长 120 s，TRANSIT/HOLD/STOP 分阶段；"
                      "末段 STOP 为显式全零，运行时不依赖超时停车。")
         lines.append("- `ros2_commands.txt` 给出可按 at_s 执行的 `ros2 topic pub "
-                     "-r 20` 命令（话题 `/container_00/robot_XXX`，字段小写 z）。")
+                     "-r 20` 命令；`ros2_plan_node.py` 可按 20 Hz 自动发布同一计划。")
     lines.append("")
 
     lines.append("## 4 未分配与冲突")
@@ -221,6 +232,11 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
     with open(plan_path, "w", encoding="utf-8") as fh:
         json.dump(plan.to_dict(), fh, ensure_ascii=False, indent=2)
 
+    agent_data = agent_tasks_for_plan(plan, scenario)
+    for name in ARTIFACT_NAMES:
+        with open(os.path.join(out_dir, name), 'wb') as fh:
+            fh.write(agent_artifact(agent_data, name))
+
     platforms = scenario.platform_map
     assignments_path = os.path.join(out_dir, "assignments.csv")
     with open(assignments_path, "w", encoding="utf-8-sig", newline="") as fh:
@@ -270,14 +286,18 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
 
     ros2_path = os.path.join(out_dir, "ros2_commands.txt")
     with open(ros2_path, "w", encoding="utf-8") as fh:
-        fh.write("# 4.2 执行层 → ROS 2 发布命令（话题 /container_00/robot_XXX）\n")
+        fh.write("# 4.2 执行层 → ROS 2 发布命令（话题见下方各条命令）\n")
         fh.write("# 每条命令按 at_s 排程、持续 duration_s；-r 20 约 20 Hz。\n")
-        fh.write("# Ctrl+C 后仍需发一次全零 Twist；本文件只给命令，不自动发布。\n")
+        fh.write("# 自动发布可使用同目录 ros2_plan_node.py；本文件保留人工核对命令。\n")
         for command in plan.commands:
             fh.write("# %s  at=%.3f s  duration=%.3f s  phase=%s\n"
                      % (command.command_id, command.at_s, command.duration_s,
                         command.phase))
             fh.write(ros2_pub_line(command) + "\n")
+
+    node_source = os.path.join(os.path.dirname(__file__), "ros2_plan_node.py")
+    node_path = os.path.join(out_dir, "ros2_plan_node.py")
+    shutil.copyfile(node_source, node_path)
 
     manifest = {
         "generator": "planning_middle_demo/interop",
@@ -307,12 +327,17 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
                       ("assignments_csv", assignments_path),
                       ("commands_csv", commands_path),
                       ("report_md", report_path),
-                      ("ros2_commands", ros2_path)):
+                      ("ros2_commands", ros2_path),
+                      ("ros2_plan_node", node_path)):
         manifest["outputs"][key] = {"path": os.path.abspath(path),
                                     "sha256": sha256_file(path),
                                     "bytes": os.path.getsize(path)}
     if extra:
         manifest.update(extra)
+    for name in ARTIFACT_NAMES:
+        path = os.path.join(out_dir, name)
+        manifest['outputs'][name.replace('.', '_')] = dict(
+            path=os.path.abspath(path), sha256=sha256_file(path), bytes=os.path.getsize(path))
     manifest_path = os.path.join(out_dir, "manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, ensure_ascii=False, indent=2)
@@ -323,5 +348,7 @@ def write_outputs(plan: Plan, scenario: Scenario, out_dir: str,
         "commands_csv": commands_path,
         "report_md": report_path,
         "ros2_commands": ros2_path,
+        "ros2_plan_node": node_path,
         "manifest_json": manifest_path,
+        **{name.replace('.', '_'): os.path.join(out_dir, name) for name in ARTIFACT_NAMES},
     }

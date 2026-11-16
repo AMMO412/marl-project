@@ -37,6 +37,7 @@ Thumbs.db
 ~$*
 
 # Curated outputs: new runs stay local unless explicitly selected.
+/outputs/execution_binding_20261109/verified_*/
 /gazebo/
 /planning_middle_demo/outputs/*
 !/planning_middle_demo/outputs/README.md

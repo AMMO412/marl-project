@@ -1,85 +1,31 @@
-# MARL界面预览（桌面演示端）
+# C# 原生桌面兼容入口
 
-## 定位
+当前默认界面为浏览器工作台，启动见 [工程入口](../README.md)。本目录保留 WinForms / .NET Framework 4.8 桌面端，场景画布由 WebView2 复用当前 JavaScript 绘图器；源码和构建依赖保留。
 
-这是规划中间层的 **本地可视化演示软件**。主窗口保留原有桌面布局，任务视图复用本地工作台的真实运行回放；真实平台展示目标是接入 Gazebo、在 UE5 中呈现，本软件不代表真实平台联调完成。
+## 运行与构建
 
-## 直接运行
-
-已构建版本：
-
-```text
-desktop_app\dist\MARL界面预览.exe
-```
-
-首次启动会自动寻找并启动本机 Python 后端；已存在的兼容后端会被复用。关闭程序时只终止本程序启动的后端。
-
-## 构建
-
-依赖：
-
-- Windows 10/11 x64
-- .NET Framework 4.8（系统自带 `csc.exe`）
-- WebView2 Evergreen 运行时
-- Python 3.14（开发期）；发布包使用便携 Python
+已有程序：`desktop_app/dist/MARL界面预览.exe`。需要源码构建时在工程根目录执行：
 
 ```powershell
-cd desktop_app
-.\build.cmd
+.\desktop_app\build.cmd
 ```
 
-输出：`desktop_app\dist\MARL界面预览.exe`，以及 WebView2 DLL/许可证。
+依赖 Windows、.NET Framework 4.8、WebView2 运行时和本机 Python；DLL 与许可证保留在 `lib/webview2/` 和构建产物目录。浏览器工作台本身不需要 WebView2。
 
-## 验证
+## 当前能力
 
-```powershell
-desktop_app\dist\MARL界面预览.exe --verify <输出目录>
-desktop_app\dist\MARL界面预览.exe --live-verify <输出目录>
-```
+原生配置、五类任务专用表单、红方目标编辑、运行/平台筛选、回放、高度曲线、文件预览/另存、运行对比与独立追溯窗口仍保留。原生端主要使用修改草稿后新建运行；实时暂停编辑和回放中途同编号续算的完整操作在浏览器工作台提供。
 
-- `--verify`：原生布局、属性、回放控制、图层等静态检查，并生成截图。
-- `--live-verify`：等待后端和任务视图就绪，载入真实运行，生成主视图/任务/平台截图和 `live-verification.txt`。
+地图显示实际已记录轨迹，近期拖尾默认 10 秒；失联、返航、任务与命令边界保留。界面能打开历史记录不代表使用当前算法复跑。
 
-## 便携发布包
+运行目录从后端读取，当前默认 `dist/data/runs/`，环境变量 `MARL_WORKBENCH_OUTPUTS` 可覆盖。数据、回收站、续算版本和正在使用的服务不作为本次精简对象。
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File desktop_app\packaging\build_release.ps1
-```
+## 开发验证与打包
 
-生成 `desktop_app\release\MARL界面预览\` 和 `MARL界面预览_v0.5.0.zip`，包含：
+`--verify` 检查结构；`--live-verify` 检查真实地图与交互；`--run-verify` 会新建一轮。各项 `*Verification.cs` 是可重复检查源码，不按“旧验证”删除。
 
-- `runtime/`：Python 3.14.7 embeddable
-- `app/planning_middle_demo/`：后端与工作台
-- `app/资料/接口说明/`：SDF 与模型
-- `data/runs/`：随包样例运行
-- `lib/webview2/`：WebView2 SDK（DLL 与 exe 同目录）
-- `LICENSES/`、`VERSION.txt`、`启动说明.txt`、`SHA256SUMS.txt`
+打包脚本在 `packaging/`，会使用便携 Python、第三方许可证及成功样例。当前目录没有已核验的发布压缩包，不能按历史日期声称已有最新交付包。打包需单独验证，不在本轮清理中重建。
 
-## 目录
+[原生能力边界](NATIVE_FEATURES.md) · [架构](ARCHITECTURE.md) · [运行文件用途](../docs/运行输出文件说明.md)
 
-```text
-desktop_app/
-├─ src/                 # C# 源码
-│  ├─ DesktopPreview.cs # 原布局、场景、属性、日志
-│  ├─ DesktopApi.cs     # HTTP API、模型、后端进程管理
-│  └─ DesktopIntegration.cs # WebView2、任务视图、原生面板联动
-├─ lib/webview2/        # WebView2 SDK
-├─ packaging/           # 发布包构建
-├─ build.cmd / build.ps1
-├─ dist/                # 构建产物（不提交）
-└─ release/             # 发布产物（不提交）
-```
-
-## 当前边界
-
-- 主演示场景：T-SEC 区域封控。
-- 其他四类任务有场景入口和通用任务/平台列表；专用视图后续接入。
-- 原生场景页是“布局示意”；任务视图显示真实运行记录。
-- 未接 ROS2/Gazebo/UE5；本地演示结果不等于平台验收结果。
-- 未签名 exe 可能触发 SmartScreen。
-
-## 关键接口
-
-- 后端：`GET /api/catalog`、`GET /api/desktop/run/<id>`、`POST /api/runs`。
-- 页面桥：`window.MarlDesktop`（`selectRun`、`selectTask`、`play`、`pause`、`setTime`、`fit`、`startReplay`）。
-- 数据目录：`MARL_WORKBENCH_OUTPUTS`。
+以上为本地开发工具，不表示真实 ROS2/Gazebo/UE5 联调或正式验收。

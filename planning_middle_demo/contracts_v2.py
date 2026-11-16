@@ -7,7 +7,7 @@ contracts_v2.py —— 规划能力版消息契约（middle-demo/v2）
 planning/ 的通用任务语义：
 
   * 平台：编号对应下游 50 台编成（内部 ID rover_XX，移动话题
-    /container_00/robot_XXX），带能力参数（速度/效率/续航/载荷/传感器/能否爬升）
+    /container_00/robot_XXX/cmd_vel），带能力参数（速度/效率/续航/载荷/传感器/能否爬升）
   * 作业：工作量 + 时间窗 + 协同人数 + 载荷/传感器需求 + 目标高度
   * 指令：携带作业参数与投递信息（真实话题），下层可以独立执行
   * 反馈：accepted / progress / succeeded / failed / cancelled，
@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 import fleet
+from vehicle_kinematics import limits_for
 
 PROTOCOL_V2 = "middle-demo/v2"
 
@@ -91,6 +92,10 @@ class Platform:
     ammo: int = 0             # 弹药基数（发），T-ASL 齐射消耗上限
     alive: bool = True
     pos_topic: str = ""
+    payload_kg: float = 0.0
+    sensor_spec: dict = field(default_factory=dict)
+    motion_spec: dict = field(default_factory=dict)
+    endurance_s: float = 0.0
     yaw: float = 0.0        # 当前朝向（真实运动下由反馈更新，用于 travel 估算）
 
     @property
@@ -191,17 +196,35 @@ def delivery_block(p: Platform) -> dict:
                     目标位姿在 coordinator 组装时用 task_block 的
                     position + altitude 明确，见 task_block 的 goal 字段。
     """
+    limits = limits_for(p, p.speed)
+    motion = dict(getattr(p, "motion_spec", {}) or {})
+    motion_caps = dict(
+        max_linear=float(motion.get("max_speed_mps") or limits.max_speed),
+        max_angular=float(motion.get("max_yaw_rate_rad_s") or limits.max_yaw_rate),
+        max_linear_accel=float(motion.get("max_accel_mps2") or limits.max_accel),
+        max_linear_decel=float(motion.get("max_accel_mps2") or limits.max_decel),
+        max_angular_accel=limits.max_yaw_accel,
+        max_lateral_accel=limits.max_lateral_accel,
+        min_turn_radius=float(motion.get("min_turn_radius_m")
+                              or limits.min_turn_radius),
+        can_pivot=limits.can_pivot,
+        tol_pos=0.5, tol_yaw=0.15,
+        can_climb=p.can_climb,
+        max_altitude_m=float(motion.get("max_altitude_m", 0.0)),
+        max_climb_rate_mps=float(motion.get("max_climb_rate_mps", 0.0)),
+    )
     return dict(robot_no=p.robot_no, kind=p.kind,
                 cmd_vel_topic=p.topic, pose_topic=p.pos_topic,
                 can_climb=p.can_climb,
                 pos=[p.pos[0], p.pos[1]], battery=p.battery,
                 speed=p.speed, work_rate=p.work_rate,
-                payload=p.payload, sensor=p.sensor,
+                payload=p.payload, payload_kg=float(getattr(p, "payload_kg", 0.0)),
+                sensor=p.sensor, sensor_spec=dict(getattr(p, "sensor_spec", {}) or {}),
+                endurance_s=float(getattr(p, "endurance_s", 0.0) or 0.0),
+                motion=motion,
                 move_cost=p.move_cost, work_cost=p.work_cost,
                 ammo=p.ammo,
-                motion_caps=dict(max_linear=p.speed, max_angular=0.5,
-                                 tol_pos=0.5, tol_yaw=0.15,
-                                 can_climb=p.can_climb),
+                motion_caps=motion_caps,
                 stop_rule="explicit_zero_twist",
                 note="cmd_vel 只接受速度级指令；目标点闭环控制属于本层适配")
 
@@ -237,6 +260,7 @@ _OBJECTIVES = ("makespan", "balanced", "exposure", "dispersion", "energy")
 TIMELINE_EVENTS = {
     "member_lost": {"required": ("robot_no",), "optional": ()},
     "job_fail":    {"required": ("job_id",), "optional": ()},
+    "job_timeout": {"required": ("job_id",), "optional": ()},
     "job_delay":   {"required": ("job_id", "delay"), "optional": ()},
     "job_slow":    {"required": ("job_id", "factor"), "optional": ()},
 }
@@ -339,7 +363,7 @@ def _non_meta_keys(keys):
     return {k for k in keys if not (isinstance(k, str) and k.startswith("_"))}
 
 
-def check_scenario_v2(data):
+def check_scenario_v2(data, *, allow_empty_jobs=False):
     """校验 v2 场景 JSON。只验输入，不注入运行状态。"""
     if not isinstance(data, dict):
         raise ValueError("场景必须是 JSON 对象")
@@ -384,7 +408,7 @@ def check_scenario_v2(data):
                 raise ValueError("pos 必须是 [x, y] 数值对")
 
     jobs = data.get("jobs")
-    if not isinstance(jobs, list) or not jobs:
+    if not isinstance(jobs, list) or (not jobs and not allow_empty_jobs):
         raise ValueError("jobs 必须是非空列表")
     seen_job = set()
     allowed_job_keys = {"job_id", "type", "pos"} | set(JOB_SPECS["patrol"])
@@ -452,7 +476,7 @@ def resolve_rules(data):
 
 
 def build_platforms(data) -> List[Platform]:
-    """场景 JSON → 平台对象。能力参数一律来自 fleet.PLANNING_PARAMS。"""
+    """场景 JSON → 平台对象。性能参数优先取 4.1 编成表的明确单位字段。"""
     out = []
     for item in data["platforms"]:
         no = item["robot_no"]
@@ -460,13 +484,23 @@ def build_platforms(data) -> List[Platform]:
         s = fleet.PLANNING_PARAMS[kind]
         pos = item.get("pos")
         pos = (float(pos[0]), float(pos[1])) if pos else (0.0, 0.0)
+        payload_kg = float(item.get("_payload_kg", s.get("payload_kg",
+                                                          s["payload"] * 100.0)))
+        sensor_spec = dict(item.get("_sensor") or {})
+        if not sensor_spec:
+            sensor_spec = {"type": s["sensor"]}
+        motion_spec = dict(item.get("_motion") or {})
+        endurance_s = float(item.get("_endurance_s", 0.0) or 0.0)
         out.append(Platform(
             pid=fleet.pid_of(no), kind=kind, robot_no=no, pos=pos,
             speed=s["speed"], work_rate=s["work_rate"], battery=s["battery"],
-            payload=s["payload"], sensor=s["sensor"],
+            payload=(payload_kg / 100.0 if "_payload_kg" in item else s["payload"]),
+            sensor=str(sensor_spec.get("type") or s["sensor"]),
             can_climb=s["can_climb"], move_cost=s["move_cost"],
             work_cost=s["work_cost"], ammo=int(s.get("ammo", 0)),
-            pos_topic=fleet.pose_topic_of(no)))
+            pos_topic=fleet.pose_topic_of(no),
+            payload_kg=payload_kg, sensor_spec=sensor_spec,
+            motion_spec=motion_spec, endurance_s=endurance_s))
     return out
 
 

@@ -1,3 +1,5 @@
+> 当前默认是浏览器工作台，C# 原生端保留兼容入口。此文件是交付框架，不是已验收报告。当前使用与边界见 [工程入口](../../../README.md)，原始输入/报告/运动序列/追溯的用途见 [运行文件说明](../../运行输出文件说明.md)。
+
 # 接口文档（骨架）
 
 ## 文档控制
@@ -6,7 +8,7 @@
 | --- | --- |
 | 文档编号 | 07 |
 | 版本 | v0.5（骨架） |
-| 日期 | 2026-11-06 |
+| 日期 | 2026-11-16（当前事实核对，正文仍待完成） |
 | 状态 | 待逐项核对 |
 
 ## 目录大纲
@@ -29,6 +31,12 @@
 ### 工作台 HTTP
 
 - `GET /api/catalog`
+- `GET /api/process`
+- `GET /api/live/<run_id>`
+- `POST /api/live/<run_id>`（暂停、继续、改配、结束保存）
+- `POST /api/desktop/validate`
+- `POST /api/desktop/editor-metadata`
+- `POST /api/desktop/editor-targets`
 - `GET /api/runs/<run_id>`
 - `GET /api/desktop/run/<run_id>?t=<seconds>`
 - `GET /api/source/<source_id>`

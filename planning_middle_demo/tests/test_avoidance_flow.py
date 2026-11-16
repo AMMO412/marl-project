@@ -13,7 +13,7 @@ from run_demo_v2 import simulate
 
 
 def scenario():
-    return json.loads((ROOT / 'scenarios/simple_city.json')
+    return json.loads((ROOT / 'tests/fixtures/base_scenarios/simple_city.json')
                       .read_text(encoding='utf-8'))
 
 
@@ -67,7 +67,11 @@ class MockFleetAvoidanceTests(unittest.TestCase):
         start_in_obstacle 后永久 0 进度，rover_01 一直占着不放，连带
         J5 每轮都因"成员忙"派不出去（2026-10-29 实际发生过）。
         """
-        report, trace = simulate(scenario(), 'normal', max_ticks=350,
+        scene = scenario()
+        # This regression checks movement/obstacle recovery, with feasible windows.
+        for job in scene['jobs']:
+            job['window'] = [0, 350]
+        report, trace = simulate(scene, 'normal', max_ticks=350,
                                  motion='real', avoid=True, behavior=True)
         self.assertTrue(report['all_succeeded'],
                         [(j['job_id'], j['status']) for j in report['jobs']])
@@ -153,7 +157,7 @@ class EnduranceGateTests(unittest.TestCase):
         import planner_v2
         from contracts_v2 import build_jobs, build_platforms
         self.pl = planner_v2
-        self.scene = json.loads((ROOT / 'scenarios/asl_city.json')
+        self.scene = json.loads((ROOT / 'tests/fixtures/base_scenarios/asl_city.json')
                                 .read_text(encoding='utf-8'))
         self.plats = build_platforms(self.scene)
         self.job = build_jobs(self.scene)[0]

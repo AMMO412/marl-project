@@ -61,6 +61,94 @@ def point_in_polygon(point: Sequence[float], polygon: Sequence[Sequence[float]])
     return inside
 
 
+def segment_polygon_overlap_length(
+        a: Sequence[float], b: Sequence[float],
+        polygon: Sequence[Sequence[float]]) -> float:
+    """Return the exact length of segment ``a-b`` inside a polygon.
+
+    A fixed-distance midpoint sampler can miss a short corner crossing when
+    every sample happens to fall just outside the polygon. Planning exposure
+    and route avoidance must use geometric overlap instead, otherwise a path
+    can be priced at zero exposure while the player visibly crosses a corner.
+    """
+    start = (float(a[0]), float(a[1]))
+    end = (float(b[0]), float(b[1]))
+    dx, dy = end[0] - start[0], end[1] - start[1]
+    length = math.hypot(dx, dy)
+    pts = [(float(p[0]), float(p[1])) for p in polygon]
+    if len(pts) > 1 and pts[0] == pts[-1]:
+        pts = pts[:-1]
+    if length <= 1e-12 or len(pts) < 3:
+        return 0.0
+
+    cuts = [0.0, 1.0]
+    for c, d in zip(pts, pts[1:] + pts[:1]):
+        sx, sy = d[0] - c[0], d[1] - c[1]
+        qx, qy = c[0] - start[0], c[1] - start[1]
+        denominator = dx * sy - dy * sx
+        if abs(denominator) <= 1e-12:
+            # Collinear or parallel edges: add projections of both endpoints
+            # so the interval midpoint test can see any overlap.
+            denom = dx * dx + dy * dy
+            for point in (c, d):
+                t = ((point[0] - start[0]) * dx +
+                     (point[1] - start[1]) * dy) / denom
+                if -1e-12 <= t <= 1.0 + 1e-12:
+                    cuts.append(max(0.0, min(1.0, t)))
+            continue
+        t = (qx * sy - qy * sx) / denominator
+        u = (qx * dy - qy * dx) / denominator
+        if -1e-12 <= t <= 1.0 + 1e-12 and -1e-12 <= u <= 1.0 + 1e-12:
+            cuts.append(max(0.0, min(1.0, t)))
+
+    cuts = sorted(set(round(value, 14) for value in cuts))
+    overlap = 0.0
+    for left, right in zip(cuts, cuts[1:]):
+        if right - left <= 1e-12:
+            continue
+        middle = (left + right) / 2.0
+        point = (start[0] + dx * middle, start[1] + dy * middle)
+        if point_in_polygon(point, pts):
+            overlap += (right - left) * length
+    return overlap
+
+
+def segment_intersects_polygon(
+        a: Sequence[float], b: Sequence[float],
+        polygon: Sequence[Sequence[float]]) -> bool:
+    """Whether a segment has any positive-length overlap with a polygon."""
+    return segment_polygon_overlap_length(a, b, polygon) > 1e-9
+
+
+def segment_polygon_distance(
+        a: Sequence[float], b: Sequence[float],
+        polygon: Sequence[Sequence[float]]) -> float:
+    """Return the minimum distance between a segment and polygon boundary.
+
+    A segment that overlaps the polygon, including a tangent touching its
+    boundary, has distance zero.  Planning can use a positive threshold to
+    reserve a safety corridor around soft threat polygons.
+    """
+    start = (float(a[0]), float(a[1]))
+    end = (float(b[0]), float(b[1]))
+    pts = [(float(p[0]), float(p[1])) for p in polygon]
+    if len(pts) > 1 and pts[0] == pts[-1]:
+        pts = pts[:-1]
+    if len(pts) < 3:
+        return float("inf")
+    if segment_intersects_polygon(start, end, pts):
+        return 0.0
+    if point_in_polygon(start, pts) or point_in_polygon(end, pts):
+        return 0.0
+    distances = []
+    for left, right in zip(pts, pts[1:] + pts[:1]):
+        distances.append(point_segment_distance(start, left, right))
+        distances.append(point_segment_distance(end, left, right))
+        distances.append(point_segment_distance(left, start, end))
+        distances.append(point_segment_distance(right, start, end))
+    return min(distances)
+
+
 def path_length(path: Sequence[Sequence[float]]) -> float:
     return sum(dist(path[i], path[i + 1]) for i in range(len(path) - 1))
 

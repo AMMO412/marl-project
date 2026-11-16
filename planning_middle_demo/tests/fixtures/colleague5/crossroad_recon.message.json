@@ -1,0 +1,93 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-INTEROP-CROSSROAD-RCN-001",
+  "issued_at": "2026-11-03T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -31,
+            -23
+          ],
+          [
+            31,
+            -23
+          ],
+          [
+            31,
+            39
+          ],
+          [
+            -31,
+            39
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 220
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "params": {
+        "duration_s": 120,
+        "search_deadline_s": 180,
+        "search_starts": {
+          "U1": [
+            -22,
+            -14
+          ],
+          "U2": [
+            20,
+            29
+          ],
+          "U3": [
+            22,
+            -14
+          ],
+          "U4": [
+            -22,
+            29
+          ]
+        },
+        "cell": 4,
+        "sensor_radius_m": {
+          "ground": 7,
+          "air": 9
+        },
+        "coverage_target": 0.99,
+        "tracking_target": {
+          "target_id": "RCN-OBS-1",
+          "start": [
+            8,
+            0
+          ],
+          "goal": [
+            120,
+            0
+          ],
+          "move_after_s": 6,
+          "speed_mps": 3,
+          "track_outside_s": 25,
+          "track_until_stop": true,
+          "move_after_contact": true,
+          "stop_orbit_s": 18
+        },
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 1500.0
+        },
+        "motion_required": {
+          "min_speed_mps": 3.0
+        }
+      },
+      "description": "四台空地平台从路口北侧分头扫描。发现目标后上报位置，随后由一台平台跟踪驶离目标，完成区外跟踪及 99% 覆盖后回传。"
+    }
+  ]
+}

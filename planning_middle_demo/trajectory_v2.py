@@ -59,9 +59,12 @@ BEHAVIOR_EVENT_NAME = {
     "target_appeared": "目标出现", "target_detected": "发现目标",
     "patrol_position_report": "模拟上报目标位置",
     "patrol_target_started": "移动目标进入场景",
+    "patrol_target_departed": "移动目标驶离场景",
     "patrol_target_lost": "目标离开感知范围",
+    "patrol_result": "巡逻侦察结果",
     "target_authorized": "识别为已授权", "target_unauthorized": "识别为未授权",
     "warning_issued": "发出警告", "warning_effective": "警告有效·目标撤离",
+    "target_withdraw_started": "目标开始撤离",
     "intercept_assigned": "指派拦阻", "intercept_denied": "授权不足未拦阻",
     "intercepted": "拦阻到位", "breach": "未授权进入",
     "authorized_pass": "授权放行", "control_established": "控制建立",
@@ -76,6 +79,7 @@ BEHAVIOR_EVENT_NAME = {
     "effect_adjudicated": "效果桩判定", "attack_repelled": "进攻被击退（桩判定）",
     "attack_unresolved": "进攻未解除",
     "air_seat_reassigned": "空中席位退回",
+    "air_orbit_adjusted": "盘旋半径收缩（避对空威胁区）",
     "reinforce_triggered": "增援触发", "reinforce_arrived": "增援到位",
     "reinforce_timeout": "增援超时", "reinforce_unavailable": "无可用增援",
     "reinforce_aborted": "增援中止", "relief_skipped": "轮换跳过",
@@ -95,7 +99,7 @@ BEHAVIOR_EVENT_NAME = {
 # 区域封控页要按时间轴逐条播放的控制过程事件（不含目标内部状态字）
 CONTAINMENT_EVENTS = ("target_appeared", "target_detected", "target_authorized",
                       "target_unauthorized", "warning_issued",
-                      "warning_effective", "intercept_assigned",
+                      "warning_effective", "target_withdraw_started", "intercept_assigned",
                       "intercept_denied", "intercepted", "breach",
                       "authorized_pass", "control_established",
                       "control_interrupted", "control_restored")
@@ -220,7 +224,7 @@ def _trajectories(trace):
             for pid, points in per_worker.items()}
 
 
-def _containment_replay(trace):
+def _containment_replay(trace, job_id=None, configured=None):
     """从回放审计里抽出区域封控页需要的三块数据。
 
     * ``structure``：封控边界、分段占位、通道口、角色、控制等级（来自行为层
@@ -228,38 +232,86 @@ def _containment_replay(trace):
     * ``result``：逐项判定、指标、逐目标轨迹与控制时间线（``containment_result``）；
     * ``events``：可逐条播放的控制过程事件（发现/警告/拦阻/越界/放行等）。
 
-    三者都只从**已有记录**里取，不在前端重算几何或指标；没有封控结构就返回
-    None，工作台显示"本次运行不含区域封控"而不是补一张示意图。
+    尚未执行时显示配置中的边界和目标起点，动态状态仍只取执行记录。
     """
     structure = None
     result = None
     live = []
+    tracks = defaultdict(list)
     for row in trace:
         if row.get("kind") != "behavior_event":
             continue
         event = row.get("event") or {}
+        if job_id is not None and event.get("job_id") != job_id:
+            continue
+        now = row.get("sim_s", event.get("t", 0))
         kind = event.get("kind")
         if kind == "behavior_structure" and event.get("type") == "blockade" \
                 and event.get("area"):
             structure = dict(event)
-            structure["sim_s"] = row.get("sim_s", 0)
+            structure["sim_s"] = now
+            result = None
+            tracks.clear()
+            live.clear()
+        elif structure and kind == "behavior_detail":
+            for sample in (event.get("debug") or {}).get("targets") or []:
+                if sample.get("appeared") is not False:
+                    tracks[sample["target_id"]].append(
+                        (sample.get("appeared"), [now, *sample["pos"]]))
         elif kind == "containment_result":
             result = dict(event)
-            result["sim_s"] = row.get("sim_s", 0)
+            result["sim_s"] = now
         elif kind in CONTAINMENT_EVENTS:
             live.append(dict(
-                kind=kind, sim_s=row.get("sim_s", event.get("t", 0)),
-                t=event.get("t", row.get("sim_s", 0)),
+                kind=kind, sim_s=now, t=now,
                 target_id=event.get("target_id"), pid=event.get("pid"),
                 role=event.get("role"), pos=event.get("pos"),
-                phase=event.get("phase"), coverage=event.get("coverage")))
+                phase=event.get("phase"), coverage=event.get("coverage"),
+                eta_s=event.get("eta_s"), entry_eta_s=event.get("entry_eta_s"),
+                point=event.get("point"), goal=event.get("goal")))
     if structure is None:
-        return None
+        params = (configured or {}).get("_behavior") or {}
+        if not params.get("area"):
+            return None
+        from containment_geom import as_polygon, perimeter
+        try:
+            area = [list(p) for p in as_polygon(params["area"])]
+        except (TypeError, KeyError, ValueError):
+            return None
+        configured_targets = [
+            dict(spec, target_id=str(spec.get("target_id")
+                                     or spec.get("id") or "T?"))
+            for spec in params.get("intruders") or []
+            if isinstance(spec, dict)]
+        structure = dict(
+            type="blockade", job_id=job_id, sim_s=None, area=area,
+            center=configured["pos"], perimeter_m=perimeter(area),
+            gates=params.get("gates") or [], targets=configured_targets,
+            duration_s=params.get("duration_s"))
+    targets = []
+    appeared = {e["target_id"]: e for e in live
+                if e["kind"] == "target_appeared"}
+    for target in (result or {}).get(
+            "targets", structure.get("targets", [])):
+        tid = target["target_id"]
+        launch = appeared.get(tid)
+        track = [p for active, p in tracks.get(tid, ())
+                 if active or (launch and p[0] >= launch["t"])]
+        if not track and target.get("track"):
+            local_start = target["track"][0][0]
+            offset = ((launch["t"] - local_start) if launch
+                      else (structure["sim_s"] or 0))
+            track = [[round(t + offset, 3), x, y]
+                     for t, x, y in target["track"]]
+        if (launch and launch["pos"]
+                and (not track or track[0][0] > launch["t"])):
+            track.insert(0, [launch["t"], *launch["pos"]])
+        targets.append(dict(target, track=track or []))
     return dict(job_id=structure.get("job_id"), structure=structure,
-                result=result, events=live)
+                result=result, events=live, targets=targets)
 
 
-def _hold_replay(trace):
+def _hold_replay(trace, job_id=None):
     """从回放审计里抽出要点坚守页需要的三块数据。
 
     * ``structure``：要点、阵位（含朝向）、威胁方向、预备队/支援位、判定口径
@@ -273,22 +325,67 @@ def _hold_replay(trace):
     structure = None
     result = None
     live = []
+    intervals, occupied = {}, {}
+    recorded_occupancy = False
+    withdrawing = False
+
+    def occupy(post_id, pid, now):
+        current = occupied.get(post_id)
+        if current is not None and current['pid'] == pid:
+            return
+        if current is not None:
+            current['leave_s'] = now
+            del occupied[post_id]
+        if pid is not None:
+            current = dict(pid=pid, enter_s=now, leave_s=None)
+            occupied[post_id] = current
+            intervals.setdefault(post_id, []).append(current)
+
     for row in trace:
+        now = row.get("sim_s", 0)
         if row.get("kind") != "behavior_event":
+            if (structure and row.get('job_id') == structure['job_id']
+                    and row.get('kind') in ('job_requeued', 'job_failed', 'job_succeeded')):
+                for post_id in list(occupied):
+                    occupy(post_id, None, now)
+                withdrawing = True
             continue
         event = row.get("event") or {}
+        if job_id is not None and event.get("job_id") != job_id:
+            continue
         kind = event.get("kind")
         if kind == "behavior_structure" and event.get("type") == "hold" \
                 and event.get("positions"):
+            for post_id in list(occupied):
+                occupy(post_id, None, now)
             structure = dict(event)
-            structure["sim_s"] = row.get("sim_s", 0)
+            structure["sim_s"] = now
+            result = None
+            withdrawing = False
+        elif structure and kind == 'post_occupancy' and not withdrawing:
+            recorded_occupancy = True
+            occupy(event['post_id'], event.get('pid'), now)
+        elif structure and kind == 'behavior_detail' and not withdrawing:
+            # Older recordings already carry the execution layer's occupancy state.
+            debug = event.get('debug') or {}
+            owners, present = debug.get('post_owner'), debug.get('on_post')
+            if isinstance(owners, dict) and isinstance(present, dict):
+                recorded_occupancy = True
+                for post_id, pid in owners.items():
+                    occupy(post_id, pid if present.get(pid) else None, now)
         elif kind == "hold_result":
             result = dict(event)
-            result["sim_s"] = row.get("sim_s", 0)
+            result["sim_s"] = now
+            withdrawing = True
+            for post_id in list(occupied):
+                occupy(post_id, None, now)
         elif kind in HOLD_EVENTS:
+            if kind == 'withdraw_started':
+                withdrawing = True
+                for post_id in list(occupied):
+                    occupy(post_id, None, now)
             live.append(dict(
-                kind=kind, sim_s=row.get("sim_s", event.get("t", 0)),
-                t=event.get("t", row.get("sim_s", 0)),
+                kind=kind, sim_s=now, t=now,
                 post_id=event.get("post_id"), pid=event.get("pid"),
                 incoming=event.get("incoming"), outgoing=event.get("outgoing"),
                 arrival_s=event.get("arrival_s"), on_time=event.get("on_time"),
@@ -302,8 +399,17 @@ def _hold_replay(trace):
                 posts=event.get("posts")))
     if structure is None:
         return None
+    if not recorded_occupancy and result is not None:
+        offset = structure['sim_s'] - structure.get('t', 0)
+        for position in result.get('positions', []):
+            intervals[position['id']] = [
+                dict(pid=item['pid'], enter_s=item['enter_s'] + offset,
+                     leave_s=None if item['leave_s'] is None else item['leave_s'] + offset)
+                for item in position.get('occupants', [])]
     return dict(job_id=structure.get("job_id"), structure=structure,
-                result=result, events=live)
+                result=result, events=live, occupancy_known=recorded_occupancy or bool(intervals),
+                positions=[dict(id=post['id'], occupants=intervals.get(post['id'], []))
+                           for post in structure['positions']])
 
 
 def build_replay_data(scenario, report, trace):
@@ -322,33 +428,95 @@ def build_replay_data(scenario, report, trace):
         workers[pid] = dict(pid=pid, no=no, kind=kind or "unknown",
                             start=list(p["pos"]), start_z=p.get("z", 0),
                             initial_battery=p.get("battery"), samples=[])
-    for row in trace:
-        ev = row.get("event") or {}
-        if row.get("kind") == "behavior_event" and ev.get("kind") == "return_sample":
-            ev = dict(ev, worker_id=ev["pid"], command_id="return:" + ev["pid"],
-                      status="succeeded" if ev["phase"] == "returned" else "progress")
-        elif row.get("kind") != "feedback_applied":
-            continue
-        pid, pos = ev.get("worker_id"), ev.get("pos")
+    def append_sample(pid, pos, *, t, z=0, yaw=0, battery=None, job=None,
+                      status="progress", phase=None, command=None,
+                      progress=None):
         if not pid or pos is None or len(pos) < 2:
-            continue
+            return
         if pid not in workers:
             info = final_info.get(pid, {})
             workers[pid] = dict(pid=pid, no=info.get("robot_no"),
                                 kind=info.get("kind", "unknown"), start=list(pos),
-                                start_z=ev.get("z", 0), initial_battery=None,
+                                start_z=z, initial_battery=None,
                                 samples=[], initial_unknown=True)
         workers[pid]["samples"].append(dict(
-            t=float(ev.get("sim_s", row.get("sim_s", 0))),
-            x=float(pos[0]), y=float(pos[1]), z=float(ev.get("z") or 0),
-            yaw=float(ev.get("yaw") or 0), battery=ev.get("battery"),
-            job=ev.get("job_id"), status=ev.get("status"), phase=ev.get("phase"),
-            command=ev.get("command_id"), progress=ev.get("progress")))
+            t=float(t), x=float(pos[0]), y=float(pos[1]), z=float(z or 0),
+            yaw=float(yaw or 0), battery=battery, job=job, status=status,
+            phase=phase, command=command, progress=progress))
+
+    for row in trace:
+        ev = row.get("event") or {}
+        kind = row.get("kind")
+        if kind == "feedback_applied":
+            append_sample(
+                ev.get("worker_id"), ev.get("pos"),
+                t=ev.get("sim_s", row.get("sim_s", 0)),
+                z=ev.get("z", 0), yaw=ev.get("yaw", 0),
+                battery=ev.get("battery"), job=ev.get("job_id"),
+                status=ev.get("status"), phase=ev.get("phase"),
+                command=ev.get("command_id"), progress=ev.get("progress"))
+            continue
+        if kind != "behavior_event":
+            continue
+        sub = ev.get("kind")
+        if sub in ("return_sample", "air_wait_sample"):
+            append_sample(
+                ev.get("pid"), ev.get("pos"),
+                t=ev.get("sim_s", ev.get("recorded_at_sim_s",
+                                        row.get("sim_s", 0))),
+                z=ev.get("z", 0), yaw=ev.get("yaw", 0),
+                battery=ev.get("battery"), job=None,
+                status=("succeeded" if ev.get("phase") == "returned"
+                        else "progress"),
+                phase=ev.get("phase"), command="return:" + str(ev.get("pid")))
+            if sub == "air_wait_sample" and workers.get(ev.get("pid"), {}).get("samples"):
+                workers[ev["pid"]]["samples"][-1]["air_wait"] = True
+            continue
+        if sub == "behavior_sample":
+            # 兼容逐平台记录格式。
+            append_sample(
+                ev.get("pid"), ev.get("pos"),
+                t=ev.get("t", row.get("sim_s", 0)),
+                z=ev.get("z", 0), yaw=ev.get("yaw", 0),
+                battery=ev.get("battery"), job=ev.get("job_id"),
+                status="progress", phase=ev.get("phase"),
+                command="behavior:" + str(ev.get("job_id")))
+            continue
+        if sub != "behavior_samples":
+            continue
+        # 行为运行器按每步打包一批 0.1 s 控制拍；展开成各平台样本，
+        # 让回放、暴露统计和轨迹图读取同一条实际折线。
+        job_id = ev.get("job_id")
+        command_ids = ev.get("command_ids") or {}
+        for sample in ev.get("samples") or []:
+            pose_by_pid = sample.get("agents") or {}
+            for pid, pose in pose_by_pid.items():
+                if not isinstance(pose, (list, tuple)) or len(pose) < 2:
+                    continue
+                append_sample(
+                    pid, pose[:2], t=sample.get("t", row.get("sim_s", 0)),
+                    z=pose[3] if len(pose) > 3 else 0,
+                    yaw=pose[2] if len(pose) > 2 else 0,
+                    battery=None, job=job_id, status="progress",
+                    phase=sample.get("phase"),
+                    command=command_ids.get(pid, "behavior:" + str(job_id)))
     ordered = []
     for i, pid in enumerate(sorted(workers)):
         worker = workers[pid]
-        # dict 的后写覆盖符合 trace 同刻先后顺序。
-        dedup = {s["t"]: s for s in worker["samples"]}
+        # 同刻位置以后写入的逐拍运动样本为准；电量、进度和终态等元数据
+        # 仍从反馈记录补齐，避免高速轨迹覆盖掉同秒的 succeeded 或电池读数。
+        dedup = {}
+        for sample in worker["samples"]:
+            previous = dedup.get(sample["t"])
+            if previous is not None:
+                for key in ("battery", "job", "phase", "command", "progress"):
+                    if sample.get(key) is None and previous.get(key) is not None:
+                        sample[key] = previous[key]
+                if (sample.get("status") == "progress"
+                        and previous.get("status") in (
+                            "succeeded", "failed", "cancelled")):
+                    sample["status"] = previous["status"]
+            dedup[sample["t"]] = sample
         samples = [dedup[t] for t in sorted(dedup)]
         prev = worker["start"]
         distance = 0.0
@@ -373,18 +541,35 @@ def build_replay_data(scenario, report, trace):
                          color=TYPE_COLOR.get(kind, "#64748b")))
     events = []
     relay_samples = []
+    recon_target_tracks = {}
     behaviors = {}      # job_id -> 行为结构（巡逻环/封控岗/侦察区/突击点/坚守岗）
+    behavior_history = []
     for r in trace:
         kind = r.get("kind")
-        if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "return_sample":
+        if kind == "behavior_event" and (r.get("event") or {}).get("kind") in (
+                "return_sample", "air_wait_sample"):
             continue
         if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "relay_target_sample":
             relay_samples.append([r["sim_s"], *r["event"]["pos"]])
+            continue
+        if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "recon_target_sample":
+            sample = r["event"]
+            recon_target_tracks.setdefault(sample["job_id"], []).append(
+                dict(t=r["sim_s"], **{key: sample[key] for key in (
+                    "pos", "moving", "pid", "status", "follow_point", "orbit_radius") if key in sample}))
+            continue
+        # 0.1 s 运动采样只服务轨迹与暴露统计，不重复塞进事件列表。
+        if kind == "behavior_event" and (r.get("event") or {}).get("kind") in (
+                "behavior_sample", "behavior_samples"):
             continue
         # 行为结构：单独收集，不进入事件列表（供主地图画动作结构）
         if kind == "behavior_event" and (r.get("event") or {}).get("kind") == "behavior_structure":
             ev = r.get("event") or {}
             jid = ev.get("job_id")
+            if jid:
+                version = dict(ev, sim_s=r.get("sim_s", 0))
+                version.pop("kind", None)
+                behavior_history.append(version)
             if jid and jid not in behaviors:
                 s = dict(ev)
                 s.pop("kind", None)
@@ -415,12 +600,36 @@ def build_replay_data(scenario, report, trace):
         relay_track = dict(target_id=relay_spec["target_id"],
                            samples=[[relay_samples[0][0] - 1, *relay_spec["start"]],
                                     *relay_samples])
+    hold_ids = dict.fromkeys(
+        b["job_id"] for b in behavior_history
+        if b.get("type") == "hold" and b.get("positions"))
+    hold_by_job = {jid: _hold_replay(trace, jid) for jid in hold_ids}
+    hold = next(reversed(hold_by_job.values()), None)
+    containment_jobs = {
+        j["job_id"]: j for j in jobs
+        if j["type"] == "blockade" and (j.get("_behavior") or {}).get("area")}
+    for item in behavior_history:
+        if item.get("type") == "blockade" and item.get("area"):
+            containment_jobs.setdefault(item["job_id"], None)
+    containment_by_job = {
+        jid: layer for jid, configured in containment_jobs.items()
+        if (layer := _containment_replay(trace, jid, configured)) is not None}
+    containment = max(
+        containment_by_job.values(),
+        key=lambda value: (
+            value["structure"]["sim_s"]
+            if value["structure"]["sim_s"] is not None else -1),
+        default=None)
     return dict(workers=ordered, jobs=jobs, events=events,
                 behaviors=[behaviors[j["job_id"]] for j in jobs
                            if j["job_id"] in behaviors],
-                containment=_containment_replay(trace),
-                hold=_hold_replay(trace),
-                relay_track=relay_track,
+                behavior_history=[
+                    item for item in behavior_history
+                    if item["job_id"] in {j["job_id"] for j in jobs}],
+                containment=containment,
+                containment_by_job=containment_by_job,
+                hold=hold, hold_by_job=hold_by_job,
+                relay_track=relay_track, recon_target_tracks=recon_target_tracks,
                 end=max(times),
                 background=load_scene_background(scenario),
                 motion=report.get("motion", "teleport"),

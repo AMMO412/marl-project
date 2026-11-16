@@ -186,26 +186,35 @@ def render_html(scenario, report, audit, extra_files=None):
     # 只在文件确实存在时给链接，基座单独跑时不会出现死链。
     have = dict(extra_files or {})
     gazebo_block = ""
-    if "commands.csv" in have:
+    if "commands.csv" in have or "motion_commands.json" in have:
         def _link(name, label, primary=False):
             style = ("display:inline-block;padding:8px 14px;border-radius:8px;"
                      "text-decoration:none;margin:0 8px 4px 0;"
                      + ("background:#0f766e;color:#fff" if primary
                         else "border:1px solid #cfe3dc;color:#0f766e"))
             return "<a href='%s' style='%s'>%s</a>" % (have[name], style, label)
-        links = [_link("commands.csv", "↓ commands.csv · 速度指令（cmd_vel）", True)]
+        full_motion = "motion_commands.json" in have
+        links = []
+        if full_motion:
+            links.extend([_link("motion_commands.json", "↓ 完整运动指令 JSON", True),
+                          _link("motion_commands.csv", "↓ 完整运动指令 CSV")])
+        if "commands.csv" in have:
+            links.append(_link("commands.csv", "↓ 路径规划速度表", not full_motion))
         if "ros2_commands.txt" in have:
             links.append(_link("ros2_commands.txt",
                                "ros2_commands.txt · 可直接粘贴"))
         if "plan.json" in have:
-            links.append(_link("plan.json", "plan.json · 完整计划"))
+            links.append(_link("plan.json", "plan.json · 静态计划"))
+        if "ros2_plan_node.py" in have:
+            links.append(_link("ros2_plan_node.py", "↓ ros2_plan_node.py · ROS 2 独立节点"))
         gazebo_block = (
             "<div style='border:1px solid #cfe3dc;background:#f4faf7;"
             "border-radius:8px;padding:12px 14px;margin:12px 0'>"
             "<b>Gazebo / ROS2 对接 · 控制平台怎么走</b>"
-            "<div class='small' style='margin:4px 0 8px'>每行一条 cmd_vel"
-            "（话题 / 时刻 / 时长 / 线速度 / 角速度）；目标点闭环在驱动侧，"
-            "本层只生成文件、不发布。</div>"
+            "<div class='small' style='margin:4px 0 8px'>"
+            + ("完整运动含任务中运动、等待盘旋和返航。ROS 2 节点默认按时间播放完整运动。"
+               if full_motion else "本轮提供静态计划速度指令。")
+            + "Gazebo 位姿反馈尚未接入。</div>"
             + "".join(links) + "</div>")
 
     doc = """<!DOCTYPE html>

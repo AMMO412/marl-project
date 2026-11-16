@@ -1,0 +1,313 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-IC-SIMPLE-001",
+  "issued_at": "2026-11-10T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "T-RCN-1",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -176.0,
+            -134.0
+          ],
+          [
+            -150.0,
+            -134.0
+          ],
+          [
+            -150.0,
+            -104.0
+          ],
+          [
+            -176.0,
+            -104.0
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 900
+      },
+      "required_capabilities": {},
+      "min_units": 2,
+      "max_units": 3,
+      "allow_split": true,
+      "params": {
+        "duration_s": 80.0,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 1500.0
+        },
+        "motion_required": {
+          "min_speed_mps": 3.0
+        }
+      },
+      "description": "西北片区协同侦察（3 段区域）。"
+    },
+    {
+      "task_id": "T-SEC-1",
+      "task_type": "T-SEC",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -112.0,
+            -162.0
+          ],
+          [
+            -78.0,
+            -162.0
+          ],
+          [
+            -78.0,
+            -128.0
+          ],
+          [
+            -112.0,
+            -128.0
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 900
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": false,
+      "params": {
+        "hold_duration_s": 120.0,
+        "roles": {
+          "boundary": 2,
+          "gate": 1,
+          "intercept": 1
+        },
+        "gates": [
+          {
+            "gate_id": "WEST",
+            "point": [
+              -112.0,
+              -145.0
+            ],
+            "width": 12.0,
+            "direction": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "standoff_m": 6.0,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800.0
+        }
+      },
+      "description": "侦察展开后封控中心广场：两段边界、西门哨、一个机动拦截组。",
+      "depends_on": [
+        "T-RCN-1"
+      ]
+    },
+    {
+      "task_id": "T-PTL-1",
+      "task_type": "T-PTL",
+      "priority": 1,
+      "target": {
+        "patrol_area": [
+          [
+            -75.0,
+            -196.0
+          ],
+          [
+            -35.0,
+            -196.0
+          ],
+          [
+            -35.0,
+            -160.0
+          ],
+          [
+            -75.0,
+            -160.0
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 900
+      },
+      "required_capabilities": {},
+      "min_units": 3,
+      "max_units": 3,
+      "allow_split": false,
+      "params": {
+        "duration_s": 100.0,
+        "follow_boundary": true,
+        "cycles": 1,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 1000.0
+        }
+      },
+      "description": "侦察展开后巡逻东南片区（HOUSE-02 外圈）。",
+      "depends_on": [
+        "T-RCN-1"
+      ]
+    },
+    {
+      "task_id": "T-HLD-1",
+      "task_type": "T-HLD",
+      "priority": 1,
+      "target": {
+        "key_point": [
+          -120.0,
+          -170.0
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 900
+      },
+      "required_capabilities": {},
+      "min_units": 5,
+      "max_units": 5,
+      "allow_split": false,
+      "params": {
+        "hold_duration_s": 120.0,
+        "positions": [
+          {
+            "id": "P1",
+            "point": [
+              -120.0,
+              -156.0
+            ],
+            "facing_deg": 0.0
+          },
+          {
+            "id": "P2",
+            "point": [
+              -106.0,
+              -170.0
+            ],
+            "facing_deg": 90.0
+          },
+          {
+            "id": "P3",
+            "point": [
+              -120.0,
+              -184.0
+            ],
+            "facing_deg": 180.0
+          },
+          {
+            "id": "P4",
+            "point": [
+              -134.0,
+              -170.0
+            ],
+            "facing_deg": 270.0
+          }
+        ],
+        "roles": {
+          "post": 4,
+          "reserve": 1
+        },
+        "reserve_point": [
+          -120.0,
+          -186.0
+        ],
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 1200.0
+        },
+        "threat_directions": [
+          {
+            "id": "N",
+            "bearing_deg": 0.0,
+            "width_deg": 90.0
+          },
+          {
+            "id": "E",
+            "bearing_deg": 90.0,
+            "width_deg": 90.0
+          },
+          {
+            "id": "S",
+            "bearing_deg": 180.0,
+            "width_deg": 90.0
+          },
+          {
+            "id": "W",
+            "bearing_deg": 270.0,
+            "width_deg": 90.0
+          }
+        ]
+      },
+      "description": "侦察展开后坚守西南路口要点：四个阵位 + 一个预备队。",
+      "depends_on": [
+        "T-RCN-1"
+      ]
+    },
+    {
+      "task_id": "T-ASL-1",
+      "task_type": "T-ASL",
+      "priority": 1,
+      "target": {
+        "point": [
+          -70.0,
+          -125.0
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 900
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": false,
+      "params": {
+        "duration_s": 100.0,
+        "effect": "damage",
+        "required_level": 6.0,
+        "payload_required_kg": 400.0,
+        "scout": {
+          "count": 1,
+          "sensor": {
+            "type": "any",
+            "min_range_m": 3000.0
+          }
+        },
+        "assessor": {
+          "count": 1,
+          "sensor": {
+            "type": "eo",
+            "min_range_m": 2000.0,
+            "max_resolution_m": 0.5
+          }
+        },
+        "staging_center": [
+          -95.0,
+          -110.0
+        ],
+        "assessment_post": [
+          -70.0,
+          -145.0
+        ],
+        "observe_radius": 20.0,
+        "observe_angle": 1.5707963267948966,
+        "objective_radius": 10.0,
+        "target_id": "TGT-A1",
+        "object_label": "东北口目标点（演练标定）"
+      },
+      "description": "东北路口机动突击：1 侦察 + 2 突击 + 1 评估。",
+      "depends_on": [
+        "T-RCN-1"
+      ]
+    }
+  ]
+}

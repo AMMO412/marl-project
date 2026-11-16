@@ -1,0 +1,624 @@
+{
+  "schema_version": "0.3",
+  "message_id": "MSG-CAMPUS-MOTION-20-20261110",
+  "issued_at": "2026-11-10T08:00:00Z",
+  "source": "UPPER",
+  "tasks": [
+    {
+      "task_id": "RCN-W",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -186,
+            -130
+          ],
+          [
+            -120,
+            -130
+          ],
+          [
+            -120,
+            -88
+          ],
+          [
+            -186,
+            -88
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": true,
+      "depends_on": [],
+      "params": {
+        "search_starts": {
+          "U31": [
+            -178,
+            -126
+          ],
+          "U32": [
+            -170,
+            -122
+          ],
+          "U33": [
+            -160,
+            -126
+          ],
+          "U34": [
+            -150,
+            -118
+          ]
+        },
+        "sensor_required": {
+          "type": "any",
+          "min_range_m": 1000
+        },
+        "motion_required": {
+          "min_altitude_ceiling_m": 100
+        },
+        "air_altitude_m": 28,
+        "air_orbit_radius_m": 8,
+        "air_max_yaw_rate": 1.0,
+        "takeoff_before_translation": true,
+        "cell": 5,
+        "coverage_target": 0.95,
+        "sensor_radius_m": {
+          "air": 20,
+          "ground": 10
+        },
+        "search_deadline_s": 320,
+        "duration_s": 180
+      },
+      "description": "西北楼间协同侦察"
+    },
+    {
+      "task_id": "RCN-E",
+      "task_type": "T-RCN",
+      "priority": 1,
+      "target": {
+        "area": [
+          [
+            -70,
+            -130
+          ],
+          [
+            -4,
+            -130
+          ],
+          [
+            -4,
+            -88
+          ],
+          [
+            -70,
+            -88
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": true,
+      "depends_on": [],
+      "params": {
+        "search_starts": {
+          "U41": [
+            -38,
+            -126
+          ],
+          "U42": [
+            -31,
+            -122
+          ],
+          "U43": [
+            -24,
+            -126
+          ],
+          "U44": [
+            -17,
+            -118
+          ]
+        },
+        "sensor_required": {
+          "type": "any",
+          "min_range_m": 1000
+        },
+        "motion_required": {
+          "min_altitude_ceiling_m": 100
+        },
+        "air_altitude_m": 28,
+        "air_orbit_radius_m": 8,
+        "air_max_yaw_rate": 1.0,
+        "takeoff_before_translation": true,
+        "cell": 5,
+        "coverage_target": 0.95,
+        "sensor_radius_m": {
+          "air": 18,
+          "ground": 10
+        },
+        "search_deadline_s": 320,
+        "tracking_target": {
+          "target_id": "OBS-STOP-1",
+          "start": [
+            -25,
+            -124
+          ],
+          "goal": [
+            -95,
+            -109
+          ],
+          "speed_mps": 2,
+          "move_after_s": 2,
+          "track_outside_s": 10,
+          "until_stopped": true,
+          "stop_hold_s": 3
+        },
+        "duration_s": 180
+      },
+      "description": "东北侦察与移动目标跟踪"
+    },
+    {
+      "task_id": "SEC-W",
+      "task_type": "T-SEC",
+      "priority": 2,
+      "target": {
+        "area": [
+          [
+            -186,
+            -170
+          ],
+          [
+            -120,
+            -170
+          ],
+          [
+            -120,
+            -130
+          ],
+          [
+            -186,
+            -130
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": true,
+      "depends_on": [
+        "RCN-W",
+        "RCN-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "roles": {
+          "boundary": 2,
+          "gate": 1,
+          "reserve": 1
+        },
+        "gates": [
+          {
+            "gate_id": "W-ENTRY",
+            "point": [
+              -150,
+              -132
+            ],
+            "width": 6,
+            "direction": [
+              -1,
+              0
+            ]
+          }
+        ],
+        "standoff_m": 3,
+        "reserve_post": [
+          -165,
+          -165
+        ],
+        "hold_duration_s": 70
+      },
+      "description": "西中区（西办公楼）封控占位"
+    },
+    {
+      "task_id": "SEC-E",
+      "task_type": "T-SEC",
+      "priority": 2,
+      "target": {
+        "area": [
+          [
+            -70,
+            -170
+          ],
+          [
+            -4,
+            -170
+          ],
+          [
+            -4,
+            -130
+          ],
+          [
+            -70,
+            -130
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": true,
+      "depends_on": [
+        "RCN-W",
+        "RCN-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "roles": {
+          "boundary": 2,
+          "gate": 1,
+          "reserve": 1
+        },
+        "gates": [
+          {
+            "gate_id": "E-ENTRY",
+            "point": [
+              -42,
+              -132
+            ],
+            "width": 6,
+            "direction": [
+              1,
+              0
+            ]
+          }
+        ],
+        "standoff_m": 3,
+        "reserve_post": [
+          -25,
+          -165
+        ],
+        "hold_duration_s": 70
+      },
+      "description": "东中区（东办公楼）封控占位"
+    },
+    {
+      "task_id": "PTL-W",
+      "task_type": "T-PTL",
+      "priority": 1,
+      "target": {
+        "patrol_area": [
+          [
+            -186,
+            -214
+          ],
+          [
+            -120,
+            -214
+          ],
+          [
+            -120,
+            -170
+          ],
+          [
+            -186,
+            -170
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 2,
+      "max_units": 2,
+      "allow_split": true,
+      "depends_on": [
+        "RCN-W",
+        "RCN-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "follow_boundary": true,
+        "cycles": 1,
+        "start_units": [
+          "U21",
+          "U22"
+        ],
+        "duration_s": 90
+      },
+      "description": "西南住宅外圈巡逻"
+    },
+    {
+      "task_id": "PTL-E",
+      "task_type": "T-PTL",
+      "priority": 1,
+      "target": {
+        "patrol_area": [
+          [
+            -70,
+            -214
+          ],
+          [
+            -4,
+            -214
+          ],
+          [
+            -4,
+            -170
+          ],
+          [
+            -70,
+            -170
+          ]
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 2,
+      "max_units": 2,
+      "allow_split": true,
+      "depends_on": [
+        "RCN-W",
+        "RCN-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "follow_boundary": true,
+        "cycles": 1,
+        "start_units": [
+          "U23",
+          "U24"
+        ],
+        "duration_s": 90
+      },
+      "description": "东南住宅外圈巡逻"
+    },
+    {
+      "task_id": "HLD-W",
+      "task_type": "T-HLD",
+      "priority": 3,
+      "target": {
+        "key_point": [
+          -95,
+          -150
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 3,
+      "max_units": 3,
+      "allow_split": true,
+      "depends_on": [
+        "SEC-W",
+        "PTL-W"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "roles": {
+          "post": 2,
+          "reserve": 1
+        },
+        "positions": [
+          {
+            "id": "W1",
+            "point": [
+              -103,
+              -150
+            ],
+            "facing_deg": 0
+          },
+          {
+            "id": "W2",
+            "point": [
+              -87,
+              -150
+            ],
+            "facing_deg": 0
+          }
+        ],
+        "reserve_point": [
+          -95,
+          -162
+        ],
+        "hold_duration_s": 50
+      },
+      "description": "中南路口要点坚守"
+    },
+    {
+      "task_id": "HLD-E",
+      "task_type": "T-HLD",
+      "priority": 3,
+      "target": {
+        "key_point": [
+          -95,
+          -192
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 3,
+      "max_units": 3,
+      "allow_split": true,
+      "depends_on": [
+        "SEC-E",
+        "PTL-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "sensor_required": {
+          "type": "eo",
+          "min_range_m": 800
+        },
+        "roles": {
+          "post": 2,
+          "reserve": 1
+        },
+        "positions": [
+          {
+            "id": "E1",
+            "point": [
+              -103,
+              -192
+            ],
+            "facing_deg": 0
+          },
+          {
+            "id": "E2",
+            "point": [
+              -87,
+              -192
+            ],
+            "facing_deg": 0
+          }
+        ],
+        "reserve_point": [
+          -95,
+          -200
+        ],
+        "hold_duration_s": 50
+      },
+      "description": "南中路口要点坚守"
+    },
+    {
+      "task_id": "MOV-C",
+      "task_type": "T-ASL",
+      "priority": 4,
+      "target": {
+        "point": [
+          -95,
+          -109
+        ]
+      },
+      "window": {
+        "start_s": 0,
+        "end_s": 1050
+      },
+      "required_capabilities": {},
+      "min_units": 4,
+      "max_units": 4,
+      "allow_split": true,
+      "depends_on": [
+        "HLD-W",
+        "HLD-E"
+      ],
+      "params": {
+        "payload_required_kg": 400,
+        "scout": {
+          "count": 1,
+          "unit": "U42",
+          "sensor": {
+            "type": "any",
+            "min_range_m": 1000
+          }
+        },
+        "assessor": {
+          "count": 1,
+          "unit": "U5",
+          "sensor": {
+            "type": "eo",
+            "min_range_m": 1000
+          }
+        },
+        "staging_center": [
+          -95,
+          -121
+        ],
+        "assessment_post": [
+          -95,
+          -97
+        ],
+        "observe_radius": 12,
+        "observe_angle": 0,
+        "objective_radius": 10,
+        "effect": "damage",
+        "required_level": 6,
+        "required_duration": 10,
+        "required_control_s": 10,
+        "attack_window": [
+          0,
+          1050
+        ],
+        "execute_deadline": 180,
+        "confirmation_deadline": 240,
+        "assessment_delay": 10,
+        "positive_id_required": true,
+        "roe": "仅打击经侦察指示并确认停止的目标",
+        "collateral_limit": "按演练规则不评估附带损伤",
+        "waves": 1,
+        "ammo_per_platform": 4,
+        "withdraw": true,
+        "withdraw_point": [
+          -95,
+          -125
+        ],
+        "withdraw_ring": 5,
+        "withdraw_deadline": 120,
+        "timeout_s": 600,
+        "target_id": "OBS-STOP-1",
+        "object_label": "跟踪目标停止位置",
+        "scout_duration_s": 30,
+        "assess_duration_s": 30,
+        "target_from_track": {
+          "task_id": "RCN-E",
+          "target_id": "OBS-STOP-1"
+        },
+        "after_event": {
+          "task_id": "RCN-E",
+          "kind": "target_stopped",
+          "target_id": "OBS-STOP-1"
+        },
+        "duration_s": 140
+      },
+      "description": "目标停止点机动突击"
+    }
+  ]
+}

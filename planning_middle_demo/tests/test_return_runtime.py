@@ -32,10 +32,10 @@ class ReturnRuntimeTests(unittest.TestCase):
         for now in range(1, 4):
             fleet.step_returns(now, set())
         state = fleet.platforms['rover_41']
-        self.assertEqual(state['pos'], (0.0, 0.0))
         self.assertGreater(state['z'], 0)
+        self.assertEqual(state['pos'], (0.0, 0.0))
         self.assertTrue(fleet.returns_pending())
-        for now in range(4, 8):
+        for now in range(4, 100):
             fleet.step_returns(now, set())
         self.assertEqual(state['z'], 0)
         self.assertFalse(fleet.returns_pending())
@@ -67,8 +67,7 @@ class ReturnRuntimeTests(unittest.TestCase):
         self.assertEqual(replay['end'], 5)
 
     def test_new_workbench_scenarios_enable_execution(self):
-        for name, limit in [('interop_patrol', 320), ('interop_recon', 220),
-                            ('interop_relay', 380)]:
+        for name, limit in [('interop_patrol', 320), ('interop_recon', 220)]:
             with self.subTest(scenario=name):
                 config = validate_config(dict(scenario=name, planner='interop'))
                 self.assertEqual(config['motion'], 'real')

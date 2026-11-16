@@ -20,7 +20,7 @@ from city_nav import build_nav
 
 
 def scenario():
-    return json.loads((ROOT / 'scenarios/simple_city.json')
+    return json.loads((ROOT / 'tests/fixtures/base_scenarios/simple_city.json')
                       .read_text(encoding='utf-8'))
 
 
@@ -105,6 +105,15 @@ class DamageTests(unittest.TestCase):
         self.assertEqual(result['termination'], 'deadline_exceeded')
         self.assertIn('deadline_exceeded',
                       {e['kind'] for e in behavior.history})
+
+    def test_3b_zero_execute_deadline_means_unconfigured(self):
+        """A zero default from the adapter must not abort execution at t=0."""
+        behavior, starts = self._damage_behavior(execute_deadline=0.0)
+        self.assertTrue(run(behavior, starts, max_steps=80))
+        result = behavior.metrics['result']
+        self.assertEqual(result['overall'], 'succeeded')
+        self.assertNotIn('deadline_exceeded',
+                         {e['kind'] for e in behavior.history})
 
     def test_4_confirmation_timeout_fails_confirmation_item(self):
         behavior, starts = self._damage_behavior(
@@ -243,7 +252,7 @@ class ItemStructureTests(unittest.TestCase):
         self.assertEqual(received[0]['source'], 'constructed_assessment_stub')
 
     def test_asl_city_scenario_carries_effect_config(self):
-        data = json.loads((ROOT / 'scenarios/asl_city.json')
+        data = json.loads((ROOT / 'tests/fixtures/base_scenarios/asl_city.json')
                           .read_text(encoding='utf-8'))
         job = next(j for j in data['jobs'] if j['type'] == 'assault')
         bh = job['_behavior']
@@ -268,7 +277,7 @@ class EffectKindConfigTests(unittest.TestCase):
         self.assertEqual(normalize_effect_kind('seize'), 'seize')
         self.assertEqual(normalize_effect_kind(None), 'damage')
         self.assertEqual(normalize_effect_kind('未知'), 'damage')
-        config = validate_config(dict(scenario='asl_city',
+        config = validate_config(dict(scenario='interop_asl',
                                       effect_kind='夺占'))
         self.assertEqual(config['effect_kind'], 'seize')
         with self.assertRaises(ValueError):

@@ -21,11 +21,11 @@ class ConfigTests(unittest.TestCase):
     def test_defaults_match_local_city_motion(self):
         c = validate_config({})
         self.assertEqual((c['scenario'], c['motion'], c['avoid']),
-                         ('simple_city', 'real', True))
+                         ('interop_containment', 'real', True))
 
     def test_invalid_requests_never_reach_runner(self):
         for request in [[], {'scenario': '../secret'}, {'mode': 'shell'},
-                        {'max_ticks': True}, {'max_ticks': 701},
+                        {'max_ticks': True}, {'max_ticks': 1201},
                         {'motion': 'teleport'}, {'scenario': 'fleet_demo'},
                         {'objective': 'unsupported'}, {'avoid': 'false'},
                         {'command': 'arbitrary command'}]:
@@ -33,33 +33,88 @@ class ConfigTests(unittest.TestCase):
                 validate_config(request)
 
     def test_objective_exposure_and_legacy_dispersion(self):
-        c = validate_config({'scenario': 'simple_city', 'objective': 'exposure'})
+        c = validate_config({'scenario': 'interop_containment', 'objective': 'exposure'})
         self.assertEqual(c['objective'], 'exposure')
         # 2026-11：旧名 dispersion 归一为 exposure，旧请求仍可复跑。
-        c = validate_config({'scenario': 'simple_city', 'objective': 'dispersion'})
+        c = validate_config({'scenario': 'interop_containment', 'objective': 'dispersion'})
         self.assertEqual(c['objective'], 'exposure')
 
     def test_balanced_is_a_fourth_objective(self):
-        c = validate_config({'scenario': 'simple_city', 'objective': 'balanced'})
+        c = validate_config({'scenario': 'interop_containment', 'objective': 'balanced'})
         self.assertEqual(c['objective'], 'balanced')
 
     def test_run_no_longer_emits_standalone_html(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp)
-            request = dict(scenario='simple_city', mode='normal', motion='teleport',
-                           avoid=False, behavior=False, max_ticks=12,
-                           objective='makespan', planner='base')
+            request = dict(scenario='interop_containment', mode='normal', motion='real',
+                           avoid=True, behavior=True, max_ticks=12,
+                           objective='makespan', planner='interop')
             (out / 'request.json').write_text(json.dumps(request), encoding='utf-8')
             run_worker(out)
             self.assertTrue((out / 'report.json').is_file())
             self.assertTrue((out / 'summary.txt').is_file())
             self.assertFalse((out / 'report.html').exists())
             self.assertFalse((out / 'trajectory.html').exists())
+            self.assertFalse((out / 'report.md').exists())
+            self.assertFalse((out / 'ros2_commands.txt').exists())
+            self.assertTrue((out / 'ros2_plan_node.py').is_file())
+            self.assertTrue((out / 'trace.jsonl').is_file())
+            self.assertNotIn('事件（', (out / 'summary.txt').read_text(encoding='utf-8'))
 
-    def test_fleet_fast_demo(self):
-        c = validate_config(dict(scenario='fleet_demo', motion='teleport', avoid=False,
-                                 mode='failure', max_ticks=60))
-        self.assertEqual(c['mode'], 'failure')
+    def test_patrol_target_is_detected_after_patrol_starts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            request = dict(
+                scenario='interop_patrol', mode='normal', motion='real',
+                avoid=True, behavior=True, max_ticks=220,
+                objective='exposure', planner='interop')
+            (out / 'request.json').write_text(
+                json.dumps(request), encoding='utf-8')
+            run_worker(out)
+            rows = [json.loads(line) for line in
+                    (out / 'trace.jsonl').read_text(
+                        encoding='utf-8').splitlines()]
+            behavior_events = [
+                (row['sim_s'], row['event'])
+                for row in rows
+                if row.get('kind') == 'behavior_event'
+            ]
+            patrol_started = next(
+                (sim_s, event) for sim_s, event in behavior_events
+                if event.get('kind') == 'phase'
+                and event.get('phase') == '巡逻')
+            target_started = next(
+                (sim_s, event) for sim_s, event in behavior_events
+                if event.get('kind') == 'patrol_target_started')
+            detections = [
+                event for _, event in behavior_events
+                if event.get('kind') == 'target_detected']
+            reports = [
+                event for _, event in behavior_events
+                if event.get('kind') == 'patrol_position_report']
+            result = next(
+                event for _, event in behavior_events
+                if event.get('kind') == 'patrol_result')
+            report = json.loads(
+                (out / 'report.json').read_text(encoding='utf-8'))
+            self.assertGreater(target_started[0], patrol_started[0])
+            self.assertGreater(target_started[1]['started_at_s'],
+                               patrol_started[1]['t'])
+            self.assertTrue(detections)
+            self.assertTrue(reports)
+            self.assertEqual(result['overall'], 'succeeded')
+            self.assertGreater(result['report_count'], 0)
+            self.assertEqual(report['jobs'][0]['status'], 'succeeded')
+
+    def test_five_current_scenarios_only(self):
+        from workbench_server import SCENARIOS
+        self.assertEqual(len(SCENARIOS), 5)
+        for key in ('simple_city', 'fleet_demo', 'asl_city', 'interop_neutral', 'interop_relay', 'assault_city'):
+            with self.assertRaises(ValueError):
+                validate_config(dict(scenario=key, motion='real'))
+        for key in SCENARIOS:
+            with self.assertRaises(ValueError):
+                validate_config(dict(scenario=key, motion='teleport'))
 
     def test_behavior_record_is_preferred_and_loads_actions(self):
         catalog = Workbench().catalog()
@@ -74,7 +129,7 @@ class ConfigTests(unittest.TestCase):
                if r['behavior_details'] and r.get('scenario') == 'asl_city']
         detailed = [r for r in catalog['runs'] if r['behavior_details']]
         pool = interop_multi or interop or asl or detailed
-        expected = pool[0]['id'] if pool else 'workbench_behavior_20261028'
+        expected = pool[0]['id'] if pool else None
         self.assertEqual(catalog['default_run'], expected)
         if not (Path(__file__).resolve().parents[1] / 'outputs' / MIXED_RUN).is_dir():
             self.skipTest('缺少历史混合录制 %s' % MIXED_RUN)
@@ -144,7 +199,7 @@ class HttpTests(unittest.TestCase):
         self.assertIn('id="report-objective"', html)
         self.assertIn('id="run-compare-card"', html)
         self.assertIn('id="show-threats"', html)
-        self.assertNotIn('id="overview-tabs"', html)
+        self.assertIn('id="overview-tabs"', html)
         self.assertNotIn('id="page-original"', html)
 
     def test_bad_body_and_external_origin_are_rejected(self):

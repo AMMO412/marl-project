@@ -15,6 +15,7 @@ from pathlib import Path
 
 import containment_geom as geom
 from behaviors import KeepBehavior
+from city_nav import distance
 from interop.errors import PlanningError
 from interop.message import parse_message
 from interop.runtime import nav_from_scenario, to_v2_dict
@@ -355,6 +356,12 @@ class HoldBehaviorTests(unittest.TestCase):
         # 未到位前，原占位者的目标仍是自己的阵位（不得先撤）
         self.assertEqual(behavior._targets_for()["U1"],
                          behavior.post_point["P1"])
+        incoming = behavior.handover["incoming"]
+        approach = behavior._targets_for()[incoming]
+        self.assertNotEqual(approach, behavior.post_point["P1"])
+        self.assertLessEqual(
+            distance(approach, behavior.post_point["P1"]),
+            behavior.handover_tol + 2.0)
         _run(behavior, steps=20, start={"U4": [0.0, 0.0]})
         self.assertIn("handover_complete", _kinds(behavior))
         row = behavior.handover_list[0]
@@ -392,6 +399,19 @@ class HoldBehaviorTests(unittest.TestCase):
         row = behavior.reinforce_list[0]
         self.assertEqual(row["post_id"], "P1")
         self.assertTrue(row["on_time"])
+
+    def test_suppressed_post_dispatches_reserve_before_control_drops(self):
+        behavior = _behavior(enemy_events=[
+            dict(t_s=1, kind="probe", direction="N")])
+        _run(behavior, steps=5)
+        rows = [row for row in behavior.reinforce_list
+                if row["reason"] == "post_suppressed"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["post_id"], "P1")
+        self.assertEqual(rows[0]["pid"], "U4")
+        self.assertTrue(rows[0]["on_time"])
+        self.assertNotIn("P1", behavior.suppressed)
+        self.assertEqual(behavior.counts["breaches"], 0)
 
     def test_reinforce_timeout_recorded(self):
         behavior = _behavior(
@@ -579,11 +599,35 @@ class HoldBehaviorTests(unittest.TestCase):
                           float(behavior.post_point[post_id][1]), 0.0)
         out = behavior.step(poses, 10.0, 1.0)
         target = out["targets"]["U5"]
-        radius = ((target[0] - KEY[0]) ** 2 + (target[1] - KEY[1]) ** 2) ** 0.5
-        self.assertAlmostEqual(radius, 40.0, delta=0.5)
+        self.assertEqual(target, KEY)
         self.assertIn("U5", behavior.params["air_altitude"])
         self.assertEqual(len(behavior.air_pids), 1)
         self.assertGreater(behavior.air_watch_s, 0.0)
+
+    def test_air_withdraw_accepts_safe_projection(self):
+        """撤离终点在威胁区内时，飞机到达安全投影点即可判撤离完成。"""
+        roles = dict(DEFAULT_ROLES)
+        roles["U5"] = "air:watch"
+        behavior = _behavior(
+            pid_roles=roles, pids=["U1", "U2", "U3", "U4", "U5"],
+            air_altitude_m=60, air_orbit_radius_m=40)
+        behavior._begin_withdraw(10.0, "control_lost")
+        points = {
+            pid: behavior._withdraw_point(pid)
+            for pid in behavior.pids
+        }
+        logical = list(points["U5"])
+        effective = [logical[0], logical[1] + 20.0]
+        behavior.set_effective_target("U5", logical, effective)
+        poses = {
+            pid: (*points[pid], 0.0)
+            for pid in behavior.pids
+        }
+        poses["U5"] = (effective[0], effective[1], 60.0)
+        behavior._step_end(poses, 11.0)
+        self.assertTrue(behavior.done)
+        self.assertFalse(behavior.withdraw_timed_out)
+        self.assertIn("withdrawn", _kinds(behavior))
 
     def test_air_seat_reassigned_when_platform_cannot_climb(self):
         roles = dict(DEFAULT_ROLES)
@@ -688,13 +732,14 @@ class HoldSampleTests(unittest.TestCase):
                           "post:P4", "reserve:standby"])
         check_scenario_v2(to_v2_dict(scenario, message, formation))
 
-    def test_sample_air_slot_pinned_to_air_unit(self):
+    def test_sample_air_slot_prefers_air_unit_without_hard_lock(self):
         message = json.loads(HOLD_MESSAGE.read_text(encoding="utf-8"))
         formation = json.loads(HOLD_FORMATION.read_text(encoding="utf-8"))
         scenario = parse_message(message, formation)
         air = [s for s in decompose(scenario) if s.role == "air:watch"]
         self.assertEqual(len(air), 1)
-        self.assertEqual(air[0].pinned_unit, "U6")
+        self.assertEqual(air[0].preferred_unit, "U6")
+        self.assertEqual(air[0].pinned_unit, "")
         self.assertEqual(air[0].required_capabilities, {"RCN": 2})
 
     def test_sample_covers_all_threat_directions(self):

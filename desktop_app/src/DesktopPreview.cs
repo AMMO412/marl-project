@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -40,15 +40,16 @@ namespace MarlDesktopPreview
 
     public class TaskProperties
     {
-        [Category("1. 席位信息"), DisplayName("席位编号"), ReadOnly(true)] public string Id { get; set; }
-        [Category("1. 席位信息"), DisplayName("席位名称"), ReadOnly(true)] public string Name { get; set; }
-        [Category("1. 席位信息"), DisplayName("职责类型"), ReadOnly(true)] public string Type { get; set; }
-        [Category("1. 席位信息"), DisplayName("所属封控区"), ReadOnly(true)] public string Area { get; set; }
+        [Category("1. 任务信息"), DisplayName("任务编号"), ReadOnly(true)] public string Id { get; set; }
+        [Category("1. 任务信息"), DisplayName("任务名称"), ReadOnly(true)] public string Name { get; set; }
+        [Category("1. 任务信息"), DisplayName("任务类型"), ReadOnly(true)] public string Type { get; set; }
+        [Category("1. 任务信息"), DisplayName("来源运行"), ReadOnly(true)] public string Area { get; set; }
         [Category("2. 计划参数"), DisplayName("开始时间 (s)"), ReadOnly(true)] public string Start { get; set; }
         [Category("2. 计划参数"), DisplayName("结束时间 (s)"), ReadOnly(true)] public string End { get; set; }
         [Category("2. 计划参数"), DisplayName("机动时长"), ReadOnly(true)] public string Travel { get; set; }
-        [Category("2. 计划参数"), DisplayName("分配平台"), ReadOnly(true)] public string Members { get; set; }
+        [Browsable(false)] public string Members { get; set; }
         [Category("2. 计划参数"), DisplayName("占位点坐标"), ReadOnly(true)] public string Position { get; set; }
+        [Category("2. 计划参数"), DisplayName("本轮优化目标"), ReadOnly(true)] public string Objective { get; set; }
         [Category("3. 回放状态"), DisplayName("当前阶段"), ReadOnly(true)] public string Phase { get; set; }
         [Category("3. 回放状态"), DisplayName("任务进度"), ReadOnly(true)] public string Progress { get; set; }
         [Category("3. 回放状态"), DisplayName("数据来源"), ReadOnly(true)] public string Source { get; set; }
@@ -448,7 +449,7 @@ namespace MarlDesktopPreview
         public readonly List<DemoTarget> Targets = new List<DemoTarget>();
         public string SelectedId = "T1-S3";
         public double Time = 106.0;
-        public const double PlaybackEnd = 210.0;
+        public double PlaybackEnd = 210.0;
         public SceneCanvas Canvas;
         public TabControl Documents;
         private TreeView tree;
@@ -509,33 +510,32 @@ namespace MarlDesktopPreview
             Tasks[5].Marker = new PointF(-46.4f, -170.8f);
 
             records.Add("T-SEC 街区封控 003"); records.Add("T-SEC 街区封控 002");
-            BuildWindow(); SelectTask(SelectedId); RefreshPlayback(); InitializeDesktop();
+            BuildWindow(); SelectTask(SelectedId); RefreshPlayback(); InitializeDesktop(); InitializeNativeInteractions(); ClearNativePlaceholders();
             timer = new Timer { Interval = 100 }; timer.Tick += delegate { SetTime(Math.Min(PlaybackEnd, Time + .1 * PlaybackSpeed)); if (Time >= PlaybackEnd) SetPlaying(false); };
             FormClosed += delegate { timer.Dispose(); };
-            KeyPreview = true; KeyDown += delegate(object s, KeyEventArgs e) { if (e.KeyCode == Keys.Space && !(ActiveControl is TextBoxBase)) { SetPlaying(!timer.Enabled); e.Handled = true; } };
+            KeyPreview = true; KeyDown += delegate(object s, KeyEventArgs e) { if (e.KeyCode == Keys.Space && !(ActiveControl is TextBoxBase)) { SetPlaying(!webPlaying); e.Handled = true; } };
         }
         private double PlaybackSpeed = 1;
         private MenuStrip BuildMenus()
         {
             MenuStrip menu = new MenuStrip { BackColor = Color.White, Padding = new Padding(7, 3, 0, 3), Height = 29, Renderer = new ToolStripProfessionalRenderer(new BlueColors()) };
             ToolStripMenuItem file = new ToolStripMenuItem("文件(&F)");
-            AddMenu(file, "新建场景…", delegate { ShowConfiguration(); }, Keys.Control | Keys.N);
-            AddMenu(file, "打开配置…", delegate { OpenConfig(); }, Keys.Control | Keys.O);
-            AddMenu(file, "保存配置…", delegate { SaveConfig(); }, Keys.Control | Keys.S);
+            AddMenu(file, "新建场景…", delegate { ShowNativeConfiguration(NativeConfigurationMode.NewScene); }, Keys.Control | Keys.N);
+            AddMenu(file, "打开配置…", delegate { ImportNativeConfiguration(); }, Keys.Control | Keys.O);
+            AddMenu(file, "保存配置草稿…", delegate { ExportNativeConfiguration(); }, Keys.Control | Keys.S);
             file.DropDownItems.Add(new ToolStripSeparator()); AddMenu(file, "导出窗口截图…", delegate { ExportScreenshot(); }, Keys.None);
             file.DropDownItems.Add(new ToolStripSeparator()); AddMenu(file, "退出", delegate { Close(); }, Keys.Alt | Keys.F4);
-            ToolStripMenuItem edit = new ToolStripMenuItem("编辑(&E)"); AddMenu(edit, "场景参数…", delegate { ShowConfiguration(); }, Keys.None); AddMenu(edit, "选择下一项任务", delegate { SelectNext(); }, Keys.None);
+            ToolStripMenuItem edit = new ToolStripMenuItem("编辑(&E)"); AddMenu(edit, "场景参数…", delegate { ShowNativeConfiguration(NativeConfigurationMode.CurrentScene); }, Keys.None);
             ToolStripMenuItem view = new ToolStripMenuItem("视图(&V)");
-            AddMenu(view, "封控区视图", delegate { SetFullView(false); }, Keys.Control | Keys.D1);
-            AddMenu(view, "全程视图（集结 → 占位）", delegate { SetFullView(true); }, Keys.Control | Keys.D2);
+            AddMenu(view, "任务区域", delegate { Bridge("fit('area')"); }, Keys.Control | Keys.D1);
+            AddMenu(view, "全景（完整场景）", delegate { Bridge("fit('all')"); }, Keys.Control | Keys.D2);
             view.DropDownItems.Add(new ToolStripSeparator());
-            AddMenu(view, "适应窗口", delegate { FitMap(); }, Keys.Control | Keys.D0); AddMenu(view, "放大", delegate { Canvas.Zoom = Math.Min(3.2f, Canvas.Zoom * 1.2f); Canvas.Invalidate(); }, Keys.None); AddMenu(view, "缩小", delegate { Canvas.Zoom = Math.Max(.6f, Canvas.Zoom / 1.2f); Canvas.Invalidate(); }, Keys.None); view.DropDownItems.Add(new ToolStripSeparator());
+            AddMenu(view, "适应窗口", delegate { FitMap(); }, Keys.Control | Keys.D0); AddMenu(view, "放大", delegate { Bridge("zoom(1.2)"); }, Keys.None); AddMenu(view, "缩小", delegate { Bridge("zoom(1/1.2)"); }, Keys.None); view.DropDownItems.Add(new ToolStripSeparator());
             AddMenu(view, "恢复默认布局", delegate { ResetLayout(); }, Keys.None);
-            ToolStripMenuItem plan = new ToolStripMenuItem("规划(&P)"); AddMenu(plan, "检查示例输入", delegate { CheckInput(); }, Keys.F6); AddMenu(plan, "生成示例记录", delegate { GenerateDemo(); }, Keys.F7);
-            ToolStripMenuItem simulation = new ToolStripMenuItem("回放(&R)"); AddMenu(simulation, "播放 / 暂停", delegate { SetPlaying(!timer.Enabled); }, Keys.F5); AddMenu(simulation, "返回开始", delegate { SetPlaying(false); SetTime(0); }, Keys.None); AddMenu(simulation, "跳至结束", delegate { SetPlaying(false); SetTime(PlaybackEnd); }, Keys.None);
-            ToolStripMenuItem tools = new ToolStripMenuItem("工具(&T)"); AddMenu(tools, "运行记录", delegate { Documents.SelectedIndex = 3; }, Keys.None); AddMenu(tools, "复制当前任务信息", delegate { CopyTask(); }, Keys.None);
-            ToolStripMenuItem help = new ToolStripMenuItem("帮助(&H)"); AddMenu(help, "关于软件原型", delegate { ShowAboutDesktop(); }, Keys.F1);
-            menu.Items.AddRange(new ToolStripItem[] { file, edit, view, plan, simulation, tools, help }); return menu;
+            ToolStripMenuItem tools = new ToolStripMenuItem("工具(&T)"); AddMenu(tools, "运行记录", delegate { Documents.SelectedIndex = 2; }, Keys.None); AddMenu(tools, "复制当前任务信息", delegate { CopyNativeTask(); }, Keys.None);
+            AddMenu(tools, "同场景目标对比…", delegate { ShowNativeRunComparison(); }, Keys.None);
+            ToolStripMenuItem help = new ToolStripMenuItem("帮助(&H)"); AddMenu(help, "关于软件", delegate { ShowAboutDesktop(); }, Keys.F1);
+            menu.Items.AddRange(new ToolStripItem[] { file, edit, view, tools, help }); AddMenu(tools, "复制当前运行配置…", delegate { ShowNativeConfiguration(NativeConfigurationMode.CopyRun); }, Keys.None); AddMenu(tools, "运行报告…", delegate { ShowNativeReport(); }, Keys.None); AddMenu(tools, "全链路追溯…", delegate { ShowNativeChain(); }, Keys.None); AddMenu(tools, "目标对照（计划层）…", delegate { ShowNativeComparison(); }, Keys.None); AddMenu(tools, "所选消息详情…", delegate { ShowNativeEventDetail(); }, Keys.None); AddMenu(help, "项目与接口说明…", delegate { ShowNativeProjectHelp(); }, Keys.None); return menu;
         }
         private static void AddMenu(ToolStripMenuItem parent, string text, EventHandler handler, Keys key)
         { ToolStripMenuItem item = new ToolStripMenuItem(text); item.Click += handler; item.ShortcutKeys = key; parent.DropDownItems.Add(item); }
@@ -564,13 +564,17 @@ namespace MarlDesktopPreview
         {
             MenuStrip menu = BuildMenus(); MainMenuStrip = menu;
             ToolStrip toolbar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, BackColor = Color.FromArgb(248, 250, 253), AutoSize = false, Height = 44, Padding = new Padding(8, 0, 0, 0), Renderer = new ToolStripProfessionalRenderer(new BlueColors()) };
-            toolbar.Items.Add(ToolButton("新建", "file", delegate { ShowConfiguration(); }, false)); toolbar.Items.Add(ToolButton("打开", "folder", delegate { OpenConfig(); }, false)); toolbar.Items.Add(ToolButton("保存", "save", delegate { SaveConfig(); }, false)); toolbar.Items.Add(new ToolStripSeparator());
-            toolbar.Items.Add(ToolButton("场景参数", "gear", delegate { ShowConfiguration(); }, false)); toolbar.Items.Add(ToolButton("检查输入", "check", delegate { CheckInput(); }, false)); toolbar.Items.Add(ToolButton("生成示例", "play", delegate { GenerateDemo(); }, true)); toolbar.Items.Add(new ToolStripSeparator()); toolbar.Items.Add(ToolButton("适应窗口", "map", delegate { FitMap(); }, false)); toolbar.Items.Add(ToolButton("运行记录", "list", delegate { Documents.SelectedIndex = 3; }, false)); AugmentDesktopToolbar(toolbar);
+            toolbar.Items.Add(ToolButton("新建", "file", delegate { ShowNativeConfiguration(NativeConfigurationMode.NewScene); }, false)); toolbar.Items.Add(ToolButton("打开", "folder", delegate { ImportNativeConfiguration(); }, false)); toolbar.Items.Add(ToolButton("保存", "save", delegate { ExportNativeConfiguration(); }, false)); toolbar.Items.Add(new ToolStripSeparator());
+            toolbar.Items.Add(ToolButton("场景参数", "gear", delegate { ShowNativeConfiguration(NativeConfigurationMode.CurrentScene); }, false)); toolbar.Items.Add(ToolButton("检查输入", "check", delegate { CheckNativeInput(); }, false)); toolbar.Items.Add(ToolButton("生成示例", "play", delegate { RunSelectedScenario(); }, true)); toolbar.Items.Add(new ToolStripSeparator()); toolbar.Items.Add(ToolButton("适应窗口", "map", delegate { FitMap(); }, false)); AugmentDesktopToolbar(toolbar);
             ToolStripLabel source = new ToolStripLabel("本地可视化演示  |  后端连接中") { Name = "desktopSourceLabel", Alignment = ToolStripItemAlignment.Right, ForeColor = Color.FromArgb(112, 133, 156), Padding = new Padding(10, 0, 10, 0) }; toolbar.Items.Add(source);
             StatusStrip statusbar = new StatusStrip { BackColor = Color.FromArgb(239, 246, 253), SizingGrip = true, Padding = new Padding(8, 0, 16, 0), Height = 25 };
             status = new ToolStripStatusLabel("就绪") { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
             statusbar.Items.Add(status); statusbar.Items.Add(new ToolStripStatusLabel("本地演示 · 后端连接中") { Name = "desktopBackendStatus", BorderSides = ToolStripStatusLabelBorderSides.Left, Padding = new Padding(10, 0, 10, 0) });
             timeStatus = new ToolStripStatusLabel("回放 106.0 s / 210.0 s") { BorderSides = ToolStripStatusLabelBorderSides.Left, Padding = new Padding(10, 0, 10, 0) }; statusbar.Items.Add(timeStatus);
+            nativeWorkStatus = new ToolStripStatusLabel("就绪") { Name = "NativeWorkStatus", BorderSides = ToolStripStatusLabelBorderSides.Left, Padding = new Padding(8,0,8,0) };
+            nativeWorkProgress = new ToolStripProgressBar { Name = "NativeWorkProgress", Style = ProgressBarStyle.Marquee, MarqueeAnimationSpeed = 30, Width = 65, Visible = false };
+            statusbar.Items.Add(nativeWorkStatus); statusbar.Items.Add(nativeWorkProgress);
+            FormClosed += delegate { if (nativeWorkTimer != null) nativeWorkTimer.Dispose(); };
             leftSplit = NewSplit(Orientation.Vertical, 225); leftSplit.FixedPanel = FixedPanel.Panel1;
             rightSplit = NewSplit(Orientation.Vertical, 860); rightSplit.FixedPanel = FixedPanel.Panel2;
             bottomSplit = NewSplit(Orientation.Horizontal, 550); bottomSplit.FixedPanel = FixedPanel.Panel2;
@@ -579,18 +583,18 @@ namespace MarlDesktopPreview
             Documents = new TabControl { Dock = DockStyle.Fill, Padding = new Point(17, 7), Font = Font };
             TabPage scene = NewTab("场景视图"); Canvas = new SceneCanvas(this); scene.Controls.Add(Canvas);
             Panel sceneToolbar = new Panel { Dock = DockStyle.Top, Height = 35, BackColor = Color.FromArgb(248, 251, 254) };
-            sceneInfo = new Label { Text = "场景布局示意 · T-SEC 小十字路口    |    真实运行数据请在“任务视图”查看", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0), ForeColor = Color.FromArgb(83, 108, 138), Font = new Font(Font.FontFamily, 8.5f) };
+            sceneInfo = new Label { Text = "场景视图：等待本地后端连接…", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0), ForeColor = Color.FromArgb(83, 108, 138), Font = new Font(Font.FontFamily, 8.5f) };
             sceneToolbar.Controls.Add(sceneInfo); scene.Controls.Add(sceneToolbar); scene.Controls.Add(BuildPlayback());
-            TabPage tasksTab = NewTab("任务列表"); taskGrid = NewGrid(); taskGrid.Columns.Add("id", "席位编号"); taskGrid.Columns.Add("name", "席位名称"); taskGrid.Columns.Add("type", "职责"); taskGrid.Columns.Add("phase", "当前阶段"); taskGrid.Columns.Add("members", "分配平台"); taskGrid.Columns.Add("time", "计划时间段");
+            Panel tasksTab = new Panel(); FormClosed += delegate { tasksTab.Dispose(); }; taskGrid = NewGrid(); taskGrid.Columns.Add("id", "席位编号"); taskGrid.Columns.Add("name", "席位名称"); taskGrid.Columns.Add("type", "职责"); taskGrid.Columns.Add("phase", "当前阶段"); taskGrid.Columns.Add("members", "分配平台"); taskGrid.Columns.Add("time", "计划时间段");
             foreach (DemoTask t in Tasks) taskGrid.Rows.Add(t.Id, t.Name, t.Type, Phase(t), t.Platform, t.Start.ToString("0.0") + " – " + t.End.ToString("0.0") + " s");
-            taskGrid.CellDoubleClick += delegate(object s, DataGridViewCellEventArgs e) { if (e.RowIndex >= 0) { SelectTask((string)taskGrid.Rows[e.RowIndex].Cells[0].Value); Documents.SelectedIndex = 0; } }; tasksTab.Controls.Add(taskGrid);
+            taskGrid.CellDoubleClick += delegate(object s, DataGridViewCellEventArgs e) { if (e.RowIndex >= 0) { SelectTask((string)taskGrid.Rows[e.RowIndex].Cells[0].Value); Documents.SelectedIndex = 0; } }; tasksTab.Controls.Add(taskGrid); 
             TabPage platformsTab = NewTab("平台列表"); platformGrid = NewGrid(); foreach (string h in new string[] { "平台编号", "平台型号", "平台类别", "关联席位", "编成续航" }) platformGrid.Columns.Add(h, h);
             string[] ids = { "U1", "U2", "U3", "U4", "U5", "U6" }; string[] models = { "IFV", "IFV", "IFV", "TANK", "TANK", "UAV 侦察" };
             string[] classes = { "UGV 地面", "UGV 地面", "UGV 地面", "UGV 地面", "UGV 地面", "PLANE 空中" }; string[] endurance = { "6.0 h", "6.0 h", "6.0 h", "8.0 h", "8.0 h", "10.0 h" };
             for (int i = 0; i < ids.Length; i++) { string seat = ""; foreach (DemoTask t in Tasks) if (t.Platform == ids[i]) seat = t.Id; platformGrid.Rows.Add(ids[i], models[i], classes[i], seat, endurance[i]); } platformsTab.Controls.Add(platformGrid);
-            TabPage historyTab = NewTab("运行记录"); history = new ListView { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, GridLines = true, BorderStyle = BorderStyle.None }; history.Columns.Add("运行名称", 230); history.Columns.Add("场景", 210); history.Columns.Add("数据来源", 150); history.Columns.Add("状态", 120); RefreshHistory(); historyTab.Controls.Add(history);
+            TabPage historyTab = NewTab("运行记录"); history = new ListView { MultiSelect = false, Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, GridLines = true, BorderStyle = BorderStyle.None }; history.Columns.Add("运行名称", 230); history.Columns.Add("场景", 175); history.Columns.Add("优化目标", 100); history.Columns.Add("数据来源", 145); history.Columns.Add("状态", 75); RefreshHistory(); historyTab.Controls.Add(history);
             Panel historyButtons = new Panel { Dock = DockStyle.Bottom, Height = 48, Padding = new Padding(10, 8, 10, 8), BackColor = Color.FromArgb(247, 250, 253) }; Button replay = StandardButton("打开示例回放", 140); replay.Dock = DockStyle.Left; replay.Click += delegate { Documents.SelectedIndex = 0; SetTime(0); status.Text = "已打开示例回放。所有记录共用示例轨迹，不代表不同实验结果。"; }; historyButtons.Controls.Add(replay); historyTab.Controls.Add(historyButtons);
-            Documents.TabPages.AddRange(new TabPage[] { scene, tasksTab, platformsTab, historyTab }); bottomSplit.Panel1.Controls.Add(Documents); bottomSplit.Panel2.Controls.Add(BuildOutput()); AugmentDesktopTabs();
+            Documents.TabPages.AddRange(new TabPage[] { scene, platformsTab, historyTab }); bottomSplit.Panel1.Controls.Add(Documents); bottomSplit.Panel2.Controls.Add(BuildOutput()); AugmentDesktopTabs();
             Controls.Add(leftSplit); Controls.Add(toolbar); Controls.Add(menu); Controls.Add(statusbar);
             Shown += delegate { ResetLayout(); }; Resize += delegate { if (IsHandleCreated && ClientSize.Width > 800 && rightSplit.Width > 400) SetRightWidth(); };
         }
@@ -602,21 +606,15 @@ namespace MarlDesktopPreview
         private Control BuildExplorer()
         {
             Panel panel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-            SplitContainer split = NewSplit(Orientation.Horizontal, 430); split.FixedPanel = FixedPanel.Panel2;
             tree = new TreeView { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None, HideSelection = false, FullRowSelect = true, ShowLines = true, ItemHeight = 29, Indent = 18, ShowNodeToolTips = true };
             ImageList images = new ImageList { ImageSize = new Size(18, 18), ColorDepth = ColorDepth.Depth32Bit }; images.Images.Add(DrawIcon("folder")); images.Images.Add(DrawIcon("file")); images.Images.Add(DrawIcon("map")); images.Images.Add(DrawIcon("list")); tree.ImageList = images;
             TreeNode root = new TreeNode("T1 区域封控 · 小十字路口", 0, 0); TreeNode scene = new TreeNode("场景与环境", 0, 0); scene.Nodes.Add(new TreeNode("小十字路口街区", 2, 2) { Tag = "scene" }); scene.Nodes.Add(new TreeNode("场景参数", 1, 1) { Tag = "config" });
             TreeNode taskNodes = new TreeNode("任务 (6)", 0, 0); foreach (DemoTask t in Tasks) taskNodes.Nodes.Add(new TreeNode(t.Seat + "  " + t.ShortName, 1, 1) { Tag = t.Id, ToolTipText = t.Id + "  " + t.Name });
             TreeNode workerNodes = new TreeNode("平台 (6)", 0, 0); foreach (string id in new string[] { "U1 IFV · 地面", "U2 IFV · 地面", "U3 IFV · 地面", "U4 TANK · 地面", "U5 TANK · 地面", "U6 UAV · 空中" }) workerNodes.Nodes.Add(new TreeNode(id, 1, 1) { Tag = "platforms" });
             root.Nodes.AddRange(new TreeNode[] { scene, taskNodes, workerNodes, new TreeNode("运行记录", 3, 3) { Tag = "history" } }); tree.Nodes.Add(root); root.Expand(); scene.Expand(); taskNodes.Expand();
-            tree.AfterSelect += delegate(object s, TreeViewEventArgs e) { string tag = e.Node.Tag as string; if (tag != null && tag.StartsWith("T1-")) SelectTask(tag); else if (tag == "platforms") Documents.SelectedIndex = 2; else if (tag == "history") Documents.SelectedIndex = 3; else if (tag == "scene") Documents.SelectedIndex = 0; };
-            tree.NodeMouseDoubleClick += delegate(object s, TreeNodeMouseClickEventArgs e) { if ((string)e.Node.Tag == "config") ShowConfiguration(); };
-            split.Panel1.Controls.Add(tree); split.Panel1.Controls.Add(PanelHeader("项目浏览器"));
-            CheckedListBox layers = new CheckedListBox { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None, CheckOnClick = true, IntegralHeight = false, Padding = new Padding(7), ItemHeight = 27, Font = new Font(Font.FontFamily, 9f) };
-            foreach (string name in new string[] { "建筑轮廓", "封控边界", "席位与平台", "规划路径", "目标接近", "坐标网格" }) layers.Items.Add(name, true);
-            layers.ItemCheck += delegate(object s, ItemCheckEventArgs e) { if (Canvas == null) return; bool value = e.NewValue == CheckState.Checked; if (e.Index == 0) Canvas.ShowBuildings = value; if (e.Index == 1) Canvas.ShowBoundary = value; if (e.Index == 2) Canvas.ShowUnits = value; if (e.Index == 3) Canvas.ShowRoutes = value; if (e.Index == 4) Canvas.ShowTargets = value; if (e.Index == 5) Canvas.ShowGrid = value; Canvas.Invalidate(); };
-            split.Panel2.Controls.Add(layers); split.Panel2.Controls.Add(PanelHeader("图层")); panel.Controls.Add(split);
-            split.SizeChanged += delegate { if (split.Height > 300) split.SplitterDistance = Math.Max(200, split.Height - 190); }; return panel;
+            tree.AfterSelect += delegate(object s, TreeViewEventArgs e) { string tag = e.Node.Tag as string; if (tag != null && tag.StartsWith("T1-")) SelectTask(tag); else if (tag == "platforms") Documents.SelectedIndex = 1; else if (tag == "history") Documents.SelectedIndex = 2; else if (tag == "scene") Documents.SelectedIndex = 0; };
+            tree.NodeMouseDoubleClick += delegate(object s, TreeNodeMouseClickEventArgs e) { if ((string)e.Node.Tag == "config") ShowNativeConfiguration(NativeConfigurationMode.CurrentScene); };
+            panel.Controls.Add(tree); panel.Controls.Add(PanelHeader("项目浏览器")); return panel;
         }
         private Control BuildProperties()
         {
@@ -624,20 +622,20 @@ namespace MarlDesktopPreview
             properties = new PropertyGrid { Dock = DockStyle.Fill, ToolbarVisible = false, HelpVisible = true, HelpBackColor = Color.FromArgb(249, 251, 254), ViewBackColor = Color.White, ViewForeColor = ForeColor, LineColor = Color.FromArgb(231, 236, 242), CategoryForeColor = Color.FromArgb(63, 89, 121), PropertySort = PropertySort.Categorized, BackColor = Color.White, CommandsBackColor = Color.White, HelpBorderColor = Color.FromArgb(224, 231, 240) };
             selectedTitle = new Label { Text = "T1-S3  通道哨位 G-A", Dock = DockStyle.Top, Height = 45, Padding = new Padding(11, 0, 0, 0), TextAlign = ContentAlignment.MiddleLeft, Font = new Font(Font.FontFamily, 10f, FontStyle.Bold), ForeColor = Blue };
             Panel progressPanel = new Panel { Dock = DockStyle.Bottom, Height = 80, Padding = new Padding(12, 9, 12, 10), BackColor = Color.FromArgb(249, 251, 254) };
-            Label label = new Label { Text = "当前席位进度（示例）", Dock = DockStyle.Top, Height = 26, ForeColor = Color.FromArgb(100, 121, 146), Font = new Font(Font.FontFamily, 8.5f) };
+            Label label = new Label { Text = "当前任务进度（回放时刻）", Dock = DockStyle.Top, Height = 26, ForeColor = Color.FromArgb(100, 121, 146), Font = new Font(Font.FontFamily, 8.5f) };
             taskProgress = new ProgressBar { Dock = DockStyle.Top, Height = 14, Style = ProgressBarStyle.Continuous, ForeColor = Blue };
-            progressPanel.Controls.Add(taskProgress); progressPanel.Controls.Add(label); panel.Controls.Add(properties); panel.Controls.Add(selectedTitle); panel.Controls.Add(PanelHeader("属性")); panel.Controls.Add(progressPanel); return panel;
+            progressPanel.Controls.Add(taskProgress); progressPanel.Controls.Add(label); panel.Controls.Add(properties); panel.Controls.Add(BuildTaskMembers()); panel.Controls.Add(selectedTitle); panel.Controls.Add(PanelHeader("属性")); panel.Controls.Add(progressPanel); panel.Controls.Add(BuildAircraftAltitude()); return panel;
         }
         private Control BuildPlayback()
         {
             Panel panel = new Panel { Dock = DockStyle.Bottom, Height = 91, BackColor = Color.FromArgb(249, 251, 254), Padding = new Padding(10, 6, 10, 4) };
             TableLayoutPanel layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 }; layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             FlowLayoutPanel row = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0), FlowDirection = FlowDirection.LeftToRight };
-            play = StandardButton("▶ 播放", 82); play.BackColor = Blue; play.ForeColor = Color.White; play.FlatAppearance.BorderColor = Blue; play.Click += delegate { SetPlaying(!timer.Enabled); };
+            play = StandardButton("▶ 播放", 82); play.BackColor = Blue; play.ForeColor = Color.White; play.FlatAppearance.BorderColor = Blue; play.Click += delegate { SetPlaying(!webPlaying); };
             Button restart = StandardButton("返回开始", 80); restart.Click += delegate { SetPlaying(false); SetTime(0); };
             Button step = StandardButton("前进 5 秒", 85); step.Click += delegate { SetPlaying(false); SetTime(Math.Min(PlaybackEnd, Time + 5)); };
             clock = new Label { AutoSize = false, Width = 145, Height = 28, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.FromArgb(73, 101, 137) };
-            ComboBox speed = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 62, Margin = new Padding(8, 3, 0, 0) }; speed.Items.AddRange(new object[] { "0.5×", "1×", "2×", "4×", "8×" }); speed.SelectedIndex = 1; speed.SelectedIndexChanged += delegate { PlaybackSpeed = new double[] { .5, 1, 2, 4, 8 }[speed.SelectedIndex]; };
+            ComboBox speed = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 62, Margin = new Padding(8, 3, 0, 0) }; speed.Items.AddRange(new object[] { "0.5×", "1×", "2×", "4×", "8×" }); speed.SelectedIndex = 1; speed.SelectedIndexChanged += delegate { PlaybackSpeed = new double[] { .5, 1, 2, 4, 8 }[speed.SelectedIndex]; if (webReady) Bridge("setSpeed(" + PlaybackSpeed.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")"); };
             row.Controls.AddRange(new Control[] { play, restart, step, clock, speed });
             timeline = new TrackBar { Dock = DockStyle.Fill, Minimum = 0, Maximum = (int)(PlaybackEnd * 10), TickFrequency = 150, SmallChange = 10, LargeChange = 100, AutoSize = false, Height = 35, BackColor = panel.BackColor };
             timeline.Scroll += delegate { if (!refreshing) { SetPlaying(false); SetTime(timeline.Value / 10.0); } };
@@ -651,19 +649,7 @@ namespace MarlDesktopPreview
             g.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(237, 244, 252), ForeColor = Color.FromArgb(74, 103, 139), Font = Font, Padding = new Padding(6, 0, 0, 0), SelectionBackColor = Color.FromArgb(237, 244, 252) };
             g.DefaultCellStyle = new DataGridViewCellStyle { Font = Font, ForeColor = Color.FromArgb(70, 89, 112), BackColor = Color.White, SelectionBackColor = Color.FromArgb(220, 236, 253), SelectionForeColor = Color.FromArgb(31, 94, 163), Padding = new Padding(6, 0, 0, 0) }; g.RowTemplate.Height = 34; return g;
         }
-        private Control BuildOutput()
-        {
-            TabControl tabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(13, 5) }; TabPage logs = NewTab("运行日志"), messages = NewTab("消息列表"), output = NewTab("输出文件");
-            log = new TextBox { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None, ReadOnly = true, Multiline = true, ScrollBars = ScrollBars.Vertical, BackColor = Color.White, ForeColor = Color.FromArgb(83, 108, 138), Font = new Font("Consolas", 9f) };
-            log.Text = "[00:00.0]  INFO   示例场景已载入：区域封控 · T-SEC（小十字路口街区）\r\n[00:00.0]  INFO   T1 封控区 60×60 m；6 台平台自编成表出生位出发\r\n[00:19.5]  INFO   U1 到达 G-A 通道哨位（T1-S3）\r\n[00:23.5]  INFO   6 席全部到位，control_established（示例）\r\n[00:45.0]  WARN   IN-1 未授权目标接近 G-A\r\n[00:50.0]  NOTE   发出警告，IN-1 未撤离\r\n[00:54.0]  INFO   机动组 U3 前出拦阻，IN-1 已拦阻（示例）\r\n[01:10.0]  INFO   IN-2 警告后撤离\r\n[01:40.0]  INFO   AU-1 已授权目标经 G-A 放行（示例）\r\n"; logs.Controls.Add(log);
-            DataGridView grid = NewGrid(); grid.Columns.Add("time", "示例时刻"); grid.Columns.Add("level", "级别"); grid.Columns.Add("object", "关联对象"); grid.Columns.Add("message", "消息");
-            grid.Rows.Add("45.0 s", "警告", "T1-S3 · U1", "IN-1 未授权接近 G-A，发出警告");
-            grid.Rows.Add("70.0 s", "警告", "T1-S4 · U2", "IN-2 未授权接近 G-B，警告后撤离");
-            grid.Rows.Add("100.0 s", "信息", "T1-S3 · U1", "AU-1 已授权目标经 G-A 放行");
-            grid.CellDoubleClick += delegate(object s, DataGridViewCellEventArgs e) { if (e.RowIndex >= 0) { SetPlaying(false); SetTime(new double[] { 45, 70, 100 }[e.RowIndex]); SelectTask(new string[] { "T1-S3", "T1-S4", "T1-S3" }[e.RowIndex]); } }; messages.Controls.Add(grid);
-            Label outputText = new Label { Dock = DockStyle.Fill, Text = "本地可视化演示版。\r\n\r\n真实运行产物由本机规划后端生成，保存在 planning_middle_demo/outputs；\r\n可在“运行记录”中重新载入，或从“任务视图”查看真实回放。\r\n真实平台展示目标为 Gazebo / UE5，本软件不代表真实平台联调完成。", Padding = new Padding(14), ForeColor = Color.FromArgb(111, 132, 155) }; output.Controls.Add(outputText);
-            tabs.TabPages.AddRange(new TabPage[] { logs, messages, output }); return tabs;
-        }
+        private Control BuildOutput() { return BuildNativeOutput(); }
         public void SelectTask(string id)
         {
             DemoTask found = Tasks.Find(delegate(DemoTask t) { return t.Id == id; }); if (found == null) return; SelectedId = id; RefreshProperties();
@@ -699,16 +685,43 @@ namespace MarlDesktopPreview
             };
             taskProgress.Value = Progress(t);
         }
-        public void SetTime(double time) { Time = Math.Max(0, Math.Min(PlaybackEnd, time)); RefreshPlayback(); }
+        public void SetTime(double time)
+        {
+            if (desktopRun == null) { status.Text = "请先载入真实运行记录。"; return; }
+            if (!webReady) { status.Text = "地图渲染器尚未就绪，请查看运行日志。"; return; }
+            Time = Math.Max(0, Math.Min(PlaybackEnd, time));
+            if (webReady && desktopRun != null)
+            {
+                Bridge("setTime(" + Time.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ")");
+                RefreshPlayback();
+                return;
+            }
+            RefreshPlayback();
+        }
         private void RefreshPlayback()
         {
-            refreshing = true; timeline.Value = (int)Math.Round(Time * 10); refreshing = false; clock.Text = string.Format("{0:0.0} / 210.0 s", Time); timeStatus.Text = "回放 " + clock.Text;
+            refreshing = true; timeline.Value = Math.Min(timeline.Maximum, Math.Max(timeline.Minimum, (int)Math.Round(Time * 10))); refreshing = false; clock.Text = string.Format("{0:0.0} / {1:0.0} s", Time, PlaybackEnd); timeStatus.Text = "回放 " + clock.Text;
+            if (desktopRun != null) return;
             for (int i = 0; i < Tasks.Count && taskGrid != null && i < taskGrid.Rows.Count; i++) taskGrid.Rows[i].Cells[3].Value = Phase(Tasks[i]); RefreshProperties(); Canvas.Invalidate();
         }
-        private void SetPlaying(bool enabled) { if (enabled && Time >= PlaybackEnd) SetTime(0); timer.Enabled = enabled; play.Text = enabled ? "Ⅱ 暂停" : "▶ 播放"; status.Text = enabled ? "正在播放示例记录；不控制后台运行" : "回放已暂停"; }
+        private void SetPlaying(bool enabled)
+        {
+            if (desktopRun == null) { status.Text = "请先载入真实运行记录。"; return; }
+            if (!webReady) { status.Text = "地图渲染器尚未就绪，请查看运行日志。"; return; }
+            if (webReady && desktopRun != null)
+            {
+                Bridge(enabled ? "play()" : "pause()");
+                webPlaying = enabled;
+                play.Text = enabled ? "Ⅱ 暂停" : "▶ 播放";
+                status.Text = enabled ? "任务视图播放中（真实运行）" : "任务视图已暂停";
+                return;
+            }
+            if (enabled && Time >= PlaybackEnd) SetTime(0);
+            timer.Enabled = enabled; play.Text = enabled ? "Ⅱ 暂停" : "▶ 播放"; status.Text = enabled ? "正在播放示例记录；不控制后台运行" : "回放已暂停";
+        }
         private void SetFullView(bool full) { Canvas.FullView = full; Canvas.Zoom = 1f; Canvas.Pan = PointF.Empty; Canvas.Invalidate(); status.Text = full ? "全程视图：编成表出生位 → 各占位点（示例规划路径）" : "封控区视图：T1 小十字路口 60×60 m 街区"; }
         private void SelectNext() { int i = Tasks.FindIndex(delegate(DemoTask t) { return t.Id == SelectedId; }); SelectTask(Tasks[(i + 1) % Tasks.Count].Id); }
-        private void FitMap() { Canvas.FullView = false; Canvas.Zoom = 1; Canvas.Pan = PointF.Empty; Canvas.Invalidate(); }
+        private void FitMap() { if (webReady && desktopRun != null) { Bridge("fit()"); return; } Canvas.FullView = false; Canvas.Zoom = 1; Canvas.Pan = PointF.Empty; Canvas.Invalidate(); }
         private void SetRightWidth() { if (rightSplit.Width > 650) rightSplit.SplitterDistance = rightSplit.Width - 291; }
         private void ResetLayout() { if (leftSplit.Width > 700) leftSplit.SplitterDistance = 225; SetRightWidth(); if (bottomSplit.Height > 400) bottomSplit.SplitterDistance = bottomSplit.Height - 181; if (Canvas != null) FitMap(); }
         private void CheckInput() { MessageBox.Show(this, "原型基础检查通过。\n\n场景：" + scenarioName + "\n封控区：T1 · 60 × 60 m\n示例席位：6 席（2 边界段 / 2 通道哨位 / 1 机动拦截 / 1 空中监视）\n示例平台：6 台（5 地面 + 1 空中）\n\n仅检查原型配置，不代表正式接口、规划可行性或算法效果已验证。", "检查输入", MessageBoxButtons.OK, MessageBoxIcon.Information); }
@@ -717,7 +730,7 @@ namespace MarlDesktopPreview
             DialogResult result = MessageBox.Show(this, "生成一条新的界面示例记录？\n\n该操作仅复制当前原型参数并装载预置轨迹，不调用项目规划器。", "生成示例", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
             if (result != DialogResult.OK) return; records.Insert(0, "T-SEC 街区封控 " + (records.Count + 1).ToString("000")); RefreshHistory(); SetPlaying(false); SetTime(0); Documents.SelectedIndex = 0; log.AppendText("[界面操作] 已新增示例记录，使用预置示例轨迹。\n"); status.Text = "示例记录已生成。可点击播放查看界面效果。";
         }
-        private void RefreshHistory() { if (history == null) return; history.Items.Clear(); foreach (string name in records) { ListViewItem item = new ListViewItem(new string[] { name, scenarioName, "界面合成示例", "示例已结束" }); history.Items.Add(item); } }
+        private void RefreshHistory() { if (history == null) return; history.Items.Clear(); foreach (string name in records) { ListViewItem item = new ListViewItem(new string[] { name, scenarioName, "未记录", "界面合成示例", "示例已结束" }); history.Items.Add(item); } }
         private void CopyTask() { DemoTask t = Tasks.Find(delegate(DemoTask item) { return item.Id == SelectedId; }); if (t == null) return; try { Clipboard.SetText(t.Id + " " + t.Name + "\r\n分配平台：" + t.Platform + "\r\n占位点：(" + t.Position.X + ", " + t.Position.Y + ")\r\n来源：界面原型示例"); status.Text = "席位信息已复制。"; } catch (ExternalException) { status.Text = "剪贴板正在被占用，请稍后再试。"; } }
         private void ShowConfiguration(string capturePath = null)
         {
@@ -749,25 +762,34 @@ namespace MarlDesktopPreview
             using (OpenFileDialog d = new OpenFileDialog { Title = "打开原型配置", Filter = "原型配置 (*.marlpreview)|*.marlpreview" })
             { if (d.ShowDialog(this) != DialogResult.OK) return; try { string[] values = File.ReadAllLines(d.FileName, Encoding.UTF8); decimal parsed; if (values.Length != 5 || values[0] != "MARL_DESKTOP_PREVIEW_V1" || values[4] != "SYNTHETIC_DATA_ONLY" || string.IsNullOrWhiteSpace(values[1]) || values[1].Length > 80 || Array.IndexOf(new string[] { "时效优先", "能耗优先", "均衡目标" }, values[2]) < 0 || !decimal.TryParse(values[3], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed) || parsed < 0 || parsed > 100000) throw new InvalidDataException("不是有效的原型配置文件。正式项目 JSON 不能作为此原型配置打开。"); scenarioName = values[1]; objective = values[2]; seed = parsed; UpdateSceneName(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "打开失败", MessageBoxButtons.OK, MessageBoxIcon.Error); } }
         }
-        private void ExportScreenshot() { using (SaveFileDialog d = new SaveFileDialog { Title = "导出窗口截图", Filter = "PNG 图像 (*.png)|*.png", FileName = "软件界面.png" }) { if (d.ShowDialog(this) != DialogResult.OK) return; try { SaveScreenshot(d.FileName); status.Text = "窗口截图已导出。"; } catch (Exception ex) { MessageBox.Show(this, ex.Message, "导出失败"); } } }
+        private async void ExportScreenshot() { using (SaveFileDialog d = new SaveFileDialog { Title = "导出窗口截图", Filter = "PNG 图像 (*.png)|*.png", FileName = "软件界面.png" }) { if (d.ShowDialog(this) != DialogResult.OK) return; try { await SaveNativeScreenshot(d.FileName); status.Text = "窗口截图已导出。"; } catch (Exception ex) { MessageBox.Show(this, ex.Message, "导出失败"); } } }
         public void SaveScreenshot(string path) { using (Bitmap bitmap = new Bitmap(Width, Height)) { DrawToBitmap(bitmap, new Rectangle(0, 0, Width, Height)); bitmap.Save(path, ImageFormat.Png); } }
         public void VerifyAndCapture(string directory)
         {
             Directory.CreateDirectory(directory); List<string> checks = new List<string>();
             Action<bool, string> check = delegate(bool passed, string label) { if (!passed) throw new InvalidOperationException(label); checks.Add(label); };
-            check(Documents.TabPages.Count == 5, "Five native document tabs including task view"); check(taskGrid.Rows.Count >= 1, "Task table populated"); check(platformGrid.Rows.Count >= 1, "Platform table populated");
-            SelectTask("T1-S3"); check(properties.SelectedObject is TaskProperties, "Seat selection updates native property grid");
-            SetTime(0); check(Phase(Tasks[0]) == "待开始" && Phase(Tasks[5]) == "待开始", "Beginning replay states");
-            SetTime(210); check(Tasks.TrueForAll(delegate(DemoTask t) { return Phase(t) == "已结束"; }), "End replay states");
-            SetTime(106); SelectTask("T1-S3"); check(taskProgress.Value >= 0, "Progress matches selected replay time");
-            Canvas.ShowBoundary = false; Canvas.Invalidate(); check(!Canvas.ShowBoundary, "Layer visibility toggles"); Canvas.ShowBoundary = true;
-            SetPlaying(true); check(timer.Enabled && play.Text.Contains("暂停"), "Playback button starts timer"); SetPlaying(false); check(!timer.Enabled, "Playback button pauses timer");
-            ShowConfiguration(Path.Combine(directory, "configuration.png"));
-            Documents.SelectedIndex = 1; Application.DoEvents(); SaveScreenshot(Path.Combine(directory, "tasks.png"));
+            check(Documents.TabPages.Count == 3, "Three tabs: scene, platforms, run history"); check(taskGrid.Columns.Count == 6, "Native task table defined"); check(platformGrid.Columns.Count == 7, "Native platform table includes height and participation");
+            check(desktopRun == null && taskGrid.Rows.Count == 0 && platformGrid.Rows.Count == 0, "No fake rows before a real run loads");
+            SetTime(100); SetPlaying(true); check(!timer.Enabled && properties.SelectedObject == null, "Empty replay controls do not expose demo results");
+            check(sceneLayerMenu.Items.Count == 7, "One map layer menu without building toggle");
+            foreach (ToolStripItem item in MainMenuStrip.Items) check(!item.Text.StartsWith("规划") && !item.Text.StartsWith("回放"), "Simplified main menu: " + item.Text);
+            check(tree.Parent.Controls.Count == 2 && tree.Dock == DockStyle.Fill, "Project browser uses full left column without duplicate layer panel");
+            foreach (ToolStripMenuItem item in sceneLayerMenu.Items) check(item.Text != "建筑轮廓" && item.Text != "目标接近", "Clear layer label: " + item.Text);
+            check(nativeEvents != null && nativeFiles != null, "Native event and artifact panels defined");
+            Func<Control,string,bool> hasButton = null;
+            hasButton = delegate(Control parent,string name) {
+                if(parent==null)return false;
+                foreach(Control child in parent.Controls)
+                    if((child is Button && child.Name==name)||hasButton(child,name))return true;
+                return false;
+            };
+            check(hasButton(nativeFiles.Parent,"NativeOpenChainTrace"), "Native open-chain trace entry defined");
+            check(hasButton(history.Parent,"HistoryOpenChainTrace"), "History open-chain trace entry defined");
+            Documents.SelectedIndex = 0; Application.DoEvents(); SaveScreenshot(Path.Combine(directory, "task-properties.png"));
             Documents.SelectedIndex = 0; Size = new Size(1500, 940); ResetLayout(); Application.DoEvents(); SaveScreenshot(Path.Combine(directory, "preview.png"));
             check(timeline.PointToScreen(Point.Empty).Y + timeline.Height < PointToScreen(new Point(0, ClientSize.Height)).Y, "Playback visible in native window");
             Size = new Size(1180, 780); ResetLayout(); Application.DoEvents(); SaveScreenshot(Path.Combine(directory, "preview-1180.png"));
-            check(Canvas.Width > 400 && properties.Width >= 260, "Resizable compact desktop layout");
+            check(webView.Width > 400 && properties.Width >= 260 && taskViewTab == Documents.TabPages[0], "Unified native scene layout at compact window size");
             Size = new Size(1500, 940); ResetLayout(); Documents.SelectedIndex = 0; Application.DoEvents();
             File.WriteAllLines(Path.Combine(directory, "verification.txt"), checks.ToArray(), new UTF8Encoding(false));
         }
@@ -808,12 +830,13 @@ namespace MarlDesktopPreview
             {
                 try
                 {
-                    using (MainWindow form = new MainWindow()) { form.ShowInTaskbar = false; form.StartPosition = FormStartPosition.Manual; form.Location = new Point(-16000, -16000); form.Show(); Application.DoEvents(); form.VerifyAndCapture(args[1]); form.Close(); } return 0;
+                    using (MainWindow form = new MainWindow()) { form.SkipBackendForVerification = true; form.ShowInTaskbar = false; form.StartPosition = FormStartPosition.Manual; form.Location = new Point(-16000, -16000); form.Show(); Application.DoEvents(); form.VerifyAndCapture(args[1]); form.Close(); } return 0;
                 }
                 catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "verification-error.txt"), ex.ToString()); return 1; }
             }
             if (args.Length == 2 && args[0] == "--run-verify")
             {
+                bool verificationFailed = false;
                 try
                 {
                     using (MainWindow form = new MainWindow())
@@ -831,44 +854,170 @@ namespace MarlDesktopPreview
                             if (ticks < 50) return;
                             timer.Stop();
                             try { form.CaptureLiveVerification(args[1]); }
-                            catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "run-verification-error.txt"), ex.ToString()); }
+                            catch (Exception ex) { verificationFailed = true; Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "run-verification-error.txt"), ex.ToString()); }
                             form.Close();
                         };
                         timer.Start();
                         Application.Run(form);
                     }
-                    return 0;
+                    return verificationFailed ? 1 : 0;
                 }
                 catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "run-verification-error.txt"), ex.ToString()); return 1; }
             }
-            if (args.Length == 2 && args[0] == "--live-verify")
+            if ((args.Length == 2 || args.Length == 4) && args[0] == "--live-verify")
             {
+                bool verificationFailed = false;
                 try
                 {
                     using (MainWindow form = new MainWindow())
                     {
+                        string requestedRun = args.Length == 4 ? args[2] : "";
+                        double captureTime = double.NaN;
+                        if (args.Length == 4 && !double.TryParse(args[3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out captureTime))
+                            throw new ArgumentException("回放时刻必须是数字。");
+                        form.PrepareLiveVerification(requestedRun);
                         form.StartPosition = FormStartPosition.Manual;
                         form.Location = new Point(30, 30);
                         form.Show();
                         int ticks = 0;
+                        bool requestedRunSent = false;
                         Timer timer = new Timer { Interval = 1000 };
                         liveVerifyTimer = timer;
-                        timer.Tick += delegate
+                        timer.Tick += async delegate
                         {
                             ticks++;
                             DesktopTrace("live tick " + ticks);
-                            if (ticks < 14) return;
+                            if (!string.IsNullOrEmpty(requestedRun) && !requestedRunSent &&
+                                form.LoadRunForVerification(requestedRun))
+                            {
+                                requestedRunSent = true;
+                                DesktopTrace("live requested run " + requestedRun);
+                            }
+                            if (ticks < 14 || (!form.ReadyForDesktopVerification && ticks < 45)) return;
+                            if (!string.IsNullOrEmpty(requestedRun) && form.CurrentRunIdForVerification != requestedRun && ticks < 70) return;
                             timer.Stop();
-                            try { form.CaptureLiveVerification(args[1]); }
-                            catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "live-verification-error.txt"), ex.ToString()); }
+                            try
+                            {
+                                if (args.Length == 4) await form.CaptureReplayVerification(args[1], captureTime);
+                                else form.CaptureLiveVerification(args[1]);
+                            }
+                            catch (Exception ex) { verificationFailed = true; DesktopTrace("live verification exception: " + ex); Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "live-verification-error.txt"), ex.ToString()); }
                             form.Close();
                         };
                         timer.Start();
                         Application.Run(form);
                     }
-                    return 0;
+                    return verificationFailed ? 1 : 0;
                 }
                 catch (Exception ex) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "live-verification-error.txt"), ex.ToString()); return 1; }
+            }
+            if (args.Length == 2 && args[0] == "--scenarios-verify")
+            {
+                int result = 0;
+                using (MainWindow form = new MainWindow())
+                {
+                    form.Shown += async delegate {
+                        try { await form.VerifyScenarioDemos(args[1]); }
+                        catch (Exception ex) { result = 1; Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "scenario-error.txt"), ex.ToString()); }
+                        form.Close();
+                    };
+                    Application.Run(form);
+                }
+                return result;
+            }
+            if (args.Length == 2 && args[0] == "--recon-verify") {
+                int result = 0;
+                using(MainWindow form = new MainWindow()) {
+                    form.Shown += async delegate { try { await form.VerifyReconSelection(args[1]); } catch(Exception ex) { result=1; Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"recon-error.txt"),ex.ToString()); } form.Close(); };
+                    Application.Run(form);
+                }
+                return result;
+            }
+            if (args.Length == 2 && args[0] == "--folder-verify") {
+                int result=0;
+                using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate { try { await form.VerifyRecordsFolder(args[1]); } catch(Exception ex){ result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"folder-error.txt"),ex.ToString()); } form.Close(); };
+                    Application.Run(form);
+                }
+                return result;
+            }
+            if(args.Length==2 && args[0]=="--resize-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate { try { await form.VerifyResizeAndChoices(args[1]); }catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"resize-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--trails-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyRecordedTrails(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"trails-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--inputs-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyColleagueInputs(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"inputs-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--pose-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyColleaguePlayback(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"pose-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--webview-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyWebViewStartup(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"webview-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--platforms-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyPlatformPresentation(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"presentation-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--run-comparison-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifySavedRunComparison(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"comparison-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--execution-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyExecutionConfiguration(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"execution-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--reading-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyLegendAndReading(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"reading-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--history-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.Shown+=async delegate {try {await form.VerifyHistoryObjectives(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"history-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--scene-parameters-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.PrepareLiveVerification("configuration-source-check");
+                    form.Shown+=async delegate {try {await form.VerifySceneConfiguration(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"configuration-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--map-random-verify") {
+                return MapRandomVerification.Run(args[1]);
+            }
+            if(args.Length==2 && args[0]=="--dynamic-platforms-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.PrepareLiveVerification("dynamic-platform-check");
+                    form.Shown+=async delegate {try {await form.VerifyDynamicPlatforms(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"dynamic-platform-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--altitude-feedback-verify") {
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.PrepareLiveVerification("altitude-feedback-check");
+                    form.Shown+=async delegate {try {await form.VerifyAltitudeFeedback(args[1]);}catch(Exception ex){result=1;Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"altitude-feedback-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
+            }
+            if(args.Length==2 && args[0]=="--structured-editor-verify") {
+                DesktopTrace("structured editor verification branch");
+                int result=0;using(MainWindow form=new MainWindow()) {
+                    form.PrepareLiveVerification("structured-editor-check");
+                    form.Shown+=async delegate {DesktopTrace("structured editor verification shown");try {await form.VerifyStructuredEditors(args[1]);}catch(Exception ex){result=1;DesktopTrace("structured verification failed: " + ex.ToString());Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"structured-editor-error.txt"),ex.ToString());}form.Close();};Application.Run(form);
+                }return result;
             }
             Application.Run(new MainWindow()); return 0;
         }

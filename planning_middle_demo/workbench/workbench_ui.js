@@ -58,7 +58,7 @@
     const names={overview:'总览',tasks:'任务',platforms:'平台',runs:'报告',files:'文件'};
     document.querySelectorAll('.nav').forEach(b=>{[...b.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE).forEach(n=>{if(n.textContent.trim())n.textContent=names[b.dataset.page];});});
     header.append(document.querySelector('.connection'));
-    document.querySelector('.run-right').append(document.getElementById('refresh'),document.getElementById('open-config'));document.getElementById('open-config').textContent='＋ 新建运行';
+    document.querySelector('.run-right').append(document.getElementById('refresh'),document.getElementById('edit-config'),document.getElementById('open-config'));document.getElementById('open-config').textContent='＋ 新建运行';
     dom.status=document.createElement('div');dom.status.className='ui-status';document.querySelector('.run-strip').after(dom.status);
     const history=document.createElement('button');history.className='button';history.textContent='历史运行';history.onclick=()=>setPage('runs');document.querySelector('.run-right').prepend(history);
     fold(document.getElementById('behavior-panel'),'动作与判定详情','layout-actions');fold(document.querySelector('.event-card'),'全部事件记录','layout-events');

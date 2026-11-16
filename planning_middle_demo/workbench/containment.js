@@ -14,6 +14,7 @@
     data: null, jobId: null, t: 0, playing: false, speed: 3,
     raf: null, last: 0, built: false, bounds: null,
     cam: 'all', visible: false, showRoutes: false,
+    layers: { buildings: true, boundary: true, units: true, targets: true, grid: true, threats: true, trails: true },
   };
   const DESKTOP_MODE = new URLSearchParams(location.search).get('desktop') === '1';
   const COLORS = DESKTOP_MODE ? {
@@ -35,18 +36,19 @@
     control_established: '#0f766e', control_interrupted: '#b45309',
     control_restored: '#0f766e', target_appeared: '#94a3b8',
     target_detected: '#d97706', warning_issued: '#d97706',
-    warning_effective: '#64748b', intercept_assigned: '#7c3aed',
+    warning_effective: '#64748b', target_withdraw_started: '#0f766e', intercept_assigned: '#7c3aed',
     intercepted: '#0d9488', breach: '#991b1b', authorized_pass: '#2563eb',
   };
   const STATE_COLOR = {
-    '待出现': COLORS.waiting, '监视': COLORS.warned, '已警告': COLORS.warned,
+    '待出场': COLORS.waiting, '已出场': COLORS.unauthorized, '监视': COLORS.warned, '已警告': COLORS.warned,
     '拦截中': COLORS.intercepting, '已拦阻': COLORS.held,
-    '未授权进入': COLORS.breach, '已撤离': COLORS.withdrawn, '已放行': COLORS.passed,
+    '未授权进入': COLORS.breach, '撤离中': COLORS.held, '已撤离': COLORS.withdrawn, '已放行': COLORS.passed,
   };
   const EVENT_TEXT = {
     target_appeared: '目标出现', target_detected: '发现目标',
     target_authorized: '识别为已授权', target_unauthorized: '识别为未授权',
     warning_issued: '发出警告', warning_effective: '警告有效·撤离',
+    target_withdraw_started: '目标开始撤离',
     intercept_assigned: '指派拦阻', intercept_denied: '授权不足未拦阻',
     intercepted: '拦阻到位', breach: '未授权进入', authorized_pass: '授权放行',
     control_established: '控制建立', control_interrupted: '控制中断',
@@ -97,11 +99,12 @@
 
   function structure() { return C.data.structure; }
   function result() { return C.data.result || {}; }
+  function trackedTargets() { return C.data.targets || result().targets || []; }
   function metrics() { return result().metrics || {}; }
   function endTime() {
     const st = structure();
     let end = (result().sim_s || 0) + 1;
-    for (const t of (result().targets || [])) {
+    for (const t of trackedTargets()) {
       for (const p of (t.track || [])) end = Math.max(end, p[0]);
     }
     for (const e of (C.data.events || [])) end = Math.max(end, e.t || 0);
@@ -110,7 +113,8 @@
         if (s.job === C.jobId) end = Math.max(end, s.t);
       }
     }
-    return Math.max(end, (st && st.duration_s) || 0);
+    const recordedEnd = Number(((currentRun() || {}).replay || {}).end) || 0;
+    return recordedEnd > 0 ? recordedEnd : Math.max(end, (st && st.duration_s) || 0);
   }
 
   function workers() {
@@ -147,7 +151,7 @@
 
   function workerSamples(pid) {
     const w = workers().find((x) => x.pid === pid);
-    return (w && w.samples) ? w.samples.filter((s) => s.job === C.jobId) : [];
+    return w ? (window.ReplayPose.samples ? window.ReplayPose.samples(w) : w.samples) : [];
   }
 
   // ---------------------------------------------------------------- 面板
@@ -215,7 +219,7 @@
       '<div class="ck-kpi-value">' + esc(value) + '</div>' +
       '<div class="ck-kpi-note">' + esc(note) + '</div></article>').join('');
 
-    const targets = (result().targets || []);
+    const targets = (result().targets || trackedTargets());
     const rows = targets.map((t) => {
       const cls = t.authorized ? 'au' : 'un';
       const cell = (v) => (v == null ? '—' : num(v, 1) + 's');
@@ -225,7 +229,7 @@
         '<td>' + cell(t.warned_at_s) + '</td>' +
         '<td>' + cell(t.intercepted_at_s) + '</td>' +
         '<td><span class="ck-state" style="--c:' + stateColor(t.state) + '">' +
-        esc(t.state) + '</span></td></tr>';
+        esc(t.state || targetStateAt(t, C.t)) + '</span></td></tr>';
     }).join('') || '<tr><td colspan="5" class="muted">本次记录没有目标接近事件</td></tr>';
 
     const items = (result().items || []).map((it) =>
@@ -340,6 +344,7 @@
       if (li) { setPlaying(false); seek(Number(li.dataset.t)); }
     });
     const canvas = el('#ck-canvas');
+    if (canvas && window.SceneNavigation) window.SceneNavigation.bind(canvas, cameraApi());
     if (canvas) canvas.addEventListener('click', (e) => {
       // 点目标/平台查看该对象在该时刻的状态
       const rect = canvas.getBoundingClientRect();
@@ -415,12 +420,11 @@
 
   function phaseNow(t) {
     const events = (C.data.events || []).filter((e) => (e.t || 0) <= t);
-    const has = (k) => events.some((e) => e.kind === k);
-    const last = events.filter((e) => e.kind === 'intercept_assigned').pop();
-    const held = events.filter((e) => e.kind === 'intercepted').pop();
-    if (!has('control_established')) return { label: '机动集结', color: '#64748b' };
-    if (last && (!held || held.t < last.t)) return { label: '拦阻', color: '#7c3aed' };
-    if (has('warning_issued') && !held) return { label: '警告', color: '#d97706' };
+    if (!events.some(e => e.kind === 'control_established')) return { label: '机动集结', color: '#64748b' };
+    const states = trackedTargets().map(target => targetStateAt(target, t));
+    if (states.includes('拦截中')) return { label: '拦阻', color: '#7c3aed' };
+    if (states.includes('撤离中')) return { label: '目标撤离中', color: '#0f766e' };
+    if (states.includes('已警告')) return { label: '警告', color: '#d97706' };
     return { label: '封控在位', color: '#0f766e' };
   }
 
@@ -477,12 +481,20 @@
     (st.area || []).forEach((p) => pts.push(p));
     for (const post of (st.post_plan || [])) if (post.point) pts.push(post.point);
     for (const gate of (st.gates || [])) if (gate.point) pts.push(gate.point);
-    for (const t of (result().targets || [])) {
+    for (const t of trackedTargets()) {
       if (t.start) pts.push(t.start);
       if (t.goal) pts.push(t.goal);
       (t.track || []).forEach((p) => pts.push([p[1], p[2]]));
     }
     if (C.cam === 'all') {
+      const run = currentRun() || {};
+      for (const threat of (run.threats || [])) pts.push(...(threat.polygon || []));
+      for (const worker of workers()) if (worker.start) pts.push(worker.start);
+      for (const group of ['roads', 'surfaces', 'obstacles'])
+        for (const item of ((run.scene_map || {})[group] || []))
+          for (const point of (item.polygon || [])) pts.push(point);
+      for (const worker of ((run.replay || {}).workers || []))
+        for (const sample of (worker.samples || [])) pts.push([sample.x, sample.y]);
       // 全程视图把"集结 → 规划路径 → 占位"一起纳入取景
       for (const a of planAssignments()) {
         for (const p of (a.path || [])) pts.push(p);
@@ -493,7 +505,7 @@
     // 取景只按封控区本身，平台出画时仍按其真实坐标绘制。
     if (!pts.length) return [0, 0, 100, 100];
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-    const pad = Math.max(12, Math.max(Math.max(...xs) - Math.min(...xs),
+    const pad = Math.max(12, Number(st.sensor_radius_m) || 0, Math.max(Math.max(...xs) - Math.min(...xs),
                                       Math.max(...ys) - Math.min(...ys)) * 0.08);
     return [Math.min(...xs) - pad, Math.min(...ys) - pad,
             Math.max(...xs) + pad, Math.max(...ys) + pad];
@@ -508,9 +520,21 @@
     return [(p) => [W / 2 + (p[0] - cx) * scale, H / 2 - (p[1] - cy) * scale], scale];
   }
 
+  function cameraApi() {
+    return {
+      getBounds: () => (C.bounds || (C.bounds = computeBounds())).slice(),
+      setBounds: bounds => { C.camAuto = false; C.bounds = bounds; draw(); },
+    };
+  }
+
+  function fitView(mode) {
+    C.cam = mode === 'all' ? 'all' : 'area'; C.camAuto = false; C.bounds = null;
+    syncCamButtons(); resize(); draw(); return true;
+  }
+
   function targetAt(tgt, t) {
     const track = tgt.track || [];
-    if (!track.length) return [tgt.start[0], tgt.start[1]];
+    if (!track.length || t < track[0][0]) return tgt.start;
     let prev = track[0];
     for (const p of track) {
       if (p[0] <= t) prev = p; else {
@@ -530,22 +554,22 @@
     if (kinds.has('breach')) return '未授权进入';
     if (kinds.has('intercepted')) return '已拦阻';
     if (kinds.has('warning_effective')) return '已撤离';
+    if (kinds.has('target_withdraw_started')) return '撤离中';
     if (kinds.has('authorized_pass')) return '已放行';
     if (kinds.has('intercept_assigned')) return '拦截中';
     if (kinds.has('warning_issued')) return '已警告';
     if (kinds.has('target_detected')) return '监视';
-    return '待出现';
+    if (kinds.has('target_appeared') || tgt.track?.[0]?.[0] <= t) return '已出场';
+    return '待出场';
   }
 
   function agentAt(pid, t) {
     const samples = workerSamples(pid);
-    if (!samples.length) return null;
+    if (!samples.length) { const w=workers().find(x=>x.pid===pid); return w && w.start ? {x:w.start[0], y:w.start[1], yaw:w.yaw || 0, phase:'idle'} : null; }
     let prev = samples[0];
     for (const s of samples) {
       if (s.t <= t) prev = s; else {
-        const f = (t - prev.t) / Math.max(1e-6, s.t - prev.t);
-        return { x: prev.x + (s.x - prev.x) * f, y: prev.y + (s.y - prev.y) * f,
-                 yaw: prev.yaw || 0, phase: prev.phase };
+        return window.ReplayPose.between(prev, s, t);
       }
     }
     return { x: prev.x, y: prev.y, yaw: prev.yaw || 0, phase: prev.phase };
@@ -590,6 +614,7 @@
   }
 
   function draw() {
+    resize();
     const canvas = el('#ck-canvas');
     if (!canvas || !C.data) return;
     const rect = canvas.getBoundingClientRect();
@@ -600,6 +625,16 @@
     ctx.clearRect(0, 0, rect.width, rect.height);
     ctx.fillStyle = DESKTOP_MODE ? '#fbfcfe' : '#f4f6f1';
     ctx.fillRect(0, 0, rect.width, rect.height);
+    if (DESKTOP_MODE && C.layers.grid && !window.SceneNavigation) {
+      ctx.strokeStyle = '#edf2f8';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= rect.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, rect.height); ctx.stroke();
+      }
+      for (let y = 0; y <= rect.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(rect.width, y); ctx.stroke();
+      }
+    }
     const st = structure();
     const [P, scale] = projectFactory(canvas);
     const t = C.t;
@@ -607,7 +642,7 @@
     // 静态底图（楼体/花坛/道路）：只作参照，不参与判定；没有底图就跳过，
     // 不补示意图——否则"这栋楼在不在封控区里"会被一张假底图带偏。
     const backdrop = (currentRun() || {}).scene_map;
-    if (backdrop && !backdrop.error) {
+    if (C.layers.buildings && backdrop && !backdrop.error) {
       const poly = (points, fill, stroke) => {
         if (!points || points.length < 3) return;
         ctx.beginPath();
@@ -619,9 +654,13 @@
         if (fill) { ctx.fillStyle = fill; ctx.fill(); }
         if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
       };
-      for (const road of (backdrop.roads || [])) poly(road.polygon, '#eef1ec', null);
-      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, '#eaf1e6', null);
-      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, '#e3e8e2', '#cfd8cc');
+      for (const road of (backdrop.roads || [])) poly(road.polygon, DESKTOP_MODE ? '#edf2f8' : '#eef1ec', null);
+      for (const surface of (backdrop.surfaces || [])) poly(surface.polygon, DESKTOP_MODE ? '#f5f8fc' : '#eaf1e6', null);
+      for (const obstacle of (backdrop.obstacles || [])) poly(obstacle.polygon, DESKTOP_MODE ? '#e4ecf5' : '#e3e8e2', DESKTOP_MODE ? '#c6d3e3' : '#cfd8cc');
+    }
+    if (C.layers.grid && window.SceneNavigation) {
+      const b = C.bounds;
+      window.SceneNavigation.drawGrid(ctx, rect.width, rect.height, P, scale, (b[0] + b[2]) / 2, (b[1] + b[3]) / 2);
     }
     // 标注避让：同一时刻各平台/目标可能挤在一起（如集结待命时），
     // 逐字叠加会糊成一团，按矩形碰撞跳过次要标注。
@@ -650,6 +689,8 @@
       if (close) ctx.closePath();
     };
 
+    if (window.SceneNavigation) window.SceneNavigation.drawSceneContext(ctx, currentRun() || {}, P, C.layers);
+
     // 集结点始终画；规划路径默认关闭——一屏几条从集结地穿到占位点的长线
     // 会把封控区压住，只有想看"规划器怎么走的"时才点开。
     const start = assemblyPoints();
@@ -668,6 +709,7 @@
       ctx.font = '11px "Segoe UI","Microsoft YaHei"';
       placeLabel('集结待机区', c[0] + 11, c[1] + 4, '#334155');
     }
+    if (DESKTOP_MODE && window.SceneNavigation) window.SceneNavigation.drawRecordedTrails(ctx,currentRun()||{},P,t,C.layers.trails);
     if (C.showRoutes) {
       for (const route of planAssignments()) {
         const path = route.path || [];
@@ -693,7 +735,7 @@
     }
 
     // 封控区
-    if (st.area && st.area.length) {
+    if (C.layers.boundary && st.area && st.area.length) {
       poly(st.area);
       ctx.fillStyle = 'rgba(194,65,12,0.06)';
       ctx.fill();
@@ -710,7 +752,7 @@
 
     // 每段边界：按平台着色，段中点写占位平台
     // 每段边界：按段号着色，段中点写占位平台
-    (st.sectors || []).forEach((sector, i) => {
+    (C.layers.boundary ? st.sectors || [] : []).forEach((sector, i) => {
       const color = SECTOR_COLORS[i % SECTOR_COLORS.length];
       poly(sector.boundary, false);
       ctx.strokeStyle = color;
@@ -726,7 +768,7 @@
     });
 
     // 通道口
-    (st.gates || []).forEach((gate) => {
+    (C.layers.boundary ? st.gates || [] : []).forEach((gate) => {
       const dir = gate.direction || [0, 1];
       const ang = Math.atan2(dir[1], dir[0]);
       const nx = -Math.sin(ang), ny = Math.cos(ang);
@@ -750,7 +792,7 @@
 
     // 在位平台的监视范围与站位
     const roles = st.roles || {};
-    (st.post_plan || []).forEach((post) => {
+    (C.layers.units ? st.post_plan || [] : []).forEach((post) => {
       const agent = agentAt(post.pid, t);
       const onPost = agent ? onStation(st, post.pid, [agent.x, agent.y]) : false;
       const roleKind = String(post.role || '').split(':')[0];
@@ -778,7 +820,7 @@
 
     // 目标轨迹与当前位姿：只留最近 12 s 的一小段尾迹，不画长直线
     const events = (C.data.events || []);
-    for (const tgt of (result().targets || [])) {
+    for (const tgt of (C.layers.targets ? trackedTargets() : [])) {
       const track = (tgt.track || []).filter((p) => p[0] <= t);
       const tail = track.filter((p) => p[0] >= t - 12);
       if (tail.length > 1) {
@@ -789,17 +831,16 @@
         ctx.stroke();
         ctx.globalAlpha = 1;
       }
-      if (t < (tgt.track?.[0]?.[0] ?? 0)) continue;
       const pos = targetAt(tgt, t);
+      if (!pos) continue;
       const q = P(pos);
       const state = targetStateAt(tgt, t);
-      if (state === '待出现') continue;
       const color = stateColor(state);
       ctx.beginPath();
       ctx.arc(q[0], q[1], 7, 0, Math.PI * 2);
-      ctx.fillStyle = color;
+      ctx.fillStyle = state === '待出场' ? '#fff' : color;
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = state === '待出场' ? color : '#fff';
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.fillStyle = '#0f172a';
@@ -820,7 +861,7 @@
     }
 
     // 拦阻连线
-    for (const tgt of (result().targets || [])) {
+    for (const tgt of (C.layers.targets ? trackedTargets() : [])) {
       if (!tgt.interceptor) continue;
       const assigned = events.find((e) => e.kind === 'intercept_assigned' && e.target_id === tgt.target_id);
       const done = events.find((e) => e.kind === 'intercepted' && e.target_id === tgt.target_id);
@@ -838,18 +879,19 @@
     }
 
     // 平台
-    for (const pid of Object.keys(roles)) {
+    for (const pid of (C.layers.units ? workers().map(w => w.pid) : [])) {
       const a = agentAt(pid, t);
       if (!a) continue;
       const w = workers().find((x) => x.pid === pid);
       const q = P([a.x, a.y]);
       const onPost = onStation(st, pid, [a.x, a.y]);
-      const color = onPost ? '#0f766e' : '#475569';
+      const color = !roles[pid] ? ({UGV:'#3f6fa3',TANK:'#8a6b3d',PLANE:'#2f8f86',WING:'#7657a8'}[w.kind] || '#64748b') : onPost ? '#0f766e' : '#475569';
       if (typeof window.drawPlatformIcon === 'function') {
         window.drawPlatformIcon(ctx, w ? w.kind : 'UGV', q[0], q[1], 11, a.yaw, color);
       } else {
         ctx.beginPath(); ctx.arc(q[0], q[1], 5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
       }
+      if (!roles[pid]) placeLabel(shortPid(pid), q[0] + 10, q[1] - 5, color);
       if (onPost || String(st.roles[pid] || '').startsWith('intercept')) {
         let text = shortPid(pid) + ' ' + roleName(st.roles[pid]).split(' · ')[0];
         const airPost = (st.post_plan || []).find((p) => p.pid === pid && p.altitude_m);
@@ -858,14 +900,16 @@
       }
     }
 
-    // 图例时间
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.fillRect(rect.width - 132, 10, 122, 26);
-    ctx.strokeStyle = '#dbe3dc';
-    ctx.strokeRect(rect.width - 132, 10, 122, 26);
-    ctx.fillStyle = '#0f172a';
-    ctx.font = '12px "Segoe UI","Microsoft YaHei"';
-    ctx.fillText('T+' + num(t, 1) + ' s', rect.width - 122, 27);
+    // 时间角标由桌面端原生播放条承担，桌面模式下不重复画在画布上。
+    if (!DESKTOP_MODE) {
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.fillRect(rect.width - 132, 10, 122, 26);
+      ctx.strokeStyle = '#dbe3dc';
+      ctx.strokeRect(rect.width - 132, 10, 122, 26);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '12px "Segoe UI","Microsoft YaHei"';
+      ctx.fillText('T+' + num(t, 1) + ' s', rect.width - 122, 27);
+    }
   }
 
   // ---------------------------------------------------------------- 对外
@@ -899,6 +943,23 @@
   function time() { return C.t; }
 
   window.ContainmentPage = {
+    centerAt: point => {
+      const b = cameraApi().getBounds(), half = Math.max(10, Math.min(60, (b[2] - b[0]) / 2));
+      cameraApi().setBounds([point[0] - half, point[1] - half, point[0] + half, point[1] + half]);
+      return true;
+    },
+    fitView,
+    cameraBounds: () => cameraApi().getBounds(),
+    projectPoints: points => { const view=window.SceneNavigation.project(el('#ck-canvas'),cameraApi().getBounds());return points.map(view.point); },
+    setCameraBounds: value => cameraApi().setBounds(value),
+    zoom: factor => window.SceneNavigation && window.SceneNavigation.zoom(el('#ck-canvas'), cameraApi(), factor),
+    setLayer: (name, visible) => {
+      if (name === 'planned') C.showRoutes = !!visible;
+      else if (Object.prototype.hasOwnProperty.call(C.layers, name)) C.layers[name] = !!visible;
+      else return false;
+      draw();
+      return true;
+    },
     load: load,
     show: show,
     hide: hide,

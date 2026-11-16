@@ -1,3 +1,5 @@
+> 历史基座设计记录：保留生成时接口、参数和假设，不代表当前全部实现。当前操作见 [主程序入口](../README.md)，4.1/4.2 现行契约见 [interop 说明](../interop/README.md)。
+
 # 接口与想定 Schema 对照（对齐《技术实施方案》§3.1）
 
 > 生成日期：2026-10-26。本文回答一个问题：**《智能体开发训练平台技术实施
@@ -88,7 +90,7 @@
 
 ### P0-B：ROS2 Topic 消息体（#2）
 
-`delivery_block` 已对齐话题名（`/container_00/robot_XXX`、`/model/robot_XXX/pose`，2026-10-30 更新），
+`delivery_block` 已对齐话题名（`/container_00/robot_XXX/cmd_vel`、`/model/robot_XXX/pose`，2026-11-11 校正），
 但方案 `.msg × 2` 的 `/gazebo/model_states` + `/robot/odom_ext` + `/sensor/*`
 消息体**未定义**。接真实下层时，把 `mock_fleet` 替换为订阅这些话题的适配器，
 `delivery_block` 的运动字段（`motion_caps`）不变。
